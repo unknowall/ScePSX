@@ -1,0 +1,41 @@
+<h2>这是一个小巧可用的 PS1 模拟器</h2>
+
+1. 支持即时存档
+2. 支持D3D和OpenGL渲染，OpenGL可加载着色器，两者都兼容ReShade
+3. 自带一个简单的xBR放大，支持 2, 4 , 6， 8 倍
+4. 有内存编辑及内存搜索功能
+5. 支持金手指
+6. 通过SDL支持多轴手柄
+7. 每个游戏都有独立的游戏存档以及即时存档
+8. 多光盘游戏请使用存储卡2，存储卡1独立，存储卡2共用
+
+
+
+如何使用:
+
+1. BIOS 目录下至少有一个可用BIOS，启动后在文件菜单中选中
+2. 需要 SDL2 以及 OpenGL 支持
+3. 按键设置在文件菜单查看、设置（默认按键：12 WSAD UIJK QERT）
+
+
+
+如何编译：
+
+1. 项目是.net 8.0 框架
+2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
+3. OpenGL 可以安装NuGet包： OpenGL.NET (不推荐，只支持 .net 4.7 框架)，或者手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
+
+![read2](https://github.com/user-attachments/assets/4e3209e6-04a3-4aab-9072-eb3514d3e381)
+
+
+![read1](https://github.com/user-attachments/assets/1688f0ec-bd7b-441d-a818-0c06b4e235c4)
+
+
+项目基于 https://github.com/BluestormDNA/ProjectPSX
+
+主要改进：
+1. 重构BUS以及CDROM解决游戏兼容性问题 ( 恶魔城，FF7 等游戏
+2. 重构GPU解决图像生成错误
+3. 修正时序错误
+4. 增加支持双手柄
+5. 增加支持即时存档
