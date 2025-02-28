@@ -1,0 +1,36 @@
+#version 330 core
+
+uniform sampler2D textureSampler;
+in vec2 texCoord;
+
+out vec4 fragColor;
+
+void main()
+{
+    vec2 screenSize = vec2(textureSize(textureSampler, 0));
+    vec2 texSize = 1.0 / screenSize;
+    
+    vec2 dx = vec2(1.0, 0.0) * texSize;
+    vec2 dy = vec2(0.0, 1.0) * texSize;
+    
+    // 像素采样
+    vec3 center = texture(textureSampler, texCoord).rgb;
+    vec3 n0 = texture(textureSampler, texCoord - dx).rgb;
+    vec3 n1 = texture(textureSampler, texCoord + dx).rgb;
+    vec3 n2 = texture(textureSampler, texCoord - dy).rgb;
+    vec3 n3 = texture(textureSampler, texCoord + dy).rgb;
+    vec3 n4 = texture(textureSampler, texCoord - dx - dy).rgb;
+    vec3 n5 = texture(textureSampler, texCoord + dx - dy).rgb;
+    vec3 n6 = texture(textureSampler, texCoord - dx + dy).rgb;
+    vec3 n7 = texture(textureSampler, texCoord + dx + dy).rgb;
+    
+    // 使用hq2x算法进行像素缩放
+    vec4 result = vec4(0.0);
+    result.xyz += 5.0 * center;
+    result.xyz += -1.0 * (n1 + n3 + n5 + n7);
+    result.xyz += -1.0 / 8.0 * (n0 + n2 + n4 + n6);
+    result.xyz += 1.0 / 16.0 * (n4 + n5 + n6 + n7);
+    
+    // 输出颜色
+    fragColor = vec4(result.xyz, 1.0);
+}
