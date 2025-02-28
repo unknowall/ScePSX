@@ -32,7 +32,7 @@
 ![read3](https://github.com/user-attachments/assets/fc688b7c-5852-4213-a58b-e4bd56ab459d)
 
 
-项目基于 https://github.com/BluestormDNA/ProjectPSX
+Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
 
 主要改进：
 1. 重构BUS以及CDROM解决游戏兼容性问题 ( 恶魔城，FF7 等游戏
