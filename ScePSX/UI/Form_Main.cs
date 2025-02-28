@@ -79,7 +79,7 @@ namespace ScePSX
             D3DRENDER.Enabled = false;
             //D3DRENDER.Visible = false;
 
-            AllocConsole();
+            //AllocConsole();
 
             CheckForIllegalCrossThreadCalls = false;
 
@@ -469,6 +469,10 @@ namespace ScePSX
                 UnLoadState();
                 return;
             }
+            if (e.KeyCode == Keys.F9)
+            {
+                AllocConsole();
+            }
             if (e.KeyCode == Keys.F10)
             {
                 Core.PsxBus.controller1.IsAnalog = !Core.PsxBus.controller1.IsAnalog;
@@ -662,7 +666,7 @@ namespace ScePSX
                     scalew *= scale;
                     scaleh *= scale;
                 }
-                this.Text = $"sPSX | {Core.DiskID} | SaveSlot {StateSlot} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
+                this.Text = $"ScePSX | {Core.DiskID} | SaveSlot {StateSlot} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
             }
         }
 
