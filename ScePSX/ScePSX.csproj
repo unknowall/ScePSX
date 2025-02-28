@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+	<OutputType>WinExe</OutputType>
+	<TargetFramework>net8.0-windows7.0</TargetFramework>
+	<UseWindowsForms>True</UseWindowsForms>
+	<StartupObject>ScePSX.Program</StartupObject>
+	<Platforms>AnyCPU</Platforms>
+	<IsPublishable>False</IsPublishable>
+	<BaseIntermediateOutputPath></BaseIntermediateOutputPath>
+	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+  <PlatformTarget>AnyCPU</PlatformTarget>
+  <PackageIcon></PackageIcon>
+  <ApplicationIcon>001.ico</ApplicationIcon>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Optimize>True</Optimize>
+	<DebugType>full</DebugType>
+	<NoWarn>1701;1702;CS8500;CS0649</NoWarn>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<DefineConstants>TRACE</DefineConstants>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Optimize>False</Optimize>
+	<DebugType>full</DebugType>
+	<NoWarn>1701;1702;CS8500;CS0649</NoWarn>
+</PropertyGroup>
+
+<ItemGroup>
+  <Compile Remove="obj\**" />
+  <Compile Remove="packages\**" />
+  <EmbeddedResource Remove="obj\**" />
+  <EmbeddedResource Remove="packages\**" />
+  <None Remove="obj\**" />
+  <None Remove="packages\**" />
+</ItemGroup>
+
+<ItemGroup>
+  <None Remove=".editorconfig" />
+</ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\MyCodes\#PS1\ScePSX\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\MyCodes\#PS1\ScePSX\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="001.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="OpenGL">
+      <HintPath>..\OpenGL.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  </Project>
