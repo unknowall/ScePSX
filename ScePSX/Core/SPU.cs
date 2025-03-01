@@ -201,11 +201,11 @@ namespace ScePSX
         Status status;
 
         [NonSerialized]
-        public IPSXHost host;
+        public ICoreHandler host;
 
         private IRQController interruptController;
 
-        public SPU(IPSXHost host, IRQController interruptController)
+        public SPU(ICoreHandler host, IRQController interruptController)
         {
             this.host = host;
             this.interruptController = interruptController;

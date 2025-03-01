@@ -1,9 +1,7 @@
 ﻿namespace ScePSX
 {
-    public interface IPSXHost
+    public interface ICoreHandler
     {
-        void HandlerError();
-
         void FrameReady(int[] pixels, int width, int height);
         void SamplesReady(byte[] samples);
     }

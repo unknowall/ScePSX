@@ -72,6 +72,9 @@ namespace ScePSX
 
         private void OpenGLRenderer_Render(object sender, GlControlEventArgs e)
         {
+            if (this.Visible == false || DesignMode)
+                return;
+
             if (scale > 0)
             {
                 Pixels = XbrScaler.ScaleXBR(Pixels, iWidth, iHeight, scale);
@@ -82,19 +85,15 @@ namespace ScePSX
 
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if (!DesignMode)
-            {
-                if (programID != 0)
-                    Gl.UseProgram(programID);
+            Gl.UseProgram(programID);
 
-                Gl.ActiveTexture(TextureUnit.Texture0);
-                Gl.BindTexture(TextureTarget.Texture2d, _textureId);
+            Gl.ActiveTexture(TextureUnit.Texture0);
+            Gl.BindTexture(TextureTarget.Texture2d, _textureId);
 
-                Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, iWidth, iHeight, 0, PixelFormat.Bgra, PixelType.UnsignedByte, Pixels);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, iWidth, iHeight, 0, PixelFormat.Bgra, PixelType.UnsignedByte, Pixels);
 
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vboID);
-                Gl.DrawArrays(PrimitiveType.Quads, 0, 4);
-            }
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, vboID);
+            Gl.DrawArrays(PrimitiveType.Quads, 0, 4);
         }
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)

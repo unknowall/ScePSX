@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ScePSX
 {
-    public class PSXCore : IPSXHost
+    public class PSXCore : ICoreHandler
     {
         const int PSX_MHZ = 33868800;
         public const int CYCLES_PER_FRAME = PSX_MHZ / 60;
@@ -46,7 +46,7 @@ namespace ScePSX
         }
         public List<CheatCode> cheatCodes = new List<CheatCode> { };
 
-        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile = "./SCPH1001.BIN")
+        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile)
         {
             SYNC_LOOPS = (CYCLES_PER_FRAME / (SYNC_CYCLES * MIPS_UNDERCLOCK)) + 1;
 
@@ -339,19 +339,14 @@ namespace ScePSX
 
         public void AnalogAxis(float lx, float ly, float rx, float ry) => PsxBus.controller1.AnalogAxis(lx, ly, rx, ry);
 
-        void IPSXHost.SamplesReady(byte[] samples)
+        void ICoreHandler.SamplesReady(byte[] samples)
         {
             _Audio.PlaySamples(samples);
         }
 
-        void IPSXHost.FrameReady(int[] pixels, int width, int height)
+        void ICoreHandler.FrameReady(int[] pixels, int width, int height)
         {
             _IRender.RenderFrame(pixels, width, height);
-        }
-
-        void IPSXHost.HandlerError()
-        {
-            Console.ReadLine();
         }
     }
 

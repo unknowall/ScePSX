@@ -52,7 +52,7 @@ namespace ScePSX
 
         public string DiskID = "";
 
-        public BUS(IPSXHost Host, string BiosFile, string RomFile)
+        public BUS(ICoreHandler Host, string BiosFile, string RomFile)
         {
             IRQCTL = new IRQController();
 
@@ -115,7 +115,7 @@ namespace ScePSX
             Marshal.Copy((IntPtr)spu.ram, spuram, 0, spuram.Length);
         }
 
-        public unsafe void DeSerializable(IPSXHost Host)
+        public unsafe void DeSerializable(ICoreHandler Host)
         {
             ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
             scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);

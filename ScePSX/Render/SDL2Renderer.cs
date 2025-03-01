@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static SDL2.SDL;
 
 namespace ScePSX
 {
-    class SDL2Renderer : Panel
+    class SDL2Renderer : UserControl
     {
         private int[] pixels = new int[4096 * 2048];
         private int scale, oldscale;
@@ -17,6 +18,7 @@ namespace ScePSX
 
         private bool sizeing = false;
         private readonly object _renderLock = new object();
+        private readonly object bufferLock = new object();
 
         public SDL2Renderer()
         {
@@ -27,6 +29,24 @@ namespace ScePSX
             SetStyle(ControlStyles.ResizeRedraw, true);
             SetStyle(ControlStyles.UserPaint, true);
             UpdateStyles();
+
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(64, 64, 64);
+            this.Size = new System.Drawing.Size(441, 246);
+            this.Name = "SDL2Renderer";
+            this.ResumeLayout(false);
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
 
             SDL_Init(SDL_INIT_VIDEO);
 
@@ -52,17 +72,6 @@ namespace ScePSX
                 w = this.Width,
                 h = this.Height
             };
-
-            InitializeComponent();
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            this.Name = "SDL2Renderer";
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.Size = new System.Drawing.Size(441, 246);
-            this.ResumeLayout(false);
         }
 
         ~SDL2Renderer()
@@ -77,7 +86,10 @@ namespace ScePSX
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
         {
-            this.pixels = pixels;
+            lock (bufferLock)
+            {
+                this.pixels = pixels;
+            }
 
             srcRect.w = width;
             srcRect.h = height;
@@ -86,9 +98,9 @@ namespace ScePSX
             Invalidate();
         }
 
-        private unsafe void Render()
+        private void Render()
         {
-            if (sizeing)
+            if (sizeing || this.Visible == false || DesignMode)
                 return;
 
             if (scale > 0)
@@ -111,10 +123,11 @@ namespace ScePSX
                 dstRect.w = this.Width;
                 dstRect.h = this.Height;
 
-                fixed (int* ptr = pixels)
+                lock (bufferLock)
                 {
-                    SDL_UpdateTexture(m_Texture, IntPtr.Zero, (IntPtr)ptr, srcRect.w * sizeof(int));
+                    SDL_UpdateTexture(m_Texture, IntPtr.Zero, Marshal.UnsafeAddrOfPinnedArrayElement<int>(pixels, 0), srcRect.w * sizeof(int));
                 }
+
                 SDL_RenderClear(m_Renderer);
                 SDL_RenderCopy(m_Renderer, m_Texture, ref srcRect, ref dstRect);
                 SDL_RenderPresent(m_Renderer);
@@ -163,8 +176,8 @@ namespace ScePSX
 
         protected override void OnPaint(PaintEventArgs e)
         {
+            base.OnPaint(e);
             Render();
-            //base.OnPaint(e);
         }
     }
 }

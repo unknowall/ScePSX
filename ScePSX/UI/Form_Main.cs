@@ -6,9 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static ScePSX.Controller;
-//using NAudio.Wave;
 
+using static ScePSX.Controller;
 using static SDL2.SDL;
 
 namespace ScePSX
@@ -26,6 +25,7 @@ namespace ScePSX
         private string currbios;
         private string shaderpath;
         private int StateSlot;
+        private int CoreWidth, CoreHeight;
 
         public static PSXCore Core;
 
@@ -44,15 +44,16 @@ namespace ScePSX
         private int bufferCount = 0;
         private readonly object bufferLock = new object();
 
-        //private WaveOutEvent WaveOut = new WaveOutEvent();
-        //private BufferedWaveProvider WaveProvider = new BufferedWaveProvider(new WaveFormat());
+        private System.Timers.Timer timer;
 
         public int scale;
         private OpenGLRenderer OGLRENDER = new OpenGLRenderer();
         private SDL2Renderer D3DRENDER = new SDL2Renderer();
+        private D2DRenderer D2DRENDER = new D2DRenderer();
 
         private enum RenderMode
         {
+            Directx2D,
             Directx3D,
             OpenGL
         }
@@ -70,8 +71,9 @@ namespace ScePSX
             Controls.Add(OGLRENDER);
             OGLRENDER.Enabled = false;
             OGLRENDER.MultisampleBits = 4;
-            //RENDER.DepthBits = 16;
-            //RENDER.Visible = false;
+            //OGLRENDER.DepthBits = 24;
+            //OGLRENDER.ColorBits = 32;
+            //OGLRENDER.Visible = false;
 
             D3DRENDER.Parent = this;
             D3DRENDER.Dock = DockStyle.Fill;
@@ -79,9 +81,15 @@ namespace ScePSX
             D3DRENDER.Enabled = false;
             //D3DRENDER.Visible = false;
 
+            D2DRENDER.Parent = this;
+            D2DRENDER.Dock = DockStyle.Fill;
+            Controls.Add(D2DRENDER);
+            D2DRENDER.Enabled = false;
+            //D2DRENDER.Visible = false;
+
             //AllocConsole();
 
-            CheckForIllegalCrossThreadCalls = false;
+            //CheckForIllegalCrossThreadCalls = false;
 
             KeyDown += new KeyEventHandler(ButtonsDown);
             KeyUp += new KeyEventHandler(ButtonsUp);
@@ -100,12 +108,20 @@ namespace ScePSX
                 Directory.CreateDirectory("./Shaders");
 
             Rendermode = (RenderMode)ini.ReadInt("Main", "Render");
-            if (Rendermode == RenderMode.Directx3D)
+            switch (Rendermode)
             {
-                directx3DToolStripMenuItem.Checked = true;
-            } else
-            {
-                openGLToolStripMenuItem.Checked = true;
+                case RenderMode.Directx2D:
+                    D2DRENDER.BringToFront();
+                    directx2DRender.Checked = true;
+                    break;
+                case RenderMode.Directx3D:
+                    D3DRENDER.BringToFront();
+                    directx3DRender.Checked = true;
+                    break;
+                case RenderMode.OpenGL:
+                    OGLRENDER.BringToFront();
+                    openGLRender.Checked = true;
+                    break;
             }
 
             SDLInit();
@@ -116,9 +132,27 @@ namespace ScePSX
             InitBiosMnu();
             InitShaderMnu();
 
-            //WaveProvider.DiscardOnBufferOverflow = true;
-            //WaveProvider.BufferDuration = new TimeSpan(0, 0, 0, 0, 300);
-            //WaveOut.Init(WaveProvider);
+            timer = new System.Timers.Timer();
+            timer.Interval = 1000;
+            timer.Elapsed += Timer_Elapsed;
+            timer.AutoReset = true;
+            timer.Enabled = true;
+        }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            if (Core == null)
+                return;
+
+            int scalew = CoreWidth;
+            int scaleh = CoreHeight;
+
+            if (scale > 0)
+            {
+                scalew *= scale;
+                scaleh *= scale;
+            }
+            this.Text = $"ScePSX | {Core.DiskID} | SaveSlot {StateSlot} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
         }
 
         ~FrmMain()
@@ -208,7 +242,7 @@ namespace ScePSX
                 mnu.CheckOnClick = true;
                 mnu.Click += Mnu_Click;
                 mnu.CheckedChanged += Mnu_CheckedChanged;
-                openGLToolStripMenuItem.DropDownItems.Add(mnu);
+                openGLRender.DropDownItems.Add(mnu);
                 if (shaderpath == f.Name)
                 {
                     mnu.Checked = true;
@@ -340,11 +374,32 @@ namespace ScePSX
             }
         }
 
+        private void directx2DRender_Click(object sender, EventArgs e)
+        {
+            directx3DRender.Checked = false;
+            openGLRender.Checked = false;
+
+            OGLRENDER.Visible = false;
+            D3DRENDER.Visible = false;
+            D2DRENDER.Visible = true;
+
+            D2DRENDER.BringToFront();
+
+            Rendermode = RenderMode.Directx2D;
+            ini.WriteInt("Main", "Render", (int)Rendermode);
+        }
+
         private void directx3DToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openGLToolStripMenuItem.Checked = false;
+            openGLRender.Checked = false;
+            directx2DRender.Checked = false;
+
             OGLRENDER.Visible = false;
+            D2DRENDER.Visible = false;
             D3DRENDER.Visible = true;
+
+            D3DRENDER.BringToFront();
+
             Rendermode = RenderMode.Directx3D;
             ini.WriteInt("Main", "Render", (int)Rendermode);
         }
@@ -352,13 +407,20 @@ namespace ScePSX
         private void openGLToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-            directx3DToolStripMenuItem.Checked = false;
+            directx2DRender.Checked = false;
+            directx3DRender.Checked = false;
+
             if (OGLRENDER.ShadreName == "")
             {
                 OGLRENDER.LoadShaders("./Shaders/" + shaderpath);
             }
-            OGLRENDER.Visible = true;
+
             D3DRENDER.Visible = false;
+            D2DRENDER.Visible = false;
+            OGLRENDER.Visible = true;
+
+            OGLRENDER.BringToFront();
+
             Rendermode = RenderMode.OpenGL;
             ini.WriteInt("Main", "Render", (int)Rendermode);
         }
@@ -642,13 +704,18 @@ namespace ScePSX
 
         public void RenderFrame(int[] pixels, int width, int height)
         {
+            CoreWidth = width;
+            CoreHeight = height;
 
-            if (Rendermode == RenderMode.Directx3D)
-            {
-                D3DRENDER.RenderBuffer(pixels, width, height, scale);
-            } else
+            if (Rendermode == RenderMode.OpenGL)
             {
                 OGLRENDER.RenderBuffer(pixels, width, height, scale);
+            } else if (Rendermode == RenderMode.Directx3D)
+            {
+                D3DRENDER.RenderBuffer(pixels, width, height, scale);
+            } else if (Rendermode == RenderMode.Directx2D)
+            {
+                D2DRENDER.RenderBuffer(pixels, width, height, scale);
             }
 
             _frameCount++;
@@ -658,30 +725,12 @@ namespace ScePSX
                 _currentFps = (float)(_frameCount / elapsedSeconds);
                 _frameCount = 0;
                 _fpsStopwatch.Restart();
-
-                int scalew = width;
-                int scaleh = height;
-                if (scale > 0)
-                {
-                    scalew *= scale;
-                    scaleh *= scale;
-                }
-                this.Text = $"ScePSX | {Core.DiskID} | SaveSlot {StateSlot} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
             }
         }
 
         public void PlaySamples(byte[] samples)
         {
             AddSamples(samples);
-            //fixed (byte* ptr = samples)
-            //{
-            //    SDL_QueueAudio(audiodeviceid, (IntPtr)ptr, (uint)samples.Length);
-            //}
-            //WaveProvider.AddSamples(samples, 0, samples.Length);
-            //if (WaveOut.PlaybackState != PlaybackState.Playing)
-            //{
-            //    WaveOut.Play();
-            //}
         }
 
         #region SDLController
@@ -855,7 +904,6 @@ namespace ScePSX
             }
         }
         #endregion
-
     }
 
     #region INIFILE
