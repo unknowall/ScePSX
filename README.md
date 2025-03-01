@@ -22,7 +22,7 @@
 
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
-3. OpenGL 可以安装NuGet包： OpenGL.NET (不推荐，只支持 .net 4.7 框架)，或者手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
+3. OpenGL 可以安装 OpenGL.NET NuGet包(不推荐，.net 4.7 框架编译，存在兼容性问题)，或者手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 4. 如果使用低于 .net 8.0 框架，可手动修改项目文件，最低 .net 6.0 以上
 
 ![read2](https://github.com/user-attachments/assets/4e3209e6-04a3-4aab-9072-eb3514d3e381)
