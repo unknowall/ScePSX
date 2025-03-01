@@ -43,11 +43,11 @@
 </ItemGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Remove="D:\MyCodes\#PS1\ScePSX\.editorconfig" />
+    <EditorConfigFiles Remove=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Remove="D:\MyCodes\#PS1\ScePSX\.editorconfig" />
+    <EditorConfigFiles Remove=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
