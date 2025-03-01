@@ -1,7 +1,7 @@
 <h2>这是一个小巧可用的 PS1 模拟器</h2>
 
 1. 支持即时存档
-2. 支持D3D和OpenGL渲染，OpenGL可加载着色器，两者都兼容ReShade
+2. 支持D2D1, D3D和OpenGL渲染，OpenGL可加载着色器，D3D, OpenGL 兼容ReShade
 3. 支持xBR放大，支持 2, 4 , 6， 8 倍内部分辨率
 4. 内存编辑及内存搜索功能
 5. 支持金手指
