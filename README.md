@@ -33,10 +33,3 @@
 
 
 Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
-
-主要改进：
-1. 重构BUS以及CDROM解决游戏兼容性问题 ( 恶魔城，FF7 等游戏
-2. 重构GPU解决图像生成错误
-3. 修正时序错误
-4. 增加支持双手柄
-5. 增加支持即时存档
