@@ -47,6 +47,9 @@ namespace ScePSX
         private System.Timers.Timer timer;
 
         public int scale;
+        private bool cutblackline = false;
+        private int[] cutbuff = new int[1024 * 512];
+
         private OpenGLRenderer OGLRENDER = new OpenGLRenderer();
         private SDL2Renderer D3DRENDER = new SDL2Renderer();
         private D2DRenderer D2DRENDER = new D2DRenderer();
@@ -62,9 +65,6 @@ namespace ScePSX
         public FrmMain()
         {
             InitializeComponent();
-
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, false);
-            UpdateStyles();
 
             OGLRENDER.Parent = this;
             OGLRENDER.Dock = DockStyle.Fill;
@@ -89,7 +89,7 @@ namespace ScePSX
 
             //AllocConsole();
 
-            //CheckForIllegalCrossThreadCalls = false;
+            CheckForIllegalCrossThreadCalls = false;
 
             KeyDown += new KeyEventHandler(ButtonsDown);
             KeyUp += new KeyEventHandler(ButtonsUp);
@@ -115,7 +115,7 @@ namespace ScePSX
                     directx2DRender.Checked = true;
                     break;
                 case RenderMode.Directx3D:
-                    D3DRENDER.BringToFront();
+                    //D3DRENDER.BringToFront();
                     directx3DRender.Checked = true;
                     break;
                 case RenderMode.OpenGL:
@@ -123,6 +123,12 @@ namespace ScePSX
                     openGLRender.Checked = true;
                     break;
             }
+
+            frameskipmnu.Checked = ini.ReadInt("main", "frameskip") == 1;
+            cutblackline = ini.ReadInt("main", "cutblackline") == 1;
+
+            CutBlackLineMnu.Checked = cutblackline;
+
 
             SDLInit();
 
@@ -425,6 +431,28 @@ namespace ScePSX
             ini.WriteInt("Main", "Render", (int)Rendermode);
         }
 
+        private void frameskipmnu_CheckedChanged(object sender, EventArgs e)
+        {
+            if (frameskipmnu.Checked == false)
+            {
+                D2DRENDER.frameskip = 0;
+                D3DRENDER.frameskip = 0;
+            } else
+            {
+                D2DRENDER.frameskip = 1;
+                D3DRENDER.frameskip = 1;
+            }
+
+            ini.WriteInt("main", "frameskip", Convert.ToInt16(frameskipmnu.Checked));
+        }
+
+        private void CutBlackLineMnu_CheckedChanged(object sender, EventArgs e)
+        {
+            cutblackline = CutBlackLineMnu.Checked;
+
+            ini.WriteInt("main", "cutblackline", Convert.ToInt16(cutblackline));
+        }
+
         private void LoadDisk_Click(object sender, EventArgs e)
         {
             LoadRom();
@@ -596,15 +624,12 @@ namespace ScePSX
             if (Core != null)
             {
                 Core.Stop();
+                scale = 0;
             }
 
             if (Rendermode == RenderMode.OpenGL)
             {
                 OGLRENDER.LoadShaders("./Shaders/" + shaderpath);
-                OGLRENDER.Visible = true;
-            } else
-            {
-                OGLRENDER.Visible = false;
             }
 
             Core = new PSXCore(this, this, FD.FileName, Application.StartupPath + "/BIOS/" + currbios);
@@ -707,6 +732,20 @@ namespace ScePSX
             CoreWidth = width;
             CoreHeight = height;
 
+            if (cutblackline)
+            {
+                CoreHeight = XbrScaler.CutBlackLine(pixels,cutbuff,width,height);
+                if (CoreHeight == 0)
+                {
+                    CoreHeight = height;
+                } else
+                {
+                    //pixels 在GPU中仅用于输出
+                    pixels = cutbuff;
+                    height = CoreHeight;
+                }
+            }
+
             if (Rendermode == RenderMode.OpenGL)
             {
                 OGLRENDER.RenderBuffer(pixels, width, height, scale);
@@ -755,7 +794,7 @@ namespace ScePSX
                 }
             }
 
-            GetAxis();
+            //GetAxis();
         }
 
         private void HandleHatEvent(int hatIndex, int hatValue)
@@ -784,7 +823,7 @@ namespace ScePSX
                 Core.Button(InputAction.DPadRight, true);
             }
 
-            GetAxis();
+            //GetAxis();
         }
 
         private float NormalizeAxis(short value)
@@ -904,6 +943,7 @@ namespace ScePSX
             }
         }
         #endregion
+
     }
 
     #region INIFILE

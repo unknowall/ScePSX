@@ -72,8 +72,7 @@ namespace ScePSX
                     {
                         e0 = IsSimilar(d, b) && IsSimilar(e, b) ? Average(e, b) : e;
                         e1 = IsSimilar(d, b) && IsSimilar(e, d) ? Average(e, d) : e;
-                    }
-                    else if (IsSimilar(h, f) && !IsSimilar(d, b))
+                    } else if (IsSimilar(h, f) && !IsSimilar(d, b))
                     {
                         e2 = IsSimilar(h, f) && IsSimilar(e, f) ? Average(e, f) : e;
                         e3 = IsSimilar(h, f) && IsSimilar(e, h) ? Average(e, h) : e;
@@ -128,6 +127,78 @@ namespace ScePSX
             int g = (((c1 >> 8) & 0xFF) + ((c2 >> 8) & 0xFF)) / 2;
             int b = ((c1 & 0xFF) + (c2 & 0xFF)) / 2;
             return (r << 16) | (g << 8) | b;
+        }
+
+        public static unsafe int CutBlackLine(int[] In, int[] Out, int width, int height)
+        {
+            int top = -1, bottom = -1;
+
+            // 查找顶部非黑边起始行
+            for (int y = 0; y < height; y++)
+            {
+                bool isBlack = true;
+                for (int x = 0; x < width; x++)
+                {
+                    if (In[y * width + x] != unchecked((int)0x0))
+                    {
+                        isBlack = false;
+                        break;
+                    }
+                }
+                if (!isBlack)
+                {
+                    top = y;
+                    break;
+                }
+            }
+
+            // 查找底部非黑边结束行
+            for (int y = height - 1; y >= 0; y--)
+            {
+                bool isBlack = true;
+                for (int x = 0; x < width; x++)
+                {
+                    if (In[y * width + x] != unchecked((int)0x0))
+                    {
+                        isBlack = false;
+                        break;
+                    }
+                }
+                if (!isBlack)
+                {
+                    bottom = y;
+                    break;
+                }
+            }
+
+            if (top == -1 || bottom == -1 || top > bottom)
+            {
+                return 0;
+            }
+
+            if (top > 20 || (height - bottom) > 20)
+            {
+                return 0;
+            }
+
+            int newHeight = bottom - top + 1;
+
+            fixed (int* srcPtr = In, dstPtr = Out)
+            {
+                for (int y = 0; y < newHeight; y++)
+                {
+                    int srcIndex = (top + y) * width;
+                    int dstIndex = y * width;
+                    System.Buffer.MemoryCopy(
+                        srcPtr + srcIndex,
+                        dstPtr + dstIndex,
+                        width * sizeof(int),
+                        width * sizeof(int)
+                    );
+                }
+            }
+
+            return newHeight;
         }
     }
 

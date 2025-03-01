@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace ScePSX
 {
@@ -18,6 +19,14 @@ namespace ScePSX
         [Serializable]
         public struct TDisplayMode
         {
+            public byte HorizontalResolution1;
+            public bool IsVerticalResolution480;
+            public bool IsPAL;
+            public bool Is24BitDepth;
+            public bool IsVerticalInterlace;
+            public byte HorizontalResolution2;
+            public bool IsReverseFlag;
+
             public TDisplayMode(uint value)
             {
                 HorizontalResolution1 = (byte)(value & 0x3);
@@ -27,41 +36,6 @@ namespace ScePSX
                 IsVerticalInterlace = (value & 0x20) != 0;
                 HorizontalResolution2 = (byte)((value & 0x40) >> 6);
                 IsReverseFlag = (value & 0x80) != 0;
-            }
-
-            public byte HorizontalResolution1
-            {
-                get;
-            }
-
-            public bool IsVerticalResolution480
-            {
-                get;
-            }
-
-            public bool IsPAL
-            {
-                get;
-            }
-
-            public bool Is24BitDepth
-            {
-                get;
-            }
-
-            public bool IsVerticalInterlace
-            {
-                get;
-            }
-
-            public byte HorizontalResolution2
-            {
-                get;
-            }
-
-            public bool IsReverseFlag
-            {
-                get;
             }
         }
 
@@ -80,19 +54,12 @@ namespace ScePSX
         private struct Primitive
         {
             public bool IsShaded;
-
             public bool IsTextured;
-
             public bool IsSemiTransparent;
-
             public bool IsRawTextured;
-
             public int Depth;
-
             public int SemiTransparencyMode;
-
             public Point2D Clut;
-
             public Point2D TextureBase;
         }
 
@@ -113,6 +80,11 @@ namespace ScePSX
         [Serializable]
         public struct TextureWindow
         {
+            public byte MaskX;
+            public byte MaskY;
+            public byte OffsetX;
+            public byte OffsetY;
+
             public TextureWindow(uint value)
             {
                 MaskX = (byte)(value & 0x1F);
@@ -120,89 +92,27 @@ namespace ScePSX
                 OffsetX = (byte)((value >> 10) & 0x1F);
                 OffsetY = (byte)((value >> 15) & 0x1F);
             }
-
-            public byte MaskX
-            {
-                get;
-            }
-
-            public byte MaskY
-            {
-                get;
-            }
-
-            public byte OffsetX
-            {
-                get;
-            }
-
-            public byte OffsetY
-            {
-                get;
-            }
         }
 
         [Serializable]
         public struct TDrawMode
         {
-            public byte TexturePageXBase
-            {
-                get; set;
-            }
-
-            public byte TexturePageYBase
-            {
-                get; set;
-            }
-
-            public byte SemiTransparency
-            {
-                get; set;
-            }
-
-            public byte TexturePageColors
-            {
-                get; set;
-            }
-
-            public bool Dither24BitTo15Bit
-            {
-                get; set;
-            }
-
-            public bool DrawingToDisplayArea
-            {
-                get; set;
-            }
-
-            public bool TextureDisable
-            {
-                get; set;
-            }
-
-            public bool TexturedRectangleXFlip
-            {
-                get; set;
-            }
-
-            public bool TexturedRectangleYFlip
-            {
-                get; set;
-            }
+            public byte TexturePageXBase;
+            public byte TexturePageYBase;
+            public byte SemiTransparency;
+            public byte TexturePageColors;
+            public bool Dither24BitTo15Bit;
+            public bool DrawingToDisplayArea;
+            public bool TextureDisable;
+            public bool TexturedRectangleXFlip;
+            public bool TexturedRectangleYFlip;
         }
 
         [Serializable]
         private struct TDrawingOffset
         {
-            public short X
-            {
-                get;
-            }
-
-            public short Y
-            {
-                get;
-            }
+            public short X;
+            public short Y;
 
             public TDrawingOffset(uint value)
             {
@@ -214,15 +124,8 @@ namespace ScePSX
         [Serializable]
         private struct TDrawingArea : IEquatable<TDrawingArea>
         {
-            public ushort X
-            {
-                get;
-            }
-
-            public ushort Y
-            {
-                get;
-            }
+            public ushort X;
+            public ushort Y;
 
             public TDrawingArea(uint value)
             {
@@ -264,26 +167,15 @@ namespace ScePSX
         [Serializable]
         public abstract class VRAM<T> where T : unmanaged
         {
+            public int Width;
+            public int Height;
+            public T[] Pixels;
+
             protected VRAM(int width, int height)
             {
                 Width = width;
                 Height = height;
                 Pixels = new T[width * height];
-            }
-
-            public int Width
-            {
-                get;
-            }
-
-            public int Height
-            {
-                get;
-            }
-
-            public T[] Pixels
-            {
-                get;
             }
 
             public abstract T GetPixel(int x, int y);
@@ -392,7 +284,7 @@ namespace ScePSX
 
         private ushort DisplayVRAMStartX, DisplayVRAMStartY, DisplayX1, DisplayX2, DisplayY1, DisplayY2;
 
-        private int horizontalRes, verticalRes, horizontalEnd, verticalEnd;
+        private int horizontalRes, verticalRes, OutWidth, OutHeight;
 
         private byte DmaDirection;
 
@@ -440,19 +332,14 @@ namespace ScePSX
 
         private VRAMTransfer _VRAMTransfer;
 
-        private TDisplayMode DisplayMode
-        {
-            get; set;
-        }
+        private TDisplayMode DisplayMode;
 
         [NonSerialized]
         public ICoreHandler host;
 
-        private static IReadOnlyList<byte> CommandSizeTable
+        private static IReadOnlyList<byte> CommandSizeTable = new byte[]
         {
-            get;
-        } = new byte[]
-        {
+        /*0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F */
         0x01, 0x01, 0x03, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, // 0
         0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, // 1
         0x04, 0x04, 0x04, 0x04, 0x07, 0x07, 0x07, 0x07, 0x05, 0x05, 0x05, 0x05, 0x09, 0x09, 0x09, 0x09, // 2
@@ -469,7 +356,7 @@ namespace ScePSX
         0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, // D
         0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, // E
         0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01  // F
-            /*0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F */
+        /*0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F */
         };
 
         public GPU(ICoreHandler Host)
@@ -506,16 +393,14 @@ namespace ScePSX
                 IsOddLine = !IsOddLine;
             }
 
-            //host.Render(_VRAM32.Pixels, _VRAM16.Pixels);
-
             if (DisplayMode.Is24BitDepth)
             {
-                BitMap24bpp(_VRAM32.Pixels, _Pixels);
+                Sub24ToPixels(_VRAM32.Pixels, _Pixels);
             } else
             {
-                BitMap16bpp(_VRAM32.Pixels, _Pixels);
+                SubToPixels(_VRAM32.Pixels, _Pixels);
             }
-            host.FrameReady(_Pixels, horizontalEnd, verticalEnd);
+            host.FrameReady(_Pixels, OutWidth, OutHeight);
 
             return true;
         }
@@ -530,28 +415,21 @@ namespace ScePSX
             return (ushort)(m << 15 | b << 10 | g << 5 | r);
         }
 
-        private unsafe void BitMap24bpp(int[] vramIN, int[] vramOUT)
+        private void Sub24ToPixels(int[] vramIN, int[] vramOUT)
         {
-            int yRangeOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
-            Span<int> scanLine = stackalloc int[horizontalRes];
-            var display = new Span<int>(vramOUT);
-            display.Clear();
+            int LineOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
 
-            if (yRangeOffset < 0)
-                yRangeOffset = 0;
-
-            horizontalEnd = horizontalRes;
-            verticalEnd = verticalRes - yRangeOffset -1;
-
-            for (int y = yRangeOffset; y < verticalRes + yRangeOffset; y++)
+            for (int line = LineOffset; line < verticalRes - LineOffset; line++)
             {
                 int offset = 0;
-                var startXYPosition = DisplayVRAMStartX + ((y - yRangeOffset + DisplayVRAMStartY) * 1024);
+                int readline = DisplayVRAMStartX + ((line - LineOffset + DisplayVRAMStartY) * 1024);
+                int writeline = (line - LineOffset) * horizontalRes;
+
                 for (int x = 0; x < horizontalRes; x += 2)
                 {
-                    int p0rgb = vramIN[startXYPosition + offset++];
-                    int p1rgb = vramIN[startXYPosition + offset++];
-                    int p2rgb = vramIN[startXYPosition + offset++];
+                    int p0rgb = vramIN[readline + offset++];
+                    int p1rgb = vramIN[readline + offset++];
+                    int p2rgb = vramIN[readline + offset++];
 
                     ushort p0bgr555 = GetPixelBGR555(p0rgb);
                     ushort p1bgr555 = GetPixelBGR555(p1rgb);
@@ -569,32 +447,30 @@ namespace ScePSX
                     int p0rgb24bpp = p0R << 16 | p0G << 8 | p0B;
                     int p1rgb24bpp = p1R << 16 | p1G << 8 | p1B;
 
-                    scanLine[x] = p0rgb24bpp;
-                    scanLine[x + 1] = p1rgb24bpp;
+                    vramOUT[writeline + x] = p0rgb24bpp;
+                    vramOUT[writeline + x + 1] = p1rgb24bpp;
                 }
-                scanLine.CopyTo(display.Slice((y) * horizontalRes));
             }
+
+            OutWidth = horizontalRes;
+            OutHeight = verticalRes - LineOffset * 2 - 1;
         }
 
-        private unsafe void BitMap16bpp(int[] vramIn, int[] vramOut)
+        private void SubToPixels(int[] vramIn, int[] vramOut)
         {
-            int yRangeOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
+            int LineOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
             var vram = new Span<int>(vramIn);
             var display = new Span<int>(vramOut);
-            display.Clear();
 
-            if (yRangeOffset < 0)
-                yRangeOffset = 0;
-
-            horizontalEnd = horizontalRes;
-            verticalEnd = verticalRes - yRangeOffset -1;
-
-            for (int y = yRangeOffset; y < verticalRes + yRangeOffset; y++)
+            for (int line = LineOffset; line < verticalRes - LineOffset; line++)
             {
-                var from = vram.Slice(DisplayVRAMStartX + ((y - yRangeOffset + DisplayVRAMStartY) * 1024), horizontalRes);
-                var to = display.Slice((y) * horizontalRes);
+                var from = vram.Slice(DisplayVRAMStartX + ((line - LineOffset + DisplayVRAMStartY) * 1024), horizontalRes);
+                var to = display.Slice((line - LineOffset) * horizontalRes);
                 from.CopyTo(to);
             }
+
+            OutWidth = horizontalRes;
+            OutHeight = verticalRes - LineOffset * 2 - 1;
         }
 
         #region Process
@@ -1896,24 +1772,18 @@ namespace ScePSX
         {
             DisplayVRAMStartX = (ushort)(value & 0x3FE);
             DisplayVRAMStartY = (ushort)((value >> 10) & 0x1FE);
-
-            //Host.SetDisplayAreaStart(DisplayVRAMStartX, DisplayVRAMStartY);
         }
 
         private void GP1_06_DisplayHorizontalRange(uint value)
         {
             DisplayX1 = (ushort)(value & 0xFFF);
             DisplayX2 = (ushort)((value >> 12) & 0xFFF);
-
-            //Host.SetDisplayHorizontalRange(DisplayX1, DisplayX2);
         }
 
         private void GP1_07_DisplayVerticalRange(uint value)
         {
             DisplayY1 = (ushort)(value & 0x3FF);
             DisplayY2 = (ushort)((value >> 10) & 0x3FF);
-
-            //Host.SetDisplayVerticalRange(DisplayY1, DisplayY2);
         }
 
         private void GP1_08_DisplayMode(uint value)
@@ -1928,7 +1798,7 @@ namespace ScePSX
             horizontalRes = Resolutions[(DisplayMode.HorizontalResolution2 << 2) | DisplayMode.HorizontalResolution1];
             verticalRes = DisplayMode.IsVerticalResolution480 ? 480 : 240;
 
-            //Host.SetDisplayMode(hr, vr, DisplayMode.Is24BitDepth);
+            //Console.WriteLine($" 24 bit {DisplayMode.Is24BitDepth} {horizontalRes}x{verticalRes} ram {DisplayVRAMStartX},{DisplayVRAMStartY} XY {DisplayX1},{DisplayY1} - {DisplayX2},{DisplayY2}");
         }
 
         private void GP1_09_TextureDisable(uint value)

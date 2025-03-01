@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using static SDL2.SDL;
 
 namespace ScePSX
@@ -20,15 +22,16 @@ namespace ScePSX
         private readonly object _renderLock = new object();
         private readonly object bufferLock = new object();
 
+        public int frameskip, fsk = 1;
+
         public SDL2Renderer()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.Opaque, true);
             SetStyle(ControlStyles.DoubleBuffer, false);
-            DoubleBuffered = false;
             SetStyle(ControlStyles.ResizeRedraw, true);
             SetStyle(ControlStyles.UserPaint, true);
-            UpdateStyles();
+            DoubleBuffered = false;
 
             InitializeComponent();
         }
@@ -43,6 +46,8 @@ namespace ScePSX
             this.Name = "SDL2Renderer";
             this.ResumeLayout(false);
         }
+
+        private SDL_EventFilter _eventFilter;
 
         protected override void OnHandleCreated(EventArgs e)
         {
@@ -72,6 +77,10 @@ namespace ScePSX
                 w = this.Width,
                 h = this.Height
             };
+            //SDL事件全部给主窗口
+            IntPtr p_Window = SDL_CreateWindowFrom(this.Parent.Handle);
+            SDL_RaiseWindow(p_Window);
+            SDL_SetWindowInputFocus(p_Window);
         }
 
         ~SDL2Renderer()
@@ -86,6 +95,12 @@ namespace ScePSX
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
         {
+            if (fsk > 0)
+            {
+                fsk--;
+                return;
+            }
+
             lock (bufferLock)
             {
                 this.pixels = pixels;
@@ -96,11 +111,13 @@ namespace ScePSX
             this.scale = scale;
 
             Invalidate();
+
+            fsk = frameskip;
         }
 
         private void Render()
         {
-            if (sizeing || this.Visible == false || DesignMode)
+            if (sizeing || this.Visible == false)
                 return;
 
             if (scale > 0)
@@ -126,11 +143,11 @@ namespace ScePSX
                 lock (bufferLock)
                 {
                     SDL_UpdateTexture(m_Texture, IntPtr.Zero, Marshal.UnsafeAddrOfPinnedArrayElement<int>(pixels, 0), srcRect.w * sizeof(int));
-                }
 
-                SDL_RenderClear(m_Renderer);
-                SDL_RenderCopy(m_Renderer, m_Texture, ref srcRect, ref dstRect);
-                SDL_RenderPresent(m_Renderer);
+                    SDL_RenderClear(m_Renderer);
+                    SDL_RenderCopy(m_Renderer, m_Texture, ref srcRect, ref dstRect);
+                    SDL_RenderPresent(m_Renderer);
+                }
             }
         }
 
@@ -176,8 +193,9 @@ namespace ScePSX
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
             Render();
+
+            base.OnPaint(e);
         }
     }
 }

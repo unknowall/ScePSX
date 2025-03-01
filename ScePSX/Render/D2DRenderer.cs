@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+
 using DirectX.D2D1;
 
 namespace ScePSX
@@ -15,11 +16,12 @@ namespace ScePSX
         private D2D1Bitmap bitmap;
 
         private D2D1BitmapProperties bmpprops;
-        private D2D1ColorF clearcolor = new D2D1ColorF(0,0,0,1);
+        private D2D1ColorF clearcolor = new D2D1ColorF(0, 0, 0, 1);
         private int[] pixels = new int[4096 * 2048];
         private int width = 1024;
         private int height = 512;
         private int scale, oldscale = 0;
+        public int frameskip, fsk = 1;
         private float dpiX, dpiY;
 
         private readonly object bufferLock = new object();
@@ -29,12 +31,9 @@ namespace ScePSX
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.Opaque, true);
             SetStyle(ControlStyles.DoubleBuffer, false);
-            DoubleBuffered = false;
             SetStyle(ControlStyles.ResizeRedraw, true);
             SetStyle(ControlStyles.UserPaint, true);
-            UpdateStyles();
-
-            this.ResizeRedraw = true;
+            DoubleBuffered = false;
 
             InitializeComponent();
         }
@@ -79,7 +78,7 @@ namespace ScePSX
             var hwndRenderTargetProperties = new D2D1HwndRenderTargetProperties
             (
                 this.Handle,
-                new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height ),
+                new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height),
                 D2D1PresentOptions.None
             );
 
@@ -105,6 +104,12 @@ namespace ScePSX
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
         {
+            if (fsk > 0)
+            {
+                fsk--;
+                return;
+            }
+
             lock (bufferLock)
             {
                 this.pixels = pixels;
@@ -115,17 +120,20 @@ namespace ScePSX
             this.scale = scale;
 
             Invalidate();
+
+            fsk = frameskip;
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
             Render();
+
+            base.OnPaint(e);
         }
 
         private void Render()
         {
-            if (renderTarget == null || bitmap == null || this.Visible == false || DesignMode)
+            if (renderTarget == null || bitmap == null || this.Visible == false)
                 return;
 
             if (scale > 0)
@@ -153,17 +161,17 @@ namespace ScePSX
             lock (bufferLock)
             {
                 bitmap.CopyFromMemory(Marshal.UnsafeAddrOfPinnedArrayElement<int>(pixels, 0), (uint)(width * 4));
+
+                renderTarget.BeginDraw();
+
+                renderTarget.Clear();
+
+                var dstrect = new D2D1RectF(0, 0, this.ClientSize.Width, ClientSize.Height);
+                var srcrect = new D2D1RectF(0, 0, width, height);
+                renderTarget.DrawBitmap(bitmap, dstrect, 1.0f, D2D1BitmapInterpolationMode.Linear, srcrect);
+
+                renderTarget.EndDraw();
             }
-
-            renderTarget.BeginDraw();
-
-            renderTarget.Clear(clearcolor);
-
-            var dstrect = new D2D1RectF(0, 0, this.ClientSize.Width, ClientSize.Height);
-            var srcrect = new D2D1RectF( 0, 0, width, height );
-            renderTarget.DrawBitmap(bitmap, dstrect, 1.0f, D2D1BitmapInterpolationMode.Linear, srcrect);
-
-            renderTarget.EndDraw();
         }
 
         protected override void OnResize(EventArgs e)
@@ -192,6 +200,17 @@ namespace ScePSX
                     factory.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int CS_VREDRAW = 0x1, CS_HREDRAW = 0x2, CS_OWNDC = 0x20;
+                CreateParams createParams = base.CreateParams;
+                createParams.ClassStyle |= CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
+                return (createParams);
+            }
         }
     }
 }

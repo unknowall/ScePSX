@@ -10,6 +10,7 @@ namespace ScePSX
     class OpenGLRenderer : GlControl
     {
         private int[] Pixels = new int[4096 * 2048];
+        private int[] Pixelsforcut = new int[4096 * 2048];
         private uint _textureId;
         public int iWidth = 1024;
         public int iHeight = 512;

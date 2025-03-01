@@ -43,13 +43,16 @@
             cPUToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             内存编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             RenderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            CutBlackLineMnu = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem6 = new System.Windows.Forms.ToolStripSeparator();
+            directx2DRender = new System.Windows.Forms.ToolStripMenuItem();
             directx3DRender = new System.Windows.Forms.ToolStripMenuItem();
             openGLRender = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             xBRScaleAdd = new System.Windows.Forms.ToolStripMenuItem();
             xBRScaleDec = new System.Windows.Forms.ToolStripMenuItem();
+            frameskipmnu = new System.Windows.Forms.ToolStripMenuItem();
             MnuPause = new System.Windows.Forms.ToolStripMenuItem();
-            directx2DRender = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -175,16 +178,37 @@
             // 
             // RenderToolStripMenuItem
             // 
-            RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { directx2DRender, directx3DRender, openGLRender, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec });
+            RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec });
             RenderToolStripMenuItem.Name = "RenderToolStripMenuItem";
             RenderToolStripMenuItem.Size = new System.Drawing.Size(56, 21);
             RenderToolStripMenuItem.Text = "渲染器";
+            // 
+            // CutBlackLineMnu
+            // 
+            CutBlackLineMnu.CheckOnClick = true;
+            CutBlackLineMnu.Name = "CutBlackLineMnu";
+            CutBlackLineMnu.Size = new System.Drawing.Size(228, 22);
+            CutBlackLineMnu.Text = "裁剪上下黑边(可能造成失真)";
+            CutBlackLineMnu.CheckedChanged += CutBlackLineMnu_CheckedChanged;
+            // 
+            // toolStripMenuItem6
+            // 
+            toolStripMenuItem6.Name = "toolStripMenuItem6";
+            toolStripMenuItem6.Size = new System.Drawing.Size(225, 6);
+            // 
+            // directx2DRender
+            // 
+            directx2DRender.CheckOnClick = true;
+            directx2DRender.Name = "directx2DRender";
+            directx2DRender.Size = new System.Drawing.Size(228, 22);
+            directx2DRender.Text = "DirectxD2D";
+            directx2DRender.Click += directx2DRender_Click;
             // 
             // directx3DRender
             // 
             directx3DRender.CheckOnClick = true;
             directx3DRender.Name = "directx3DRender";
-            directx3DRender.Size = new System.Drawing.Size(182, 22);
+            directx3DRender.Size = new System.Drawing.Size(228, 22);
             directx3DRender.Text = "DirectxD3D";
             directx3DRender.Click += directx3DToolStripMenuItem_Click;
             // 
@@ -193,28 +217,38 @@
             openGLRender.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             openGLRender.CheckOnClick = true;
             openGLRender.Name = "openGLRender";
-            openGLRender.Size = new System.Drawing.Size(182, 22);
+            openGLRender.Size = new System.Drawing.Size(228, 22);
             openGLRender.Text = "OpenGL";
             openGLRender.Click += openGLToolStripMenuItem_Click;
             // 
             // toolStripMenuItem4
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new System.Drawing.Size(179, 6);
+            toolStripMenuItem4.Size = new System.Drawing.Size(225, 6);
             // 
             // xBRScaleAdd
             // 
             xBRScaleAdd.Name = "xBRScaleAdd";
-            xBRScaleAdd.Size = new System.Drawing.Size(182, 22);
+            xBRScaleAdd.Size = new System.Drawing.Size(228, 22);
             xBRScaleAdd.Text = "xBR Scale++ (F11)";
             xBRScaleAdd.Click += xBRScaleAdd_Click;
             // 
             // xBRScaleDec
             // 
             xBRScaleDec.Name = "xBRScaleDec";
-            xBRScaleDec.Size = new System.Drawing.Size(182, 22);
+            xBRScaleDec.Size = new System.Drawing.Size(228, 22);
             xBRScaleDec.Text = "xBR Scale --  (F12)";
             xBRScaleDec.Click += xBRScaleDec_Click;
+            // 
+            // frameskipmnu
+            // 
+            frameskipmnu.Checked = true;
+            frameskipmnu.CheckOnClick = true;
+            frameskipmnu.CheckState = System.Windows.Forms.CheckState.Checked;
+            frameskipmnu.Name = "frameskipmnu";
+            frameskipmnu.Size = new System.Drawing.Size(228, 22);
+            frameskipmnu.Text = "跳帧 (只对 D2D,D3D)";
+            frameskipmnu.CheckedChanged += frameskipmnu_CheckedChanged;
             // 
             // MnuPause
             // 
@@ -222,14 +256,6 @@
             MnuPause.Size = new System.Drawing.Size(109, 21);
             MnuPause.Text = "暂停/继续 (空格)";
             MnuPause.Click += MnuPause_Click;
-            // 
-            // directx2DRender
-            // 
-            directx2DRender.CheckOnClick = true;
-            directx2DRender.Name = "directx2DRender";
-            directx2DRender.Size = new System.Drawing.Size(182, 22);
-            directx2DRender.Text = "DirectxD2D";
-            directx2DRender.Click += directx2DRender_Click;
             // 
             // FrmMain
             // 
@@ -277,5 +303,8 @@
         private System.Windows.Forms.ToolStripMenuItem xBRScaleAdd;
         private System.Windows.Forms.ToolStripMenuItem xBRScaleDec;
         private System.Windows.Forms.ToolStripMenuItem directx2DRender;
+        private System.Windows.Forms.ToolStripMenuItem CutBlackLineMnu;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem6;
+        private System.Windows.Forms.ToolStripMenuItem frameskipmnu;
     }
 }
