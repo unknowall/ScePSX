@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
+
 using static ScePSX.Controller;
 using static SDL2.SDL;
 
@@ -12,7 +13,8 @@ namespace ScePSX
 {
     public partial class FrmInput : Form
     {
-        public static KeyMappingManager KMM = new KeyMappingManager();
+        public static KeyMappingManager KMM1 = new KeyMappingManager();
+        public static KeyMappingManager KMM2 = new KeyMappingManager();
         //public static JoyMappingManager JMM = new JoyMappingManager();
 
         public static Dictionary<SDL_GameControllerButton, InputAction> AnalogMap;
@@ -36,7 +38,7 @@ namespace ScePSX
             cbcon.SelectedIndex = 0;
             cbmode.SelectedIndex = 0;
 
-            cbcon.Enabled = false;
+            //cbcon.Enabled = false;
             cbmode.Enabled = false;
 
             this.KeyUp += FrmInput_KeyUp;
@@ -44,30 +46,54 @@ namespace ScePSX
 
         public static void InitKeyMap()
         {
+            KmmStore KMM;
+
             try
             {
-                KMM = LoadKeys<KeyMappingManager>("./Keys.cfg");
+                KMM = LoadKeys<KmmStore>("./Keys.cfg");
+                KMM1 = KMM.KMM1;
+                KMM2 = KMM.KMM2;
             } catch { }
 
-            if (KMM._keyMapping.Count == 0)
+            if (KMM1._keyMapping.Count == 0)
             {
-                KMM.SetKeyMapping(Keys.D2, InputAction.Select);
-                KMM.SetKeyMapping(Keys.D1, InputAction.Start);
-                KMM.SetKeyMapping(Keys.W, InputAction.DPadUp);
-                KMM.SetKeyMapping(Keys.D, InputAction.DPadRight);
-                KMM.SetKeyMapping(Keys.S, InputAction.DPadDown);
-                KMM.SetKeyMapping(Keys.A, InputAction.DPadLeft);
-                KMM.SetKeyMapping(Keys.R, InputAction.L2);
-                KMM.SetKeyMapping(Keys.T, InputAction.R2);
-                KMM.SetKeyMapping(Keys.Q, InputAction.L1);
-                KMM.SetKeyMapping(Keys.E, InputAction.R1);
-                KMM.SetKeyMapping(Keys.J, InputAction.Triangle);
-                KMM.SetKeyMapping(Keys.K, InputAction.Circle);
-                KMM.SetKeyMapping(Keys.I, InputAction.Cross);
-                KMM.SetKeyMapping(Keys.U, InputAction.Square);
+                KMM1.SetKeyMapping(Keys.D2, InputAction.Select);
+                KMM1.SetKeyMapping(Keys.D1, InputAction.Start);
+                KMM1.SetKeyMapping(Keys.W, InputAction.DPadUp);
+                KMM1.SetKeyMapping(Keys.D, InputAction.DPadRight);
+                KMM1.SetKeyMapping(Keys.S, InputAction.DPadDown);
+                KMM1.SetKeyMapping(Keys.A, InputAction.DPadLeft);
+                KMM1.SetKeyMapping(Keys.R, InputAction.L2);
+                KMM1.SetKeyMapping(Keys.T, InputAction.R2);
+                KMM1.SetKeyMapping(Keys.Q, InputAction.L1);
+                KMM1.SetKeyMapping(Keys.E, InputAction.R1);
+                KMM1.SetKeyMapping(Keys.J, InputAction.Triangle);
+                KMM1.SetKeyMapping(Keys.K, InputAction.Circle);
+                KMM1.SetKeyMapping(Keys.I, InputAction.Cross);
+                KMM1.SetKeyMapping(Keys.U, InputAction.Square);
 
-                SaveKeys<KeyMappingManager>(KMM, "./Keys.cfg");
             }
+
+            if (KMM2._keyMapping.Count == 0)
+            {
+                KMM2.SetKeyMapping(Keys.D2, InputAction.Select);
+                KMM2.SetKeyMapping(Keys.D1, InputAction.Start);
+                KMM2.SetKeyMapping(Keys.W, InputAction.DPadUp);
+                KMM2.SetKeyMapping(Keys.D, InputAction.DPadRight);
+                KMM2.SetKeyMapping(Keys.S, InputAction.DPadDown);
+                KMM2.SetKeyMapping(Keys.A, InputAction.DPadLeft);
+                KMM2.SetKeyMapping(Keys.R, InputAction.L2);
+                KMM2.SetKeyMapping(Keys.T, InputAction.R2);
+                KMM2.SetKeyMapping(Keys.Q, InputAction.L1);
+                KMM2.SetKeyMapping(Keys.E, InputAction.R1);
+                KMM2.SetKeyMapping(Keys.J, InputAction.Triangle);
+                KMM2.SetKeyMapping(Keys.K, InputAction.Circle);
+                KMM2.SetKeyMapping(Keys.I, InputAction.Cross);
+                KMM2.SetKeyMapping(Keys.U, InputAction.Square);
+            }
+
+            KMM = new KmmStore(KMM1, KMM2);
+            SaveKeys<KmmStore>(KMM, "./Keys.cfg");
         }
 
         public static void InitControllerMap()
@@ -89,16 +115,16 @@ namespace ScePSX
             };
         }
 
-        private static KeyMappingManager LoadKeys<KeyMappingManager>(string filePath)
+        private static KmmStore LoadKeys<KmmStore>(string filePath)
         {
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
             {
                 BinaryFormatter formatter = new BinaryFormatter();
-                return (KeyMappingManager)formatter.Deserialize(fs);
+                return (KmmStore)formatter.Deserialize(fs);
             }
         }
 
-        private static void SaveKeys<KeyMappingManager>(KeyMappingManager obj, string filePath)
+        private static void SaveKeys<KmmStore>(KmmStore obj, string filePath)
         {
             using (FileStream fs = new FileStream(filePath, FileMode.Create))
             {
@@ -114,7 +140,8 @@ namespace ScePSX
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            SaveKeys<KeyMappingManager>(KMM, "./Keys.cfg");
+            KmmStore KMM = new KmmStore(KMM1, KMM2);
+            SaveKeys<KmmStore>(KMM, "./Keys.cfg");
         }
 
         private void FrmInput_KeyUp(object sender, KeyEventArgs e)
@@ -134,7 +161,10 @@ namespace ScePSX
 
             Btn.Text = e.KeyCode.ToString();
 
-            KMM.SetKeyMapping(e.KeyCode, SetKey);
+            if (cbcon.SelectedIndex == 0)
+                KMM1.SetKeyMapping(e.KeyCode, SetKey);
+            else
+                KMM2.SetKeyMapping(e.KeyCode, SetKey);
 
             plwait.Visible = false;
         }
@@ -146,8 +176,7 @@ namespace ScePSX
             SetKey = val;
             if (cbmode.SelectedIndex == 1)
             {
-                //SdlQuit = false;
-                //Task _Task = Task.Factory.StartNew(JOYSTICKHANDLER, TaskCreationOptions.LongRunning);
+                // todo
             }
         }
 
@@ -221,55 +250,77 @@ namespace ScePSX
             ReadyGetKey(sender, InputAction.Start);
         }
 
-        private void cbmode_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbcon_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cbmode.SelectedIndex == 0)
+            KeyMappingManager kmm;
+
+            if (cbcon.SelectedIndex == 0)
             {
-                foreach (var mapping in KMM._keyMapping)
-                {
-                    if (mapping.Value == InputAction.Start)
-                        START.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.Select)
-                        SELE.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.DPadUp)
-                        U.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.DPadDown)
-                        D.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.DPadLeft)
-                        L.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.DPadRight)
-                        R.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.L1)
-                        L1.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.R1)
-                        R1.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.L2)
-                        L2.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.R2)
-                        R2.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.Cross)
-                        X.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.Circle)
-                        O.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.Triangle)
-                        TRI.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-
-                    if (mapping.Value == InputAction.Square)
-                        SQUAD.Text = KMM.GetKeyCode(mapping.Value).ToString().ToUpper();
-                }
+                kmm = KMM1;
+            } else
+            {
+                kmm = KMM2;
             }
+
+            foreach (var mapping in kmm._keyMapping)
+            {
+                if (mapping.Value == InputAction.Start)
+                    START.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.Select)
+                    SELE.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.DPadUp)
+                    U.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.DPadDown)
+                    D.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.DPadLeft)
+                    L.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.DPadRight)
+                    R.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.L1)
+                    L1.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.R1)
+                    R1.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.L2)
+                    L2.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.R2)
+                    R2.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.Cross)
+                    X.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.Circle)
+                    O.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.Triangle)
+                    TRI.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+
+                if (mapping.Value == InputAction.Square)
+                    SQUAD.Text = kmm.GetKeyCode(mapping.Value).ToString().ToUpper();
+            }
+
+        }
+
+    }
+
+    [Serializable]
+    public class KmmStore
+    {
+        public KeyMappingManager KMM1;
+        public KeyMappingManager KMM2;
+
+        public KmmStore(KeyMappingManager k1, KeyMappingManager k2)
+        {
+            KMM1 = k1;
+            KMM2 = k2;
         }
     }
 
@@ -280,6 +331,9 @@ namespace ScePSX
 
         public void SetKeyMapping(Keys key, InputAction button)
         {
+            _keyMapping.Remove(GetKeyCode(button));
+            _keyMapping.Remove(key);
+
             _keyMapping[key] = button;
         }
 
@@ -303,7 +357,7 @@ namespace ScePSX
             return "";
         }
 
-        public Keys? GetKeyCode(InputAction button)
+        public Keys GetKeyCode(InputAction button)
         {
             foreach (var mapping in _keyMapping)
             {
@@ -312,7 +366,7 @@ namespace ScePSX
                     return mapping.Key;
                 }
             }
-            return null;
+            return Keys.None;
         }
 
         public void ClearKeyMapping(Keys key)

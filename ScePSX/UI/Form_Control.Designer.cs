@@ -28,269 +28,266 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.L1 = new System.Windows.Forms.Button();
-            this.L2 = new System.Windows.Forms.Button();
-            this.R2 = new System.Windows.Forms.Button();
-            this.R1 = new System.Windows.Forms.Button();
-            this.U = new System.Windows.Forms.Button();
-            this.L = new System.Windows.Forms.Button();
-            this.R = new System.Windows.Forms.Button();
-            this.D = new System.Windows.Forms.Button();
-            this.SELE = new System.Windows.Forms.Button();
-            this.START = new System.Windows.Forms.Button();
-            this.SQUAD = new System.Windows.Forms.Button();
-            this.TRI = new System.Windows.Forms.Button();
-            this.O = new System.Windows.Forms.Button();
-            this.X = new System.Windows.Forms.Button();
-            this.BtnSave = new System.Windows.Forms.Button();
-            this.plwait = new System.Windows.Forms.Panel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.cbcon = new System.Windows.Forms.ComboBox();
-            this.cbmode = new System.Windows.Forms.ComboBox();
-            this.plwait.SuspendLayout();
-            this.SuspendLayout();
+            L1 = new System.Windows.Forms.Button();
+            L2 = new System.Windows.Forms.Button();
+            R2 = new System.Windows.Forms.Button();
+            R1 = new System.Windows.Forms.Button();
+            U = new System.Windows.Forms.Button();
+            L = new System.Windows.Forms.Button();
+            R = new System.Windows.Forms.Button();
+            D = new System.Windows.Forms.Button();
+            SELE = new System.Windows.Forms.Button();
+            START = new System.Windows.Forms.Button();
+            SQUAD = new System.Windows.Forms.Button();
+            TRI = new System.Windows.Forms.Button();
+            O = new System.Windows.Forms.Button();
+            X = new System.Windows.Forms.Button();
+            BtnSave = new System.Windows.Forms.Button();
+            plwait = new System.Windows.Forms.Panel();
+            label1 = new System.Windows.Forms.Label();
+            cbcon = new System.Windows.Forms.ComboBox();
+            cbmode = new System.Windows.Forms.ComboBox();
+            plwait.SuspendLayout();
+            SuspendLayout();
             // 
             // L1
             // 
-            this.L1.Location = new System.Drawing.Point(18, 65);
-            this.L1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.L1.Name = "L1";
-            this.L1.Size = new System.Drawing.Size(58, 25);
-            this.L1.TabIndex = 2;
-            this.L1.Text = "L1: Q";
-            this.L1.UseVisualStyleBackColor = true;
-            this.L1.Click += new System.EventHandler(this.L1_Click);
+            L1.Location = new System.Drawing.Point(18, 65);
+            L1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            L1.Name = "L1";
+            L1.Size = new System.Drawing.Size(58, 25);
+            L1.TabIndex = 2;
+            L1.Text = "L1: Q";
+            L1.UseVisualStyleBackColor = true;
+            L1.Click += L1_Click;
             // 
             // L2
             // 
-            this.L2.Location = new System.Drawing.Point(18, 39);
-            this.L2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.L2.Name = "L2";
-            this.L2.Size = new System.Drawing.Size(58, 25);
-            this.L2.TabIndex = 3;
-            this.L2.Text = "L2: Z";
-            this.L2.UseVisualStyleBackColor = true;
-            this.L2.Click += new System.EventHandler(this.L2_Click);
+            L2.Location = new System.Drawing.Point(18, 39);
+            L2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            L2.Name = "L2";
+            L2.Size = new System.Drawing.Size(58, 25);
+            L2.TabIndex = 3;
+            L2.Text = "L2: Z";
+            L2.UseVisualStyleBackColor = true;
+            L2.Click += L2_Click;
             // 
             // R2
             // 
-            this.R2.Location = new System.Drawing.Point(245, 39);
-            this.R2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.R2.Name = "R2";
-            this.R2.Size = new System.Drawing.Size(58, 25);
-            this.R2.TabIndex = 5;
-            this.R2.Text = "R2: C";
-            this.R2.UseVisualStyleBackColor = true;
-            this.R2.Click += new System.EventHandler(this.R2_Click);
+            R2.Location = new System.Drawing.Point(245, 39);
+            R2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            R2.Name = "R2";
+            R2.Size = new System.Drawing.Size(58, 25);
+            R2.TabIndex = 5;
+            R2.Text = "R2: C";
+            R2.UseVisualStyleBackColor = true;
+            R2.Click += R2_Click;
             // 
             // R1
             // 
-            this.R1.Location = new System.Drawing.Point(245, 65);
-            this.R1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.R1.Name = "R1";
-            this.R1.Size = new System.Drawing.Size(58, 25);
-            this.R1.TabIndex = 4;
-            this.R1.Text = "R1: E";
-            this.R1.UseVisualStyleBackColor = true;
-            this.R1.Click += new System.EventHandler(this.R1_Click);
+            R1.Location = new System.Drawing.Point(245, 65);
+            R1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            R1.Name = "R1";
+            R1.Size = new System.Drawing.Size(58, 25);
+            R1.TabIndex = 4;
+            R1.Text = "R1: E";
+            R1.UseVisualStyleBackColor = true;
+            R1.Click += R1_Click;
             // 
             // U
             // 
-            this.U.Location = new System.Drawing.Point(43, 103);
-            this.U.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.U.Name = "U";
-            this.U.Size = new System.Drawing.Size(54, 25);
-            this.U.TabIndex = 6;
-            this.U.Text = "U:  W";
-            this.U.UseVisualStyleBackColor = true;
-            this.U.Click += new System.EventHandler(this.U_Click);
+            U.Location = new System.Drawing.Point(43, 103);
+            U.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            U.Name = "U";
+            U.Size = new System.Drawing.Size(54, 25);
+            U.TabIndex = 6;
+            U.Text = "U:  W";
+            U.UseVisualStyleBackColor = true;
+            U.Click += U_Click;
             // 
             // L
             // 
-            this.L.Location = new System.Drawing.Point(18, 133);
-            this.L.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.L.Name = "L";
-            this.L.Size = new System.Drawing.Size(54, 25);
-            this.L.TabIndex = 7;
-            this.L.Text = "L:  A";
-            this.L.UseVisualStyleBackColor = true;
-            this.L.Click += new System.EventHandler(this.L_Click);
+            L.Location = new System.Drawing.Point(18, 133);
+            L.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            L.Name = "L";
+            L.Size = new System.Drawing.Size(54, 25);
+            L.TabIndex = 7;
+            L.Text = "L:  A";
+            L.UseVisualStyleBackColor = true;
+            L.Click += L_Click;
             // 
             // R
             // 
-            this.R.Location = new System.Drawing.Point(76, 133);
-            this.R.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.R.Name = "R";
-            this.R.Size = new System.Drawing.Size(54, 25);
-            this.R.TabIndex = 8;
-            this.R.Text = "R: D";
-            this.R.UseVisualStyleBackColor = true;
-            this.R.Click += new System.EventHandler(this.R_Click);
+            R.Location = new System.Drawing.Point(76, 133);
+            R.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            R.Name = "R";
+            R.Size = new System.Drawing.Size(54, 25);
+            R.TabIndex = 8;
+            R.Text = "R: D";
+            R.UseVisualStyleBackColor = true;
+            R.Click += R_Click;
             // 
             // D
             // 
-            this.D.Location = new System.Drawing.Point(43, 162);
-            this.D.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.D.Name = "D";
-            this.D.Size = new System.Drawing.Size(54, 25);
-            this.D.TabIndex = 9;
-            this.D.Text = "D: S";
-            this.D.UseVisualStyleBackColor = true;
-            this.D.Click += new System.EventHandler(this.D_Click);
+            D.Location = new System.Drawing.Point(43, 162);
+            D.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            D.Name = "D";
+            D.Size = new System.Drawing.Size(54, 25);
+            D.TabIndex = 9;
+            D.Text = "D: S";
+            D.UseVisualStyleBackColor = true;
+            D.Click += D_Click;
             // 
             // SELE
             // 
-            this.SELE.Location = new System.Drawing.Point(163, 77);
-            this.SELE.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.SELE.Name = "SELE";
-            this.SELE.Size = new System.Drawing.Size(54, 25);
-            this.SELE.TabIndex = 10;
-            this.SELE.Text = "Sel:e 2";
-            this.SELE.UseVisualStyleBackColor = true;
-            this.SELE.Click += new System.EventHandler(this.SELE_Click);
+            SELE.Location = new System.Drawing.Point(163, 77);
+            SELE.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            SELE.Name = "SELE";
+            SELE.Size = new System.Drawing.Size(54, 25);
+            SELE.TabIndex = 10;
+            SELE.Text = "Sel:e 2";
+            SELE.UseVisualStyleBackColor = true;
+            SELE.Click += SELE_Click;
             // 
             // START
             // 
-            this.START.Location = new System.Drawing.Point(105, 77);
-            this.START.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.START.Name = "START";
-            this.START.Size = new System.Drawing.Size(54, 25);
-            this.START.TabIndex = 11;
-            this.START.Text = "Start: 1";
-            this.START.UseVisualStyleBackColor = true;
-            this.START.Click += new System.EventHandler(this.START_Click);
+            START.Location = new System.Drawing.Point(105, 77);
+            START.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            START.Name = "START";
+            START.Size = new System.Drawing.Size(54, 25);
+            START.TabIndex = 11;
+            START.Text = "Start: 1";
+            START.UseVisualStyleBackColor = true;
+            START.Click += START_Click;
             // 
             // SQUAD
             // 
-            this.SQUAD.Location = new System.Drawing.Point(199, 133);
-            this.SQUAD.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.SQUAD.Name = "SQUAD";
-            this.SQUAD.Size = new System.Drawing.Size(64, 25);
-            this.SQUAD.TabIndex = 12;
-            this.SQUAD.Text = "Squad: J";
-            this.SQUAD.UseVisualStyleBackColor = true;
-            this.SQUAD.Click += new System.EventHandler(this.SQUAD_Click);
+            SQUAD.Location = new System.Drawing.Point(199, 133);
+            SQUAD.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            SQUAD.Name = "SQUAD";
+            SQUAD.Size = new System.Drawing.Size(64, 25);
+            SQUAD.TabIndex = 12;
+            SQUAD.Text = "Squad: J";
+            SQUAD.UseVisualStyleBackColor = true;
+            SQUAD.Click += SQUAD_Click;
             // 
             // TRI
             // 
-            this.TRI.Location = new System.Drawing.Point(231, 103);
-            this.TRI.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.TRI.Name = "TRI";
-            this.TRI.Size = new System.Drawing.Size(54, 25);
-            this.TRI.TabIndex = 13;
-            this.TRI.Text = "TrI: I";
-            this.TRI.UseVisualStyleBackColor = true;
-            this.TRI.Click += new System.EventHandler(this.TRI_Click);
+            TRI.Location = new System.Drawing.Point(231, 103);
+            TRI.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            TRI.Name = "TRI";
+            TRI.Size = new System.Drawing.Size(54, 25);
+            TRI.TabIndex = 13;
+            TRI.Text = "TrI: I";
+            TRI.UseVisualStyleBackColor = true;
+            TRI.Click += TRI_Click;
             // 
             // O
             // 
-            this.O.Location = new System.Drawing.Point(268, 133);
-            this.O.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.O.Name = "O";
-            this.O.Size = new System.Drawing.Size(61, 25);
-            this.O.TabIndex = 14;
-            this.O.Text = "O: K";
-            this.O.UseVisualStyleBackColor = true;
-            this.O.Click += new System.EventHandler(this.O_Click);
+            O.Location = new System.Drawing.Point(268, 133);
+            O.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            O.Name = "O";
+            O.Size = new System.Drawing.Size(61, 25);
+            O.TabIndex = 14;
+            O.Text = "O: K";
+            O.UseVisualStyleBackColor = true;
+            O.Click += O_Click;
             // 
             // X
             // 
-            this.X.Location = new System.Drawing.Point(231, 162);
-            this.X.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.X.Name = "X";
-            this.X.Size = new System.Drawing.Size(54, 25);
-            this.X.TabIndex = 15;
-            this.X.Text = "X: J";
-            this.X.UseVisualStyleBackColor = true;
-            this.X.Click += new System.EventHandler(this.X_Click);
+            X.Location = new System.Drawing.Point(231, 162);
+            X.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            X.Name = "X";
+            X.Size = new System.Drawing.Size(54, 25);
+            X.TabIndex = 15;
+            X.Text = "X: J";
+            X.UseVisualStyleBackColor = true;
+            X.Click += X_Click;
             // 
             // BtnSave
             // 
-            this.BtnSave.Location = new System.Drawing.Point(135, 197);
-            this.BtnSave.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.BtnSave.Name = "BtnSave";
-            this.BtnSave.Size = new System.Drawing.Size(73, 25);
-            this.BtnSave.TabIndex = 16;
-            this.BtnSave.Text = "保存设置";
-            this.BtnSave.UseVisualStyleBackColor = true;
-            this.BtnSave.Click += new System.EventHandler(this.BtnSave_Click);
+            BtnSave.Location = new System.Drawing.Point(135, 197);
+            BtnSave.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            BtnSave.Name = "BtnSave";
+            BtnSave.Size = new System.Drawing.Size(73, 25);
+            BtnSave.TabIndex = 16;
+            BtnSave.Text = "保存设置";
+            BtnSave.UseVisualStyleBackColor = true;
+            BtnSave.Click += BtnSave_Click;
             // 
             // plwait
             // 
-            this.plwait.Controls.Add(this.label1);
-            this.plwait.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.plwait.Location = new System.Drawing.Point(81, 65);
-            this.plwait.Name = "plwait";
-            this.plwait.Size = new System.Drawing.Size(171, 85);
-            this.plwait.TabIndex = 17;
-            this.plwait.Visible = false;
+            plwait.Controls.Add(label1);
+            plwait.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Bold);
+            plwait.Location = new System.Drawing.Point(81, 65);
+            plwait.Name = "plwait";
+            plwait.Size = new System.Drawing.Size(171, 85);
+            plwait.TabIndex = 17;
+            plwait.Visible = false;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(1, 32);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(168, 22);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "按下任意键，ESC取消";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(1, 32);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(168, 22);
+            label1.TabIndex = 0;
+            label1.Text = "按下任意键，ESC取消";
             // 
             // cbcon
             // 
-            this.cbcon.FormattingEnabled = true;
-            this.cbcon.Items.AddRange(new object[] {
-            "Controller 1",
-            "Controller 2"});
-            this.cbcon.Location = new System.Drawing.Point(18, 6);
-            this.cbcon.Name = "cbcon";
-            this.cbcon.Size = new System.Drawing.Size(139, 25);
-            this.cbcon.TabIndex = 18;
+            cbcon.FormattingEnabled = true;
+            cbcon.Items.AddRange(new object[] { "Controller 1", "Controller 2" });
+            cbcon.Location = new System.Drawing.Point(18, 6);
+            cbcon.Name = "cbcon";
+            cbcon.Size = new System.Drawing.Size(139, 25);
+            cbcon.TabIndex = 18;
+            cbcon.SelectedIndexChanged += cbcon_SelectedIndexChanged;
             // 
             // cbmode
             // 
-            this.cbmode.FormattingEnabled = true;
-            this.cbmode.Items.AddRange(new object[] {
-            "KeyBoard"});
-            this.cbmode.Location = new System.Drawing.Point(184, 6);
-            this.cbmode.Name = "cbmode";
-            this.cbmode.Size = new System.Drawing.Size(136, 25);
-            this.cbmode.TabIndex = 19;
-            this.cbmode.SelectedIndexChanged += new System.EventHandler(this.cbmode_SelectedIndexChanged);
+            cbmode.FormattingEnabled = true;
+            cbmode.Items.AddRange(new object[] { "KeyBoard" });
+            cbmode.Location = new System.Drawing.Point(184, 6);
+            cbmode.Name = "cbmode";
+            cbmode.Size = new System.Drawing.Size(136, 25);
+            cbmode.TabIndex = 19;
             // 
             // FrmInput
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(338, 232);
-            this.Controls.Add(this.cbmode);
-            this.Controls.Add(this.cbcon);
-            this.Controls.Add(this.plwait);
-            this.Controls.Add(this.BtnSave);
-            this.Controls.Add(this.X);
-            this.Controls.Add(this.O);
-            this.Controls.Add(this.TRI);
-            this.Controls.Add(this.SQUAD);
-            this.Controls.Add(this.START);
-            this.Controls.Add(this.SELE);
-            this.Controls.Add(this.D);
-            this.Controls.Add(this.R);
-            this.Controls.Add(this.L);
-            this.Controls.Add(this.U);
-            this.Controls.Add(this.R2);
-            this.Controls.Add(this.R1);
-            this.Controls.Add(this.L2);
-            this.Controls.Add(this.L1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.KeyPreview = true;
-            this.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.MaximizeBox = false;
-            this.Name = "FrmInput";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "按键设置";
-            this.Shown += new System.EventHandler(this.FrmInput_Shown);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.FrmInput_KeyUp);
-            this.plwait.ResumeLayout(false);
-            this.plwait.PerformLayout();
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            ClientSize = new System.Drawing.Size(338, 232);
+            Controls.Add(cbmode);
+            Controls.Add(cbcon);
+            Controls.Add(plwait);
+            Controls.Add(BtnSave);
+            Controls.Add(X);
+            Controls.Add(O);
+            Controls.Add(TRI);
+            Controls.Add(SQUAD);
+            Controls.Add(START);
+            Controls.Add(SELE);
+            Controls.Add(D);
+            Controls.Add(R);
+            Controls.Add(L);
+            Controls.Add(U);
+            Controls.Add(R2);
+            Controls.Add(R1);
+            Controls.Add(L2);
+            Controls.Add(L1);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            KeyPreview = true;
+            Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            MaximizeBox = false;
+            Name = "FrmInput";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            Text = "按键设置";
+            Shown += FrmInput_Shown;
+            KeyUp += FrmInput_KeyUp;
+            plwait.ResumeLayout(false);
+            plwait.PerformLayout();
+            ResumeLayout(false);
 
         }
 

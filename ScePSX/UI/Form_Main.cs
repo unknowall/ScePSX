@@ -635,9 +635,13 @@ namespace ScePSX
                 return;
             }
 
-            InputAction button = FrmInput.KMM.GetKeyButton(e.KeyCode);
+            InputAction button = FrmInput.KMM1.GetKeyButton(e.KeyCode);
             if ((int)button != 0xFF && Core != null && Core.Running)
-                Core.Button(button, true);
+                Core.Button(button, true, 0);
+
+            button = FrmInput.KMM2.GetKeyButton(e.KeyCode);
+            if ((int)button != 0xFF && Core != null && Core.Running)
+                Core.Button(button, true, 1);
         }
 
         private void ButtonsUp(object sender, KeyEventArgs e)
@@ -649,9 +653,13 @@ namespace ScePSX
                 Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (PSXCore.SYNC_CYCLES)) + 1;
             }
 
-            InputAction button = FrmInput.KMM.GetKeyButton(e.KeyCode);
+            InputAction button = FrmInput.KMM1.GetKeyButton(e.KeyCode);
             if ((int)button != 0xFF && Core != null && Core.Running)
-                Core.Button(button, false);
+                Core.Button(button, false, 0);
+
+            button = FrmInput.KMM2.GetKeyButton(e.KeyCode);
+            if ((int)button != 0xFF && Core != null && Core.Running)
+                Core.Button(button, true, 1);
         }
 
         private void LoadRom()
@@ -866,6 +874,8 @@ namespace ScePSX
             if (Core == null || KeyFirst)
                 return;
 
+            conidx--;
+
             //Button
             bool isPadPressed = false;
             foreach (SDL_GameControllerButton button in Enum.GetValues(typeof(SDL_GameControllerButton)))
@@ -881,7 +891,7 @@ namespace ScePSX
                 }
                 if (FrmInput.AnalogMap.TryGetValue(button, out var gamepadInput))
                 {
-                    Core.Button(gamepadInput, isPressed);
+                    Core.Button(gamepadInput, isPressed, conidx );
                 }
             }
 
@@ -902,10 +912,10 @@ namespace ScePSX
             short tl = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT);
             short tr = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
-            Core.Button(InputAction.L2, tl > 16384 ? true : false);
-            Core.Button(InputAction.R2, tr > 16384 ? true : false);
+            Core.Button(InputAction.L2, tl > 16384 ? true : false, conidx );
+            Core.Button(InputAction.R2, tr > 16384 ? true : false, conidx );
 
-            Core.AnalogAxis(lx, ly, rx, ry);
+            Core.AnalogAxis(lx, ly, rx, ry, conidx );
 
             if (isPadPressed)
                 return;
@@ -918,19 +928,19 @@ namespace ScePSX
             {
                 hatState = SDL_JoystickGetHat(joystick, hatIndex);
 
-                Core.Button(InputAction.DPadUp, (hatState & SDL_HAT_UP) != 0);
-                Core.Button(InputAction.DPadDown, (hatState & SDL_HAT_DOWN) != 0);
-                Core.Button(InputAction.DPadLeft, (hatState & SDL_HAT_LEFT) != 0);
-                Core.Button(InputAction.DPadRight, (hatState & SDL_HAT_RIGHT) != 0);
+                Core.Button(InputAction.DPadUp, (hatState & SDL_HAT_UP) != 0, conidx );
+                Core.Button(InputAction.DPadDown, (hatState & SDL_HAT_DOWN) != 0, conidx );
+                Core.Button(InputAction.DPadLeft, (hatState & SDL_HAT_LEFT) != 0, conidx );
+                Core.Button(InputAction.DPadRight, (hatState & SDL_HAT_RIGHT) != 0, conidx );
             }
 
             if (!isAnalog && hatState == 0)
             {
                 // 将左摇杆的值转换为方向键状态
-                Core.Button(InputAction.DPadUp, ly < -0.5f);    // 上
-                Core.Button(InputAction.DPadDown, ly > 0.5f);   // 下
-                Core.Button(InputAction.DPadLeft, lx < -0.5f);  // 左
-                Core.Button(InputAction.DPadRight, lx > 0.5f);  // 右
+                Core.Button(InputAction.DPadUp, ly < -0.5f, conidx );    // 上
+                Core.Button(InputAction.DPadDown, ly > 0.5f, conidx );   // 下
+                Core.Button(InputAction.DPadLeft, lx < -0.5f, conidx );  // 左
+                Core.Button(InputAction.DPadRight, lx > 0.5f, conidx );  // 右
             }
 
         }
