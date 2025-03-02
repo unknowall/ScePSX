@@ -207,7 +207,7 @@ namespace ScePSX
 
         public void AnalogAxis(float lx, float ly, float rx, float ry)
         {
-            IsAnalog = true;
+            //IsAnalog = true;
 
             //Convert [-1 , 1] to [0 , 0xFF]
             RightJoyX = (byte)(((rx + 1.0f) / 2.0f) * 0xFF);

@@ -44,6 +44,7 @@
             内存编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             RenderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             CutBlackLineMnu = new System.Windows.Forms.ToolStripMenuItem();
+            frameskipmnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem6 = new System.Windows.Forms.ToolStripSeparator();
             directx2DRender = new System.Windows.Forms.ToolStripMenuItem();
             directx3DRender = new System.Windows.Forms.ToolStripMenuItem();
@@ -51,7 +52,6 @@
             toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             xBRScaleAdd = new System.Windows.Forms.ToolStripMenuItem();
             xBRScaleDec = new System.Windows.Forms.ToolStripMenuItem();
-            frameskipmnu = new System.Windows.Forms.ToolStripMenuItem();
             MnuPause = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             SuspendLayout();
@@ -191,6 +191,16 @@
             CutBlackLineMnu.Text = "裁剪上下黑边(可能造成失真)";
             CutBlackLineMnu.CheckedChanged += CutBlackLineMnu_CheckedChanged;
             // 
+            // frameskipmnu
+            // 
+            frameskipmnu.Checked = true;
+            frameskipmnu.CheckOnClick = true;
+            frameskipmnu.CheckState = System.Windows.Forms.CheckState.Checked;
+            frameskipmnu.Name = "frameskipmnu";
+            frameskipmnu.Size = new System.Drawing.Size(228, 22);
+            frameskipmnu.Text = "跳帧 (只对 D2D,D3D)";
+            frameskipmnu.CheckedChanged += frameskipmnu_CheckedChanged;
+            // 
             // toolStripMenuItem6
             // 
             toolStripMenuItem6.Name = "toolStripMenuItem6";
@@ -240,16 +250,6 @@
             xBRScaleDec.Text = "xBR Scale --  (F12)";
             xBRScaleDec.Click += xBRScaleDec_Click;
             // 
-            // frameskipmnu
-            // 
-            frameskipmnu.Checked = true;
-            frameskipmnu.CheckOnClick = true;
-            frameskipmnu.CheckState = System.Windows.Forms.CheckState.Checked;
-            frameskipmnu.Name = "frameskipmnu";
-            frameskipmnu.Size = new System.Drawing.Size(228, 22);
-            frameskipmnu.Text = "跳帧 (只对 D2D,D3D)";
-            frameskipmnu.CheckedChanged += frameskipmnu_CheckedChanged;
-            // 
             // MnuPause
             // 
             MnuPause.Name = "MnuPause";
@@ -267,7 +267,7 @@
             Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             Name = "FrmMain";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "sPSX";
+            Text = "ScePSX";
             MainMenu.ResumeLayout(false);
             MainMenu.PerformLayout();
             ResumeLayout(false);

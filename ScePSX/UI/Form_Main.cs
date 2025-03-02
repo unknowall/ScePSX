@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -29,8 +31,10 @@ namespace ScePSX
 
         public static PSXCore Core;
 
-        private bool SdlQuit = false;
-        public static nint joystickid;
+        private nint controller1, controller2;
+        private bool KeyFirst, isAnalog = false;
+        private string temphint;
+        private int hintdelay;
 
         private int _frameCount = 0;
         private Stopwatch _fpsStopwatch = Stopwatch.StartNew();
@@ -44,7 +48,8 @@ namespace ScePSX
         private int bufferCount = 0;
         private readonly object bufferLock = new object();
 
-        private System.Timers.Timer timer;
+        private System.Windows.Forms.Timer timer;
+        private Label lbHint;
 
         public int scale;
         private bool cutblackline = false;
@@ -89,7 +94,7 @@ namespace ScePSX
 
             //AllocConsole();
 
-            CheckForIllegalCrossThreadCalls = false;
+            //CheckForIllegalCrossThreadCalls = false;
 
             KeyDown += new KeyEventHandler(ButtonsDown);
             KeyUp += new KeyEventHandler(ButtonsUp);
@@ -115,7 +120,7 @@ namespace ScePSX
                     directx2DRender.Checked = true;
                     break;
                 case RenderMode.Directx3D:
-                    //D3DRENDER.BringToFront();
+                    D3DRENDER.BringToFront();
                     directx3DRender.Checked = true;
                     break;
                 case RenderMode.OpenGL:
@@ -129,6 +134,24 @@ namespace ScePSX
 
             CutBlackLineMnu.Checked = cutblackline;
 
+            KeyFirst = ini.ReadInt("main", "keyfirst") == 1;
+            isAnalog = ini.ReadInt("main", "isAnalog") == 1;
+            ToolStripMenuItem springItem = new ToolStripMenuItem();
+            springItem.AutoSize = false;
+            springItem.Width = 0;
+            springItem.Enabled = false;
+            lbHint = new Label();
+            lbHint.Text = $"F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
+            lbHint.Font = new Font("微软雅黑", 11f, FontStyle.Bold);
+            lbHint.AutoSize = true;
+            lbHint.Padding = new Padding(0, 2, 10, 0);
+
+            ToolStripControlHost host = new ToolStripControlHost(lbHint);
+            host.Alignment = ToolStripItemAlignment.Right;
+
+            MainMenu.Items.Add(springItem);
+            MainMenu.Items.Add(host);
+
 
             SDLInit();
 
@@ -138,15 +161,25 @@ namespace ScePSX
             InitBiosMnu();
             InitShaderMnu();
 
-            timer = new System.Timers.Timer();
+            timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
-            timer.Elapsed += Timer_Elapsed;
-            timer.AutoReset = true;
+            timer.Tick += Timer_Elapsed;
             timer.Enabled = true;
+            timer.Start();
         }
 
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void Timer_Elapsed(object sender, EventArgs e)
         {
+            lbHint.Text = $"{temphint} F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
+
+            if (hintdelay > 0)
+            {
+                hintdelay--;
+            } else
+            {
+                temphint = "";
+            }
+
             if (Core == null)
                 return;
 
@@ -167,11 +200,12 @@ namespace ScePSX
                 Core.Stop();
             if (audiodeviceid != 0)
                 SDL_CloseAudioDevice(audiodeviceid);
-            if (joystickid != 0)
+            if (controller1 != 0)
             {
-                SDL_GameControllerClose(joystickid);
-                SDL_JoystickClose(joystickid);
+                SDL_GameControllerClose(controller1);
+                SDL_JoystickClose(controller1);
             }
+            SDL_Quit();
         }
 
         private void SDLInit()
@@ -198,9 +232,10 @@ namespace ScePSX
             if (audiodeviceid != 0)
                 SDL_PauseAudioDevice(audiodeviceid, 0);
 
-            Task _Task = Task.Factory.StartNew(JOYSTICKHANDLER, TaskCreationOptions.LongRunning);
+            //Task _Task = Task.Factory.StartNew(QueryControllerStateTask, TaskCreationOptions.LongRunning);
         }
 
+        #region MENU
         private void InitBiosMnu()
         {
             currbios = ini.Read("main", "bios");
@@ -505,11 +540,16 @@ namespace ScePSX
             var frminput = new FrmInput();
             frminput.Show(this);
         }
+        #endregion
 
         private void SaveState(int Slot = 0)
         {
             if (Core != null && Core.Running)
+            {
                 Core.SaveState(Slot.ToString());
+                temphint = $"已保存到槽位 [{Slot}]";
+                hintdelay = 3;
+            }
         }
 
         private void LoadState(int Slot = 0)
@@ -561,12 +601,19 @@ namespace ScePSX
             }
             if (e.KeyCode == Keys.F9)
             {
-                AllocConsole();
+                KeyFirst = !KeyFirst;
+                ini.WriteInt("main", "keyfirst", KeyFirst ? 1 : 0);
+                return;
             }
             if (e.KeyCode == Keys.F10)
             {
-                Core.PsxBus.controller1.IsAnalog = !Core.PsxBus.controller1.IsAnalog;
-                Console.WriteLine($"Analog Controller Mode: {Core.PsxBus.controller1.IsAnalog}");
+                isAnalog = !isAnalog;
+                ini.WriteInt("main", "isAnalog", isAnalog ? 1 : 0);
+                if (Core != null)
+                {
+                    Core.PsxBus.controller1.IsAnalog = isAnalog;
+                    Console.WriteLine($"Analog Controller Mode: {Core.PsxBus.controller1.IsAnalog}");
+                }
                 return;
             }
             if (e.KeyCode == Keys.Tab && Core != null)
@@ -580,12 +627,14 @@ namespace ScePSX
                 if (Core != null && Core.Running)
                     if (scale < 8)
                         scale += 2;
+                return;
             }
             if (e.KeyCode == Keys.F12)
             {
                 if (Core != null && Core.Running)
                     if (scale > 0)
                         scale -= 2;
+                return;
             }
 
             InputAction button = FrmInput.KMM.GetKeyButton(e.KeyCode);
@@ -642,6 +691,11 @@ namespace ScePSX
                 Core.Start();
             }
 
+            Core.PsxBus.controller1.IsAnalog = isAnalog;
+
+            temphint = $"已启动 [{Core.DiskID}]";
+            hintdelay = 3;
+
             InitStateMnu();
         }
 
@@ -673,6 +727,9 @@ namespace ScePSX
             Core.PsxBus.SwapDisk(FD.FileName);
 
             Core.Pauseing = false;
+
+            temphint = $"已换盘 {Core.DiskID}";
+            hintdelay = 3;
         }
 
         private void AudioCallbackImpl(IntPtr userdata, IntPtr stream, int len)
@@ -734,7 +791,7 @@ namespace ScePSX
 
             if (cutblackline)
             {
-                CoreHeight = XbrScaler.CutBlackLine(pixels,cutbuff,width,height);
+                CoreHeight = XbrScaler.CutBlackLine(pixels, cutbuff, width, height);
                 if (CoreHeight == 0)
                 {
                     CoreHeight = height;
@@ -745,6 +802,8 @@ namespace ScePSX
                     height = CoreHeight;
                 }
             }
+
+            QueryControllerState();
 
             if (Rendermode == RenderMode.OpenGL)
             {
@@ -773,57 +832,115 @@ namespace ScePSX
         }
 
         #region SDLController
-        private void HandleButtonEvent(SDL_GameControllerButton button, bool isDown)
+
+        //private void QueryControllerStateTask()
+        //{
+        //    while (true)
+        //    {
+        //        QueryControllerState();
+
+        //        Thread.Sleep(15);
+        //    }
+        //}
+
+        private void QueryControllerState()
         {
-            if (Core == null)
-                return;
-
-            if ((int)button == 10 || (int)button == 15 || (int)button == 18)
+            if (controller1 == 0)
             {
-                Core.PsxBus.controller1.IsAnalog = !Core.PsxBus.controller1.IsAnalog;
-            }
-
-            if (FrmInput.AnalogMap.TryGetValue(button, out var gamepadInput))
-            {
-                if (isDown)
+                if (SDL_NumJoysticks() == 0)
                 {
-                    Core.Button(gamepadInput, true);
+                    return;
+                }
+
+                if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
+                {
+                    controller1 = SDL_GameControllerOpen(0);
                 } else
                 {
-                    Core.Button(gamepadInput);
+                    controller1 = SDL_JoystickOpen(0);
+                }
+
+                if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
+                {
+                    controller2 = SDL_GameControllerOpen(1);
+                } else
+                {
+                    controller2 = SDL_JoystickOpen(1);
+                }
+
+                Console.WriteLine($"Controller Device {SDL_NumJoysticks()} : {SDL_JoystickNameForIndex(0)} Connected");
+            }
+
+            if (Core == null || KeyFirst)
+                return;
+
+            //Button
+            bool isPadPressed = false;
+            foreach (SDL_GameControllerButton button in Enum.GetValues(typeof(SDL_GameControllerButton)))
+            {
+                bool isPressed = SDL_GameControllerGetButton(controller1, button) == 1;
+
+                if (!isAnalog && isPressed)
+                {
+                    if (isPressed && (int)button >= 11 && (int)button <= 15)
+                    {
+                        isPadPressed = true;
+                    }
+                }
+                if (FrmInput.AnalogMap.TryGetValue(button, out var gamepadInput))
+                {
+                    Core.Button(gamepadInput, isPressed);
                 }
             }
 
-            //GetAxis();
-        }
+            //AnalogAxis
+            float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
 
-        private void HandleHatEvent(int hatIndex, int hatValue)
-        {
-            // 清除之前的 D-Pad 状态
-            Core.Button(InputAction.DPadUp);
-            Core.Button(InputAction.DPadDown);
-            Core.Button(InputAction.DPadLeft);
-            Core.Button(InputAction.DPadRight);
+            short leftX = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX);
+            short leftY = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY);
+            short rightX = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX);
+            short rightY = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY);
 
-            // 根据 Hat 值设置新的 D-Pad 状态
-            if ((hatValue & SDL_HAT_UP) != 0)
+            lx = NormalizeAxis(leftX);
+            ly = NormalizeAxis(leftY);
+            rx = NormalizeAxis(rightX);
+            ry = NormalizeAxis(rightY);
+
+            //TRIGGER
+            short tl = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+            short tr = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+
+            Core.Button(InputAction.L2, tl > 16384 ? true : false);
+            Core.Button(InputAction.R2, tr > 16384 ? true : false);
+
+            Core.AnalogAxis(lx, ly, rx, ry);
+
+            if (isPadPressed)
+                return;
+
+            //Hat
+            int hatIndex = 0;
+            int hatState = 0;
+            IntPtr joystick = SDL_GameControllerGetJoystick(controller1);
+            if (joystick != IntPtr.Zero)
             {
-                Core.Button(InputAction.DPadUp, true);
-            }
-            if ((hatValue & SDL_HAT_DOWN) != 0)
-            {
-                Core.Button(InputAction.DPadDown, true);
-            }
-            if ((hatValue & SDL_HAT_LEFT) != 0)
-            {
-                Core.Button(InputAction.DPadLeft, true);
-            }
-            if ((hatValue & SDL_HAT_RIGHT) != 0)
-            {
-                Core.Button(InputAction.DPadRight, true);
+                hatState = SDL_JoystickGetHat(joystick, hatIndex);
+
+                Core.Button(InputAction.DPadUp, (hatState & SDL_HAT_UP) != 0);
+                Core.Button(InputAction.DPadDown, (hatState & SDL_HAT_DOWN) != 0);
+                Core.Button(InputAction.DPadLeft, (hatState & SDL_HAT_LEFT) != 0);
+                Core.Button(InputAction.DPadRight, (hatState & SDL_HAT_RIGHT) != 0);
             }
 
-            //GetAxis();
+            if (!isAnalog && hatState == 0)
+            {
+                // 将左摇杆的值转换为方向键状态
+                Core.Button(InputAction.DPadUp, ly < -0.5f);    // 上
+                Core.Button(InputAction.DPadDown, ly > 0.5f);   // 下
+                Core.Button(InputAction.DPadLeft, lx < -0.5f);  // 左
+                Core.Button(InputAction.DPadRight, lx > 0.5f);  // 右
+            }
+
         }
 
         private float NormalizeAxis(short value)
@@ -835,113 +952,7 @@ namespace ScePSX
             }
             return ret;
         }
-        private void GetAxis()
-        {
-            float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
 
-            short leftX = SDL_GameControllerGetAxis(joystickid, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX);
-            short leftY = SDL_GameControllerGetAxis(joystickid, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY);
-            short rightX = SDL_GameControllerGetAxis(joystickid, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX);
-            short rightY = SDL_GameControllerGetAxis(joystickid, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY);
-
-            lx = NormalizeAxis(leftX);
-            ly = NormalizeAxis(leftY);
-            rx = NormalizeAxis(rightX);
-            ry = NormalizeAxis(rightY);
-
-            Core.AnalogAxis(lx, ly, rx, ry);
-        }
-        private void HandleAxisEvent(byte axis, short value)
-        {
-            if (Core == null)
-                return;
-
-            float normalizedValue = NormalizeAxis(value);
-
-            switch ((SDL_GameControllerAxis)axis)
-            {
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-                    if (normalizedValue < 0.5f)
-                    {
-                        Core.Button(InputAction.L2, true);
-                    } else if (normalizedValue >= 0.5f)
-                    {
-                        Core.Button(InputAction.L2);
-                    }
-                    return;
-
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-                    if (normalizedValue < 0.5f)
-                    {
-                        Core.Button(InputAction.R2, true);
-                    } else if (normalizedValue >= 0.5f)
-                    {
-                        Core.Button(InputAction.R2);
-                    }
-                    return;
-            }
-
-            GetAxis();
-        }
-
-        private void JOYSTICKHANDLER()
-        {
-            SDL_Event e;
-
-            while (SdlQuit == false)
-            {
-                Thread.Sleep(50);
-                while (SDL_PollEvent(out e) != 0)
-                {
-                    switch (e.type)
-                    {
-                        case SDL_EventType.SDL_QUIT:
-                            SdlQuit = true;
-                            return;
-
-                        // 手柄按钮按下
-                        case SDL_EventType.SDL_JOYBUTTONDOWN:
-                            HandleButtonEvent((SDL_GameControllerButton)e.cbutton.button, isDown: true);
-                            break;
-
-                        // 手柄按钮释放
-                        case SDL_EventType.SDL_JOYBUTTONUP:
-                            HandleButtonEvent((SDL_GameControllerButton)e.cbutton.button, isDown: false);
-                            break;
-
-                        // 手柄轴移动
-                        case SDL_EventType.SDL_JOYAXISMOTION:
-                            HandleAxisEvent(e.caxis.axis, e.caxis.axisValue);
-                            break;
-
-                        // 手柄方向键（HAT）事件
-                        case SDL_EventType.SDL_JOYHATMOTION:
-                            HandleHatEvent(e.jhat.hat, e.jhat.hatValue);
-                            break;
-
-                        // 手柄连接
-                        case SDL_EventType.SDL_JOYDEVICEADDED:
-                            if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
-                            {
-                                joystickid = SDL_GameControllerOpen(0);
-                            } else
-                            {
-                                joystickid = SDL_JoystickOpen(0);
-                            }
-                            Console.WriteLine($"Controller Device {SDL_NumJoysticks()} : {SDL_JoystickNameForIndex(0)} Connected");
-                            break;
-
-                        case SDL_EventType.SDL_JOYDEVICEREMOVED:
-                            break;
-
-                        default:
-                            if (SdlQuit)
-                                return;
-                            break;
-                    }
-                }
-            }
-        }
         #endregion
 
     }
@@ -949,36 +960,91 @@ namespace ScePSX
     #region INIFILE
     public class IniFile
     {
-        [DllImport("kernel32")]
-        private static extern long WritePrivateProfileString(string name, string key, string val, string filePath);
-        [DllImport("kernel32")]
-        private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
-        public string path;
+        private readonly string path;
+        private readonly Dictionary<string, Dictionary<string, string>> data;
+
         public IniFile(string inipath)
         {
             path = inipath;
+            data = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+            Load();
         }
-        public void Write(string name, string key, string value)
+
+        private void Load()
         {
-            WritePrivateProfileString(name, key, value, this.path);
+            if (!File.Exists(path))
+                return;
+
+            string currentSection = null;
+            foreach (var line in File.ReadAllLines(path))
+            {
+                var trimmedLine = line.Trim();
+                if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith(";"))
+                    continue;
+
+                if (trimmedLine.StartsWith("[") && trimmedLine.EndsWith("]"))
+                {
+                    currentSection = trimmedLine.Substring(1, trimmedLine.Length - 2).Trim();
+                    if (!data.ContainsKey(currentSection))
+                    {
+                        data[currentSection] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    }
+                } else if (currentSection != null)
+                {
+                    var parts = trimmedLine.Split(new[] { '=' }, 2);
+                    if (parts.Length == 2)
+                    {
+                        var key = parts[0].Trim();
+                        var value = parts[1].Trim();
+                        data[currentSection][key] = value;
+                    }
+                }
+            }
         }
-        public string Read(string name, string key)
+
+        private void Save()
         {
-            StringBuilder sb = new StringBuilder(255);
-            int ini = GetPrivateProfileString(name, key, "", sb, 255, this.path);
-            return sb.ToString();
+            var lines = new List<string>();
+            foreach (var section in data)
+            {
+                lines.Add($"[{section.Key}]");
+                foreach (var entry in section.Value)
+                {
+                    lines.Add($"{entry.Key}={entry.Value}");
+                }
+                lines.Add(""); // 空行分隔节
+            }
+            File.WriteAllLines(path, lines);
         }
-        public void WriteInt(string name, string key, int value)
+
+        public void Write(string section, string key, string value)
         {
-            WritePrivateProfileString(name, key, value.ToString(), this.path);
+            if (!data.ContainsKey(section))
+            {
+                data[section] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+            data[section][key] = value;
+            Save();
         }
-        public int ReadInt(string name, string key)
+
+        public string Read(string section, string key)
         {
-            string str = Read(name, key);
-            if (str == "")
-                return 0;
-            else
-                return Convert.ToInt32(str);
+            if (data.ContainsKey(section) && data[section].ContainsKey(key))
+            {
+                return data[section][key];
+            }
+            return "";
+        }
+
+        public void WriteInt(string section, string key, int value)
+        {
+            Write(section, key, value.ToString());
+        }
+
+        public int ReadInt(string section, string key)
+        {
+            var str = Read(section, key);
+            return string.IsNullOrEmpty(str) ? 0 : Convert.ToInt32(str);
         }
     }
     #endregion

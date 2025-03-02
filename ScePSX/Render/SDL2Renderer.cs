@@ -47,8 +47,6 @@ namespace ScePSX
             this.ResumeLayout(false);
         }
 
-        private SDL_EventFilter _eventFilter;
-
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
