@@ -93,6 +93,12 @@ namespace ScePSX
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => RenderBuffer(pixels, width, height, scale)));
+                return;
+            }
+
             if (fsk > 0)
             {
                 fsk--;

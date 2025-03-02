@@ -6,7 +6,7 @@ using ScePSX.CdRom2;
 namespace ScePSX
 {
     [Serializable]
-    public class SPU
+    public class SPU : IDisposable
     {
         private const int CYCLES_PER_SAMPLE = 0x300; //33868800 / 44100hz
         private int counter = 0;
@@ -214,6 +214,11 @@ namespace ScePSX
             {
                 voices[i] = new Voice();
             }
+        }
+
+        public unsafe void Dispose()
+        {
+            Marshal.FreeHGlobal((nint)ram);
         }
 
         internal void write(uint addr, ushort value)
@@ -1444,7 +1449,8 @@ namespace ScePSX
             {
                 adsrPhase++;
                 adsrCounter = 0;
-            };
+            }
+            ;
         }
     }
 

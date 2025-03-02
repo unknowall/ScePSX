@@ -99,6 +99,12 @@ namespace ScePSX
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => RenderBuffer(pixels, width, height, scale)));
+                return;
+            }
+
             Pixels = pixels;
             iWidth = width;
             iHeight = height;
@@ -244,6 +250,12 @@ namespace ScePSX
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                Gl.DeleteTextures(_textureId);
+                Gl.DeleteBuffers(vboID);
+                Gl.DeleteProgram(programID);
+            }
             base.Dispose(disposing);
         }
     }

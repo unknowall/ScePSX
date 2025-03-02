@@ -2,12 +2,13 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using OpenGL;
 using ScePSX.CdRom2;
 
 namespace ScePSX
 {
     [Serializable]
-    public class BUS
+    public class BUS : IDisposable
     {
         [NonSerialized]
         public unsafe byte* ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
@@ -143,6 +144,16 @@ namespace ScePSX
             gpu.host = Host;
 
             cddata.LoadFileStream();
+        }
+
+        public unsafe void Dispose()
+        {
+            Marshal.FreeHGlobal((nint)ramPtr);
+            Marshal.FreeHGlobal((nint)scrathpadPtr);
+            Marshal.FreeHGlobal((nint)biosPtr);
+            Marshal.FreeHGlobal((nint)sio);
+            Marshal.FreeHGlobal((nint)memoryControl1);
+            Marshal.FreeHGlobal((nint)memoryControl2);
         }
 
         internal unsafe void LoadBios(string biosfile)
@@ -627,6 +638,7 @@ namespace ScePSX
             uint addr = address & RegionMask[i];
             return addr;
         }
+
     }
 
     [Serializable]
