@@ -157,14 +157,14 @@ namespace ScePSX
             FrmInput.InitKeyMap();
             FrmInput.InitControllerMap();
 
-            InitBiosMnu();
-            InitShaderMnu();
-
             timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += Timer_Elapsed;
             timer.Enabled = true;
             timer.Start();
+
+            InitBiosMnu();
+            InitShaderMnu();
         }
 
         private void Timer_Elapsed(object sender, EventArgs e)
@@ -245,6 +245,12 @@ namespace ScePSX
             MnuBios.Enabled = false;
             if (dir.Exists)
             {
+                if (dir.GetFiles().Length == 0)
+                {
+                    lbHint.Text = "没有发现必须的BIOS文件，无法运行 (Bios Not Found)";
+                    timer.Enabled = false;
+                    timer.Stop();
+                }
                 foreach (FileInfo f in dir.GetFiles())
                 {
                     ToolStripMenuItem mnu = new ToolStripMenuItem();
