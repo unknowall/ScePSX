@@ -708,8 +708,6 @@ namespace ScePSX.UI
             temphint = $"已启动 [{Core.DiskID}]";
             hintdelay = 3;
 
-            XbrScaler.ScaleXBR(new int[64], 8, 8, 2); //预热
-
             InitStateMnu();
         }
 

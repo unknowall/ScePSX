@@ -12,14 +12,10 @@ namespace ScePSX
     {
         [NonSerialized]
         public unsafe byte* ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
-        //[NonSerialized]
-        //private unsafe byte* ex1Ptr = (byte*)Marshal.AllocHGlobal(512 * 1024);
         [NonSerialized]
         private unsafe byte* scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
         [NonSerialized]
         private unsafe byte* biosPtr = (byte*)Marshal.AllocHGlobal(512 * 1024);
-        [NonSerialized]
-        private unsafe byte* sio = (byte*)Marshal.AllocHGlobal(0x10);
         [NonSerialized]
         private unsafe byte* memoryControl1 = (byte*)Marshal.AllocHGlobal(0x40);
         [NonSerialized]
@@ -29,7 +25,6 @@ namespace ScePSX
         private byte[] ram = new byte[2048 * 1024];
         private byte[] scrathpadram = new byte[1024];
         private byte[] biosram = new byte[512 * 1024];
-        private byte[] sioram = new byte[0x10];
         private byte[] memctl1 = new byte[0x40];
         private byte[] memctl2 = new byte[0x10];
         private byte[] spuram = new byte[512 * 1024];
@@ -50,6 +45,7 @@ namespace ScePSX
         public Expansion exp2;
         public Controller controller1, controller2;
         public MemCard memoryCard, memoryCard2;
+        public SerialIO sio;
 
         public string DiskID = "";
 
@@ -80,6 +76,8 @@ namespace ScePSX
             memoryCard2 = new MemCard("./Save/MemCard2.dat");
             joybus = new JoyBus(controller1, controller2, memoryCard, memoryCard2);
 
+            sio = new SerialIO();
+
             gpu = new GPU(Host);
 
             timers = new TIMERS();
@@ -109,7 +107,6 @@ namespace ScePSX
             Marshal.Copy((IntPtr)ramPtr, ram, 0, ram.Length);
             Marshal.Copy((IntPtr)scrathpadPtr, scrathpadram, 0, scrathpadram.Length);
             Marshal.Copy((IntPtr)biosPtr, biosram, 0, biosram.Length);
-            Marshal.Copy((IntPtr)sio, sioram, 0, sioram.Length);
             Marshal.Copy((IntPtr)memoryControl1, memctl1, 0, memctl1.Length);
             Marshal.Copy((IntPtr)memoryControl2, memctl2, 0, memctl2.Length);
 
@@ -121,7 +118,6 @@ namespace ScePSX
             ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
             scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
             biosPtr = (byte*)Marshal.AllocHGlobal(512 * 1024);
-            sio = (byte*)Marshal.AllocHGlobal(0x10);
             memoryControl1 = (byte*)Marshal.AllocHGlobal(0x40);
             memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
 
@@ -132,7 +128,6 @@ namespace ScePSX
             Marshal.Copy(ram, 0, (IntPtr)ramPtr, ram.Length);
             Marshal.Copy(scrathpadram, 0, (IntPtr)scrathpadPtr, scrathpadram.Length);
             Marshal.Copy(biosram, 0, (IntPtr)biosPtr, biosram.Length);
-            Marshal.Copy(sioram, 0, (IntPtr)sio, sioram.Length);
             Marshal.Copy(memctl1, 0, (IntPtr)memoryControl1, memctl1.Length);
             Marshal.Copy(memctl2, 0, (IntPtr)memoryControl2, memctl2.Length);
 
@@ -151,7 +146,6 @@ namespace ScePSX
             Marshal.FreeHGlobal((nint)ramPtr);
             Marshal.FreeHGlobal((nint)scrathpadPtr);
             Marshal.FreeHGlobal((nint)biosPtr);
-            Marshal.FreeHGlobal((nint)sio);
             Marshal.FreeHGlobal((nint)memoryControl1);
             Marshal.FreeHGlobal((nint)memoryControl2);
         }
@@ -266,11 +260,10 @@ namespace ScePSX
                 return joybus.read(addr);
             } else if (addr < 0x1F80_1060)
             {
-                //HardCode SIO_STAT
-                if (addr == 0x1F80_1054)
-                    return 0x0000_0805;
-                Console.WriteLine($"[BUS] Read Unsupported to SIO address: {addr:x8}");
-                return read<uint>(addr & 0xF, sio);
+                return sio.read(addr);
+                //SIO_STAT
+                //if (addr == 0x1F80_1054)
+                //    return 0x0000_0805;
             } else if (addr < 0x1F80_1070)
             {
                 return read<uint>(addr & 0xF, memoryControl2);
@@ -338,8 +331,7 @@ namespace ScePSX
                 joybus.write(addr, value);
             } else if (addr < 0x1F80_1060)
             {
-                Console.WriteLine($"[BUS] Write Unsupported to SIO address: {addr:x8} : {value:x8}");
-                write(addr & 0xF, value, sio);
+                sio.write(addr, value);
             } else if (addr < 0x1F80_1070)
             {
                 write(addr & 0xF, value, memoryControl2);
@@ -397,8 +389,7 @@ namespace ScePSX
                 joybus.write(addr, value);
             } else if (addr < 0x1F80_1060)
             {
-                Console.WriteLine($"[BUS] Write Unsupported to SIO address: {addr:x8} : {value:x8}");
-                write(addr & 0xF, value, sio);
+                sio.write(addr, value);
             } else if (addr < 0x1F80_1070)
             {
                 write(addr & 0xF, value, memoryControl2);
@@ -456,8 +447,7 @@ namespace ScePSX
                 joybus.write(addr, value);
             } else if (addr < 0x1F80_1060)
             {
-                Console.WriteLine($"[BUS] Write Unsupported to SIO address: {addr:x8} : {value:x8}");
-                write(addr & 0xF, value, sio);
+                sio.write(addr, value);
             } else if (addr < 0x1F80_1070)
             {
                 write(addr & 0xF, value, memoryControl2);
@@ -499,8 +489,10 @@ namespace ScePSX
         {
             if (gpu.tick(cycles))
                 IRQCTL.set(Interrupt.VBLANK);
+
             if (cdrom.tick(cycles))
                 IRQCTL.set(Interrupt.CDROM);
+
             if (dma.tick())
                 IRQCTL.set(Interrupt.DMA);
 
@@ -508,14 +500,24 @@ namespace ScePSX
 
             if (timers.tick(0, cycles))
                 IRQCTL.set(Interrupt.TIMER0);
+
             if (timers.tick(1, cycles))
                 IRQCTL.set(Interrupt.TIMER1);
+
             if (timers.tick(2, cycles))
                 IRQCTL.set(Interrupt.TIMER2);
+
             if (joybus.tick())
                 IRQCTL.set(Interrupt.CONTR);
+
             if (spu.tick(cycles))
                 IRQCTL.set(Interrupt.SPU);
+
+            if (spu.tick(cycles))
+                IRQCTL.set(Interrupt.SPU);
+
+            if (sio.tick(cycles))
+                IRQCTL.set(Interrupt.SIO);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
