@@ -192,8 +192,7 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            }
-            ;
+            };
 
             PsxBus = StateFromFile<BUS>(fn);
 
@@ -216,8 +215,7 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            }
-            ;
+            };
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
@@ -230,17 +228,6 @@ namespace ScePSX
             Console.ResetColor();
 
             Pauseing = false;
-        }
-
-        static void CheckForPointers(object obj)
-        {
-            foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                if (field.FieldType.IsPointer || field.FieldType == typeof(IntPtr) || field.FieldType == typeof(UIntPtr))
-                {
-                    Console.WriteLine($"Found pointer field: {field.Name} of type {field.FieldType}");
-                }
-            }
         }
 
         private BUS StateFromFile<BUS>(string filePath)
