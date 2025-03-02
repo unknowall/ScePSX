@@ -47,7 +47,6 @@ namespace ScePSX.UI
         private static uint audiodeviceid;
         private SDL_AudioCallback audioCallbackDelegate;
         private CircularBuffer<byte> SamplesBuffer;
-        private readonly object bufferLock = new object();
 
         private System.Windows.Forms.Timer timer;
         private Label lbHint;
