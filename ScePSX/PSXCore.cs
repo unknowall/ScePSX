@@ -341,7 +341,7 @@ namespace ScePSX
         {
             if (conidx == 0)
                 PsxBus.controller1.Button(button, Down);
-            else
+            if (conidx == 1)
                 PsxBus.controller2.Button(button, Down);
         }
 
@@ -349,7 +349,7 @@ namespace ScePSX
         {
             if (conidx == 0)
                 PsxBus.controller1.AnalogAxis(lx, ly, rx, ry);
-            else
+            if (conidx == 1)
                 PsxBus.controller2.AnalogAxis(lx, ly, rx, ry);
         }
 

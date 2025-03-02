@@ -639,9 +639,9 @@ namespace ScePSX
             if ((int)button != 0xFF && Core != null && Core.Running)
                 Core.Button(button, true, 0);
 
-            button = FrmInput.KMM2.GetKeyButton(e.KeyCode);
-            if ((int)button != 0xFF && Core != null && Core.Running)
-                Core.Button(button, true, 1);
+            InputAction button1 = FrmInput.KMM2.GetKeyButton(e.KeyCode);
+            if ((int)button1 != 0xFF && Core != null && Core.Running)
+                Core.Button(button1, true, 1);
         }
 
         private void ButtonsUp(object sender, KeyEventArgs e)
@@ -657,9 +657,9 @@ namespace ScePSX
             if ((int)button != 0xFF && Core != null && Core.Running)
                 Core.Button(button, false, 0);
 
-            button = FrmInput.KMM2.GetKeyButton(e.KeyCode);
-            if ((int)button != 0xFF && Core != null && Core.Running)
-                Core.Button(button, true, 1);
+            InputAction button1 = FrmInput.KMM2.GetKeyButton(e.KeyCode);
+            if ((int)button1 != 0xFF && Core != null && Core.Running)
+                Core.Button(button1, false, 1);
         }
 
         private void LoadRom()

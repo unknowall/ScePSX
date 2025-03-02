@@ -13,7 +13,7 @@ namespace ScePSX
         private const byte MEMORY_CARD_COMMAND_ACK_1 = 0x5C;
         private const byte MEMORY_CARD_COMMAND_ACK_2 = 0x5D;
         private byte[] memory = new byte[128 * 1024]; //Standard memcard 128KB
-        public bool ack = false;
+        public bool ack;
 
         //FLAG
         //only bit 2 (isError) and 3 (isNotReaded) seems documented
@@ -67,7 +67,7 @@ namespace ScePSX
         }
 
         //This should be handled with some early response and post address queues but atm its easier to handle as a state machine
-        internal byte process(byte value)
+        public byte process(byte value)
         {
             //Console.WriteLine($"[MEMCARD] Process {value:x2} previous ack {ack}");
             switch (transferMode)
@@ -101,15 +101,15 @@ namespace ScePSX
                     switch (value)
                     {
                         case 0x52: //Read
-                            //Console.WriteLine("[MEMCARD] Read Process 0x52");
+                                   //Console.WriteLine("[MEMCARD] Read Process 0x52");
                             transferMode = TransferMode.Read;
                             break;
                         case 0x57: //Write
-                            //Console.WriteLine("[MEMCARD] Write Process 0x57");
+                                   //Console.WriteLine("[MEMCARD] Write Process 0x57");
                             transferMode = TransferMode.Write;
                             break;
                         case 0x53: //ID
-                            //Console.WriteLine("[MEMCARD] ID Process 0x53");
+                                   //Console.WriteLine("[MEMCARD] ID Process 0x53");
                             transferMode = TransferMode.Undefined;
                             break;
                         default:
@@ -130,7 +130,7 @@ namespace ScePSX
             }
         }
 
-        internal void resetToIdle()
+        public void resetToIdle()
         {
             readPointer = 0;
             transferMode = TransferMode.Undefined;

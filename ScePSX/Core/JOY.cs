@@ -49,16 +49,16 @@ namespace ScePSX
         }
         ControllerDevice Device = ControllerDevice.None;
 
-        Controller controller, controller2;
-        MemCard memoryCard, memoryCard2;
+        Controller controller1, controller2;
+        MemCard memoryCard1, memoryCard2;
 
         int counter;
 
-        public JoyBus(Controller controller, Controller controller2, MemCard memoryCard, MemCard memoryCard2)
+        public JoyBus(Controller controller1, Controller controller2, MemCard memoryCard1, MemCard memoryCard2)
         {
-            this.controller = controller;
+            this.controller1 = controller1;
             this.controller2 = controller2;
-            this.memoryCard = memoryCard;
+            this.memoryCard1 = memoryCard1;
             this.memoryCard2 = memoryCard2;
         }
 
@@ -104,13 +104,6 @@ namespace ScePSX
                     {
                         TXreadyFlag2 = true;
 
-                        //Console.WriteLine("[JOYPAD] DesiredSlot == " + desiredSlotNumber);
-                        //if (desiredSlotNumber == 1)
-                        //{
-                        //    RX_DATA = 0xFF;
-                        //    ackInputLevel = false;
-                        //    return;
-                        //}
 
                         if (Device == ControllerDevice.None)
                         {
@@ -128,15 +121,14 @@ namespace ScePSX
 
                         if (Device == ControllerDevice.Controller)
                         {
-                            
                             if (desiredSlotNumber == 0)
                             {
-                                RX_DATA = controller.process(TX_DATA);
-                                ackInputLevel = controller.ack;
+                                RX_DATA = controller1.process(TX_DATA);
+                                ackInputLevel = controller1.ack;
                             } else
                             {
                                 RX_DATA = controller2.process(TX_DATA);
-                                ackInputLevel = controller.ack;
+                                ackInputLevel = controller2.ack;
                             }
 
                             if (ackInputLevel)
@@ -145,17 +137,16 @@ namespace ScePSX
                             //Console.ReadLine();
                         } else if (Device == ControllerDevice.MemoryCard)
                         {
-
                             if (desiredSlotNumber == 0)
                             {
-                                RX_DATA = memoryCard.process(TX_DATA);
-                                ackInputLevel = memoryCard.ack;
+                                RX_DATA = memoryCard1.process(TX_DATA);
+                                ackInputLevel = memoryCard1.ack;
                             } else
                             {
                                 RX_DATA = memoryCard2.process(TX_DATA);
                                 ackInputLevel = memoryCard2.ack;
                             }
-                                
+
                             if (ackInputLevel)
                                 counter = 500;
                             //Console.WriteLine($"[JOYPAD] MemCard TICK Enqueued RX response {JOY_RX_DATA:x2} ack: {ackInputLevel}");
@@ -169,11 +160,10 @@ namespace ScePSX
                     } else
                     {
                         Device = ControllerDevice.None;
-                        memoryCard.resetToIdle();
+                        memoryCard1.resetToIdle();
                         memoryCard2.resetToIdle();
-                        controller.resetToIdle();
+                        controller1.resetToIdle();
                         controller2.resetToIdle();
-
                         ackInputLevel = false;
                     }
 
@@ -226,10 +216,10 @@ namespace ScePSX
             {
                 //Console.WriteLine("[JOYPAD] CONTROL RESET");
                 Device = ControllerDevice.None;
-                controller.resetToIdle();
-                controller2.resetToIdle();
-                memoryCard.resetToIdle();
+                memoryCard1.resetToIdle();
                 memoryCard2.resetToIdle();
+                controller1.resetToIdle();
+                controller2.resetToIdle();
                 fifoFull = false;
 
                 set_MODE(0);
@@ -248,9 +238,9 @@ namespace ScePSX
             if (!Output)
             {
                 Device = ControllerDevice.None;
-                memoryCard.resetToIdle();
+                memoryCard1.resetToIdle();
                 memoryCard2.resetToIdle();
-                controller.resetToIdle();
+                controller1.resetToIdle();
                 controller2.resetToIdle();
             }
         }

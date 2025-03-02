@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace ScePSX
 {
+
     [Serializable]
     public class Controller
     {
@@ -45,7 +46,7 @@ namespace ScePSX
             R3
         }
 
-        public Dictionary<InputAction, byte> InputActions = new()
+        private Dictionary<InputAction, byte> InputActions = new()
         {
             { InputAction.DPadUp, 1 },
             { InputAction.DPadDown, 1 },
