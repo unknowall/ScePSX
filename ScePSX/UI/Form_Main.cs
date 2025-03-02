@@ -141,7 +141,7 @@ namespace ScePSX
             springItem.Width = 0;
             springItem.Enabled = false;
             lbHint = new Label();
-            lbHint.Text = $"F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
+            lbHint.Text = $" F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
             lbHint.Font = new Font("微软雅黑", 11f, FontStyle.Bold);
             lbHint.AutoSize = true;
             lbHint.Padding = new Padding(0, 2, 10, 0);
