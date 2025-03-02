@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace ScePSX
 {
 
-    class XbrScaler
+    unsafe class XbrScaler
     {
+
         // 定义阈值，用于判断颜色差异是否显著
         private const int Threshold = 15;
 
@@ -40,9 +45,6 @@ namespace ScePSX
             return currentPixels;
         }
 
-        /// <summary>
-        /// 实现 2xBR 缩放
-        /// </summary>
         private static int[] Scale2xBR(int[] pixels, int width, int height)
         {
             int outputWidth = width * 2;

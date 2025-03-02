@@ -42,10 +42,7 @@ namespace ScePSX
 
         private static uint audiodeviceid;
         private SDL_AudioCallback audioCallbackDelegate;
-        private byte[] ringBuffer;
-        private int writePos = 0;
-        private int readPos = 0;
-        private int bufferCount = 0;
+        private CircularBuffer<byte> SamplesBuffer;
         private readonly object bufferLock = new object();
 
         private System.Windows.Forms.Timer timer;
@@ -226,7 +223,7 @@ namespace ScePSX
             };
             SDL_AudioSpec obtained = new SDL_AudioSpec();
 
-            ringBuffer = new byte[52920]; // 300 ms
+            SamplesBuffer = new CircularBuffer<byte>(52920); // 300 ms
 
             audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
             if (audiodeviceid != 0)
@@ -625,7 +622,7 @@ namespace ScePSX
             if (e.KeyCode == Keys.F11)
             {
                 if (Core != null && Core.Running)
-                    if (scale < 8)
+                    if (scale < 6)
                         scale += 2;
                 return;
             }
@@ -696,6 +693,8 @@ namespace ScePSX
             temphint = $"已启动 [{Core.DiskID}]";
             hintdelay = 3;
 
+            XbrScaler.ScaleXBR(new int[64], 8, 8, 2); //预热
+
             InitStateMnu();
         }
 
@@ -732,58 +731,6 @@ namespace ScePSX
             hintdelay = 3;
         }
 
-        private void AudioCallbackImpl(IntPtr userdata, IntPtr stream, int len)
-        {
-            lock (bufferLock)
-            {
-                int available = bufferCount;
-                if (available > 0)
-                {
-                    int toCopy = Math.Min(len, available);
-
-                    if (readPos + toCopy <= ringBuffer.Length)
-                    {
-                        Marshal.Copy(ringBuffer, readPos, stream, toCopy);
-                    } else
-                    {
-                        int firstPart = ringBuffer.Length - readPos;
-                        Marshal.Copy(ringBuffer, readPos, stream, firstPart);
-                        Marshal.Copy(ringBuffer, 0, stream + firstPart, toCopy - firstPart);
-                    }
-
-                    readPos = (readPos + toCopy) % ringBuffer.Length;
-                    bufferCount -= toCopy;
-                } else
-                {
-                    for (int i = 0; i < len; i++)
-                    {
-                        Marshal.WriteByte(stream, i, 0);
-                    }
-                }
-            }
-        }
-
-        public void AddSamples(byte[] samples)
-        {
-            lock (bufferLock)
-            {
-                foreach (byte sample in samples)
-                {
-                    if (bufferCount < ringBuffer.Length)
-                    {
-                        ringBuffer[writePos] = sample;
-                        writePos = (writePos + 1) % ringBuffer.Length;
-                        bufferCount++;
-                    } else
-                    {
-                        ringBuffer[writePos] = sample;
-                        writePos = (writePos + 1) % ringBuffer.Length;
-                        readPos = (readPos + 1) % ringBuffer.Length;
-                    }
-                }
-            }
-        }
-
         public void RenderFrame(int[] pixels, int width, int height)
         {
             CoreWidth = width;
@@ -802,6 +749,10 @@ namespace ScePSX
                     height = CoreHeight;
                 }
             }
+            //不超过渲染器最大缓冲
+            if (scale > 0)
+                if (scale * height > 2048 || scale * width > 4096)
+                    scale -= 2;
 
             QueryControllerState();
 
@@ -826,9 +777,26 @@ namespace ScePSX
             }
         }
 
+        private unsafe void AudioCallbackImpl(IntPtr userdata, IntPtr stream, int len)
+        {
+            byte[] tempBuffer = new byte[len];
+
+            int bytesRead = SamplesBuffer.Read(tempBuffer, 0, len);
+
+            fixed (byte* ptr = tempBuffer)
+            {
+                Buffer.MemoryCopy(ptr, (void*)stream, len, bytesRead);
+            }
+
+            if (bytesRead < len)
+            {
+                new Span<byte>((void*)(stream + bytesRead), len - bytesRead).Fill(0);
+            }
+        }
+
         public void PlaySamples(byte[] samples)
         {
-            AddSamples(samples);
+            SamplesBuffer.Write(samples);
         }
 
         #region SDLController
