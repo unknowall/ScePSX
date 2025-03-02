@@ -1,4 +1,4 @@
-﻿namespace ScePSX
+﻿namespace ScePSX.UI
 {
     partial class FrmInput
     {

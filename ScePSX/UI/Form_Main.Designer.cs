@@ -1,4 +1,5 @@
-﻿namespace ScePSX {
+﻿namespace ScePSX.UI
+{
     partial class FrmMain {
         /// <summary>
         /// Required designer variable.

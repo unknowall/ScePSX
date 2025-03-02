@@ -9,10 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using ScePSX;
+using ScePSX.Render;
 using static ScePSX.Controller;
 using static SDL2.SDL;
 
-namespace ScePSX
+namespace ScePSX.UI
 {
 
     public partial class FrmMain : Form, IAudioHandler, IRenderHandler
@@ -231,7 +233,6 @@ namespace ScePSX
             if (audiodeviceid != 0)
                 SDL_PauseAudioDevice(audiodeviceid, 0);
 
-            //Task _Task = Task.Factory.StartNew(QueryControllerStateTask, TaskCreationOptions.LongRunning);
         }
 
         #region MENU
@@ -816,16 +817,6 @@ namespace ScePSX
         }
 
         #region SDLController
-
-        //private void QueryControllerStateTask()
-        //{
-        //    while (true)
-        //    {
-        //        QueryControllerState();
-
-        //        Thread.Sleep(15);
-        //    }
-        //}
 
         private void QueryControllerState(int conidx)
         {

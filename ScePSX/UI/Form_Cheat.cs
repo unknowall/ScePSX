@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
-namespace ScePSX
+using ScePSX;
+
+namespace ScePSX.UI
 {
     public partial class Form_Cheat : Form
     {

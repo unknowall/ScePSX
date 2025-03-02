@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using OpenGL;
 
-namespace ScePSX
+namespace ScePSX.Render
 {
     class OpenGLRenderer : GlControl
     {

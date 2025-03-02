@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 using DirectX.D2D1;
 
-namespace ScePSX
+namespace ScePSX.Render
 {
     public class D2DRenderer : UserControl
     {

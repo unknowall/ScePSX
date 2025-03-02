@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 using static SDL2.SDL;
 
-namespace ScePSX
+namespace ScePSX.Render
 {
     class SDL2Renderer : UserControl
     {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 
+using ScePSX.UI;
+
 namespace ScePSX
 {
     internal static class Program

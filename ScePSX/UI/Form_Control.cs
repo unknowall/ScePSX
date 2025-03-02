@@ -9,7 +9,7 @@ using static SDL2.SDL;
 
 #pragma warning disable SYSLIB0011
 
-namespace ScePSX
+namespace ScePSX.UI
 {
     public partial class FrmInput : Form
     {

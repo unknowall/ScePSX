@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace ScePSX
+namespace ScePSX.UI
 {
     partial class Form_Mem
     {

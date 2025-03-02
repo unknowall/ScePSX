@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using HexBoxControl;
 
-namespace ScePSX
+using ScePSX;
+
+namespace ScePSX.UI
 {
     public partial class Form_Mem : Form
     {
