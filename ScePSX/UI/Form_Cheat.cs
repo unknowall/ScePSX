@@ -111,7 +111,7 @@ namespace ScePSX
             for (int i = 0; i < clb.Items.Count; i++)
             {
                 var item = clb.Items[i];
-                ret += "[" + item.Text + "]\r\n";
+                ret += "\r\n[" + item.Text + "]\r\n";
                 ret += "Active = ";
                 if (item.Checked)
                     ret += "1\r\n";
