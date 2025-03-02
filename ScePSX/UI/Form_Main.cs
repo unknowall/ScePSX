@@ -26,6 +26,9 @@ namespace ScePSX
         private string mypath;
         private string currbios;
         private string shaderpath;
+        private string temphint;
+        private int hintdelay;
+
         private int StateSlot;
         private int CoreWidth, CoreHeight;
 
@@ -33,8 +36,7 @@ namespace ScePSX
 
         private nint controller1, controller2;
         private bool KeyFirst, isAnalog = false;
-        private string temphint;
-        private int hintdelay;
+        private int concount = 0;
 
         private int _frameCount = 0;
         private Stopwatch _fpsStopwatch = Stopwatch.StartNew();
@@ -609,7 +611,6 @@ namespace ScePSX
                 if (Core != null)
                 {
                     Core.PsxBus.controller1.IsAnalog = isAnalog;
-                    Console.WriteLine($"Analog Controller Mode: {Core.PsxBus.controller1.IsAnalog}");
                 }
                 return;
             }
@@ -754,7 +755,8 @@ namespace ScePSX
                 if (scale * height > 2048 || scale * width > 4096)
                     scale -= 2;
 
-            QueryControllerState();
+            QueryControllerState(1);
+            QueryControllerState(2);
 
             if (Rendermode == RenderMode.OpenGL)
             {
@@ -811,32 +813,54 @@ namespace ScePSX
         //    }
         //}
 
-        private void QueryControllerState()
+        private void QueryControllerState(int conidx)
         {
-            if (controller1 == 0)
+            nint controller;
+
+            if (conidx == 1)
             {
-                if (SDL_NumJoysticks() == 0)
+                controller = controller1;
+            } else if (conidx == 2)
+            {
+                controller = controller2;
+            } else
+            {
+                return;
+            }
+
+            if (controller == 0)
+            {
+                concount = SDL_NumJoysticks();
+
+                if (concount < conidx)
                 {
                     return;
                 }
 
-                if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
+                if (controller1 == 0)
                 {
-                    controller1 = SDL_GameControllerOpen(0);
-                } else
-                {
-                    controller1 = SDL_JoystickOpen(0);
+                    if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
+                    {
+                        controller1 = SDL_GameControllerOpen(0);
+                    } else
+                    {
+                        controller1 = SDL_JoystickOpen(0);
+                    }
+                    Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected");
                 }
 
-                if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
+                if (controller2 == 0)
                 {
-                    controller2 = SDL_GameControllerOpen(1);
-                } else
-                {
-                    controller2 = SDL_JoystickOpen(1);
+                    if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
+                    {
+                        controller2 = SDL_GameControllerOpen(1);
+                    } else
+                    {
+                        controller2 = SDL_JoystickOpen(1);
+                    }
+                    Console.WriteLine($"Controller Device 2 : {SDL_JoystickNameForIndex(1)} Connected");
                 }
 
-                Console.WriteLine($"Controller Device {SDL_NumJoysticks()} : {SDL_JoystickNameForIndex(0)} Connected");
             }
 
             if (Core == null || KeyFirst)
@@ -846,7 +870,7 @@ namespace ScePSX
             bool isPadPressed = false;
             foreach (SDL_GameControllerButton button in Enum.GetValues(typeof(SDL_GameControllerButton)))
             {
-                bool isPressed = SDL_GameControllerGetButton(controller1, button) == 1;
+                bool isPressed = SDL_GameControllerGetButton(controller, button) == 1;
 
                 if (!isAnalog && isPressed)
                 {
@@ -864,10 +888,10 @@ namespace ScePSX
             //AnalogAxis
             float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
 
-            short leftX = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX);
-            short leftY = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY);
-            short rightX = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX);
-            short rightY = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY);
+            short leftX = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX);
+            short leftY = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY);
+            short rightX = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX);
+            short rightY = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY);
 
             lx = NormalizeAxis(leftX);
             ly = NormalizeAxis(leftY);
@@ -875,8 +899,8 @@ namespace ScePSX
             ry = NormalizeAxis(rightY);
 
             //TRIGGER
-            short tl = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-            short tr = SDL_GameControllerGetAxis(controller1, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+            short tl = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+            short tr = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
             Core.Button(InputAction.L2, tl > 16384 ? true : false);
             Core.Button(InputAction.R2, tr > 16384 ? true : false);
@@ -889,7 +913,7 @@ namespace ScePSX
             //Hat
             int hatIndex = 0;
             int hatState = 0;
-            IntPtr joystick = SDL_GameControllerGetJoystick(controller1);
+            IntPtr joystick = SDL_GameControllerGetJoystick(controller);
             if (joystick != IntPtr.Zero)
             {
                 hatState = SDL_JoystickGetHat(joystick, hatIndex);

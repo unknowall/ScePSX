@@ -67,7 +67,7 @@ namespace ScePSX
                 Console.ResetColor();
                 return;
             }
-                
+
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"ScePSX Running...");
             Console.ResetColor();
@@ -192,7 +192,8 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            };
+            }
+            ;
 
             PsxBus = StateFromFile<BUS>(fn);
 
@@ -215,7 +216,8 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            };
+            }
+            ;
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
@@ -335,9 +337,21 @@ namespace ScePSX
             }
         }
 
-        public void Button(Controller.InputAction button, bool Down = false) => PsxBus.controller1.Button(button, Down);
+        public void Button(Controller.InputAction button, bool Down = false, int conidx = 0)
+        {
+            if (conidx == 0)
+                PsxBus.controller1.Button(button, Down);
+            else
+                PsxBus.controller2.Button(button, Down);
+        }
 
-        public void AnalogAxis(float lx, float ly, float rx, float ry) => PsxBus.controller1.AnalogAxis(lx, ly, rx, ry);
+        public void AnalogAxis(float lx, float ly, float rx, float ry, int conidx = 0)
+        {
+            if (conidx == 0)
+                PsxBus.controller1.AnalogAxis(lx, ly, rx, ry);
+            else
+                PsxBus.controller2.AnalogAxis(lx, ly, rx, ry);
+        }
 
         void ICoreHandler.SamplesReady(byte[] samples)
         {
