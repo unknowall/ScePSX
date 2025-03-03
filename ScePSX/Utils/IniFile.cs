@@ -162,6 +162,15 @@ namespace ScePSX
             return Array.Empty<string>();
         }
 
+        public void DeleteKey(string section, string key)
+        {
+            if (data.ContainsKey(section) && data[section].ContainsKey(key))
+            {
+                data[section].Remove(key);
+                Save();
+            }
+        }
+
     }
 
 }

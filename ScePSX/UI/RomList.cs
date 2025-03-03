@@ -44,16 +44,16 @@ namespace ScePSX.UI
             }
         }
 
-        public List<Game> Games = new List<Game> { };
-
         private readonly Image DefaultIcon;
+        private ContextMenuStrip contextMenuStrip;
 
         public RomList()
         {
             InitializeComponent();
 
-            SetStyle(ControlStyles.DoubleBuffer, true);
             DoubleBuffered = true;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            UpdateStyles();
 
             DrawMode = DrawMode.OwnerDrawVariable;
             BackColor = Color.FromArgb(45, 45, 45);
@@ -185,8 +185,53 @@ namespace ScePSX.UI
             TabIndex = 0;
             Name = "RomList";
             Size = new System.Drawing.Size(510, 316);
+            // 初始化右键菜单
+            contextMenuStrip = new ContextMenuStrip();
+
+            var split = new ToolStripSeparator();
+
+            var menuItem1 = new ToolStripMenuItem("设置图标", null, OnOpenClick);
+            var menuItem2 = new ToolStripMenuItem("删除", null, OnDeleteClick);
+            contextMenuStrip.Items.AddRange(new ToolStripItem[] { menuItem1, split, menuItem2 });
+            ContextMenuStrip = contextMenuStrip;
+
             ResumeLayout(false);
         }
+
+        private void OnOpenClick(object sender, EventArgs e)
+        {
+            Game selectedGame = SelectedGame();
+            if (selectedGame != null)
+            {
+                OpenFileDialog FD = new OpenFileDialog();
+                FD.Filter = "Icon|*.png;*.bmp;*.jpg;*.ico";
+                FD.ShowDialog();
+                if (!File.Exists(FD.FileName))
+                    return;
+
+                if (selectedGame.Icon != null)
+                    selectedGame.Icon.Dispose();
+
+                using (var tempImage = Image.FromFile(FD.FileName))
+                {
+                    selectedGame.Icon = new Bitmap(tempImage);
+                }
+                selectedGame.Icon.Save($"./Icons/{selectedGame.ID}.png", ImageFormat.Png);
+
+                Invalidate();
+            }
+        }
+
+        private void OnDeleteClick(object sender, EventArgs e)
+        {
+            Game selectedGame = SelectedGame();
+            if (selectedGame != null)
+            {
+                Items.Remove(selectedGame);
+                FrmMain.ini.DeleteKey("history", selectedGame.ID);
+            }
+        }
+
 
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
@@ -333,6 +378,7 @@ namespace ScePSX.UI
             get
             {
                 CreateParams createParams = base.CreateParams;
+                //createParams.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
                 return (createParams);
             }
         }
