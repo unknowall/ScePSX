@@ -752,6 +752,8 @@ namespace ScePSX.UI
             Core.MIPS_UNDERCLOCK = ini.ReadInt("CPU", "MipsLock");
             Core.SYNC_CYCLES = ini.ReadInt("CPU", "Sync");
 
+            Core.PsxBus.cpu.cylesfix = ini.ReadInt("CPU", "Cycles");
+
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;

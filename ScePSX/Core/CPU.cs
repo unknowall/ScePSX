@@ -95,6 +95,7 @@ namespace ScePSX
         public bool debug = false;
         public bool biosdebug = false;
         public bool ttydebug = false;
+        public int cylesfix = 2;
 
         public CPU(BUS bus)
         {
@@ -137,7 +138,7 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int tick()
         {
-            int ticks = fetchDecode();
+            int cyles = fetchDecode();
 
             if (instr.value != 0)
             {
@@ -161,7 +162,7 @@ namespace ScePSX
                 TTY();
             }
 
-            return ticks;
+            return cyles;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

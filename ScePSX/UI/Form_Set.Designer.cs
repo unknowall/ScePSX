@@ -65,13 +65,12 @@
             // 
             // label1
             // 
-            label1.AutoSize = true;
             label1.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
             label1.Location = new System.Drawing.Point(12, 192);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(261, 19);
+            label1.Size = new System.Drawing.Size(325, 19);
             label1.TabIndex = 1;
-            label1.Text = "如果不清楚在做什么，不要修改任何设置";
+            label1.Text = "不清楚设置作用的项目不要修改";
             // 
             // groupBox1
             // 
@@ -141,11 +140,11 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new System.Drawing.Point(294, 61);
+            label9.Location = new System.Drawing.Point(305, 61);
             label9.Name = "label9";
-            label9.Size = new System.Drawing.Size(66, 17);
+            label9.Size = new System.Drawing.Size(56, 17);
             label9.TabIndex = 14;
-            label9.Text = "cycles修正";
+            label9.Text = "时序修正";
             // 
             // tbframeidle
             // 
@@ -253,7 +252,7 @@
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(56, 17);
             label2.TabIndex = 1;
-            label2.Text = "CPU时序";
+            label2.Text = "CPU步长";
             // 
             // cbconsole
             // 
@@ -280,7 +279,6 @@
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
