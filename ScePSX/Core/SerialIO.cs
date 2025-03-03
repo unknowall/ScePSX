@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 
 namespace ScePSX
 {
-    [Serializable]
     public class SerialIO : IDisposable
     {
         const uint CPU_CLOCK = 33868800;
@@ -13,7 +13,6 @@ namespace ScePSX
         public ushort BoudReload = 0;
 
         //Status (R) -> 4           This register comes after 4 bytes of Data address, although the Data length is only 1 byte
-        [Serializable]
         struct StatusRegister
         {
             public byte TX_FIFO_Not_Full;    //0
@@ -32,7 +31,6 @@ namespace ScePSX
         StatusRegister Status;
 
         //Mode (R/W) -> 2
-        [Serializable]
         struct ModeRegister
         {
             public byte BaudrateReloadFactor;//0 - 1
@@ -47,7 +45,6 @@ namespace ScePSX
 
 
         //Control (R/W) -> 2
-        [Serializable]
         struct CtrlRegister
         {
             public byte TX_Enable;            //0
@@ -66,7 +63,6 @@ namespace ScePSX
             //Not used                        //14 - 15
         }
 
-        [Serializable]
         public struct Command
         {
             public byte address;    //0x0 For data - 0xA for flow control 
@@ -82,25 +78,34 @@ namespace ScePSX
         public SerialIO()
         {
             Status.RX_InputLevel = 0;
+        }
 
-            if (IsConnected)
+        public void Active(bool isSrv, string localip, string srvip)
+        {
+            IsServer = isSrv;
+
+            AsyncCallback callback = new AsyncCallback(DataReceived);
+            if (IsServer)
             {
-                //Setup TCP Connection
-                AsyncCallback callback = new AsyncCallback(DataReceived);
-                if (IsServer)
-                {
-                    Socket = new Server(callback);
-                    Socket.AcceptClientConnection();
-                } else
-                {
-                    Socket = new Client(callback);
-                    Socket.ConnectToServer();
-                }
-                Status.TX_Idle = 1;
+                Socket = new Server(callback);
+                Socket.SetIP(localip);
+                Socket.AcceptClientConnection();
             } else
             {
-                Console.WriteLine("[SIO1] Not connected");
+                Socket = new Client(callback);
+                Socket.SetIP(srvip);
+                Socket.ConnectToServer();
             }
+            Status.TX_Idle = 1;
+
+            IsConnected = true;
+        }
+
+        public void Close()
+        {
+            IsConnected = false;
+            if (Socket != null)
+                Socket.Terminate();
         }
 
         public uint read(uint address)

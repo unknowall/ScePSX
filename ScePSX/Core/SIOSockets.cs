@@ -19,20 +19,28 @@ namespace ScePSX
 
         public void Terminate();
 
+        public void SetIP(string ip);
+
     }
 
     public class Server : Socket
     {
-        public IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Localhost
+        public IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         public int port = 1234;
         TcpClient client;
         NetworkStream Stream;
         TcpListener listener;
         AsyncCallback DataReceivedHandler;
         public byte[] buffer = new byte[2];
+
         public Server(AsyncCallback handler)
         {
             DataReceivedHandler = handler;
+        }
+
+        public void SetIP(string ip)
+        {
+            ipAddress = IPAddress.Parse(ip);
         }
 
         public void AcceptClientConnection()
@@ -119,7 +127,7 @@ namespace ScePSX
 
     public class Client : Socket
     {
-        public IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Localhost
+        public IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         public int port = 1234;
         TcpClient TCP_Client;
         NetworkStream Stream;
@@ -129,6 +137,11 @@ namespace ScePSX
         public Client(AsyncCallback handler)
         {
             DataReceivedHandler = handler;
+        }
+
+        public void SetIP(string ip)
+        {
+            ipAddress = IPAddress.Parse(ip);
         }
 
         public void ConnectToServer()

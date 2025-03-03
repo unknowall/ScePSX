@@ -593,7 +593,7 @@ namespace ScePSX.UI
             if (Core != null && Core.Running)
             {
                 Core.SaveState(Slot.ToString());
-                temphint = $"已保存到槽位 [{Slot}]";
+                temphint = $"已保存到 ";
                 hintdelay = 3;
             }
         }
