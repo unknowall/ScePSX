@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using static SDL2.SDL;

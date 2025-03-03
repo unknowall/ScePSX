@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using ScePSX;
 using ScePSX.Render;
 using static ScePSX.Controller;
 using static SDL2.SDL;
@@ -246,10 +241,13 @@ namespace ScePSX.UI
             };
             SDL_AudioSpec obtained = new SDL_AudioSpec();
 
-            int bufsize = ini.ReadInt("Audio", "Buffer");
-            if (bufsize < 2048 * 3)
-                bufsize = 2048 * 3;
-            SamplesBuffer = new CircularBuffer<byte>(bufsize); // 300 ms = 52920
+            int bufms = ini.ReadInt("Audio", "Buffer");
+            if (bufms < 50)
+                bufms = 50;
+
+            int alignedSize = ((bufms * 176 + 2048 - 1) / 2048) * 2048;
+
+            SamplesBuffer = new CircularBuffer<byte>(alignedSize); // 300 ms = 52920
 
             audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
             if (audiodeviceid != 0)

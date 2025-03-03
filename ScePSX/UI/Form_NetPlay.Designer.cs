@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             btncli = new System.Windows.Forms.Button();
-            textBox1 = new System.Windows.Forms.TextBox();
+            tblocalip = new System.Windows.Forms.TextBox();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
-            textBox2 = new System.Windows.Forms.TextBox();
+            tbsrvip = new System.Windows.Forms.TextBox();
             btnsrv = new System.Windows.Forms.Button();
             labhint = new System.Windows.Forms.Label();
             SuspendLayout();
@@ -47,12 +47,12 @@
             btncli.UseVisualStyleBackColor = true;
             btncli.Click += btncli_Click;
             // 
-            // textBox1
+            // tblocalip
             // 
-            textBox1.Location = new System.Drawing.Point(25, 49);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new System.Drawing.Size(233, 23);
-            textBox1.TabIndex = 1;
+            tblocalip.Location = new System.Drawing.Point(25, 49);
+            tblocalip.Name = "tblocalip";
+            tblocalip.Size = new System.Drawing.Size(233, 23);
+            tblocalip.TabIndex = 1;
             // 
             // label1
             // 
@@ -72,12 +72,12 @@
             label2.TabIndex = 3;
             label2.Text = "目标主机的IP地址：";
             // 
-            // textBox2
+            // tbsrvip
             // 
-            textBox2.Location = new System.Drawing.Point(25, 121);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new System.Drawing.Size(233, 23);
-            textBox2.TabIndex = 4;
+            tbsrvip.Location = new System.Drawing.Point(25, 121);
+            tbsrvip.Name = "tbsrvip";
+            tbsrvip.Size = new System.Drawing.Size(233, 23);
+            tbsrvip.TabIndex = 4;
             // 
             // btnsrv
             // 
@@ -106,10 +106,10 @@
             ClientSize = new System.Drawing.Size(280, 225);
             Controls.Add(labhint);
             Controls.Add(btnsrv);
-            Controls.Add(textBox2);
+            Controls.Add(tbsrvip);
             Controls.Add(label2);
             Controls.Add(label1);
-            Controls.Add(textBox1);
+            Controls.Add(tblocalip);
             Controls.Add(btncli);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             MaximizeBox = false;
@@ -123,10 +123,10 @@
         #endregion
 
         private System.Windows.Forms.Button btncli;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox tblocalip;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox tbsrvip;
         private System.Windows.Forms.Button btnsrv;
         private System.Windows.Forms.Label labhint;
     }

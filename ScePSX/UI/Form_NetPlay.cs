@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Windows.Forms;
-
-using ScePSX;
 
 namespace ScePSX.UI
 {
@@ -17,6 +13,50 @@ namespace ScePSX.UI
         public FrmNetPlay()
         {
             InitializeComponent();
+
+            tblocalip.Text = GetSuitableIPv4Address();
+
+            tbsrvip.Text = tblocalip.Text;
+        }
+
+        public string GetSuitableIPv4Address()
+        {
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            var activeInterfaces = networkInterfaces
+                .Where(nic => nic.OperationalStatus == OperationalStatus.Up &&
+                              nic.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                              !IsVirtualNetworkInterface(nic))
+                .OrderByDescending(nic => nic.Speed)
+                .ToList();
+
+            foreach (var nic in activeInterfaces)
+            {
+                var properties = nic.GetIPProperties();
+                var ipv4Addresses = properties.UnicastAddresses
+                    .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork &&
+                                   !IPAddress.IsLoopback(addr.Address))
+                    .Select(addr => addr.Address)
+                    .ToList();
+
+                if (ipv4Addresses.Any())
+                {
+                    return ipv4Addresses.First().ToString();
+                }
+            }
+
+            return null;
+        }
+
+        static bool IsVirtualNetworkInterface(NetworkInterface nic)
+        {
+            string[] virtualKeywords = { "VMware", "VirtualBox", "Hyper-V", "TAP-Windows", "vEthernet" };
+
+            string description = nic.Description?.ToLowerInvariant() ?? "";
+            string name = nic.Name?.ToLowerInvariant() ?? "";
+
+            return virtualKeywords.Any(keyword => description.Contains(keyword.ToLowerInvariant()) ||
+                                                   name.Contains(keyword.ToLowerInvariant()));
         }
 
         private void btncli_Click(object sender, EventArgs e)

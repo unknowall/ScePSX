@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Forms;
 
 using static ScePSX.Controller;
@@ -119,7 +118,7 @@ namespace ScePSX.UI
             FrmMain.ini.WriteDictionary<Keys, InputAction>("Player1Key", KMM1._keyMapping);
             FrmMain.ini.WriteDictionary<Keys, InputAction>("Player2Key", KMM2._keyMapping);
 
-            FrmMain.ini.WriteDictionary< SDL_GameControllerButton, InputAction>("JoyKeyMap", AnalogMap);
+            FrmMain.ini.WriteDictionary<SDL_GameControllerButton, InputAction>("JoyKeyMap", AnalogMap);
         }
 
         private void FrmInput_KeyUp(object sender, KeyEventArgs e)

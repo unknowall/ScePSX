@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -192,7 +191,8 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            };
+            }
+            ;
 
             PsxBus = StateFromFile<BUS>(fn);
 
@@ -215,7 +215,8 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            };
+            }
+            ;
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 

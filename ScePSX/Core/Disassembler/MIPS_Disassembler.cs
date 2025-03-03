@@ -42,7 +42,8 @@ namespace ScePSX.Disassembler
                 regs += "R" + padding + i + ":" + GPR[i].ToString("x8") + "  ";
                 if ((i + 1) % 6 == 0)
                     regs += "\n";
-            };
+            }
+            ;
             regs += " HI:" + HI.ToString("x8") + "  ";
             regs += " LO:" + LO.ToString("x8") + "  ";
             regs += " SR:" + COP0_GPR[SR].ToString("x8") + "  ";

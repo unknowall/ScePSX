@@ -185,9 +185,9 @@
             label6.AutoSize = true;
             label6.Location = new System.Drawing.Point(16, 109);
             label6.Name = "label6";
-            label6.Size = new System.Drawing.Size(80, 17);
+            label6.Size = new System.Drawing.Size(81, 17);
             label6.TabIndex = 9;
-            label6.Text = "音频环形缓冲";
+            label6.Text = "音频缓冲(ms)";
             // 
             // tbframeskip
             // 
