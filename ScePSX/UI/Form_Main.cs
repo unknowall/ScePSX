@@ -19,8 +19,10 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static IniFile ini = new IniFile(Application.StartupPath + "ScePSX.ini");
-        private string mypath;
+        public static string version = "ScePSX Beta 0.0.6";
+
+        private static string mypath = Application.StartupPath;
+        public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
         private string currbios;
         private string shaderpath;
         private string temphint;
@@ -53,6 +55,8 @@ namespace ScePSX.UI
         private OpenGLRenderer OGLRENDER = new OpenGLRenderer();
         private SDL2Renderer D3DRENDER = new SDL2Renderer();
         private D2DRenderer D2DRENDER = new D2DRenderer();
+
+        private RomList romList;
 
         private enum RenderMode
         {
@@ -114,8 +118,6 @@ namespace ScePSX.UI
             KeyDown += new KeyEventHandler(ButtonsDown);
             KeyUp += new KeyEventHandler(ButtonsUp);
 
-            mypath = Application.StartupPath;
-
             if (!Path.Exists("./Save"))
                 Directory.CreateDirectory("./Save");
             if (!Path.Exists("./BIOS"))
@@ -126,20 +128,21 @@ namespace ScePSX.UI
                 Directory.CreateDirectory("./SaveState");
             if (!Path.Exists("./Shaders"))
                 Directory.CreateDirectory("./Shaders");
+            if (!Path.Exists("./Icons"))
+                Directory.CreateDirectory("./Icons");
+
+            CloseRomMnu_Click(null, null);
 
             Rendermode = (RenderMode)ini.ReadInt("Main", "Render");
             switch (Rendermode)
             {
                 case RenderMode.Directx2D:
-                    D2DRENDER.BringToFront();
                     directx2DRender.Checked = true;
                     break;
                 case RenderMode.Directx3D:
-                    D3DRENDER.BringToFront();
                     directx3DRender.Checked = true;
                     break;
                 case RenderMode.OpenGL:
-                    OGLRENDER.BringToFront();
                     openGLRender.Checked = true;
                     break;
             }
@@ -196,7 +199,10 @@ namespace ScePSX.UI
             }
 
             if (Core == null)
+            {
+                this.Text = version;
                 return;
+            }
 
             int scalew = CoreWidth;
             int scaleh = CoreHeight;
@@ -447,6 +453,26 @@ namespace ScePSX.UI
             }
         }
 
+        private void CloseRomMnu_Click(object sender, EventArgs e)
+        {
+            if (Core != null)
+            {
+                Core.Stop();
+                Core = null;
+            }
+
+            romList = new RomList();
+            romList.Parent = this;
+            romList.Dock = DockStyle.Fill;
+            Controls.Add(romList);
+            romList.Enabled = true;
+            romList.Visible = true;
+            romList.BorderStyle = BorderStyle.FixedSingle;
+            romList.DoubleClick += new EventHandler(romList_DoubleClick);
+            romList.FillByini();
+            romList.BringToFront();
+        }
+
         private void directx2DRender_Click(object sender, EventArgs e)
         {
             directx3DRender.Checked = false;
@@ -523,6 +549,15 @@ namespace ScePSX.UI
         private void LoadDisk_Click(object sender, EventArgs e)
         {
             LoadRom();
+        }
+
+        private void romList_DoubleClick(object sender, EventArgs e)
+        {
+            var Game = romList.SelectedGame();
+            if (Game != null)
+            {
+                LoadRom(Game.fullName);
+            }
         }
 
         private void SwapDisk_Click(object sender, EventArgs e)
@@ -715,19 +750,24 @@ namespace ScePSX.UI
                 Core.Button(button1, false, 1);
         }
 
-        private void LoadRom()
+        private void LoadRom(string fn = "")
         {
             if (!File.Exists("./BIOS/" + currbios))
                 return;
 
-            OpenFileDialog FD = new OpenFileDialog();
-            FD.InitialDirectory = ini.Read("main", "LastPath");
-            FD.Filter = "ISO|*.bin;*.iso;*.cue;*.img";
-            FD.ShowDialog();
-            if (!File.Exists(FD.FileName))
-                return;
+            if (fn == "")
+            {
+                OpenFileDialog FD = new OpenFileDialog();
+                FD.InitialDirectory = ini.Read("main", "LastPath");
+                FD.Filter = "ISO|*.bin;*.iso;*.cue;*.img";
+                FD.ShowDialog();
+                if (!File.Exists(FD.FileName))
+                    return;
 
-            ini.Write("main", "LastPath", Path.GetDirectoryName(FD.FileName));
+                fn = FD.FileName;
+            }
+
+            ini.Write("main", "LastPath", Path.GetDirectoryName(fn));
 
             if (Core != null)
             {
@@ -740,7 +780,7 @@ namespace ScePSX.UI
                 OGLRENDER.LoadShaders("./Shaders/" + shaderpath);
             }
 
-            Core = new PSXCore(this, this, FD.FileName, Application.StartupPath + "/BIOS/" + currbios);
+            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios);
             if (Core.DiskID == "")
             {
                 Core = null;
@@ -759,6 +799,22 @@ namespace ScePSX.UI
             Core.SYNC_CYCLES = ini.ReadInt("CPU", "Sync");
 
             Core.PsxBus.cpu.cylesfix = ini.ReadInt("CPU", "Cycles");
+
+            ini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
+
+            romList.Dispose();
+            switch (Rendermode)
+            {
+                case RenderMode.Directx2D:
+                    D2DRENDER.BringToFront();
+                    break;
+                case RenderMode.Directx3D:
+                    D3DRENDER.BringToFront();
+                    break;
+                case RenderMode.OpenGL:
+                    OGLRENDER.BringToFront();
+                    break;
+            }
 
             Core.Start();
 

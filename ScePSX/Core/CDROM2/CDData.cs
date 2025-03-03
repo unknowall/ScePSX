@@ -143,7 +143,7 @@ namespace ScePSX.CdRom2
             return lba;
         }
 
-        public string ReadDiscId(string filePath)
+        public static string ReadDiscId(string filePath)
         {
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {

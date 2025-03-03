@@ -31,6 +31,7 @@
             SwapDisk = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             MnuBios = new System.Windows.Forms.ToolStripMenuItem();
+            SysSetMnu = new System.Windows.Forms.ToolStripMenuItem();
             KeyTool = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             SaveStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -55,9 +56,9 @@
             xBRScaleAdd = new System.Windows.Forms.ToolStripMenuItem();
             xBRScaleDec = new System.Windows.Forms.ToolStripMenuItem();
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
-            AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
-            SysSetMnu = new System.Windows.Forms.ToolStripMenuItem();
+            AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
+            CloseRomMnu = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -68,13 +69,13 @@
             MainMenu.Location = new System.Drawing.Point(0, 0);
             MainMenu.Name = "MainMenu";
             MainMenu.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
-            MainMenu.Size = new System.Drawing.Size(831, 25);
+            MainMenu.Size = new System.Drawing.Size(684, 25);
             MainMenu.TabIndex = 0;
             MainMenu.Text = "menuStrip1";
             // 
             // MnuFile
             // 
-            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, toolStripMenuItem1, MnuBios, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
+            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, MnuBios, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
             MnuFile.Size = new System.Drawing.Size(62, 21);
             MnuFile.Text = "文件(&F))";
@@ -103,6 +104,13 @@
             MnuBios.Name = "MnuBios";
             MnuBios.Size = new System.Drawing.Size(180, 22);
             MnuBios.Text = "BIOS设置";
+            // 
+            // SysSetMnu
+            // 
+            SysSetMnu.Name = "SysSetMnu";
+            SysSetMnu.Size = new System.Drawing.Size(180, 22);
+            SysSetMnu.Text = "系统设置";
+            SysSetMnu.Click += SysSetMnu_Click;
             // 
             // KeyTool
             // 
@@ -178,13 +186,13 @@
             // 
             cPUToolStripMenuItem.Enabled = false;
             cPUToolStripMenuItem.Name = "cPUToolStripMenuItem";
-            cPUToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            cPUToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             cPUToolStripMenuItem.Text = "CPU";
             // 
             // 内存编辑ToolStripMenuItem
             // 
             内存编辑ToolStripMenuItem.Name = "内存编辑ToolStripMenuItem";
-            内存编辑ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            内存编辑ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             内存编辑ToolStripMenuItem.Text = "内存编辑";
             内存编辑ToolStripMenuItem.Click += MnuDebug_Click;
             // 
@@ -269,6 +277,13 @@
             NetPlayMnu.Size = new System.Drawing.Size(86, 21);
             NetPlayMnu.Text = "网络对战(&N)";
             // 
+            // NetPlaySetMnu
+            // 
+            NetPlaySetMnu.Name = "NetPlaySetMnu";
+            NetPlaySetMnu.Size = new System.Drawing.Size(100, 22);
+            NetPlaySetMnu.Text = "设置";
+            NetPlaySetMnu.Click += NetPlaySetMnu_Click;
+            // 
             // AboutMnu
             // 
             AboutMnu.Name = "AboutMnu";
@@ -276,25 +291,18 @@
             AboutMnu.Text = "关于(&A)";
             AboutMnu.Click += AboutMnu_Click;
             // 
-            // NetPlaySetMnu
+            // CloseRomMnu
             // 
-            NetPlaySetMnu.Name = "NetPlaySetMnu";
-            NetPlaySetMnu.Size = new System.Drawing.Size(180, 22);
-            NetPlaySetMnu.Text = "设置";
-            NetPlaySetMnu.Click += NetPlaySetMnu_Click;
-            // 
-            // SysSetMnu
-            // 
-            SysSetMnu.Name = "SysSetMnu";
-            SysSetMnu.Size = new System.Drawing.Size(180, 22);
-            SysSetMnu.Text = "系统设置";
-            SysSetMnu.Click += SysSetMnu_Click;
+            CloseRomMnu.Name = "CloseRomMnu";
+            CloseRomMnu.Size = new System.Drawing.Size(180, 22);
+            CloseRomMnu.Text = "返回列表";
+            CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // FrmMain
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(831, 623);
+            ClientSize = new System.Drawing.Size(684, 498);
             Controls.Add(MainMenu);
             MainMenuStrip = MainMenu;
             Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
@@ -343,5 +351,6 @@
         private System.Windows.Forms.ToolStripMenuItem NetPlayMnu;
         private System.Windows.Forms.ToolStripMenuItem NetPlaySetMnu;
         private System.Windows.Forms.ToolStripMenuItem AboutMnu;
+        private System.Windows.Forms.ToolStripMenuItem CloseRomMnu;
     }
 }

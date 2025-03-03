@@ -28,22 +28,22 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new System.Windows.Forms.Label();
+            labver = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             textBox1 = new System.Windows.Forms.TextBox();
             label3 = new System.Windows.Forms.Label();
             linkLabel1 = new System.Windows.Forms.LinkLabel();
             SuspendLayout();
             // 
-            // label1
+            // labver
             // 
-            label1.AutoSize = true;
-            label1.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            label1.Location = new System.Drawing.Point(26, 21);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(150, 22);
-            label1.TabIndex = 0;
-            label1.Text = "ScePSX Beta 0.05";
+            labver.AutoSize = true;
+            labver.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            labver.Location = new System.Drawing.Point(26, 21);
+            labver.Name = "labver";
+            labver.Size = new System.Drawing.Size(150, 22);
+            labver.TabIndex = 0;
+            labver.Text = "ScePSX Beta 0.05";
             // 
             // label2
             // 
@@ -91,7 +91,7 @@
             Controls.Add(label3);
             Controls.Add(textBox1);
             Controls.Add(label2);
-            Controls.Add(label1);
+            Controls.Add(labver);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "FrmAbout";
@@ -103,7 +103,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labver;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label3;

@@ -7,6 +7,8 @@ namespace ScePSX.UI
         public FrmAbout()
         {
             InitializeComponent();
+
+            labver.Text = FrmMain.version;
         }
     }
 }

@@ -134,6 +134,34 @@ namespace ScePSX
                 .Where(x => x != null)
                 .ToDictionary(x => x.Key, x => x.Value);
         }
+
+        public string[] GetSection(string sectionName)
+        {
+            if (data.ContainsKey(sectionName))
+            {
+                return data[sectionName].Select(kvp => $"{kvp.Key}={kvp.Value}").ToArray();
+            }
+            return Array.Empty<string>();
+        }
+
+        public string[] GetSectionKeys(string sectionName)
+        {
+            if (data.ContainsKey(sectionName))
+            {
+                return data[sectionName].Keys.ToArray();
+            }
+            return Array.Empty<string>();
+        }
+
+        public string[] GetSectionValues(string sectionName)
+        {
+            if (data.ContainsKey(sectionName))
+            {
+                return data[sectionName].Values.ToArray();
+            }
+            return Array.Empty<string>();
+        }
+
     }
 
 }
