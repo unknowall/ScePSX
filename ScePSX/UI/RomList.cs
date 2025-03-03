@@ -52,7 +52,7 @@ namespace ScePSX.UI
             InitializeComponent();
 
             DoubleBuffered = true;
-            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
 
             DrawMode = DrawMode.OwnerDrawVariable;
@@ -63,6 +63,26 @@ namespace ScePSX.UI
             DoubleBuffered = true;
 
             DefaultIcon = GetDefaultExeIcon();
+        }
+
+        private void InitializeComponent()
+        {
+            SuspendLayout();
+            FormattingEnabled = true;
+            TabIndex = 0;
+            Name = "RomList";
+            Size = new System.Drawing.Size(510, 316);
+            // 初始化右键菜单
+            contextMenuStrip = new ContextMenuStrip();
+
+            var split = new ToolStripSeparator();
+
+            var menuItem1 = new ToolStripMenuItem("设置图标", null, OnOpenClick);
+            var menuItem2 = new ToolStripMenuItem("删除", null, OnDeleteClick);
+            contextMenuStrip.Items.AddRange(new ToolStripItem[] { menuItem1, split, menuItem2 });
+            ContextMenuStrip = contextMenuStrip;
+
+            ResumeLayout(false);
         }
 
         public void FillByini()
@@ -98,6 +118,7 @@ namespace ScePSX.UI
                     AddOrReplace(game);
                 }
             }
+            SortByLastPlayed();
         }
 
         public void SearchDir(string dir)
@@ -124,7 +145,7 @@ namespace ScePSX.UI
                     if (infos == "")
                     {
                         game.LastPlayed = "";
-
+                        FrmMain.ini.Write("history", id, $"{f.FullName}|");
                     } else
                     {
                         string[] infoary = infos.Split('|');
@@ -150,6 +171,7 @@ namespace ScePSX.UI
                     AddOrReplace(game);
                 }
             }
+            SortByLastPlayed();
         }
 
         private void AddOrReplace(Game game)
@@ -178,24 +200,24 @@ namespace ScePSX.UI
             return null;
         }
 
-        private void InitializeComponent()
+        public void SortByLastPlayed()
         {
-            SuspendLayout();
-            FormattingEnabled = true;
-            TabIndex = 0;
-            Name = "RomList";
-            Size = new System.Drawing.Size(510, 316);
-            // 初始化右键菜单
-            contextMenuStrip = new ContextMenuStrip();
+            List<Game> sortedGames = new List<Game>();
+            foreach (Game game in Items)
+            {
+                sortedGames.Add(game);
+            }
 
-            var split = new ToolStripSeparator();
+            sortedGames.Sort((x, y) => DateTime.Compare(
+                string.IsNullOrEmpty(y.LastPlayed) ? DateTime.MinValue : DateTime.Parse(y.LastPlayed),
+                string.IsNullOrEmpty(x.LastPlayed) ? DateTime.MinValue : DateTime.Parse(x.LastPlayed)
+            ));
 
-            var menuItem1 = new ToolStripMenuItem("设置图标", null, OnOpenClick);
-            var menuItem2 = new ToolStripMenuItem("删除", null, OnDeleteClick);
-            contextMenuStrip.Items.AddRange(new ToolStripItem[] { menuItem1, split, menuItem2 });
-            ContextMenuStrip = contextMenuStrip;
-
-            ResumeLayout(false);
+            Items.Clear();
+            foreach (Game game in sortedGames)
+            {
+                Items.Add(game);
+            }
         }
 
         private void OnOpenClick(object sender, EventArgs e)
@@ -362,6 +384,35 @@ namespace ScePSX.UI
             {
                 return new Bitmap(48, 48);
             }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            BufferedGraphicsContext currentContext;
+            BufferedGraphics myBuffer;
+
+            currentContext = BufferedGraphicsManager.Current;
+            myBuffer = currentContext.Allocate(e.Graphics, this.DisplayRectangle);
+
+            Graphics g = myBuffer.Graphics;
+            g.Clear(this.BackColor);
+
+            base.OnPaint(new PaintEventArgs(g, e.ClipRectangle));
+
+            for (int i = 0; i < Items.Count; i++)
+            {
+                DrawItemEventArgs args = new DrawItemEventArgs(
+                    g,
+                    this.Font,
+                    GetItemRectangle(i),
+                    i,
+                    DrawItemState.Default);
+
+                OnDrawItem(args);
+            }
+
+            myBuffer.Render(e.Graphics);
+            myBuffer.Dispose();
         }
 
         protected override void Dispose(bool disposing)

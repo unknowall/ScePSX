@@ -29,6 +29,7 @@
             MnuFile = new System.Windows.Forms.ToolStripMenuItem();
             LoadDIsk = new System.Windows.Forms.ToolStripMenuItem();
             SwapDisk = new System.Windows.Forms.ToolStripMenuItem();
+            CloseRomMnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             MnuBios = new System.Windows.Forms.ToolStripMenuItem();
             SysSetMnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,7 +59,7 @@
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
             AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
-            CloseRomMnu = new System.Windows.Forms.ToolStripMenuItem();
+            SearchMnu = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -75,7 +76,7 @@
             // 
             // MnuFile
             // 
-            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, MnuBios, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
+            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, MnuBios, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
             MnuFile.Size = new System.Drawing.Size(62, 21);
             MnuFile.Text = "文件(&F))";
@@ -93,6 +94,13 @@
             SwapDisk.Size = new System.Drawing.Size(180, 22);
             SwapDisk.Text = "切换光盘";
             SwapDisk.Click += SwapDisk_Click;
+            // 
+            // CloseRomMnu
+            // 
+            CloseRomMnu.Name = "CloseRomMnu";
+            CloseRomMnu.Size = new System.Drawing.Size(180, 22);
+            CloseRomMnu.Text = "返回列表";
+            CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // toolStripMenuItem1
             // 
@@ -291,12 +299,12 @@
             AboutMnu.Text = "关于(&A)";
             AboutMnu.Click += AboutMnu_Click;
             // 
-            // CloseRomMnu
+            // SearchMnu
             // 
-            CloseRomMnu.Name = "CloseRomMnu";
-            CloseRomMnu.Size = new System.Drawing.Size(180, 22);
-            CloseRomMnu.Text = "返回列表";
-            CloseRomMnu.Click += CloseRomMnu_Click;
+            SearchMnu.Name = "SearchMnu";
+            SearchMnu.Size = new System.Drawing.Size(180, 22);
+            SearchMnu.Text = "扫描目录";
+            SearchMnu.Click += SearchMnu_Click;
             // 
             // FrmMain
             // 
@@ -352,5 +360,6 @@
         private System.Windows.Forms.ToolStripMenuItem NetPlaySetMnu;
         private System.Windows.Forms.ToolStripMenuItem AboutMnu;
         private System.Windows.Forms.ToolStripMenuItem CloseRomMnu;
+        private System.Windows.Forms.ToolStripMenuItem SearchMnu;
     }
 }

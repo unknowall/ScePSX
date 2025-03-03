@@ -204,6 +204,9 @@ namespace ScePSX.UI
                 return;
             }
 
+            if(Core.Pauseed)
+                lbHint.Text = "暂停中";
+
             int scalew = CoreWidth;
             int scaleh = CoreHeight;
 
@@ -450,6 +453,32 @@ namespace ScePSX.UI
                 LoadState(StateSlot);
 
                 return;
+            }
+        }
+
+        private void SearchMnu_Click(object sender, EventArgs e)
+        {
+            if (Core != null)
+            {
+                temphint = "现在不能操作";
+                hintdelay = 3;
+                return;
+            }
+            if (romList != null )
+            {
+                OpenFileDialog FD = new OpenFileDialog();
+                FD.Title = "选择一个文件夹";
+                FD.InitialDirectory = ini.Read("main", "LastPath");
+                FD.ValidateNames = false;
+                FD.CheckFileExists = false;
+                FD.CheckPathExists = true;
+                FD.FileName = "选择文件夹";
+                if (FD.ShowDialog() == DialogResult.Cancel)
+                {
+                    return;
+                }
+                if (FD.FileName != "")
+                    romList.SearchDir(Path.GetDirectoryName(FD.FileName));
             }
         }
 
@@ -760,7 +789,10 @@ namespace ScePSX.UI
                 OpenFileDialog FD = new OpenFileDialog();
                 FD.InitialDirectory = ini.Read("main", "LastPath");
                 FD.Filter = "ISO|*.bin;*.iso;*.cue;*.img";
-                FD.ShowDialog();
+                if (FD.ShowDialog() == DialogResult.Cancel)
+                {
+                    return;
+                }
                 if (!File.Exists(FD.FileName))
                     return;
 
