@@ -27,7 +27,7 @@
 3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
 
-![new01](https://github.com/user-attachments/assets/869a7da4-a96d-4596-b31f-e64abc097aee)
+![new01](https://github.com/user-attachments/assets/869a7da4-a96d-4596-b31f-e64abc097aee)![捕获](https://github.com/user-attachments/assets/6fbc1076-ddc0-4c3f-843a-cbfd63f4d4f8)
 
 以下截图是老版本的
 
