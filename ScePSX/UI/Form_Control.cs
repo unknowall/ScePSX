@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
 
 using static ScePSX.Controller;
 using static SDL2.SDL;
-
-#pragma warning disable SYSLIB0011
 
 namespace ScePSX.UI
 {
@@ -46,13 +43,10 @@ namespace ScePSX.UI
 
         public static void InitKeyMap()
         {
-            KmmStore KMM;
-
             try
             {
-                KMM = LoadKeys<KmmStore>("./Keys.cfg");
-                KMM1 = KMM.KMM1;
-                KMM2 = KMM.KMM2;
+                KMM1._keyMapping = FrmMain.ini.ReadDictionary<Keys, InputAction>("Player1Key");
+                KMM2._keyMapping = FrmMain.ini.ReadDictionary<Keys, InputAction>("Player2Key");
             } catch { }
 
             if (KMM1._keyMapping.Count == 0)
@@ -92,8 +86,8 @@ namespace ScePSX.UI
                 KMM2.SetKeyMapping(Keys.U, InputAction.Square);
             }
 
-            KMM = new KmmStore(KMM1, KMM2);
-            SaveKeys<KmmStore>(KMM, "./Keys.cfg");
+            FrmMain.ini.WriteDictionary<Keys, InputAction>("Player1Key", KMM1._keyMapping);
+            FrmMain.ini.WriteDictionary<Keys, InputAction>("Player2Key", KMM2._keyMapping);
         }
 
         public static void InitControllerMap()
@@ -115,24 +109,6 @@ namespace ScePSX.UI
             };
         }
 
-        private static KmmStore LoadKeys<KmmStore>(string filePath)
-        {
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                return (KmmStore)formatter.Deserialize(fs);
-            }
-        }
-
-        private static void SaveKeys<KmmStore>(KmmStore obj, string filePath)
-        {
-            using (FileStream fs = new FileStream(filePath, FileMode.Create))
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(fs, obj);
-            }
-        }
-
         private void FrmInput_Shown(object sender, EventArgs e)
         {
 
@@ -140,8 +116,10 @@ namespace ScePSX.UI
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            KmmStore KMM = new KmmStore(KMM1, KMM2);
-            SaveKeys<KmmStore>(KMM, "./Keys.cfg");
+            FrmMain.ini.WriteDictionary<Keys, InputAction>("Player1Key", KMM1._keyMapping);
+            FrmMain.ini.WriteDictionary<Keys, InputAction>("Player2Key", KMM2._keyMapping);
+
+            FrmMain.ini.WriteDictionary< SDL_GameControllerButton, InputAction>("JoyKeyMap", AnalogMap);
         }
 
         private void FrmInput_KeyUp(object sender, KeyEventArgs e)
@@ -311,20 +289,6 @@ namespace ScePSX.UI
 
     }
 
-    [Serializable]
-    public class KmmStore
-    {
-        public KeyMappingManager KMM1;
-        public KeyMappingManager KMM2;
-
-        public KmmStore(KeyMappingManager k1, KeyMappingManager k2)
-        {
-            KMM1 = k1;
-            KMM2 = k2;
-        }
-    }
-
-    [Serializable]
     public class KeyMappingManager
     {
         public Dictionary<Keys, InputAction> _keyMapping = new();

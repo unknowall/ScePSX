@@ -201,5 +201,14 @@ namespace ScePSX.Render
 
             base.OnPaint(e);
         }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams createParams = base.CreateParams;
+                return (createParams);
+            }
+        }
     }
 }

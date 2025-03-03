@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 using OpenGL;
 
 namespace ScePSX.Render
@@ -256,6 +257,15 @@ namespace ScePSX.Render
                 Gl.DeleteProgram(programID);
             }
             base.Dispose(disposing);
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams createParams = base.CreateParams;
+                return (createParams);
+            }
         }
     }
 }

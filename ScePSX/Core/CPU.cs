@@ -94,6 +94,7 @@ namespace ScePSX
         //Debug
         public bool debug = false;
         public bool biosdebug = false;
+        public bool ttydebug = false;
 
         public CPU(BUS bus)
         {
@@ -137,10 +138,12 @@ namespace ScePSX
         public int tick()
         {
             int ticks = fetchDecode();
+
             if (instr.value != 0)
             {
                 opcodeMainTable[instr.opcode](this); //Execute
             }
+
             MemAccess();
             WriteBack();
 
@@ -151,10 +154,13 @@ namespace ScePSX
             }
             if (biosdebug)
             {
-                TTY();
                 bios.verbose(PC_Now, GPR);
             }
-            //TTY();
+            if (ttydebug)
+            {
+                TTY();
+            }
+
             return ticks;
         }
 

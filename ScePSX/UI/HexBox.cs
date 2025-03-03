@@ -666,7 +666,7 @@ namespace HexBoxControl
 
             if (_ViewMode == HexBoxViewMode.BytesAscii)
             {
-                int AsciiWidth = 2 * _CharWidth * _DataColums - _CharWidth;
+                int AsciiWidth = 1 * _CharWidth * _DataColums - _CharWidth;
 
                 x = x - _CharWidth + _ColumnsDelim + (AsciiWidth - 5 * _CharWidth) / 2;
 
@@ -717,7 +717,7 @@ namespace HexBoxControl
                             g.DrawString(c.ToString(), Font, GetBrush(Color.DarkMagenta), xa, y, _StringFormat);
                         }
 
-                        xa += 2 * _CharWidth;
+                        xa += 1 * _CharWidth;
                     }
 
                     offset += bytes;

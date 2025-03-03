@@ -71,11 +71,33 @@ namespace ScePSX.UI
         {
             InitializeComponent();
 
+            if (ini.ReadInt("Main", "Console") == 1)
+            {
+                AllocConsole();
+            }
+
             OGLRENDER.Parent = this;
             OGLRENDER.Dock = DockStyle.Fill;
             Controls.Add(OGLRENDER);
             OGLRENDER.Enabled = false;
-            OGLRENDER.MultisampleBits = 4;
+            switch (ini.ReadInt("OpenGL", "MSAA"))
+            {
+                case 0:
+                    OGLRENDER.MultisampleBits = 0;
+                    break;
+                case 1:
+                    OGLRENDER.MultisampleBits = 4;
+                    break;
+                case 2:
+                    OGLRENDER.MultisampleBits = 6;
+                    break;
+                case 3:
+                    OGLRENDER.MultisampleBits = 8;
+                    break;
+                case 4:
+                    OGLRENDER.MultisampleBits = 16;
+                    break;
+            }
             //OGLRENDER.DepthBits = 24;
             //OGLRENDER.ColorBits = 32;
             //OGLRENDER.Visible = false;
@@ -91,8 +113,6 @@ namespace ScePSX.UI
             Controls.Add(D2DRENDER);
             D2DRENDER.Enabled = false;
             //D2DRENDER.Visible = false;
-
-            //AllocConsole();
 
             //CheckForIllegalCrossThreadCalls = false;
 
@@ -170,7 +190,7 @@ namespace ScePSX.UI
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
-            lbHint.Text = $"{temphint} F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
+            lbHint.Text = $"{temphint} 即时档[{StateSlot}] F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
 
             if (hintdelay > 0)
             {
@@ -191,7 +211,7 @@ namespace ScePSX.UI
                 scalew *= scale;
                 scaleh *= scale;
             }
-            this.Text = $"ScePSX | {Core.DiskID} | SaveSlot {StateSlot} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
+            this.Text = $"ScePSX | {Core.DiskID} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
         }
 
         ~FrmMain()
@@ -226,7 +246,10 @@ namespace ScePSX.UI
             };
             SDL_AudioSpec obtained = new SDL_AudioSpec();
 
-            SamplesBuffer = new CircularBuffer<byte>(52920); // 300 ms
+            int bufsize = ini.ReadInt("Audio", "Buffer");
+            if (bufsize < 2048 * 3)
+                bufsize = 2048 * 3;
+            SamplesBuffer = new CircularBuffer<byte>(bufsize); // 300 ms = 52920
 
             audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
             if (audiodeviceid != 0)
@@ -479,8 +502,8 @@ namespace ScePSX.UI
                 D3DRENDER.frameskip = 0;
             } else
             {
-                D2DRENDER.frameskip = 1;
-                D3DRENDER.frameskip = 1;
+                D2DRENDER.frameskip = ini.ReadInt("Main", "SkipFrame");
+                D3DRENDER.frameskip = D2DRENDER.frameskip;
             }
 
             ini.WriteInt("main", "frameskip", Convert.ToInt16(frameskipmnu.Checked));
@@ -544,6 +567,24 @@ namespace ScePSX.UI
         {
             var frminput = new FrmInput();
             frminput.Show(this);
+        }
+
+        private void AboutMnu_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmAbout();
+            frm.Show(this);
+        }
+
+        private void NetPlaySetMnu_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmNetPlay();
+            frm.Show(this);
+        }
+
+        private void SysSetMnu_Click(object sender, EventArgs e)
+        {
+            var frm = new Form_Set();
+            frm.Show(this);
         }
         #endregion
 
@@ -624,7 +665,8 @@ namespace ScePSX.UI
             {
                 Core.MIPS_UNDERCLOCK = 5;
                 Core.SYNC_CYCLES_IDLE = 0;
-                Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (PSXCore.SYNC_CYCLES * Core.MIPS_UNDERCLOCK)) + 1;
+                Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (Core.SYNC_CYCLES * Core.MIPS_UNDERCLOCK)) + 1;
+                return;
             }
             if (e.KeyCode == Keys.F11)
             {
@@ -656,7 +698,8 @@ namespace ScePSX.UI
             {
                 Core.MIPS_UNDERCLOCK = 1;
                 Core.SYNC_CYCLES_IDLE = 15;
-                Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (PSXCore.SYNC_CYCLES)) + 1;
+                Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (Core.SYNC_CYCLES)) + 1;
+                return;
             }
 
             InputAction button = FrmInput.KMM1.GetKeyButton(e.KeyCode);
@@ -698,10 +741,20 @@ namespace ScePSX.UI
             {
                 Core = null;
                 return;
-            } else
-            {
-                Core.Start();
             }
+
+            if (ini.ReadInt("Main", "Console") == 1)
+            {
+                Core.PsxBus.cpu.biosdebug = ini.ReadInt("Main", "BiosDebug") == 1;
+                Core.PsxBus.cpu.debug = ini.ReadInt("Main", "CPUDebug") == 1;
+                Core.PsxBus.cpu.ttydebug = ini.ReadInt("Main", "TTYDebug") == 1;
+            }
+
+            Core.SYNC_CYCLES_IDLE = ini.ReadInt("CPU", "FrameIdle");
+            Core.MIPS_UNDERCLOCK = ini.ReadInt("CPU", "MipsLock");
+            Core.SYNC_CYCLES = ini.ReadInt("CPU", "Sync");
+
+            Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
 
@@ -764,8 +817,11 @@ namespace ScePSX.UI
             }
             //不超过渲染器最大缓冲
             if (scale > 0)
+            {
+
                 if (scale * height > 2048 || scale * width > 4096)
                     scale -= 2;
+            }
 
             QueryControllerState(1);
             QueryControllerState(2);
@@ -839,7 +895,7 @@ namespace ScePSX.UI
                     return;
                 }
 
-                if (controller1 == 0)
+                if (controller1 == 0 && concount >= 1)
                 {
                     if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
                     {
@@ -851,7 +907,7 @@ namespace ScePSX.UI
                     Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected");
                 }
 
-                if (controller2 == 0)
+                if (controller2 == 0 && concount >= 2)
                 {
                     if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
                     {
@@ -885,7 +941,7 @@ namespace ScePSX.UI
                 }
                 if (FrmInput.AnalogMap.TryGetValue(button, out var gamepadInput))
                 {
-                    Core.Button(gamepadInput, isPressed, conidx );
+                    Core.Button(gamepadInput, isPressed, conidx);
                 }
             }
 
@@ -906,10 +962,10 @@ namespace ScePSX.UI
             short tl = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT);
             short tr = SDL_GameControllerGetAxis(controller, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
-            Core.Button(InputAction.L2, tl > 16384 ? true : false, conidx );
-            Core.Button(InputAction.R2, tr > 16384 ? true : false, conidx );
+            Core.Button(InputAction.L2, tl > 16384 ? true : false, conidx);
+            Core.Button(InputAction.R2, tr > 16384 ? true : false, conidx);
 
-            Core.AnalogAxis(lx, ly, rx, ry, conidx );
+            Core.AnalogAxis(lx, ly, rx, ry, conidx);
 
             if (isPadPressed)
                 return;
@@ -922,19 +978,19 @@ namespace ScePSX.UI
             {
                 hatState = SDL_JoystickGetHat(joystick, hatIndex);
 
-                Core.Button(InputAction.DPadUp, (hatState & SDL_HAT_UP) != 0, conidx );
-                Core.Button(InputAction.DPadDown, (hatState & SDL_HAT_DOWN) != 0, conidx );
-                Core.Button(InputAction.DPadLeft, (hatState & SDL_HAT_LEFT) != 0, conidx );
-                Core.Button(InputAction.DPadRight, (hatState & SDL_HAT_RIGHT) != 0, conidx );
+                Core.Button(InputAction.DPadUp, (hatState & SDL_HAT_UP) != 0, conidx);
+                Core.Button(InputAction.DPadDown, (hatState & SDL_HAT_DOWN) != 0, conidx);
+                Core.Button(InputAction.DPadLeft, (hatState & SDL_HAT_LEFT) != 0, conidx);
+                Core.Button(InputAction.DPadRight, (hatState & SDL_HAT_RIGHT) != 0, conidx);
             }
 
             if (!isAnalog && hatState == 0)
             {
                 // 将左摇杆的值转换为方向键状态
-                Core.Button(InputAction.DPadUp, ly < -0.5f, conidx );    // 上
-                Core.Button(InputAction.DPadDown, ly > 0.5f, conidx );   // 下
-                Core.Button(InputAction.DPadLeft, lx < -0.5f, conidx );  // 左
-                Core.Button(InputAction.DPadRight, lx > 0.5f, conidx );  // 右
+                Core.Button(InputAction.DPadUp, ly < -0.5f, conidx);    // 上
+                Core.Button(InputAction.DPadDown, ly > 0.5f, conidx);   // 下
+                Core.Button(InputAction.DPadLeft, lx < -0.5f, conidx);  // 左
+                Core.Button(InputAction.DPadRight, lx > 0.5f, conidx);  // 右
             }
 
         }

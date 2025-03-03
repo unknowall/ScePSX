@@ -17,7 +17,7 @@ namespace ScePSX
     {
         const int PSX_MHZ = 33868800;
         public const int CYCLES_PER_FRAME = PSX_MHZ / 60;
-        public const int SYNC_CYCLES = 110;
+        public int SYNC_CYCLES = 110;
         public int MIPS_UNDERCLOCK = 1;
         public int SYNC_LOOPS;
         public int SYNC_CYCLES_IDLE = 15;

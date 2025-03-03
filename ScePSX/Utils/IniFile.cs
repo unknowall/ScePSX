@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 namespace ScePSX
 {
+
     public class IniFile
     {
         private readonly string path;
@@ -94,5 +96,46 @@ namespace ScePSX
             var str = Read(section, key);
             return string.IsNullOrEmpty(str) ? 0 : Convert.ToInt32(str);
         }
+
+        public void WriteDictionary<TKey, TValue>(string section, Dictionary<TKey, TValue> dictionary)
+            where TKey : Enum
+            where TValue : Enum
+        {
+            if (dictionary == null || dictionary.Count == 0)
+                return;
+
+            var serialized = string.Join(";", dictionary.Select(kvp => $"{kvp.Key}|{kvp.Value}"));
+            Write(section, "Dictionary", serialized);
+        }
+
+        public Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(string section)
+            where TKey : struct, Enum
+            where TValue : struct, Enum
+        {
+            var serialized = Read(section, "Dictionary");
+            if (string.IsNullOrEmpty(serialized))
+                return new Dictionary<TKey, TValue>();
+
+            return serialized
+                .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(pair =>
+                {
+                    var parts = pair.Split('|');
+                    if (parts.Length == 2 &&
+                        Enum.TryParse(parts[0], out TKey key) &&
+                        Enum.TryParse(parts[1], out TValue value))
+                    {
+                        return new
+                        {
+                            Key = key,
+                            Value = value
+                        };
+                    }
+                    return null;
+                })
+                .Where(x => x != null)
+                .ToDictionary(x => x.Key, x => x.Value);
+        }
     }
+
 }
