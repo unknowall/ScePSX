@@ -6,6 +6,8 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Windows.Forms;
 
+using ScePSX;
+
 namespace ScePSX.UI
 {
     public partial class FrmNetPlay : Form
@@ -61,12 +63,24 @@ namespace ScePSX.UI
 
         private void btncli_Click(object sender, EventArgs e)
         {
+            if (FrmMain.Core == null)
+                return;
 
+            FrmMain.Core.PsxBus.SIO.Close();
+            FrmMain.Core.PsxBus.SIO.Active(false, tblocalip.Text, tbsrvip.Text);
+
+            labhint.Text = "已启用客户机模式";
         }
 
         private void btnsrv_Click(object sender, EventArgs e)
         {
+            if (FrmMain.Core == null)
+                return;
 
+            FrmMain.Core.PsxBus.SIO.Close();
+            FrmMain.Core.PsxBus.SIO.Active(true,tblocalip.Text,tbsrvip.Text);
+
+            labhint.Text = "已启用主机模式";
         }
     }
 }

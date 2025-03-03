@@ -185,7 +185,7 @@ namespace ScePSX.UI
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
-            lbHint.Text = $"{temphint} 即时档[{StateSlot}] F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
+            lbHint.Text = $"{temphint} 即时档 [{StateSlot}] F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
 
             if (hintdelay > 0)
             {
@@ -201,12 +201,18 @@ namespace ScePSX.UI
             int scalew = CoreWidth;
             int scaleh = CoreHeight;
 
+            string rendername = Rendermode.ToString();
+            if (Rendermode == RenderMode.OpenGL)
+            {
+                if (OGLRENDER.MultisampleBits > 0)
+                    rendername += $" {OGLRENDER.MultisampleBits}xMSAA";
+            }
             if (scale > 0)
             {
                 scalew *= scale;
                 scaleh *= scale;
             }
-            this.Text = $"ScePSX | {Core.DiskID} | {Rendermode.ToString()} | {scalew}*{scaleh} | FPS {_currentFps:F1}";
+            this.Text = $"ScePSX | {Core.DiskID} | {rendername} | IR {scalew}*{scaleh} | FPS {_currentFps:F1}";
         }
 
         ~FrmMain()
