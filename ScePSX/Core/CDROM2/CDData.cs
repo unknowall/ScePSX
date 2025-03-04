@@ -178,7 +178,7 @@ namespace ScePSX.CdRom2
                         if (match.Success)
                         {
                             string[] id = match.Groups[1].Value.Split(".");
-                            return id[0] + id[1];
+                            return (id[0] + id[1]).Replace("_","-");
                         }
                     }
                 }

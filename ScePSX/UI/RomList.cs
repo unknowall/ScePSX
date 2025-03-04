@@ -848,7 +848,7 @@ namespace ScePSX.UI
                 string fullId = Encoding.ASCII.GetString(blockBuffer, HEADER_OFFSET, ID_LENGTH).Trim('\0', ' ');
                 string shortId = fullId.Substring(2);
 
-                if (shortId.Replace('-', '_') == targetGameId)
+                if (shortId == targetGameId)
                 {
                     return ExtractIcon(blockBuffer);
                 }
