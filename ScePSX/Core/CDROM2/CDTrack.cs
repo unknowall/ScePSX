@@ -4,17 +4,10 @@ using System.Collections.Generic;
 namespace ScePSX.CdRom2
 {
     [Serializable]
-    public readonly struct TrackIndex
+    public struct TrackIndex
     {
-        public int Number
-        {
-            get;
-        }
-
-        public TrackPosition Position
-        {
-            get;
-        }
+        public int Number;
+        public TrackPosition Position;
 
         public TrackIndex(int number, TrackPosition position)
         {
@@ -29,34 +22,14 @@ namespace ScePSX.CdRom2
     }
 
     [Serializable]
-    public readonly struct TrackPosition
+    public struct TrackPosition
     {
-        public int M
-        {
-            get;
-        }
-
-        public int S
-        {
-            get;
-        }
-
-        public int F
-        {
-            get;
-        }
+        public int M;
+        public int S;
+        public int F;
 
         public TrackPosition(int m, int s, int f)
         {
-            //if (m is < 0 or > 99)
-            //    throw new ArgumentOutOfRangeException(nameof(m), s, null);
-
-            //if (s is < 0 or > 59)
-            //    throw new ArgumentOutOfRangeException(nameof(s), s, null);
-
-            //if (f is < 0 or > 74)
-            //    throw new ArgumentOutOfRangeException(nameof(f), f, null);
-
             M = m;
             S = s;
             F = f;
@@ -89,37 +62,13 @@ namespace ScePSX.CdRom2
             LbaEnd = lbaEnd;
         }
 
-        public string File { get; init; } = null!;
-
-        public long FilePosition
-        {
-            get; set;
-        }
-
-        public long FileLength
-        {
-            get; set;
-        }
-
-        public byte Index
-        {
-            get; set;
-        }
-
-        public int LbaStart
-        {
-            get; set;
-        }
-
-        public int LbaEnd
-        {
-            get; set;
-        }
-
-        public int LbaLength
-        {
-            get; set;
-        }
+        public string File;
+        public long FilePosition;
+        public long FileLength;
+        public byte Index;
+        public int LbaStart;
+        public int LbaEnd;
+        public int LbaLength;
 
         public IList<TrackIndex> Indices { get; } = new List<TrackIndex>();
 

@@ -7,15 +7,10 @@ namespace ScePSX.CdRom2
     [Serializable]
     public class CDSector
     {
-        // Standard size for a raw sector / CDDA
         public const int RAW_BUFFER = 2352;
-
-        // This sector data is already pre decoded and resampled so we need a bigger buffer (RAW_BUFFER * 4)
-        // and on the case of mono even a bigger one, as samples are mirrored to L/R as our output is allways stereo
         public const int XA_BUFFER = RAW_BUFFER * 8;
 
         private byte[] sectorBuffer;
-
         private int pointer;
         private int size;
 

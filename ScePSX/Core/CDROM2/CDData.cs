@@ -79,8 +79,6 @@ namespace ScePSX.CdRom2
 
         public byte[] Read(int loc)
         {
-            // BUG we can still hear some garbage during audio track transitions, should the buffer be cleared when we're in a pre-gap?
-
             var track = getTrackFromLoc(loc);
 
             //Console.WriteLine("Loc: " + loc + " TrackLbaStart: " + currentTrack.lbaStart);
@@ -92,16 +90,16 @@ namespace ScePSX.CdRom2
 
             var stream = streams[track.Index - 1];
 
-            if (isCue)
+            if (isCue && position >= PRE_GAP)
             {
                 position -= PRE_GAP;
                 if (track.Indices.Count > 1)
                 {
-                    position += PRE_GAP; // assuming .CUE is compliant, i.e. two INDEX for an audio track
+                    position += PRE_GAP;
                 }
             }
 
-            position = (int)(position * BYTES_PER_SECTOR_RAW + track.FilePosition); // correct seek for any .BIN flavor
+            position = (int)(position * BYTES_PER_SECTOR_RAW + track.FilePosition);
 
             stream.Seek(position, SeekOrigin.Begin);
 
@@ -132,7 +130,7 @@ namespace ScePSX.CdRom2
 
         public int getLBA()
         {
-            var lba = 150; // BUG see if this is still needed because of the new way of .CUE is being parsed
+            var lba = 150;
 
             foreach (var track in tracks)
             {
@@ -238,14 +236,13 @@ namespace ScePSX.CdRom2
         }
 
         public static List<CDTrack> FromCue(string path)
-        // NOTE: this parsing outputs exactly like IsoBuster would
         {
             if (string.IsNullOrWhiteSpace(path))
                 Console.WriteLine("[CDROM] Value cannot be null or whitespace.", nameof(path));
 
             Console.WriteLine($"[CDROM] Generating CD Tracks for: {Path.GetFileName(path)}");
 
-            var directory = Path.GetDirectoryName(path);// ?? throw new NotImplementedException(); // TODO root case
+            var directory = Path.GetDirectoryName(path);
 
             using var reader = new StreamReader(path);
 
