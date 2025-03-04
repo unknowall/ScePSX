@@ -10,18 +10,18 @@ namespace ScePSX
     [Serializable]
     public unsafe class CPU
     {
-        public enum EX
-        {
-            INTERRUPT = 0x0,
-            READ_ADRESS_ERROR = 0x4,
-            WRITE_ADRESS_ERROR = 0x5,
-            BUS_ERROR_FETCH = 0x6,
-            SYSCALL = 0x8,
-            BREAK = 0x9,
-            ILLEGAL_INSTR = 0xA,
-            COPROCESSOR_ERROR = 0xB,
-            OVERFLOW = 0xC
-        }
+        // 静态 Action，用于存储绑定的逻辑
+        private static Action<CPU> handleFetchDecodeException;
+        private static Action<CPU, uint> handleLWException;
+        private static Action<CPU, uint> handleSWException;
+        private static Action<CPU, uint, uint, uint> handleAddException;
+        private static Action<CPU, uint, uint, uint> handleAddiException;
+        private static Action<CPU, uint, uint, uint> handleSubException;
+        private static Action<CPU, uint> handleLHException;
+        private static Action<CPU, uint> handleLHUException;
+        private static Action<CPU, uint> handleSHException;
+        private static Action<CPU, uint> handleLWC2Exception;
+        private static Action<CPU, uint> handleSWC2Exception;
 
         private uint PC_Now;
         private uint PC = 0xbfc0_0000; // Bios Entry Point
@@ -48,12 +48,6 @@ namespace ScePSX
         private const int JUMPDEST = 6;
 
         private bool dontIsolateCache;
-
-        private GTE gte;
-        private BUS bus;
-
-        private BIOS_Disassembler bios;
-        private MIPS_Disassembler mips;
 
         [Serializable]
         private struct MEM
@@ -90,24 +84,29 @@ namespace ScePSX
         }
         private Instr instr;
 
-        //Debug
+        public enum EX
+        {
+            INTERRUPT = 0x0,
+            READ_ADRESS_ERROR = 0x4,
+            WRITE_ADRESS_ERROR = 0x5,
+            BUS_ERROR_FETCH = 0x6,
+            SYSCALL = 0x8,
+            BREAK = 0x9,
+            ILLEGAL_INSTR = 0xA,
+            COPROCESSOR_ERROR = 0xB,
+            OVERFLOW = 0xC
+        }
+
+        private GTE gte;
+        private BUS bus;
+
+        private BIOS_Disassembler bios;
+        private MIPS_Disassembler mips;
+
         public bool debug = false;
         public bool biosdebug = false;
         public bool ttydebug = false;
         public int cylesfix = 2;
-
-
-        // 静态 Action，用于存储绑定的逻辑
-        private static Action<CPU> handleFetchDecodeException;
-        private static Action<CPU, uint> handleLWException;
-        private static Action<CPU, uint> handleSWException;
-        private static Action<CPU, uint, uint, uint> handleAddException;
-        private static Action<CPU, uint, uint, uint> handleSubException;
-        private static Action<CPU, uint> handleLHException;
-        private static Action<CPU, uint> handleLHUException;
-        private static Action<CPU, uint> handleSHException;
-        private static Action<CPU, uint> handleLWC2Exception;
-        private static Action<CPU, uint> handleSWC2Exception;
 
         public CPU(BUS bus, bool isExecept)
         {
@@ -167,6 +166,17 @@ namespace ScePSX
                     } else
                     {
                         cpu.setGPR(cpu.instr.rd, result);
+                    }
+                };
+
+                handleAddiException = (cpu, rs, imm_s, result) =>
+                {
+                    if (checkOverflow(rs, imm_s, result))
+                    {
+                        EXCEPTION(cpu, EX.OVERFLOW, cpu.instr.id);
+                    } else
+                    {
+                        cpu.setGPR(cpu.instr.rt, result);
                     }
                 };
 
@@ -231,6 +241,7 @@ namespace ScePSX
                 handleLWException = (cpu, addr) => { /* 不执行任何操作 */ };
                 handleSWException = (cpu, addr) => { /* 不执行任何操作 */ };
                 handleAddException = (cpu, rs, rt, result) => cpu.setGPR(cpu.instr.rd, result);
+                handleAddiException = (cpu, rs, imm_s, result) => cpu.setGPR(cpu.instr.rt, result);
                 handleSubException = (cpu, rs, rt, result) => cpu.setGPR(cpu.instr.rd, result);
                 handleLHException = (cpu, addr) => { /* 不执行任何操作 */ };
                 handleLHUException = (cpu, addr) => { /* 不执行任何操作 */ };
@@ -457,7 +468,7 @@ namespace ScePSX
             uint imm_s = cpu.instr.imm_s;
             uint result = rs + imm_s;
 
-            handleAddException(cpu, rs, imm_s, result);
+            handleAddiException(cpu, rs, imm_s, result);
         }
 
         private static void ADDIU(CPU cpu) => cpu.setGPR(cpu.instr.rt, cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s);
@@ -759,7 +770,7 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-                handleSWException(cpu,addr):
+                handleSWException(cpu, addr);
                 cpu.bus.write32(addr, cpu.GPR[cpu.instr.rt]);
             } //else Console.WriteLine("IsolatedCache: Ignoring Write");
         }

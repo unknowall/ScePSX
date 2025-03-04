@@ -88,7 +88,7 @@ namespace ScePSX
             mdec = new MDEC();
             exp2 = new Expansion();
 
-            cpu = new CPU(this);
+            cpu = new CPU(this, true);
         }
 
         public void SwapDisk(string RomFile)
