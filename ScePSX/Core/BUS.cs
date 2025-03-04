@@ -52,8 +52,6 @@ namespace ScePSX
 
         public BUS(ICoreHandler Host, string BiosFile, string RomFile)
         {
-            IRQCTL = new IRQController();
-
             cddata = new CDData(RomFile);
             DiskID = cddata.DiskID;
             if (DiskID == "")
@@ -64,7 +62,12 @@ namespace ScePSX
                 return;
             }
 
-            LoadBios(BiosFile);
+            if (!LoadBios(BiosFile))
+            {
+                return;
+            }
+
+            IRQCTL = new IRQController();
 
             dma = new DMA(this);
 
@@ -90,16 +93,16 @@ namespace ScePSX
 
         public void SwapDisk(string RomFile)
         {
-            cddata = new CDData(RomFile);
-            var sDiskID = cddata.DiskID;
-            if (sDiskID == "")
+            CDData swapcddata = new CDData(RomFile);
+            if (swapcddata.DiskID == "")
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"ISO {RomFile} Non PSX CDROM!");
                 Console.ResetColor();
                 return;
             }
-
+            cddata = swapcddata;
+            DiskID = cddata.DiskID;
             cdrom.SwapDisk(cddata);
         }
 
@@ -151,7 +154,7 @@ namespace ScePSX
             Marshal.FreeHGlobal((nint)memoryControl2);
         }
 
-        internal unsafe void LoadBios(string biosfile)
+        public unsafe bool LoadBios(string biosfile)
         {
             try
             {
@@ -161,10 +164,14 @@ namespace ScePSX
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"[BIOS] {Path.GetFileName(biosfile)} loaded.");
                 Console.ResetColor();
+
+                return true;
             } catch (Exception e)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"[BIOS] {Path.GetFileName(biosfile)} not found.\n" + e.Message);
+
+                return false;
             }
             //write32(0x1F02_0018, 0x1); //Enable exp flag
         }

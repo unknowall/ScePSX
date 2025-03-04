@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+
 using ScePSX.Render;
 using static ScePSX.Controller;
 using static SDL2.SDL;
@@ -922,7 +923,7 @@ namespace ScePSX.UI
                     height = CoreHeight;
                 }
             }
-            //不超过渲染器最大缓冲
+
             if (scale > 0)
             {
 
