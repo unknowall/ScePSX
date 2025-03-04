@@ -8,23 +8,23 @@ using ScePSX.Disassembler;
 
 namespace ScePSX
 {
+    public enum EX
+    {
+        INTERRUPT = 0x0,
+        READ_ADRESS_ERROR = 0x4,
+        WRITE_ADRESS_ERROR = 0x5,
+        BUS_ERROR_FETCH = 0x6,
+        SYSCALL = 0x8,
+        BREAK = 0x9,
+        ILLEGAL_INSTR = 0xA,
+        COPROCESSOR_ERROR = 0xB,
+        OVERFLOW = 0xC
+    }
+
     //MIPS R3000A-compatible 32-bit RISC CPU MIPS R3051 with 5 KB L1 cache, running at 33.8688 MHz // 33868800
     [Serializable]
     public unsafe class CPU
     {
-        public enum EX
-        {
-            INTERRUPT = 0x0,
-            READ_ADRESS_ERROR = 0x4,
-            WRITE_ADRESS_ERROR = 0x5,
-            BUS_ERROR_FETCH = 0x6,
-            SYSCALL = 0x8,
-            BREAK = 0x9,
-            ILLEGAL_INSTR = 0xA,
-            COPROCESSOR_ERROR = 0xB,
-            OVERFLOW = 0xC
-        }
-
         private uint PC_Now;
         private uint PC = 0xbfc0_0000; // Bios Entry Point
         private uint PC_Predictor = 0xbfc0_0004; //next op for branch delay slot emulation
@@ -98,20 +98,7 @@ namespace ScePSX
         public bool ttydebug = false;
         public int cylesfix = 2;
 
-
-        // 静态 Action，用于存储绑定的逻辑
-        private static Action<CPU> handleFetchDecodeException;
-        private static Action<CPU, uint> handleLWException;
-        private static Action<CPU, uint> handleSWException;
-        private static Action<CPU, uint, uint, uint> handleAddException;
-        private static Action<CPU, uint, uint, uint> handleSubException;
-        private static Action<CPU, uint> handleLHException;
-        private static Action<CPU, uint> handleLHUException;
-        private static Action<CPU, uint> handleSHException;
-        private static Action<CPU, uint> handleLWC2Exception;
-        private static Action<CPU, uint> handleSWC2Exception;
-
-        public CPU(BUS bus, bool isExecept)
+        public CPU(BUS bus)
         {
             this.bus = bus;
             bios = new BIOS_Disassembler(bus);
@@ -119,127 +106,12 @@ namespace ScePSX
             gte = new GTE();
 
             COP0_GPR[15] = 0x2; //PRID Processor ID
-
-            SetExecution(isExecept);
         }
 
         public void disassemblePC()
         {
             mips.PrintRegs();
             mips.disassemble(instr, PC_Now, PC_Predictor);
-        }
-
-        public static void SetExecution(bool enableExceptions)
-        {
-
-            if (enableExceptions)
-            {
-                handleFetchDecodeException = cpu =>
-                {
-                    if ((cpu.PC_Now & 0x3) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = cpu.PC_Now;
-                        EXCEPTION(cpu, EX.READ_ADRESS_ERROR);
-                    }
-                };
-
-                handleLWException = (cpu, addr) =>
-                {
-                    if ((addr & 0x3) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-
-                handleSWException = (cpu, addr) =>
-                {
-                    if ((addr & 0x3) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.WRITE_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-
-                handleAddException = (cpu, rs, rt, result) =>
-                {
-                    if (checkOverflow(rs, rt, result))
-                    {
-                        EXCEPTION(cpu, EX.OVERFLOW, cpu.instr.id);
-                    } else
-                    {
-                        cpu.setGPR(cpu.instr.rd, result);
-                    }
-                };
-
-                handleSubException = (cpu, rs, rt, result) =>
-                {
-                    if (checkUnderflow(rs, rt, result))
-                    {
-                        EXCEPTION(cpu, EX.OVERFLOW, cpu.instr.id);
-                    } else
-                    {
-                        cpu.setGPR(cpu.instr.rd, result);
-                    }
-                };
-
-                handleLHException = (cpu, addr) =>
-                {
-                    if ((addr & 0x1) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-
-                handleLHUException = (cpu, addr) =>
-                {
-                    if ((addr & 0x1) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-
-                handleSHException = (cpu, addr) =>
-                {
-                    if ((addr & 0x1) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.WRITE_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-
-                handleLWC2Exception = (cpu, addr) =>
-                {
-                    if ((addr & 0x3) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-
-                handleSWC2Exception = (cpu, addr) =>
-                {
-                    if ((addr & 0x3) != 0)
-                    {
-                        cpu.COP0_GPR[BADA] = addr;
-                        EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                    }
-                };
-            } else
-            {
-                handleFetchDecodeException = cpu => { /* 不执行任何操作 */ };
-                handleLWException = (cpu, addr) => { /* 不执行任何操作 */ };
-                handleSWException = (cpu, addr) => { /* 不执行任何操作 */ };
-                handleAddException = (cpu, rs, rt, result) => cpu.setGPR(cpu.instr.rd, result);
-                handleSubException = (cpu, rs, rt, result) => cpu.setGPR(cpu.instr.rd, result);
-                handleLHException = (cpu, addr) => { /* 不执行任何操作 */ };
-                handleLHUException = (cpu, addr) => { /* 不执行任何操作 */ };
-                handleSHException = (cpu, addr) => { /* 不执行任何操作 */ };
-                handleLWC2Exception = (cpu, addr) => { /* 不执行任何操作 */ };
-                handleSWC2Exception = (cpu, addr) => { /* 不执行任何操作 */ };
-            }
         }
 
         private static delegate*<CPU, void>[] opcodeMainTable = new delegate*<CPU, void>[] {
@@ -346,9 +218,14 @@ namespace ScePSX
             opcodeInDelaySlotTookBranch = opcodeTookBranch;
             opcodeIsBranch = false;
             opcodeTookBranch = false;
-
-            handleFetchDecodeException(this);
-
+#if CPU_EXCEPTIONS
+            if ((PC_Now & 0x3) != 0)
+            {
+                COP0_GPR[BADA] = PC_Now;
+                EXCEPTION(this, EX.READ_ADRESS_ERROR);
+                return 1;
+            }
+#endif
             if (maskedPC < 0x1F00_0000)
             {
                 instr.value = bus.ReadRam(maskedPC);
@@ -459,7 +336,17 @@ namespace ScePSX
             uint imm_s = cpu.instr.imm_s;
             uint result = rs + imm_s;
 
-            handleAddException(cpu, rs, imm_s, result);
+#if CPU_EXCEPTIONS
+            if (checkOverflow(rs, imm_s, result))
+            {
+                EXCEPTION(cpu, EX.OVERFLOW, cpu.instr.id);
+            } else
+            {
+                cpu.setGPR(cpu.instr.rt, result);
+            }
+#else
+            cpu.setGPR(cpu.instr.rt, result);
+#endif
         }
 
         private static void ADDIU(CPU cpu) => cpu.setGPR(cpu.instr.rt, cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s);

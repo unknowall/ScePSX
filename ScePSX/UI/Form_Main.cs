@@ -843,7 +843,7 @@ namespace ScePSX.UI
             if (game != null)
             {
                 string inifn = $"./Save/{game.ID}.ini";
-                if (!File.Exists(inifn))
+                if (File.Exists(inifn))
                 {
                     bootini = new IniFile(inifn);
                     sysini = ini;
