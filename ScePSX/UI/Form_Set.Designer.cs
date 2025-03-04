@@ -52,14 +52,16 @@
             label1 = new System.Windows.Forms.Label();
             cbbios = new System.Windows.Forms.ComboBox();
             btndel = new System.Windows.Forms.Button();
+            label10 = new System.Windows.Forms.Label();
+            cbcpumode = new System.Windows.Forms.ComboBox();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // btnsave
             // 
-            btnsave.Location = new System.Drawing.Point(348, 189);
+            btnsave.Location = new System.Drawing.Point(343, 227);
             btnsave.Name = "btnsave";
-            btnsave.Size = new System.Drawing.Size(75, 24);
+            btnsave.Size = new System.Drawing.Size(75, 27);
             btnsave.TabIndex = 0;
             btnsave.Text = "保存";
             btnsave.UseVisualStyleBackColor = true;
@@ -271,24 +273,44 @@
             cbbios.FormattingEnabled = true;
             cbbios.Location = new System.Drawing.Point(61, 190);
             cbbios.Name = "cbbios";
-            cbbios.Size = new System.Drawing.Size(121, 25);
+            cbbios.Size = new System.Drawing.Size(141, 25);
             cbbios.TabIndex = 4;
             // 
             // btndel
             // 
-            btndel.Location = new System.Drawing.Point(241, 189);
+            btndel.Location = new System.Drawing.Point(236, 228);
             btndel.Name = "btndel";
-            btndel.Size = new System.Drawing.Size(101, 24);
+            btndel.Size = new System.Drawing.Size(101, 27);
             btndel.TabIndex = 5;
             btndel.Text = "使用全局设置";
             btndel.UseVisualStyleBackColor = true;
             btndel.Click += btndel_Click;
             // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new System.Drawing.Point(230, 193);
+            label10.Name = "label10";
+            label10.Size = new System.Drawing.Size(32, 17);
+            label10.TabIndex = 6;
+            label10.Text = "CPU";
+            // 
+            // cbcpumode
+            // 
+            cbcpumode.FormattingEnabled = true;
+            cbcpumode.Items.AddRange(new object[] { "性能优化模式", "完整指令模式" });
+            cbcpumode.Location = new System.Drawing.Point(277, 190);
+            cbcpumode.Name = "cbcpumode";
+            cbcpumode.Size = new System.Drawing.Size(141, 25);
+            cbcpumode.TabIndex = 7;
+            // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(435, 224);
+            ClientSize = new System.Drawing.Size(435, 266);
+            Controls.Add(cbcpumode);
+            Controls.Add(label10);
             Controls.Add(btndel);
             Controls.Add(cbbios);
             Controls.Add(label1);
@@ -331,5 +353,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cbbios;
         private System.Windows.Forms.Button btndel;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.ComboBox cbcpumode;
     }
 }

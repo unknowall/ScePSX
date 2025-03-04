@@ -896,6 +896,8 @@ namespace ScePSX.UI
                     break;
             }
 
+            CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
+
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;

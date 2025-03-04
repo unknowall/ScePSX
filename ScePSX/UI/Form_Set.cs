@@ -75,6 +75,8 @@ namespace ScePSX.UI
             chkTTY.Checked = ini.ReadInt("Main", "TTYDebug") == 1;
             cbconsole.Checked = ini.ReadInt("Main", "Console") == 1;
 
+            cbcpumode.SelectedIndex = ini.ReadInt("Main", "CpuMode");
+
             var currbios = ini.Read("main", "bios");
 
             DirectoryInfo dir = new DirectoryInfo("./BIOS");
@@ -109,6 +111,8 @@ namespace ScePSX.UI
             ini.WriteInt("Main", "CPUDebug", chkcpu.Checked ? 1 : 0);
             ini.WriteInt("Main", "TTYDebug", chkTTY.Checked ? 1 : 0);
             ini.WriteInt("Main", "Console", cbconsole.Checked ? 1 : 0);
+
+            ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
 
             ini.Write("main", "bios", cbbios.Items[cbbios.SelectedIndex].ToString());
         }
