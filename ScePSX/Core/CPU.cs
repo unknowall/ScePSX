@@ -1,6 +1,4 @@
-﻿#define CPU_EXCEPTIONS
-
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
@@ -635,38 +633,17 @@ namespace ScePSX
         {
             uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
 
-#if CPU_EXCEPTIONS
-            if ((addr & 0x3) == 0)
-            {
-                uint value = cpu.bus.read32(addr);
-                cpu.gte.writeData(cpu.instr.rt, value);
-            } else
-            {
-                cpu.COP0_GPR[BADA] = addr;
-                EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-            }
-#else
+            handleLWC2Exception(cpu,addr);
             uint value = cpu.bus.read32(addr);
             cpu.gte.writeData(cpu.instr.rt, value);
-#endif
         }
 
         private static void SWC2(CPU cpu)
         {
             uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
 
-#if CPU_EXCEPTIONS
-            if ((addr & 0x3) == 0)
-            {
-                cpu.bus.write32(addr, cpu.gte.readData(cpu.instr.rt));
-            } else
-            {
-                cpu.COP0_GPR[BADA] = addr;
-                EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-            }
-#else
+            handleSWC2Exception(cpu,addr);
             cpu.bus.write32(addr, cpu.gte.readData(cpu.instr.rt));
-#endif
         }
 
         private static void LB(CPU cpu)
@@ -692,20 +669,9 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-#if CPU_EXCEPTIONS
-                if ((addr & 0x1) == 0)
-                {
-                    uint value = (uint)(short)cpu.bus.read32(addr);
-                    delayedread(cpu, cpu.instr.rt, value);
-                } else
-                {
-                    cpu.COP0_GPR[BADA] = addr;
-                    EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                }
-#else
+                handleLHException(cpu,addr);
                 uint value = (uint)(short)cpu.bus.read32(addr);
                 delayedread(cpu, cpu.instr.rt, value);
-#endif
             } //else Console.WriteLine("IsolatedCache: Ignoring read");
         }
 
@@ -714,20 +680,9 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-#if CPU_EXCEPTIONS
-                if ((addr & 0x1) == 0)
-                {
-                    uint value = (ushort)cpu.bus.read32(addr);
-                    delayedread(cpu, cpu.instr.rt, value);
-                } else
-                {
-                    cpu.COP0_GPR[BADA] = addr;
-                    EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                }
-#else
+                handleLHUException(cpu,addr);
                 uint value = (ushort)cpu.bus.read32(addr);
                 delayedread(cpu, cpu.instr.rt, value);
-#endif
             } //else Console.WriteLine("IsolatedCache: Ignoring read");
         }
 
@@ -736,20 +691,9 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-#if CPU_EXCEPTIONS
-                if ((addr & 0x3) == 0)
-                {
-                    uint value = cpu.bus.read32(addr);
-                    delayedread(cpu, cpu.instr.rt, value);
-                } else
-                {
-                    cpu.COP0_GPR[BADA] = addr;
-                    EXCEPTION(cpu, EX.READ_ADRESS_ERROR, cpu.instr.id);
-                }
-#else
+                handleLWException(cpu,addr);
                 uint value = cpu.bus.read32(addr);
                 delayedread(cpu, cpu.instr.rt, value);
-#endif
             } //else Console.WriteLine("IsolatedCache: Ignoring read");
         }
 
@@ -805,18 +749,8 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-#if CPU_EXCEPTIONS
-                if ((addr & 0x1) == 0)
-                {
-                    cpu.bus.write16(addr, (ushort)cpu.GPR[cpu.instr.rt]);
-                } else
-                {
-                    cpu.COP0_GPR[BADA] = addr;
-                    EXCEPTION(cpu, EX.WRITE_ADRESS_ERROR, cpu.instr.id);
-                }
-#else
+                handleSHException(cpu,addr);
                 cpu.bus.write16(addr, (ushort)cpu.GPR[cpu.instr.rt]);
-#endif
             } //else Console.WriteLine("IsolatedCache: Ignoring Write");
         }
 
@@ -825,18 +759,8 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-#if CPU_EXCEPTIONS
-                if ((addr & 0x3) == 0)
-                {
-                    cpu.bus.write32(addr, cpu.GPR[cpu.instr.rt]);
-                } else
-                {
-                    cpu.COP0_GPR[BADA] = addr;
-                    EXCEPTION(cpu, EX.WRITE_ADRESS_ERROR, cpu.instr.id);
-                }
-#else
+                handleSWException(cpu,addr):
                 cpu.bus.write32(addr, cpu.GPR[cpu.instr.rt]);
-#endif
             } //else Console.WriteLine("IsolatedCache: Ignoring Write");
         }
 
@@ -977,17 +901,7 @@ namespace ScePSX
             uint rt = cpu.GPR[cpu.instr.rt];
             uint result = rs + rt;
 
-#if CPU_EXCEPTIONS
-            if (checkOverflow(rs, rt, result))
-            {
-                EXCEPTION(cpu, EX.OVERFLOW, cpu.instr.id);
-            } else
-            {
-                cpu.setGPR(cpu.instr.rd, result);
-            }
-#else
-            cpu.setGPR(cpu.instr.rd, result);
-#endif
+            handleAddException(cpu, rs, rt, result);
         }
 
         private static void ADDU(CPU cpu) => cpu.setGPR(cpu.instr.rd, cpu.GPR[cpu.instr.rs] + cpu.GPR[cpu.instr.rt]);
@@ -998,17 +912,7 @@ namespace ScePSX
             uint rt = cpu.GPR[cpu.instr.rt];
             uint result = rs - rt;
 
-#if CPU_EXCEPTIONS
-            if (checkUnderflow(rs, rt, result))
-            {
-                EXCEPTION(cpu, EX.OVERFLOW, cpu.instr.id);
-            } else
-            {
-                cpu.setGPR(cpu.instr.rd, result);
-            }
-#else
-            cpu.setGPR(cpu.instr.rd, result);
-#endif
+            handleSubException(cpu,rs,rt,result);
         }
 
         private static void SUBU(CPU cpu) => cpu.setGPR(cpu.instr.rd, cpu.GPR[cpu.instr.rs] - cpu.GPR[cpu.instr.rt]);
