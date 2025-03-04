@@ -31,6 +31,7 @@
             SwapDisk = new System.Windows.Forms.ToolStripMenuItem();
             CloseRomMnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            SearchMnu = new System.Windows.Forms.ToolStripMenuItem();
             MnuBios = new System.Windows.Forms.ToolStripMenuItem();
             SysSetMnu = new System.Windows.Forms.ToolStripMenuItem();
             KeyTool = new System.Windows.Forms.ToolStripMenuItem();
@@ -59,7 +60,6 @@
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
             AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
-            SearchMnu = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -67,10 +67,10 @@
             // 
             MainMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
             MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, MnuDebug, RenderToolStripMenuItem, NetPlayMnu, AboutMnu });
-            MainMenu.Location = new System.Drawing.Point(0, 0);
+            MainMenu.Location = new System.Drawing.Point(1, 1);
             MainMenu.Name = "MainMenu";
             MainMenu.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
-            MainMenu.Size = new System.Drawing.Size(684, 25);
+            MainMenu.Size = new System.Drawing.Size(682, 25);
             MainMenu.TabIndex = 0;
             MainMenu.Text = "menuStrip1";
             // 
@@ -84,102 +84,109 @@
             // LoadDIsk
             // 
             LoadDIsk.Name = "LoadDIsk";
-            LoadDIsk.Size = new System.Drawing.Size(180, 22);
+            LoadDIsk.Size = new System.Drawing.Size(165, 22);
             LoadDIsk.Text = "加载光盘";
             LoadDIsk.Click += LoadDisk_Click;
             // 
             // SwapDisk
             // 
             SwapDisk.Name = "SwapDisk";
-            SwapDisk.Size = new System.Drawing.Size(180, 22);
+            SwapDisk.Size = new System.Drawing.Size(165, 22);
             SwapDisk.Text = "切换光盘";
             SwapDisk.Click += SwapDisk_Click;
             // 
             // CloseRomMnu
             // 
             CloseRomMnu.Name = "CloseRomMnu";
-            CloseRomMnu.Size = new System.Drawing.Size(180, 22);
+            CloseRomMnu.Size = new System.Drawing.Size(165, 22);
             CloseRomMnu.Text = "返回列表";
             CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem1.Size = new System.Drawing.Size(162, 6);
+            // 
+            // SearchMnu
+            // 
+            SearchMnu.Name = "SearchMnu";
+            SearchMnu.Size = new System.Drawing.Size(165, 22);
+            SearchMnu.Text = "扫描目录";
+            SearchMnu.Click += SearchMnu_Click;
             // 
             // MnuBios
             // 
             MnuBios.Name = "MnuBios";
-            MnuBios.Size = new System.Drawing.Size(180, 22);
+            MnuBios.Size = new System.Drawing.Size(165, 22);
             MnuBios.Text = "BIOS设置";
             // 
             // SysSetMnu
             // 
             SysSetMnu.Name = "SysSetMnu";
-            SysSetMnu.Size = new System.Drawing.Size(180, 22);
+            SysSetMnu.Size = new System.Drawing.Size(165, 22);
             SysSetMnu.Text = "系统设置";
             SysSetMnu.Click += SysSetMnu_Click;
             // 
             // KeyTool
             // 
             KeyTool.Name = "KeyTool";
-            KeyTool.Size = new System.Drawing.Size(180, 22);
+            KeyTool.Size = new System.Drawing.Size(165, 22);
             KeyTool.Text = "按键设置";
             KeyTool.Click += KeyToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem2.Size = new System.Drawing.Size(162, 6);
             // 
             // SaveStripMenuItem
             // 
             SaveStripMenuItem.Enabled = false;
             SaveStripMenuItem.Name = "SaveStripMenuItem";
-            SaveStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            SaveStripMenuItem.Size = new System.Drawing.Size(165, 22);
             SaveStripMenuItem.Text = "即时存档 (F5)";
             // 
             // LoadStripMenuItem
             // 
             LoadStripMenuItem.Enabled = false;
             LoadStripMenuItem.Name = "LoadStripMenuItem";
-            LoadStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            LoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
             LoadStripMenuItem.Text = "即时读取 (F6)";
             // 
             // UnLoadStripMenuItem
             // 
             UnLoadStripMenuItem.Enabled = false;
             UnLoadStripMenuItem.Name = "UnLoadStripMenuItem";
-            UnLoadStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            UnLoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
             UnLoadStripMenuItem.Text = "撤销读取 (F7)";
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem3.Size = new System.Drawing.Size(162, 6);
             // 
             // ChatCode
             // 
             ChatCode.Name = "ChatCode";
-            ChatCode.Size = new System.Drawing.Size(180, 22);
+            ChatCode.Size = new System.Drawing.Size(165, 22);
             ChatCode.Text = "金手指";
             ChatCode.Click += CheatCode_Click;
             // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
-            toolStripMenuItem5.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem5.Size = new System.Drawing.Size(162, 6);
             // 
             // FreeSpeed
             // 
             FreeSpeed.Name = "FreeSpeed";
-            FreeSpeed.Size = new System.Drawing.Size(180, 22);
+            FreeSpeed.Size = new System.Drawing.Size(165, 22);
             FreeSpeed.Text = "加速快进 (TAB)";
             // 
             // MnuPause
             // 
             MnuPause.Name = "MnuPause";
-            MnuPause.Size = new System.Drawing.Size(180, 22);
+            MnuPause.Size = new System.Drawing.Size(165, 22);
             MnuPause.Text = "暂停/继续 (空格)";
             MnuPause.Click += MnuPause_Click;
             // 
@@ -298,13 +305,6 @@
             AboutMnu.Size = new System.Drawing.Size(60, 21);
             AboutMnu.Text = "关于(&A)";
             AboutMnu.Click += AboutMnu_Click;
-            // 
-            // SearchMnu
-            // 
-            SearchMnu.Name = "SearchMnu";
-            SearchMnu.Size = new System.Drawing.Size(180, 22);
-            SearchMnu.Text = "扫描目录";
-            SearchMnu.Click += SearchMnu_Click;
             // 
             // FrmMain
             // 

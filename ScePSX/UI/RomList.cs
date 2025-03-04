@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -41,12 +44,37 @@ namespace ScePSX.UI
             }
         }
 
+        private int _hoverIndex = -1;
         private readonly Image DefaultIcon;
         private ContextMenuStrip contextMenuStrip;
+
+        private Rectangle scrollBarBounds; // 滚动条区域
+        private Rectangle thumbBounds;    // 滑块区域
+        private bool isDraggingThumb = false; // 是否正在拖动滑块
+        private int thumbPosition = 0;    // 滑块当前位置
+        private int thumbSize;            // 滑块大小
+        private bool _isScrollBarVisible;
+        private const int ScrollBarWidth = 8;     // 滚动条总宽度
+        private const int ScrollBarMargin = 2;     // 滚动条与边缘间距
+        private const int ThumbMinSize = 20;       // 滑块最小高度
+        private readonly Color TrackColor = Color.FromArgb(60, 60, 60);    // 轨道颜色
+        private readonly Color ThumbColor = Color.FromArgb(100, 100, 100); // 滑块颜色
+        private readonly Color ThumbHoverColor = Color.FromArgb(120, 120, 120); // 滑块悬停颜色
 
         public RomList()
         {
             InitializeComponent();
+
+            scrollBarBounds = new Rectangle(
+                ClientRectangle.Width - ScrollBarWidth - ScrollBarMargin,
+                ScrollBarMargin,
+                ScrollBarWidth,
+                Math.Max(ThumbMinSize * 2, ClientRectangle.Height - 2 * ScrollBarMargin)
+            );
+
+            // 初始化滑块尺寸和位置
+            thumbSize = scrollBarBounds.Height;
+            thumbPosition = 0;
 
             DoubleBuffered = true;
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
@@ -57,9 +85,10 @@ namespace ScePSX.UI
             ForeColor = Color.White;
             ItemHeight = 85;
 
-            DoubleBuffered = true;
-
             DefaultIcon = GetDefaultExeIcon();
+
+            MouseMove += RomList_MouseMove;
+            MouseLeave += RomList_MouseLeave;
         }
 
         private void InitializeComponent()
@@ -71,7 +100,9 @@ namespace ScePSX.UI
             Size = new System.Drawing.Size(510, 316);
             // 初始化右键菜单
             contextMenuStrip = new ContextMenuStrip();
-
+            contextMenuStrip.RenderMode = ToolStripRenderMode.Professional;
+            contextMenuStrip.Renderer = new CustomToolStripRenderer();
+            contextMenuStrip.BackColor = Color.FromArgb(45, 45, 45);
             var split = new ToolStripSeparator();
 
             var menuItem1 = new ToolStripMenuItem("设置图标", null, OnOpenClick);
@@ -251,73 +282,190 @@ namespace ScePSX.UI
             }
         }
 
+        private void RomList_MouseMove(object sender, MouseEventArgs e)
+        {
+            int index = myIndexFromPoint(e.Location);
+            if (index != _hoverIndex)
+            {
+                _hoverIndex = index;
+                Invalidate();
+            }
+
+            if (isDraggingThumb && scrollBarBounds.Contains(e.Location))
+            {
+                // 拖动滑块
+                thumbPosition = Math.Max(0, Math.Min(e.Y - thumbSize / 2, scrollBarBounds.Height - thumbSize));
+                UpdateScrollPosition();
+                Invalidate();
+            }
+        }
+
+        private void RomList_MouseLeave(object sender, EventArgs e)
+        {
+            if (_hoverIndex != -1)
+            {
+                _hoverIndex = -1;
+                Invalidate();
+            }
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                int index = myIndexFromPoint(e.Location);
+
+                if (index != ListBox.NoMatches && index >= 0 && index < Items.Count)
+                {
+                    SelectedIndex = index;
+                } else
+                {
+                    SelectedIndex = -1;
+                }
+
+                if (SelectedIndex != -1)
+                {
+                    contextMenuStrip.Show(this, e.Location);
+                }
+            }
+
+            if (scrollBarBounds.Contains(e.Location))
+            {
+
+                if (thumbBounds.Contains(e.Location))
+                {
+                    isDraggingThumb = true;
+                } else
+                {
+                    thumbPosition = Math.Max(0, Math.Min(e.Y - thumbSize / 2, scrollBarBounds.Height - thumbSize));
+                    UpdateScrollPosition();
+                }
+                Invalidate();
+                return; // 阻止基类处理
+            }
+
+
+            Point adjustedPoint = new Point(
+                Math.Min(e.X, ClientSize.Width - scrollBarBounds.Width - 1),
+                e.Y
+            );
+            base.OnMouseDown(new MouseEventArgs(e.Button, e.Clicks, adjustedPoint.X, adjustedPoint.Y, e.Delta));
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+
+            isDraggingThumb = false;
+        }
 
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
-            // 背景
-            e.Graphics.FillRectangle(new SolidBrush(this.BackColor), e.Bounds);
-
             if (e.Index < 0 || e.Index >= this.Items.Count)
                 return;
 
-            var game = this.Items[e.Index] as Game;
+            if (_isScrollBarVisible)
+            {
+                int contentWidth = ClientSize.Width - scrollBarBounds.Width;
+                e = new DrawItemEventArgs(
+                    e.Graphics,
+                    e.Font,
+                    new Rectangle(e.Bounds.X, e.Bounds.Y, contentWidth, e.Bounds.Height), // 修正宽度
+                    e.Index,
+                    e.State
+                );
+            }
 
             Rectangle bounds = e.Bounds;
+
+            bool isHovered = e.Index == _hoverIndex;
+            bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+
+            Color rowBackColor = (e.Index % 2 == 0)
+                ? Color.FromArgb(43, 43, 43) // 偶数行稍浅
+                : Color.FromArgb(50, 50, 50); // 奇数行稍深
+
+            if (isHovered)
+                rowBackColor = Color.FromArgb(70, 70, 70); // 悬停时的高亮颜色
+
+            using (var backBrush = new SolidBrush(rowBackColor))
+            {
+                e.Graphics.FillRectangle(backBrush, bounds);
+            }
+
+            var game = this.Items[e.Index] as Game;
+
             int iconSize = 48;
             int padding = 5;
 
-            // 大框（暗色风格）
+            DrawMainBox(e.Graphics, bounds);
+
+            DrawIcon(e.Graphics, game.Icon ?? DefaultIcon, bounds, iconSize, padding);
+
+            DrawName(e.Graphics, game.Name, bounds, iconSize, padding);
+
+            DrawInfoBoxes(e.Graphics, game, bounds, iconSize, padding);
+
+            if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+            {
+                DrawSelectionEffect(e.Graphics, bounds);
+            }
+        }
+
+        private void DrawMainBox(Graphics g, Rectangle bounds)
+        {
             using (var borderPen = new Pen(Color.FromArgb(100, 100, 100), 2)) // 边框颜色
             using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0))) // 半透明阴影
-            using (var mainBrush = new SolidBrush(Color.FromArgb(60, 60, 60))) // 主框背景颜色
+            //using (var mainBrush = new SolidBrush(Color.FromArgb(60, 60, 60))) // 主框背景颜色
             {
                 // 阴影
-                e.Graphics.FillRectangle(shadowBrush, bounds.X + 2, bounds.Y + 2, bounds.Width - 4, bounds.Height - 4);
+                g.FillRectangle(shadowBrush, bounds.X + 2, bounds.Y + 2, bounds.Width - 4, bounds.Height - 4);
                 // 主框
-                e.Graphics.FillRectangle(mainBrush, bounds.X, bounds.Y, bounds.Width - 2, bounds.Height - 2);
-                e.Graphics.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 2, bounds.Height - 2);
+                //g.FillRectangle(mainBrush, bounds.X, bounds.Y, bounds.Width - 2, bounds.Height - 2);
+                g.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 2, bounds.Height - 2);
             }
+        }
 
-            // 图标（靠左）
-            Image iconToDraw = game.Icon ?? DefaultIcon;
+        private void DrawIcon(Graphics g, Image icon, Rectangle bounds, int iconSize, int padding)
+        {
             int icony = bounds.Top + (bounds.Height - iconSize) / 2;
-            if (iconToDraw != null)
+            if (icon != null)
             {
-                e.Graphics.DrawImage(iconToDraw, bounds.Left + padding, icony, iconSize, iconSize);
+                g.DrawImage(icon, bounds.Left + padding, icony, iconSize, iconSize);
             }
+        }
 
-            // 名称
+        private void DrawName(Graphics g, string name, Rectangle bounds, int iconSize, int padding)
+        {
             using (var nameFont = new Font("Arial", 13, FontStyle.Bold))
             using (var brush = new SolidBrush(Color.White))
             {
-                string name = game.Name;
-                SizeF nameSize = e.Graphics.MeasureString(name, nameFont);
-                e.Graphics.DrawString(name, nameFont, brush, bounds.Left + iconSize + padding * 2, icony + 3);
+                int icony = bounds.Top + (bounds.Height - iconSize) / 2;
+                SizeF nameSize = g.MeasureString(name, nameFont);
+                g.DrawString(name, nameFont, brush, bounds.Left + iconSize + padding * 2, icony + 3);
             }
+        }
 
-            // 名称下面的信息
+        private void DrawInfoBoxes(Graphics g, Game game, Rectangle bounds, int iconSize, int padding)
+        {
             int startX = bounds.Left + iconSize + 15;
             int startY = bounds.Top + 32;
 
-            DrawInfoBox(e.Graphics, $"{game.ID}", startX, startY + 13, 8);
+            DrawInfoBox(g, $"{game.ID}", startX, startY + 13, 8);
 
-            // 靠右下的信息
             startX = bounds.Right - 340;
             startY = bounds.Bottom - 32;
             if (game.LastPlayed != "")
-                DrawInfoBox(e.Graphics, $"最后运行: {game.LastPlayed}", startX - 26, startY, 9);
-            DrawInfoBox(e.Graphics, $"即时存档: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
-            DrawInfoBox(e.Graphics, $"金手指: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
+                DrawInfoBox(g, $"最后运行: {game.LastPlayed}", startX - 26, startY, 9);
+            DrawInfoBox(g, $"即时存档: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
+            DrawInfoBox(g, $"金手指: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
+        }
 
-            //DrawInfoBox(e.Graphics, $"{game.FileName}", startX, startY, 8); // {game.Size / 1024} KB
-
-            // 选中效果
-            if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+        private void DrawSelectionEffect(Graphics g, Rectangle bounds)
+        {
+            using (var focusPen = new Pen(Color.Orange, 2)) // 使用橙色边框表示选中
             {
-                using (var focusPen = new Pen(Color.Orange, 2)) // 使用橙色边框表示选中
-                {
-                    e.Graphics.DrawRectangle(focusPen, bounds.X + 1, bounds.Y + 1, bounds.Width - 3, bounds.Height - 3);
-                }
+                g.DrawRectangle(focusPen, bounds.X + 1, bounds.Y + 1, bounds.Width - 3, bounds.Height - 3);
             }
         }
 
@@ -360,17 +508,6 @@ namespace ScePSX.UI
             }
         }
 
-        protected override void OnMeasureItem(MeasureItemEventArgs e)
-        {
-            e.ItemHeight = ItemHeight;
-        }
-
-        protected override void OnResize(EventArgs e)
-        {
-            base.OnResize(e);
-            this.Invalidate();
-        }
-
         private Image GetDefaultExeIcon()
         {
             try
@@ -381,6 +518,145 @@ namespace ScePSX.UI
             {
                 return new Bitmap(48, 48);
             }
+        }
+
+        #region MENU
+        public class CustomToolStripRenderer : ToolStripProfessionalRenderer
+        {
+            protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+            {
+                if (e.Item.Selected)
+                {
+                    using (var brush = new SolidBrush(Color.FromArgb(70, 70, 70)))
+                    {
+                        e.Graphics.FillRectangle(brush, e.Item.ContentRectangle);
+                    }
+                } else
+                {
+                    using (var brush = new SolidBrush(Color.FromArgb(45, 45, 45)))
+                    {
+                        e.Graphics.FillRectangle(brush, e.Item.ContentRectangle);
+                    }
+                }
+            }
+
+            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+            {
+                e.TextColor = Color.White;
+                base.OnRenderItemText(e);
+            }
+
+            protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
+            {
+                using (var pen = new Pen(Color.FromArgb(100, 100, 100)))
+                {
+                    e.Graphics.DrawLine(pen, e.Item.ContentRectangle.Left, e.Item.ContentRectangle.Height / 2, e.Item.ContentRectangle.Right, e.Item.ContentRectangle.Height / 2);
+                }
+            }
+
+            protected override void OnRenderImageMargin(ToolStripRenderEventArgs e)
+            {
+                Rectangle imageMarginBounds = new Rectangle(
+                    e.AffectedBounds.Left,
+                    e.AffectedBounds.Top,
+                    e.AffectedBounds.Width,
+                    e.AffectedBounds.Height
+                );
+
+                using (var brush = new SolidBrush(Color.FromArgb(45, 45, 45)))
+                {
+                    e.Graphics.FillRectangle(brush, imageMarginBounds);
+                }
+            }
+
+            protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
+            {
+                Rectangle rect = new Rectangle(e.ImageRectangle.Location, e.ImageRectangle.Size);
+                using (var brush = new SolidBrush(Color.FromArgb(70, 70, 70)))
+                {
+                    e.Graphics.FillRectangle(brush, rect);
+                }
+
+                if (e.Item.Selected)
+                {
+                    using (var brush = new SolidBrush(Color.White))
+                    {
+                        e.Graphics.FillRectangle(brush, rect);
+                    }
+                } else
+                {
+                    using (var brush = new SolidBrush(Color.LightGray))
+                    {
+                        e.Graphics.FillRectangle(brush, rect);
+                    }
+                }
+            }
+
+            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+            {
+                using (var pen = new Pen(Color.FromArgb(100, 100, 100)))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+                }
+            }
+        }
+        #endregion
+
+        protected override void OnMeasureItem(MeasureItemEventArgs e)
+        {
+            e.ItemHeight = ItemHeight;
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+
+            scrollBarBounds = new Rectangle(
+                ClientRectangle.Width - ScrollBarWidth - ScrollBarMargin,
+                ScrollBarMargin,
+                ScrollBarWidth,
+                Math.Max(ThumbMinSize * 2, ClientRectangle.Height - 2 * ScrollBarMargin)
+            );
+
+            UpdateScrollBar();
+            Invalidate();
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            base.OnMouseWheel(e);
+
+            int delta = e.Delta * SystemInformation.MouseWheelScrollLines / 120 * ItemHeight;
+            thumbPosition -= delta;
+
+            thumbPosition = Math.Max(0, Math.Min(thumbPosition, scrollBarBounds.Height - thumbSize));
+
+            UpdateScrollPosition();
+            Invalidate();
+        }
+
+        public new Rectangle GetItemRectangle(int index)
+        {
+            Rectangle baseRect = base.GetItemRectangle(index);
+            // 动态计算内容宽度
+            int contentWidth = _isScrollBarVisible ?
+                ClientSize.Width - ScrollBarWidth - ScrollBarMargin * 2 :
+                ClientSize.Width;
+            baseRect.Width = contentWidth;
+            return baseRect;
+        }
+
+        public int myIndexFromPoint(Point p)
+        {
+            if (p.X >= ClientSize.Width - scrollBarBounds.Width)
+                return -1; // 点击在滚动条区域
+
+            Point adjustedPoint = new Point(
+                Math.Min(p.X, ClientSize.Width - scrollBarBounds.Width - 1),
+                p.Y
+            );
+
+            return base.IndexFromPoint(adjustedPoint);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -410,6 +686,112 @@ namespace ScePSX.UI
 
             myBuffer.Render(e.Graphics);
             myBuffer.Dispose();
+
+            DrawScrollBar(e.Graphics);
+        }
+
+        private void DrawScrollBar(Graphics g)
+        {
+            if (!_isScrollBarVisible)
+                return;
+
+            // 检查滚动条轨道有效性
+            if (scrollBarBounds.Width <= 0 || scrollBarBounds.Height <= 0)
+                return;
+
+            // 绘制轨道背景
+            using (var trackBrush = new SolidBrush(TrackColor))
+            using (var borderPen = new Pen(Color.FromArgb(80, 80, 80)))
+            {
+                g.FillRectangle(trackBrush, scrollBarBounds);
+                g.DrawRectangle(borderPen, scrollBarBounds);
+            }
+
+            // 初始化滑块区域
+            thumbBounds = new Rectangle(
+                scrollBarBounds.X + 2,
+                scrollBarBounds.Y + thumbPosition,
+                scrollBarBounds.Width - 4,
+                Math.Max(1, thumbSize) // 确保高度至少为1像素
+            );
+
+            // 绘制滑块
+            bool isHovered = thumbBounds.Contains(PointToClient(Cursor.Position));
+            using (var thumbBrush = new LinearGradientBrush(
+                thumbBounds,
+                isHovered ? ThumbHoverColor : ThumbColor,
+                Color.FromArgb(isHovered ? 80 : 60, 80, 80),
+                LinearGradientMode.Vertical))
+            {
+                g.FillRectangle(thumbBrush, thumbBounds);
+                using (var highlightPen = new Pen(Color.FromArgb(150, 150, 150)))
+                {
+                    g.DrawLine(highlightPen, thumbBounds.Left + 1, thumbBounds.Top + 1,
+                        thumbBounds.Right - 2, thumbBounds.Top + 1);
+                }
+            }
+
+            // 绘制滑块边框
+            using (var thumbBorderPen = new Pen(Color.FromArgb(180, 180, 180)))
+            {
+                g.DrawRectangle(thumbBorderPen, thumbBounds);
+            }
+        }
+
+        private void UpdateScrollBar()
+        {
+
+            _isScrollBarVisible = Items.Count * ItemHeight > ClientSize.Height;
+
+            if (!_isScrollBarVisible)
+            {
+                thumbSize = 0;
+                thumbPosition = 0;
+                return;
+            }
+
+            if (scrollBarBounds.Height <= 0)
+            {
+                scrollBarBounds.Height = Math.Max(ThumbMinSize * 2, ClientSize.Height);
+            }
+
+            int visibleItems = ClientSize.Height / ItemHeight;
+            int totalItems = Items.Count;
+
+            thumbSize = Math.Max(
+                ThumbMinSize,
+                (int)((visibleItems / (float)totalItems) * scrollBarBounds.Height)
+            );
+            thumbSize = Math.Min(thumbSize, scrollBarBounds.Height);
+
+            int maxTopIndex = Math.Max(0, totalItems - visibleItems);
+            if (maxTopIndex == 0)
+            {
+                thumbPosition = 0;
+            } else
+            {
+                thumbPosition = (int)((TopIndex / (float)maxTopIndex) * (scrollBarBounds.Height - thumbSize));
+            }
+
+            thumbPosition = Math.Max(0, Math.Min(thumbPosition, scrollBarBounds.Height - thumbSize));
+        }
+
+        private void UpdateScrollPosition()
+        {
+            if (Items.Count == 0)
+                return;
+
+            int visibleItems = ClientSize.Height / ItemHeight;
+            int totalItems = Items.Count;
+            int maxTopIndex = Math.Max(0, totalItems - visibleItems);
+
+            if (scrollBarBounds.Height - thumbSize != 0)
+            {
+                float ratio = thumbPosition / (float)(scrollBarBounds.Height - thumbSize);
+                TopIndex = (int)(ratio * maxTopIndex);
+            }
+
+            Invalidate();
         }
 
         protected override void Dispose(bool disposing)
@@ -421,12 +803,19 @@ namespace ScePSX.UI
             base.Dispose(disposing);
         }
 
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+        }
+
         protected override CreateParams CreateParams
         {
             get
             {
                 CreateParams createParams = base.CreateParams;
                 //createParams.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
+                createParams.Style &= ~0x00100000; // WS_HSCROLL (水平滚动条)
+                createParams.Style &= ~0x00200000; // WS_VSCROLL (垂直滚动条)
                 return (createParams);
             }
         }
@@ -457,7 +846,7 @@ namespace ScePSX.UI
                 fs.Read(blockBuffer, 0, BLOCK_SIZE);
 
                 string fullId = Encoding.ASCII.GetString(blockBuffer, HEADER_OFFSET, ID_LENGTH).Trim('\0', ' ');
-                string shortId = fullId.StartsWith("BI") ? fullId.Substring(2) : fullId;
+                string shortId = fullId.Substring(2);
 
                 if (shortId.Replace('-', '_') == targetGameId)
                 {

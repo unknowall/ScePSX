@@ -70,6 +70,13 @@ namespace ScePSX.UI
         {
             InitializeComponent();
 
+            //MainMenu.RenderMode = ToolStripRenderMode.Professional;
+            //MainMenu.Renderer = new CustomToolStripRenderer();
+            //MainMenu.BackColor = Color.FromArgb(45, 45, 45);
+            //MainMenu.ForeColor = Color.White;
+
+            //AddCustomTitleBar();
+
             if (ini.ReadInt("Main", "Console") == 1)
             {
                 AllocConsole();
@@ -188,6 +195,7 @@ namespace ScePSX.UI
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
+
             lbHint.Text = $"{temphint} 即时档 [{StateSlot}] F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
 
             if (hintdelay > 0)
