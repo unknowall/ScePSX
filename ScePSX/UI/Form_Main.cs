@@ -178,7 +178,6 @@ namespace ScePSX.UI
             MainMenu.Items.Add(springItem);
             MainMenu.Items.Add(host);
 
-
             SDLInit();
 
             FrmInput.InitKeyMap();
@@ -213,7 +212,7 @@ namespace ScePSX.UI
                 return;
             }
 
-            if(Core.Pauseed)
+            if (Core.Pauseed)
                 lbHint.Text = "暂停中";
 
             int scalew = CoreWidth;
@@ -265,6 +264,18 @@ namespace ScePSX.UI
             };
             SDL_AudioSpec obtained = new SDL_AudioSpec();
 
+            SetAudioBuffer();
+
+            audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
+            if (audiodeviceid != 0)
+                SDL_PauseAudioDevice(audiodeviceid, 0);
+        }
+
+        private void SetAudioBuffer()
+        {
+            if (audiodeviceid != 0)
+                SDL_PauseAudioDevice(audiodeviceid, 1);
+
             int bufms = ini.ReadInt("Audio", "Buffer");
             if (bufms < 50)
                 bufms = 50;
@@ -273,10 +284,8 @@ namespace ScePSX.UI
 
             SamplesBuffer = new CircularBuffer<byte>(alignedSize); // 300 ms = 52920
 
-            audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
             if (audiodeviceid != 0)
                 SDL_PauseAudioDevice(audiodeviceid, 0);
-
         }
 
         #region MENU
@@ -473,7 +482,7 @@ namespace ScePSX.UI
                 hintdelay = 3;
                 return;
             }
-            if (romList != null )
+            if (romList != null)
             {
                 OpenFileDialog FD = new OpenFileDialog();
                 FD.Title = "选择一个文件夹";
@@ -594,7 +603,7 @@ namespace ScePSX.UI
             var Game = romList.SelectedGame();
             if (Game != null)
             {
-                LoadRom(Game.fullName);
+                LoadRom(Game.fullName, Game);
             }
         }
 
@@ -630,8 +639,11 @@ namespace ScePSX.UI
 
         private void CheatCode_Click(object sender, EventArgs e)
         {
-            var frmcheat = new Form_Cheat();
-            frmcheat.Show(this);
+            if (Core != null && Core.Running)
+            {
+                var frmcheat = new Form_Cheat(Core.DiskID);
+                frmcheat.Show(this);
+            }
         }
 
         private void MnuDebug_Click(object sender, EventArgs e)
@@ -788,7 +800,7 @@ namespace ScePSX.UI
                 Core.Button(button1, false, 1);
         }
 
-        private void LoadRom(string fn = "")
+        private void LoadRom(string fn = "", RomList.Game game = null)
         {
             if (!File.Exists("./BIOS/" + currbios))
             {
@@ -826,12 +838,36 @@ namespace ScePSX.UI
                 OGLRENDER.LoadShaders("./Shaders/" + shaderpath);
             }
 
+            IniFile bootini = null;
+            IniFile sysini = null;
+            if (game != null)
+            {
+                string inifn = $"./Save/{game.ID}.ini";
+                if (!File.Exists(inifn))
+                {
+                    bootini = new IniFile(inifn);
+                    sysini = ini;
+
+                    ini = bootini;
+
+                    currbios = bootini.Read("main", "bios");
+                }
+            }
+
             Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios);
+
             if (Core.DiskID == "")
             {
                 Core = null;
                 return;
             }
+
+            if(sysini != null)
+                sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
+            else
+                ini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
+
+            SetAudioBuffer();
 
             if (ini.ReadInt("Main", "Console") == 1)
             {
@@ -845,8 +881,6 @@ namespace ScePSX.UI
             Core.SYNC_CYCLES = ini.ReadInt("CPU", "Sync");
 
             Core.PsxBus.cpu.cylesfix = ini.ReadInt("CPU", "Cycles");
-
-            ini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
             romList.Dispose();
             switch (Rendermode)
@@ -868,6 +902,13 @@ namespace ScePSX.UI
 
             temphint = $"已启动 [{Core.DiskID}]";
             hintdelay = 3;
+
+            ChatCode.Enabled = true;
+
+            if (sysini != null)
+            {
+                ini = sysini;
+            }
 
             InitStateMnu();
         }

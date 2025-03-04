@@ -11,19 +11,21 @@ namespace ScePSX.UI
 
         private string DiskID;
 
-        public Form_Cheat()
+        public Form_Cheat(string id)
         {
             InitializeComponent();
 
             ctb.LostFocus += updatecodes;
 
-            if (FrmMain.Core == null)
-                return;
-            DiskID = FrmMain.Core.DiskID;
+            if (id == "")
+            {
+                btnsave.Enabled = false;
+                btnload.Enabled = false;
+                btnapply.Enabled = false;
+            }
+            DiskID = id;
 
-            //DiskID = "SLPM_860.23";
-
-            this.Text = "  " + DiskID + "  的金手指";
+            this.Text = $"  {DiskID}  的金手指";
 
             btnload_Click(this, null);
 
@@ -72,10 +74,6 @@ namespace ScePSX.UI
 
         private void btnload_Click(object sender, EventArgs e)
         {
-
-            if (FrmMain.Core == null)
-                return;
-
             cheatCodes.Clear();
             string fn = "./Cheats/" + DiskID + ".txt";
             if (!File.Exists(fn))

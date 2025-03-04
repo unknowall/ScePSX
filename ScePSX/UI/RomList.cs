@@ -4,8 +4,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -89,6 +87,25 @@ namespace ScePSX.UI
 
             MouseMove += RomList_MouseMove;
             MouseLeave += RomList_MouseLeave;
+
+            // 初始化右键菜单
+            contextMenuStrip = new ContextMenuStrip();
+            contextMenuStrip.RenderMode = ToolStripRenderMode.Professional;
+            contextMenuStrip.Renderer = new CustomToolStripRenderer();
+            contextMenuStrip.BackColor = Color.FromArgb(45, 45, 45);
+            var split = new ToolStripSeparator();
+
+            var item1 = new ToolStripMenuItem("修改设置", null, OnSetClick);
+            var item2 = new ToolStripMenuItem("编辑金手指", null, OnCheatClick);
+
+            var item3 = new ToolStripMenuItem("设置图标", null, OnSetIconClick);
+            var item4 = new ToolStripMenuItem("删除", null, OnDeleteClick);
+            contextMenuStrip.Items.AddRange(new ToolStripItem[]
+            {
+                item1, item2, split,
+                item3, split, item4 
+            });
+            ContextMenuStrip = contextMenuStrip;
         }
 
         private void InitializeComponent()
@@ -98,18 +115,6 @@ namespace ScePSX.UI
             TabIndex = 0;
             Name = "RomList";
             Size = new System.Drawing.Size(510, 316);
-            // 初始化右键菜单
-            contextMenuStrip = new ContextMenuStrip();
-            contextMenuStrip.RenderMode = ToolStripRenderMode.Professional;
-            contextMenuStrip.Renderer = new CustomToolStripRenderer();
-            contextMenuStrip.BackColor = Color.FromArgb(45, 45, 45);
-            var split = new ToolStripSeparator();
-
-            var menuItem1 = new ToolStripMenuItem("设置图标", null, OnOpenClick);
-            var menuItem2 = new ToolStripMenuItem("删除", null, OnDeleteClick);
-            contextMenuStrip.Items.AddRange(new ToolStripItem[] { menuItem1, split, menuItem2 });
-            ContextMenuStrip = contextMenuStrip;
-
             ResumeLayout(false);
         }
 
@@ -248,7 +253,19 @@ namespace ScePSX.UI
             }
         }
 
-        private void OnOpenClick(object sender, EventArgs e)
+        private void OnSetClick(object sender, EventArgs e)
+        {
+            var frm = new Form_Set(SelectedGame().ID);
+            frm.Show(this);
+        }
+
+        private void OnCheatClick(object sender, EventArgs e)
+        {
+            var frm = new Form_Cheat(SelectedGame().ID);
+            frm.Show(this);
+        }
+
+        private void OnSetIconClick(object sender, EventArgs e)
         {
             Game selectedGame = SelectedGame();
             if (selectedGame != null)
@@ -456,14 +473,14 @@ namespace ScePSX.UI
             startX = bounds.Right - 340;
             startY = bounds.Bottom - 32;
             if (game.LastPlayed != "")
-                DrawInfoBox(g, $"最后运行: {game.LastPlayed}", startX - 26, startY, 9);
+                DrawInfoBox(g, $"最后运行: {game.LastPlayed}", startX - 29, startY, 9);
             DrawInfoBox(g, $"即时存档: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
             DrawInfoBox(g, $"金手指: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
         }
 
         private void DrawSelectionEffect(Graphics g, Rectangle bounds)
         {
-            using (var focusPen = new Pen(Color.Orange, 2)) // 使用橙色边框表示选中
+            using (var focusPen = new Pen(Color.Orange, 2))
             {
                 g.DrawRectangle(focusPen, bounds.X + 1, bounds.Y + 1, bounds.Width - 3, bounds.Height - 3);
             }
@@ -480,11 +497,9 @@ namespace ScePSX.UI
 
                 SizeF labelSize = g.MeasureString(label, font);
 
-                // 绘制框
                 g.FillRectangle(boxBrush, x, y, labelSize.Width + padding * 2, labelSize.Height + padding * 2);
                 g.DrawRectangle(borderPen, x, y, labelSize.Width + padding * 2, labelSize.Height + padding * 2);
 
-                // 绘制文字
                 g.DrawString(label, font, textBrush, x + padding, y + padding);
             }
         }

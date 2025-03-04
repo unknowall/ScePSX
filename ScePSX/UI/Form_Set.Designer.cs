@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             btnsave = new System.Windows.Forms.Button();
-            label1 = new System.Windows.Forms.Label();
             groupBox1 = new System.Windows.Forms.GroupBox();
             chkTTY = new System.Windows.Forms.CheckBox();
             chkcpu = new System.Windows.Forms.CheckBox();
@@ -50,6 +49,9 @@
             tbcpusync = new System.Windows.Forms.TextBox();
             label2 = new System.Windows.Forms.Label();
             cbconsole = new System.Windows.Forms.CheckBox();
+            label1 = new System.Windows.Forms.Label();
+            cbbios = new System.Windows.Forms.ComboBox();
+            btndel = new System.Windows.Forms.Button();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
@@ -57,20 +59,11 @@
             // 
             btnsave.Location = new System.Drawing.Point(348, 189);
             btnsave.Name = "btnsave";
-            btnsave.Size = new System.Drawing.Size(75, 23);
+            btnsave.Size = new System.Drawing.Size(75, 24);
             btnsave.TabIndex = 0;
             btnsave.Text = "保存";
             btnsave.UseVisualStyleBackColor = true;
             btnsave.Click += btnsave_Click;
-            // 
-            // label1
-            // 
-            label1.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            label1.Location = new System.Drawing.Point(12, 192);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(325, 19);
-            label1.TabIndex = 1;
-            label1.Text = "不清楚设置作用的项目不要修改";
             // 
             // groupBox1
             // 
@@ -264,27 +257,57 @@
             cbconsole.Text = "启动时开启控制台";
             cbconsole.UseVisualStyleBackColor = true;
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(13, 193);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(37, 17);
+            label1.TabIndex = 3;
+            label1.Text = "BIOS";
+            // 
+            // cbbios
+            // 
+            cbbios.FormattingEnabled = true;
+            cbbios.Location = new System.Drawing.Point(61, 190);
+            cbbios.Name = "cbbios";
+            cbbios.Size = new System.Drawing.Size(121, 25);
+            cbbios.TabIndex = 4;
+            // 
+            // btndel
+            // 
+            btndel.Location = new System.Drawing.Point(241, 189);
+            btndel.Name = "btndel";
+            btndel.Size = new System.Drawing.Size(101, 24);
+            btndel.TabIndex = 5;
+            btndel.Text = "使用全局设置";
+            btndel.UseVisualStyleBackColor = true;
+            btndel.Click += btndel_Click;
+            // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(435, 224);
-            Controls.Add(groupBox1);
+            Controls.Add(btndel);
+            Controls.Add(cbbios);
             Controls.Add(label1);
+            Controls.Add(groupBox1);
             Controls.Add(btnsave);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
             Name = "Form_Set";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "设置";
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
         private System.Windows.Forms.Button btnsave;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox tbmipslock;
@@ -305,5 +328,8 @@
         private System.Windows.Forms.CheckBox chkcpu;
         private System.Windows.Forms.CheckBox chkbios;
         private System.Windows.Forms.CheckBox chkTTY;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox cbbios;
+        private System.Windows.Forms.Button btndel;
     }
 }

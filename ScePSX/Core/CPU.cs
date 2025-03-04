@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 using ScePSX.Disassembler;
 
 namespace ScePSX
@@ -95,6 +96,7 @@ namespace ScePSX
         public bool debug = false;
         public bool biosdebug = false;
         public bool ttydebug = false;
+        public bool FastBoot = false;
         public int cylesfix = 2;
 
         public CPU(BUS bus)
@@ -210,6 +212,19 @@ namespace ScePSX
             uint maskedPC = PC & 0x1FFF_FFFF;
 
             PC_Now = PC;
+            if (FastBoot)
+            {
+                if (PC == 0x80030000)
+                {
+                    PC = GPR[(int)Register.ra];
+                    Next_PC = PC + 4;
+                    FastBoot = false;
+                    RegisterLoad_.Value = 0;
+                    RegisterLoad_.RegisterNumber = 0;
+                    RegisterDelayedLoad = RegisterLoad_;
+                    return ret;
+                }
+            }
             PC = PC_Predictor;
             PC_Predictor += 4;
 
