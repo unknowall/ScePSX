@@ -291,7 +291,7 @@ namespace ScePSX.UI
             {
                 if (dir.GetFiles().Length == 0)
                 {
-                    lbHint.Text = "没有发现必须的BIOS文件，无法运行 (Bios Not Found)";
+                    lbHint.Text = "没有BIOS文件，无法运行 (Bios Not Found)";
                     timer.Enabled = false;
                     timer.Stop();
                 }
@@ -790,7 +790,12 @@ namespace ScePSX.UI
         private void LoadRom(string fn = "")
         {
             if (!File.Exists("./BIOS/" + currbios))
+            {
+                lbHint.Text = "没有BIOS文件，无法运行 (Bios Not Found)";
+                timer.Enabled = false;
+                timer.Stop();
                 return;
+            }
 
             if (fn == "")
             {
