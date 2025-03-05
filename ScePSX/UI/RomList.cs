@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 
 using ScePSX.CdRom2;
+using static Khronos.Platform;
+using static ScePSX.UI.RomList;
 
 namespace ScePSX.UI
 {
@@ -99,13 +101,14 @@ namespace ScePSX.UI
             var item1 = new ToolStripMenuItem("修改设置", null, OnSetClick);
             var item2 = new ToolStripMenuItem("编辑金手指", null, OnCheatClick);
 
+            var item5 = new ToolStripMenuItem("取存档图标", null, OnUpIconClick);
             var item3 = new ToolStripMenuItem("设置图标", null, OnSetIconClick);
             var item4 = new ToolStripMenuItem("删除", null, OnDeleteClick);
             contextMenuStrip.Items.AddRange(new ToolStripItem[]
             {
                 item0, split,
                 item1, item2, split,
-                item3, split, item4
+                item5, item3, split, item4
             });
             ContextMenuStrip = contextMenuStrip;
         }
@@ -123,7 +126,7 @@ namespace ScePSX.UI
         public void FillByini()
         {
             string[] ids = FrmMain.ini.GetSectionKeys("history");
-            if(File.Exists("gamedb.yaml"))
+            if (File.Exists("gamedb.yaml"))
                 SimpleYaml.ParseYamlFile("gamedb.yaml");
             foreach (string id in ids)
             {
@@ -134,7 +137,7 @@ namespace ScePSX.UI
                     Game game = FindOrNew(id);
                     game.ID = id;
                     game.fullName = infos[0];
-                    game.Name = SimpleYaml.TryGetValue($"{id}.name").Replace("\"","");
+                    game.Name = SimpleYaml.TryGetValue($"{id}.name").Replace("\"", "");
                     if (game.Name == "")
                         game.Name = Path.GetFileNameWithoutExtension(infos[0]);
                     game.FileName = Path.GetFileName(infos[0]);
@@ -281,6 +284,27 @@ namespace ScePSX.UI
         {
             var frm = new Form_McrMange(SelectedGame().ID);
             frm.Show(this);
+        }
+
+        private void OnUpIconClick(object sender, EventArgs e)
+        {
+            Game selectedGame = SelectedGame();
+            if (selectedGame == null)
+                return;
+
+            MemCardMange mcr = new MemCardMange($"./Save/{selectedGame.ID}.dat");
+            foreach (var Slot in mcr.Slots)
+            {
+                if (Slot.ProdCode == selectedGame.ID && Slot.type == MemCardMange.SlotTypes.initial)
+                {
+                    if (selectedGame.Icon != null)
+                        selectedGame.Icon.Dispose();
+
+                    selectedGame.Icon = Slot.GetIconBitmap(0);
+                    selectedGame.Icon.Save($"./Icons/{selectedGame.ID}.png", ImageFormat.Png);
+                    break;
+                }
+            }
         }
 
         private void OnCheatClick(object sender, EventArgs e)
