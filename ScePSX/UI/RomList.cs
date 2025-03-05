@@ -105,7 +105,7 @@ namespace ScePSX.UI
             {
                 item0, split,
                 item1, item2, split,
-                item3, split, item4 
+                item3, split, item4
             });
             ContextMenuStrip = contextMenuStrip;
         }
@@ -123,6 +123,8 @@ namespace ScePSX.UI
         public void FillByini()
         {
             string[] ids = FrmMain.ini.GetSectionKeys("history");
+            if(File.Exists("gamedb.yaml"))
+                SimpleYaml.ParseYamlFile("gamedb.yaml");
             foreach (string id in ids)
             {
                 if (id != "")
@@ -132,7 +134,9 @@ namespace ScePSX.UI
                     Game game = FindOrNew(id);
                     game.ID = id;
                     game.fullName = infos[0];
-                    game.Name = Path.GetFileNameWithoutExtension(infos[0]);
+                    game.Name = SimpleYaml.TryGetValue($"{id}.name").Replace("\"","");
+                    if (game.Name == "")
+                        game.Name = Path.GetFileNameWithoutExtension(infos[0]);
                     game.FileName = Path.GetFileName(infos[0]);
                     game.Size = new FileInfo(infos[0]).Length;
                     game.LastPlayed = infos[1];
@@ -162,6 +166,8 @@ namespace ScePSX.UI
 
         public void SearchDir(string dir)
         {
+            if (File.Exists("gamedb.yaml"))
+                SimpleYaml.ParseYamlFile("gamedb.yaml");
             DirectoryInfo dirinfo = new DirectoryInfo(dir);
             foreach (FileInfo f in dirinfo.GetFiles())
             {
@@ -174,7 +180,9 @@ namespace ScePSX.UI
                     Game game = FindOrNew(id);
 
                     game.fullName = f.FullName;
-                    game.Name = Path.GetFileNameWithoutExtension(f.FullName);
+                    game.Name = SimpleYaml.TryGetValue($"{id}.name").Replace("\"", "");
+                    if (game.Name == "")
+                        game.Name = Path.GetFileNameWithoutExtension(f.FullName);
                     game.FileName = Path.GetFileName(f.FullName);
                     game.ID = id;
                     game.Size = cddata.tracks[0].FileLength;
