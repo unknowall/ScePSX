@@ -71,6 +71,7 @@ namespace ScePSX.UI
         {
             InitializeComponent();
 
+
             if (ini.ReadInt("Main", "Console") == 1)
             {
                 AllocConsole();

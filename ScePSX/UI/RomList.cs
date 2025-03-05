@@ -4,12 +4,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 
 using ScePSX.CdRom2;
-using static Khronos.Platform;
-using static ScePSX.UI.RomList;
 
 namespace ScePSX.UI
 {

@@ -139,9 +139,9 @@ namespace ScePSX.UI
 
             int slotNumber = int.Parse(lv1.SelectedItems[0].Text);
             byte[] saveBytes = card1.GetSaveBytes(slotNumber);
-            if (card2.SetSaveBytes(slotNumber, saveBytes))
+            if (card2.AddSaveBytes(slotNumber, saveBytes))
             {
-                card1.DeleteSave(slotNumber);
+                card1.DeleteSlot(slotNumber);
                 FillListView(lv1, card1, imageList1);
                 FillListView(lv2, card2, imageList2);
             } else
@@ -157,9 +157,9 @@ namespace ScePSX.UI
 
             int slotNumber = int.Parse(lv2.SelectedItems[0].Text);
             byte[] saveBytes = card2.GetSaveBytes(slotNumber);
-            if (card1.SetSaveBytes(slotNumber, saveBytes))
+            if (card1.AddSaveBytes(slotNumber, saveBytes))
             {
-                card2.DeleteSave(slotNumber);
+                card2.DeleteSlot(slotNumber);
                 FillListView(lv1, card1, imageList1);
                 FillListView(lv2, card2, imageList2);
             } else
@@ -174,7 +174,7 @@ namespace ScePSX.UI
                 return;
 
             int slotNumber = int.Parse(lv1.SelectedItems[0].Text);
-            card1.DeleteSave(slotNumber);
+            card1.DeleteSlot(slotNumber);
             FillListView(lv1, card1, imageList1);
         }
 
@@ -204,7 +204,7 @@ namespace ScePSX.UI
                 return;
 
             int slotNumber = int.Parse(lv2.SelectedItems[0].Text);
-            card2.DeleteSave(slotNumber);
+            card2.DeleteSlot(slotNumber);
             FillListView(lv2, card2, imageList2);
         }
 
@@ -235,7 +235,7 @@ namespace ScePSX.UI
 
             int slotNumber = int.Parse(lv1.SelectedItems[0].Text);
             byte[] saveBytes = card1.GetSaveBytes(slotNumber);
-            if (card2.SetSaveBytes(slotNumber, saveBytes))
+            if (card2.AddSaveBytes(slotNumber, saveBytes))
             {
                 FillListView(lv2, card2, imageList2);
             } else
@@ -251,7 +251,7 @@ namespace ScePSX.UI
 
             int slotNumber = int.Parse(lv2.SelectedItems[0].Text);
             byte[] saveBytes = card2.GetSaveBytes(slotNumber);
-            if (card1.SetSaveBytes(slotNumber, saveBytes))
+            if (card1.AddSaveBytes(slotNumber, saveBytes))
             {
                 FillListView(lv1, card1, imageList1);
             } else

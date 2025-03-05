@@ -129,68 +129,67 @@ namespace ScePSX
             {
                 Slots[slotNumber].ProdCode = "";
                 Slots[slotNumber].Identifier = "";
+                Slots[slotNumber].Name = "";
 
-                switch (Slots[slotNumber].type)
+                if (Slots[slotNumber].type == SlotTypes.initial)
                 {
-                    default:
-                        tempByteArray = new byte[2];
-                        tempByteArray[0] = Slots[slotNumber].Head[10];
-                        tempByteArray[1] = Slots[slotNumber].Head[11];
+                    tempByteArray = new byte[2];
+                    tempByteArray[0] = Slots[slotNumber].Head[10];
+                    tempByteArray[1] = Slots[slotNumber].Head[11];
 
-                        Slots[slotNumber].RegionRaw = Encoding.Default.GetString(tempByteArray);
+                    Slots[slotNumber].RegionRaw = Encoding.Default.GetString(tempByteArray);
 
-                        switch (Slots[slotNumber].RegionRaw)
+                    switch (Slots[slotNumber].RegionRaw)
+                    {
+                        default:
+                            Slots[slotNumber].Region = Slots[slotNumber].RegionRaw;
+                            break;
+
+                        case "BA":
+                            Slots[slotNumber].Region = "US";
+                            break;
+
+                        case "BE":
+                            Slots[slotNumber].Region = "EU";
+                            break;
+
+                        case "BI":
+                            Slots[slotNumber].Region = "JP";
+                            break;
+                    }
+
+                    tempByteArray = new byte[10];
+                    for (int byteCount = 0; byteCount < 10; byteCount++)
+                        tempByteArray[byteCount] = Slots[slotNumber].Head[byteCount + 12];
+
+                    Slots[slotNumber].ProdCode = Encoding.Default.GetString(tempByteArray);
+                    Slots[slotNumber].ProdCode = Slots[slotNumber].ProdCode.Replace("\0", string.Empty);
+
+                    tempByteArray = new byte[8];
+                    for (int byteCount = 0; byteCount < 8; byteCount++)
+                        tempByteArray[byteCount] = Slots[slotNumber].Head[byteCount + 22];
+
+                    Slots[slotNumber].Identifier = Encoding.Default.GetString(tempByteArray);
+                    Slots[slotNumber].Identifier = Slots[slotNumber].Identifier.Replace("\0", string.Empty);
+
+                    tempByteArray = new byte[64];
+                    for (int currentByte = 0; currentByte < 64; currentByte++)
+                    {
+                        byte b = Slots[slotNumber].Data[currentByte + 4];
+                        if (currentByte % 2 == 0 && b == 0)
                         {
-                            default:
-                                Slots[slotNumber].Region = Slots[slotNumber].RegionRaw;
-                                break;
-
-                            case "BA":
-                                Slots[slotNumber].Region = "US";
-                                break;
-
-                            case "BE":
-                                Slots[slotNumber].Region = "EU";
-                                break;
-
-                            case "BI":
-                                Slots[slotNumber].Region = "JP";
-                                break;
+                            break;
                         }
+                        tempByteArray[currentByte] = b;
+                    }
 
-                        tempByteArray = new byte[10];
-                        for (int byteCount = 0; byteCount < 10; byteCount++)
-                            tempByteArray[byteCount] = Slots[slotNumber].Head[byteCount + 12];
+                    //Shift-JIS to UTF-16
+                    var encodingProvider = CodePagesEncodingProvider.Instance.GetEncoding(932);
+                    if (encodingProvider != null)
+                        Slots[slotNumber].Name = encodingProvider.GetString(tempByteArray).Normalize(NormalizationForm.FormKC);
 
-                        Slots[slotNumber].ProdCode = Encoding.Default.GetString(tempByteArray);
-                        Slots[slotNumber].ProdCode = Slots[slotNumber].ProdCode.Replace("\0", string.Empty);
-
-                        tempByteArray = new byte[8];
-                        for (int byteCount = 0; byteCount < 8; byteCount++)
-                            tempByteArray[byteCount] = Slots[slotNumber].Head[byteCount + 22];
-
-                        Slots[slotNumber].Identifier = Encoding.Default.GetString(tempByteArray);
-                        Slots[slotNumber].Identifier = Slots[slotNumber].Identifier.Replace("\0", string.Empty);
-
-                        tempByteArray = new byte[64];
-                        for (int currentByte = 0; currentByte < 64; currentByte++)
-                        {
-                            byte b = Slots[slotNumber].Data[currentByte + 4];
-                            if (currentByte % 2 == 0 && b == 0)
-                            {
-                                break;
-                            }
-                            tempByteArray[currentByte] = b;
-                        }
-
-                        //Shift-JIS to UTF-16
-                        var encodingProvider = CodePagesEncodingProvider.Instance.GetEncoding(932);
-                        if (encodingProvider != null)
-                            Slots[slotNumber].Name = encodingProvider.GetString(tempByteArray).Normalize(NormalizationForm.FormKC);
-
-                        if (Slots[slotNumber].Name == "")
-                            Slots[slotNumber].Name = Encoding.Default.GetString(tempByteArray, 0, 32);
-                        break;
+                    if (Slots[slotNumber].Name == "")
+                        Slots[slotNumber].Name = Encoding.Default.GetString(tempByteArray, 0, 32);
                 }
             }
         }
@@ -199,24 +198,6 @@ namespace ScePSX
         {
             for (int slotNumber = 0; slotNumber < 15; slotNumber++)
                 Slots[slotNumber].Size = (Slots[slotNumber].Head[4] | (Slots[slotNumber].Head[5] << 8) | (Slots[slotNumber].Head[6] << 16)) / 1024;
-        }
-
-        public void DeleteSave(int slotNumber)
-        {
-            if (Slots[slotNumber].type == SlotTypes.initial)
-                Slots[slotNumber].Head[0] = 0xA0;
-
-            calculateXOR();
-            loadSlotTypes();
-        }
-
-        public void FormatSave(int slotNumber)
-        {
-            for (int i = 0; i < MaxSlot; i++)
-                DeleteSlot(i);
-
-            calculateXOR();
-            LoadData();
         }
 
         private int[] FindFreeSlots(int slotNumber, int requiredSlots)
@@ -262,7 +243,7 @@ namespace ScePSX
             LoadData();
         }
 
-        public bool SetSaveBytes(int slotNumber, byte[] saveBytes)
+        public bool AddSaveBytes(int slotNumber, byte[] saveBytes)
         {
             int slotCount = (saveBytes.Length - 128) / 8192;
             int[] freeSlots = FindFreeSlots(slotNumber, slotCount);
@@ -316,20 +297,23 @@ namespace ScePSX
 
             for (int slotNumber = 0; slotNumber < 15; slotNumber++)
             {
-                colorCounter = 0;
-                for (int byteCount = 0; byteCount < 32; byteCount += 2)
+                if (Slots[slotNumber].type == SlotTypes.initial)
                 {
-                    redChannel = (Slots[slotNumber].Data[byteCount + 96] & 0x1F) << 3;
-                    greenChannel = ((Slots[slotNumber].Data[byteCount + 97] & 0x3) << 6) | ((Slots[slotNumber].Data[byteCount + 96] & 0xE0) >> 2);
-                    blueChannel = ((Slots[slotNumber].Data[byteCount + 97] & 0x7C) << 1);
-                    blackFlag = (Slots[slotNumber].Data[byteCount + 97] & 0x80);
+                    colorCounter = 0;
+                    for (int byteCount = 0; byteCount < 32; byteCount += 2)
+                    {
+                        redChannel = (Slots[slotNumber].Data[byteCount + 96] & 0x1F) << 3;
+                        greenChannel = ((Slots[slotNumber].Data[byteCount + 97] & 0x3) << 6) | ((Slots[slotNumber].Data[byteCount + 96] & 0xE0) >> 2);
+                        blueChannel = ((Slots[slotNumber].Data[byteCount + 97] & 0x7C) << 1);
+                        blackFlag = (Slots[slotNumber].Data[byteCount + 97] & 0x80);
 
-                    //Get the color value
-                    if ((redChannel | greenChannel | blueChannel | blackFlag) == 0)
-                        Slots[slotNumber].IconPalette[colorCounter] = Color.Transparent;
-                    else
-                        Slots[slotNumber].IconPalette[colorCounter] = Color.FromArgb(redChannel, greenChannel, blueChannel);
-                    colorCounter++;
+                        //Get the color value
+                        if ((redChannel | greenChannel | blueChannel | blackFlag) == 0)
+                            Slots[slotNumber].IconPalette[colorCounter] = Color.Transparent;
+                        else
+                            Slots[slotNumber].IconPalette[colorCounter] = Color.FromArgb(redChannel, greenChannel, blueChannel);
+                        colorCounter++;
+                    }
                 }
             }
         }
@@ -340,9 +324,9 @@ namespace ScePSX
 
             for (int slotNumber = 0; slotNumber < 15; slotNumber++)
             {
-                for (int iconNumber = 0; iconNumber < 3; iconNumber++)
+                if (Slots[slotNumber].type == SlotTypes.initial)
                 {
-                    if (Slots[slotNumber].type == SlotTypes.initial)
+                    for (int iconNumber = 0; iconNumber < 3; iconNumber++)
                     {
                         byteCount = 128 + (128 * iconNumber);
 
@@ -384,22 +368,25 @@ namespace ScePSX
         {
             for (int slotNumber = 0; slotNumber < 15; slotNumber++)
             {
-                switch (Slots[slotNumber].Data[2])
+                if (Slots[slotNumber].type == SlotTypes.initial)
                 {
-                    default:
-                        break;
+                    switch (Slots[slotNumber].Data[2])
+                    {
+                        default:
+                            break;
 
-                    case 0x11:
-                        Slots[slotNumber].IconFrames = 1;
-                        break;
+                        case 0x11:
+                            Slots[slotNumber].IconFrames = 1;
+                            break;
 
-                    case 0x12:
-                        Slots[slotNumber].IconFrames = 2;
-                        break;
+                        case 0x12:
+                            Slots[slotNumber].IconFrames = 2;
+                            break;
 
-                    case 0x13:
-                        Slots[slotNumber].IconFrames = 3;
-                        break;
+                        case 0x13:
+                            Slots[slotNumber].IconFrames = 3;
+                            break;
+                    }
                 }
             }
         }
@@ -430,6 +417,9 @@ namespace ScePSX
             Slots[slotNumber].Head[0] = 0xA0;
             Slots[slotNumber].Head[8] = 0xFF;
             Slots[slotNumber].Head[9] = 0xFF;
+
+            calculateXOR();
+            LoadData();
         }
 
         public void FormatCard()
@@ -507,7 +497,7 @@ namespace ScePSX
             for (int i = 0; i < inputData.Length; i++)
                 finalData[i + 128] = inputData[i];
 
-            if (SetSaveBytes(slotNumber, finalData))
+            if (AddSaveBytes(slotNumber, finalData))
                 return true;
             else
                 return false;
@@ -552,6 +542,7 @@ namespace ScePSX
                 return false;
             }
 
+            calculateXOR();
             SaveCardData();
             binWriter.Write(RawData);
             binWriter.Close();
