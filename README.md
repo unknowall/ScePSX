@@ -8,6 +8,7 @@
 6. 支持双手柄、双键盘
 7. 独立的游戏存档及即时存档
 8. 支持网络对战
+9. 游戏存档管理
 
 
 
@@ -27,7 +28,13 @@
 3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
 
-![new01](https://github.com/user-attachments/assets/869a7da4-a96d-4596-b31f-e64abc097aee)![捕获](https://github.com/user-attachments/assets/6fbc1076-ddc0-4c3f-843a-cbfd63f4d4f8)
+![new01](https://github.com/user-attachments/assets/869a7da4-a96d-4596-b31f-e64abc097aee)
+
+![捕获3](https://github.com/user-attachments/assets/a4941aae-7856-4ade-be5a-2d352d36eef4)
+
+![捕获22](https://github.com/user-attachments/assets/ece44ade-6564-4361-9f52-e1484317eadc)
+
+
 
 以下截图是老版本的
 
