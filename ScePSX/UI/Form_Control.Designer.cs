@@ -236,6 +236,7 @@
             // 
             // cbcon
             // 
+            cbcon.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbcon.FormattingEnabled = true;
             cbcon.Items.AddRange(new object[] { "Controller 1", "Controller 2" });
             cbcon.Location = new System.Drawing.Point(18, 6);
@@ -246,6 +247,7 @@
             // 
             // cbmode
             // 
+            cbmode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbmode.FormattingEnabled = true;
             cbmode.Items.AddRange(new object[] { "KeyBoard" });
             cbmode.Location = new System.Drawing.Point(184, 6);

@@ -13,7 +13,7 @@ using static SDL2.SDL;
 namespace ScePSX.UI
 {
 
-    public partial class FrmMain : Form, IAudioHandler, IRenderHandler
+    public partial class FrmMain : CustomForm, IAudioHandler, IRenderHandler
     {
         [DllImport("kernel32.dll")]
         public static extern Boolean AllocConsole();
@@ -71,6 +71,12 @@ namespace ScePSX.UI
         {
             InitializeComponent();
 
+            MainMenu.RenderMode = ToolStripRenderMode.Professional;
+            MainMenu.Renderer = new MainMenuRenderer();
+            MainMenu.BackColor = Color.FromArgb(45, 45, 45);
+
+            AddCustomTitleBar();
+            AddStatusBar();
 
             if (ini.ReadInt("Main", "Console") == 1)
             {

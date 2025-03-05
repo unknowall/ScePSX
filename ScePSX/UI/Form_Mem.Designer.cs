@@ -128,6 +128,7 @@ namespace ScePSX.UI
             // 
             // CboEncode
             // 
+            CboEncode.DropDownStyle = ComboBoxStyle.DropDownList;
             CboEncode.FormattingEnabled = true;
             CboEncode.Location = new System.Drawing.Point(341, 5);
             CboEncode.Name = "CboEncode";
@@ -137,6 +138,7 @@ namespace ScePSX.UI
             // 
             // CboView
             // 
+            CboView.DropDownStyle = ComboBoxStyle.DropDownList;
             CboView.FormattingEnabled = true;
             CboView.Location = new System.Drawing.Point(251, 5);
             CboView.Name = "CboView";

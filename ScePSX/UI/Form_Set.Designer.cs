@@ -94,7 +94,6 @@
             groupBox1.Size = new System.Drawing.Size(411, 171);
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
-            groupBox1.Text = "所有改动重启后生效";
             // 
             // chkTTY
             // 
@@ -202,6 +201,7 @@
             // 
             // cbmsaa
             // 
+            cbmsaa.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbmsaa.FormattingEnabled = true;
             cbmsaa.Items.AddRange(new object[] { "None MSAA", "4xMSAA", "6xMSAA", "8xMSAA", "16xMSAA" });
             cbmsaa.Location = new System.Drawing.Point(116, 133);
@@ -271,6 +271,7 @@
             // 
             // cbbios
             // 
+            cbbios.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbbios.FormattingEnabled = true;
             cbbios.Location = new System.Drawing.Point(61, 190);
             cbbios.Name = "cbbios";
@@ -298,6 +299,7 @@
             // 
             // cbcpumode
             // 
+            cbcpumode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbcpumode.FormattingEnabled = true;
             cbcpumode.Items.AddRange(new object[] { "性能优化模式", "完整指令模式" });
             cbcpumode.Location = new System.Drawing.Point(277, 190);
