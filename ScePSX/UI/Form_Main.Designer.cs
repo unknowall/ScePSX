@@ -32,7 +32,6 @@
             CloseRomMnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             SearchMnu = new System.Windows.Forms.ToolStripMenuItem();
-            MnuBios = new System.Windows.Forms.ToolStripMenuItem();
             SysSetMnu = new System.Windows.Forms.ToolStripMenuItem();
             KeyTool = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
@@ -76,7 +75,7 @@
             // 
             // MnuFile
             // 
-            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, MnuBios, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
+            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
             MnuFile.Size = new System.Drawing.Size(62, 21);
             MnuFile.Text = "文件(&F))";
@@ -113,12 +112,6 @@
             SearchMnu.Size = new System.Drawing.Size(180, 22);
             SearchMnu.Text = "扫描目录";
             SearchMnu.Click += SearchMnu_Click;
-            // 
-            // MnuBios
-            // 
-            MnuBios.Name = "MnuBios";
-            MnuBios.Size = new System.Drawing.Size(180, 22);
-            MnuBios.Text = "BIOS设置";
             // 
             // SysSetMnu
             // 
@@ -337,7 +330,6 @@
         private System.Windows.Forms.ToolStripMenuItem openGLRender;
         private System.Windows.Forms.ToolStripMenuItem LoadDIsk;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem MnuBios;
         private System.Windows.Forms.ToolStripMenuItem KeyTool;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem SaveStripMenuItem;

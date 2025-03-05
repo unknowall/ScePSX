@@ -182,7 +182,10 @@ namespace ScePSX.UI
             timer.Enabled = true;
             timer.Start();
 
-            InitBiosMnu();
+            currbios = ini.Read("main", "bios");
+            if (currbios == null)
+                currbios = "SCPH1001.BIN";
+
             InitShaderMnu();
         }
 
@@ -282,43 +285,6 @@ namespace ScePSX.UI
         }
 
         #region MENU
-        private void InitBiosMnu()
-        {
-            currbios = ini.Read("main", "bios");
-            if (currbios == null)
-                currbios = "SCPH1001.BIN";
-            DirectoryInfo dir = new DirectoryInfo(mypath + "/BIOS");
-            MnuFile.Enabled = false;
-            MnuBios.Enabled = false;
-            if (dir.Exists)
-            {
-                if (dir.GetFiles().Length == 0)
-                {
-                    lbHint.Text = "没有BIOS文件，无法运行 (Bios Not Found)";
-                    timer.Enabled = false;
-                    timer.Stop();
-                }
-                foreach (FileInfo f in dir.GetFiles())
-                {
-                    ToolStripMenuItem mnu = new ToolStripMenuItem();
-                    mnu.Name = f.Name;
-                    mnu.Text = f.Name;
-                    mnu.Tag = 10;
-                    mnu.CheckOnClick = true;
-                    mnu.Click += Mnu_Click;
-                    mnu.CheckedChanged += Mnu_CheckedChanged;
-                    MnuBios.DropDownItems.Add(mnu);
-                    if (currbios == f.Name)
-                    {
-                        mnu.Checked = true;
-                        currbios = mnu.Text;
-                    }
-                }
-                MnuFile.Enabled = true;
-                MnuBios.Enabled = true;
-            }
-        }
-
         private void InitShaderMnu()
         {
             shaderpath = ini.Read("main", "shader");
@@ -413,10 +379,6 @@ namespace ScePSX.UI
                 return;
             switch (mnu.Tag)
             {
-                case 10:
-                    currbios = mnu.Text;
-                    ini.Write("main", "bios", currbios);
-                    break;
                 case 20:
                     shaderpath = mnu.Text;
                     ini.Write("main", "shader", shaderpath);
