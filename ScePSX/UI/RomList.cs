@@ -141,12 +141,16 @@ namespace ScePSX.UI
                         game.Icon = Bitmap.FromFile($"./Icons/{id}.png");
                     } else if (File.Exists($"./Save/{id}.dat"))
                     {
-                        //Bitmap bmp = MCR.GetGameIcon($"./Save/{id}.dat", id);
-                        //if (bmp != null)
-                        //{
-                        //    game.Icon = bmp;
-                        //    bmp.Save($"./Icons/{id}.png", ImageFormat.Png);
-                        //}
+                        MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
+                        foreach (var Slot in mcr.Slots)
+                        {
+                            if (Slot.ProdCode == id)
+                            {
+                                game.Icon = Slot.GetIconBitmap(0);
+                                game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
+                                break;
+                            }
+                        }
                     }
                     AddOrReplace(game);
                 }
@@ -193,12 +197,16 @@ namespace ScePSX.UI
                         game.Icon = Bitmap.FromFile($"./Icons/{id}.png");
                     } else if (File.Exists($"./Save/{id}.dat"))
                     {
-                        //Bitmap bmp = MCR.GetGameIcon($"./Save/{id}.dat", id);
-                        //if (bmp != null)
-                        //{
-                        //    game.Icon = bmp;
-                        //    bmp.Save($"./Icons/{id}.png", ImageFormat.Png);
-                        //}
+                        MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
+                        foreach (var Slot in mcr.Slots)
+                        {
+                            if (Slot.ProdCode == id)
+                            {
+                                game.Icon = Slot.GetIconBitmap(0);
+                                game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
+                                break;
+                            }
+                        }
                     }
 
                     AddOrReplace(game);
@@ -834,49 +842,6 @@ namespace ScePSX.UI
                 return (createParams);
             }
         }
-    }
-
-    public class MCR
-    {
-        private const int BLOCK_SIZE = 8192;
-        private const int HEADER_OFFSET = 0x0A;
-        private const int PALETTE_OFFSET = 0x60;
-        private const int PIXELS_OFFSET = 0x80;
-        private const int ID_LENGTH = 12;
-
-        public static Bitmap GetGameIcon(string memoryCardPath, string targetGameId)
-        {
-            using var fs = new FileStream(memoryCardPath, FileMode.Open, FileAccess.Read);
-            byte[] blockBuffer = new byte[BLOCK_SIZE];
-
-            byte[] header = new byte[2];
-            fs.Read(header, 0, 2);
-            bool isStandardFormat = (header[0] == 0x4D && header[1] == 0x43); // "MC"
-
-            if (isStandardFormat)
-                fs.Position = 128;
-
-            for (int block = 0; block < 15; block++)
-            {
-                fs.Read(blockBuffer, 0, BLOCK_SIZE);
-
-                string fullId = Encoding.ASCII.GetString(blockBuffer, HEADER_OFFSET, ID_LENGTH).Trim('\0', ' ');
-                string shortId = fullId.Substring(2);
-
-                if (shortId == targetGameId)
-                {
-                    return ExtractIcon(blockBuffer);
-                }
-            }
-            return null;
-        }
-
-        private static Bitmap ExtractIcon(byte[] blockBuffer)
-        {
-            //todo
-            return null;
-        }
-
     }
 
 }
