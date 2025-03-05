@@ -236,7 +236,7 @@ namespace ScePSX
                 Slots[slotNumber].Head[i] = saveBytes[i];
 
             for (int byteCount = 0; byteCount < 8192; byteCount++)
-                Slots[slotNumber].Head[byteCount] = saveBytes[128 + byteCount];
+                Slots[slotNumber].Data[byteCount] = saveBytes[128 + byteCount];
 
             calculateXOR();
 
@@ -461,7 +461,7 @@ namespace ScePSX
                 arHeader[byteCount + 21] = arName[byteCount];
 
             binWriter.Write(arHeader);
-            binWriter.Write(outputData, 128, outputData.Length - 128);
+            binWriter.Write(outputData);
 
             binWriter.Close();
 
@@ -470,8 +470,8 @@ namespace ScePSX
 
         public bool OpenSingleSave(string fileName, int slotNumber)
         {
-            byte[] inputData;
-            byte[] finalData;
+            byte[] arHeader = new byte[54];
+            byte[] finalData = new byte[8320];
             BinaryReader binReader;
 
             try
@@ -482,20 +482,15 @@ namespace ScePSX
                 return false;
             }
 
-            inputData = binReader.ReadBytes(123008);
+            if (binReader.BaseStream.Length != 54 + 8320)
+            {
+                binReader.Close();
+                return false;
+            }
+
+            arHeader = binReader.ReadBytes(54);
+            finalData = binReader.ReadBytes(8320);
             binReader.Close();
-
-
-            finalData = new byte[inputData.Length + 128];
-            byte[] singleSaveHeader = Encoding.Default.GetBytes(Path.GetFileName(fileName));
-
-            finalData[0] = 0x51;
-
-            for (int i = 0; i < 20 && i < singleSaveHeader.Length; i++)
-                finalData[i + 10] = singleSaveHeader[i];
-
-            for (int i = 0; i < inputData.Length; i++)
-                finalData[i + 128] = inputData[i];
 
             if (AddSaveBytes(slotNumber, finalData))
                 return true;
