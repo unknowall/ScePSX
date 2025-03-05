@@ -146,7 +146,7 @@ namespace ScePSX.UI
                         MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
                         foreach (var Slot in mcr.Slots)
                         {
-                            if (Slot.ProdCode == id)
+                            if (Slot.ProdCode == id && Slot.type == MemCardMange.SlotTypes.initial)
                             {
                                 game.Icon = Slot.GetIconBitmap(0);
                                 game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
@@ -202,7 +202,7 @@ namespace ScePSX.UI
                         MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
                         foreach (var Slot in mcr.Slots)
                         {
-                            if (Slot.ProdCode == id)
+                            if (Slot.ProdCode == id && Slot.type == MemCardMange.SlotTypes.initial)
                             {
                                 game.Icon = Slot.GetIconBitmap(0);
                                 game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);

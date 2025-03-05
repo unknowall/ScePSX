@@ -6,7 +6,6 @@ using ScePSX.Disassembler;
 
 namespace ScePSX
 {
-    //MIPS R3000A-compatible 32-bit RISC CPU MIPS R3051 with 5 KB L1 cache, running at 33.8688 MHz // 33868800
     [Serializable]
     public unsafe class CPU
     {

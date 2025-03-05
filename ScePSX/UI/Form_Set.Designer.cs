@@ -54,6 +54,7 @@
             btndel = new System.Windows.Forms.Button();
             label10 = new System.Windows.Forms.Label();
             cbcpumode = new System.Windows.Forms.ComboBox();
+            label11 = new System.Windows.Forms.Label();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
@@ -304,11 +305,21 @@
             cbcpumode.Size = new System.Drawing.Size(141, 25);
             cbcpumode.TabIndex = 7;
             // 
+            // label11
+            // 
+            label11.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            label11.Location = new System.Drawing.Point(12, 231);
+            label11.Name = "label11";
+            label11.Size = new System.Drawing.Size(211, 23);
+            label11.TabIndex = 8;
+            label11.Text = "不清楚作用的设置尽量不要修改";
+            // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(435, 266);
+            Controls.Add(label11);
             Controls.Add(cbcpumode);
             Controls.Add(label10);
             Controls.Add(btndel);
@@ -355,5 +366,6 @@
         private System.Windows.Forms.Button btndel;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.ComboBox cbcpumode;
+        private System.Windows.Forms.Label label11;
     }
 }
