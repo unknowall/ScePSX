@@ -95,6 +95,7 @@ namespace ScePSX.UI
             contextMenuStrip.BackColor = Color.FromArgb(45, 45, 45);
             var split = new ToolStripSeparator();
 
+            var item0 = new ToolStripMenuItem("存档管理", null, OnMcrClick);
             var item1 = new ToolStripMenuItem("修改设置", null, OnSetClick);
             var item2 = new ToolStripMenuItem("编辑金手指", null, OnCheatClick);
 
@@ -102,6 +103,7 @@ namespace ScePSX.UI
             var item4 = new ToolStripMenuItem("删除", null, OnDeleteClick);
             contextMenuStrip.Items.AddRange(new ToolStripItem[]
             {
+                item0, split,
                 item1, item2, split,
                 item3, split, item4 
             });
@@ -264,6 +266,12 @@ namespace ScePSX.UI
         private void OnSetClick(object sender, EventArgs e)
         {
             var frm = new Form_Set(SelectedGame().ID);
+            frm.Show(this);
+        }
+
+        private void OnMcrClick(object sender, EventArgs e)
+        {
+            var frm = new Form_McrMange(SelectedGame().ID);
             frm.Show(this);
         }
 

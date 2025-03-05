@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -64,11 +65,6 @@ namespace ScePSX
         {
             formatted,
             initial,
-            middle_link,
-            end_link,
-            deleted_initial,
-            deleted_middle_link,
-            deleted_end_link,
             corrupted
         };
 
@@ -102,64 +98,6 @@ namespace ScePSX
             }
         }
 
-        private void SaveCard()
-        {
-            RawData = new byte[131072];
-
-            RawData[0] = 0x4D;        //M
-            RawData[1] = 0x43;        //C
-            RawData[127] = 0x0E;      //XOR (precalculated)
-
-            RawData[8064] = 0x4D;     //M
-            RawData[8065] = 0x43;     //C
-            RawData[8191] = 0x0E;     //XOR (precalculated)
-
-            for (int slotNumber = 0; slotNumber < MaxSlot; slotNumber++)
-            {
-                for (int currentByte = 0; currentByte < 128; currentByte++)
-                {
-                    RawData[128 + (slotNumber * 128) + currentByte] = Slots[slotNumber].Head[currentByte];
-                }
-
-                for (int currentByte = 0; currentByte < 8192; currentByte++)
-                {
-                    RawData[8192 + (slotNumber * 8192) + currentByte] = Slots[slotNumber].Data[currentByte];
-                }
-            }
-
-        }
-
-        private void findBrokenLinks()
-        {
-            bool[] slotTouched = new bool[MaxSlot];
-
-            for (int slotNumber = 0; slotNumber < MaxSlot; slotNumber++)
-            {
-                switch (Slots[slotNumber].type)
-                {
-                    case SlotTypes.initial:
-                    case SlotTypes.deleted_initial:
-                        foreach (int slot in FindSaveLinks(slotNumber))
-                            slotTouched[slot] = true;
-                        break;
-                }
-            }
-
-            for (int slotNumber = 0; slotNumber < MaxSlot; slotNumber++)
-            {
-                switch (Slots[slotNumber].type)
-                {
-                    case SlotTypes.middle_link:
-                    case SlotTypes.end_link:
-                    case SlotTypes.deleted_middle_link:
-                    case SlotTypes.deleted_end_link:
-                        if (!slotTouched[slotNumber])
-                            Slots[slotNumber].type = (int)SlotTypes.formatted;
-                        break;
-                }
-            }
-        }
-
         private void loadSlotTypes()
         {
             for (int slotNumber = 0; slotNumber < MaxSlot; slotNumber++)
@@ -176,26 +114,6 @@ namespace ScePSX
 
                     case 0x51:
                         Slots[slotNumber].type = SlotTypes.initial;
-                        break;
-
-                    case 0x52:
-                        Slots[slotNumber].type = SlotTypes.middle_link;
-                        break;
-
-                    case 0x53:
-                        Slots[slotNumber].type = SlotTypes.end_link;
-                        break;
-
-                    case 0xA1:
-                        Slots[slotNumber].type = SlotTypes.deleted_initial;
-                        break;
-
-                    case 0xA2:
-                        Slots[slotNumber].type = SlotTypes.deleted_middle_link;
-                        break;
-
-                    case 0xA3:
-                        Slots[slotNumber].type = SlotTypes.deleted_end_link;
                         break;
                 }
 
@@ -240,12 +158,6 @@ namespace ScePSX
                                 break;
                         }
 
-                        foreach (int slot in FindSaveLinks(slotNumber))
-                        {
-                            if (slot != slotNumber)
-                                Slots[slot].Region = Slots[slotNumber].Region;
-                        }
-
                         tempByteArray = new byte[10];
                         for (int byteCount = 0; byteCount < 10; byteCount++)
                             tempByteArray[byteCount] = Slots[slotNumber].Head[byteCount + 12];
@@ -264,7 +176,7 @@ namespace ScePSX
                         for (int currentByte = 0; currentByte < 64; currentByte++)
                         {
                             byte b = Slots[slotNumber].Data[currentByte + 4];
-                            if ( currentByte % 2 == 0 && b == 0)
+                            if (currentByte % 2 == 0 && b == 0)
                             {
                                 break;
                             }
@@ -279,16 +191,6 @@ namespace ScePSX
                         if (Slots[slotNumber].Name == "")
                             Slots[slotNumber].Name = Encoding.Default.GetString(tempByteArray, 0, 32);
                         break;
-
-                    case SlotTypes.middle_link:
-                    case SlotTypes.deleted_middle_link:
-                        Slots[slotNumber].Name = "Linked slot (middle)";
-                        break;
-
-                    case SlotTypes.end_link:
-                    case SlotTypes.deleted_end_link:
-                        Slots[slotNumber].Name = "Linked slot (end)";
-                        break;
                 }
             }
         }
@@ -301,93 +203,20 @@ namespace ScePSX
 
         public void DeleteSave(int slotNumber)
         {
-
-            int[] saveSlots = FindSaveLinks(slotNumber);
-
-            for (int i = 0; i < saveSlots.Length; i++)
-            {
-                switch (Slots[saveSlots[i]].type)
-                {
-                    default:
-                        break;
-
-                    case SlotTypes.initial:               //Regular save
-                        Slots[saveSlots[i]].Head[0] = 0xA1;
-                        break;
-
-                    case SlotTypes.middle_link:           //Middle link
-                        Slots[saveSlots[i]].Head[0] = 0xA2;
-                        break;
-
-                    case SlotTypes.end_link:              //End link
-                        Slots[saveSlots[i]].Head[0] = 0xA3;
-                        break;
-
-                    case SlotTypes.deleted_initial:       //Regular deleted save
-                        Slots[saveSlots[i]].Head[0] = 0x51;
-                        break;
-
-                    case SlotTypes.deleted_middle_link:   //Middle link deleted
-                        Slots[saveSlots[i]].Head[0] = 0x52;
-                        break;
-
-                    case SlotTypes.deleted_end_link:      //End link deleted
-                        Slots[saveSlots[i]].Head[0] = 0x53;
-                        break;
-                }
-            }
+            if (Slots[slotNumber].type == SlotTypes.initial)
+                Slots[slotNumber].Head[0] = 0xA0;
 
             calculateXOR();
             loadSlotTypes();
-            findBrokenLinks();
         }
 
         public void FormatSave(int slotNumber)
         {
-            int[] saveSlots = FindSaveLinks(slotNumber);
-
-            for (int i = 0; i < saveSlots.Length; i++)
-            {
-                DeleteSlot(saveSlots[i]);
-            }
+            for (int i = 0; i < MaxSlot; i++)
+                DeleteSlot(i);
 
             calculateXOR();
             LoadData();
-        }
-
-        public int[] FindSaveLinks(int initialSlotNumber)
-        {
-            List<int> tempSlotList = new List<int>();
-            int currentSlot = initialSlotNumber;
-
-            for (int i = 0; i < 15; i++)
-            {
-                tempSlotList.Add(currentSlot);
-
-                if (Slots[currentSlot].type == SlotTypes.corrupted)
-                    break;
-
-                if (Slots[currentSlot].Head[8] == 0xFF)
-                    break;
-
-                if (Slots[currentSlot].Head[8] > 15)
-                    break;
-
-                switch (Slots[Slots[currentSlot].Head[8]].type)
-                {
-                    default:
-                        return tempSlotList.ToArray();
-
-                    case SlotTypes.middle_link:
-                    case SlotTypes.end_link:
-                    case SlotTypes.deleted_middle_link:
-                    case SlotTypes.deleted_end_link:
-                        currentSlot = Slots[currentSlot].Head[8];
-                        break;
-                }
-            }
-
-            return tempSlotList.ToArray();
         }
 
         private int[] FindFreeSlots(int slotNumber, int requiredSlots)
@@ -409,36 +238,24 @@ namespace ScePSX
 
         public byte[] GetSaveBytes(int slotNumber)
         {
-            int[] saveSlots = FindSaveLinks(slotNumber);
-
-            byte[] saveBytes = new byte[8320 + ((saveSlots.Length - 1) * 8192)];
+            byte[] saveBytes = new byte[8320];
 
             for (int i = 0; i < 128; i++)
-                saveBytes[i] = Slots[saveSlots[0]].Head[i];
+                saveBytes[i] = Slots[slotNumber].Head[i];
 
-            for (int sNumber = 0; sNumber < saveSlots.Length; sNumber++)
-            {
-                for (int i = 0; i < 8192; i++)
-                    saveBytes[128 + (sNumber * 8192) + i] = Slots[saveSlots[sNumber]].Data[i];
-            }
+            for (int i = 0; i < 8192; i++)
+                saveBytes[128 + i] = Slots[slotNumber].Data[i];
 
             return saveBytes;
         }
 
         public void ReplaceSaveBytes(int slotNumber, byte[] saveBytes)
         {
-            int[] saveSlots = FindSaveLinks(slotNumber);
-
             for (int i = 0; i < 128; i++)
-                Slots[saveSlots[0]].Head[i] = saveBytes[i];
+                Slots[slotNumber].Head[i] = saveBytes[i];
 
-            for (int i = 0; i < saveSlots.Count(); i++)
-            {
-                for (int byteCount = 0; byteCount < 8192; byteCount++)
-                {
-                    Slots[saveSlots[i]].Head[byteCount] = saveBytes[128 + (i * 8192) + byteCount];
-                }
-            }
+            for (int byteCount = 0; byteCount < 8192; byteCount++)
+                Slots[slotNumber].Head[byteCount] = saveBytes[128 + byteCount];
 
             calculateXOR();
 
@@ -523,11 +340,9 @@ namespace ScePSX
 
             for (int slotNumber = 0; slotNumber < 15; slotNumber++)
             {
-                int[] saveLinks = FindSaveLinks(slotNumber);
-
                 for (int iconNumber = 0; iconNumber < 3; iconNumber++)
                 {
-                    if (Slots[slotNumber].type == SlotTypes.initial || Slots[slotNumber].type == SlotTypes.deleted_initial)
+                    if (Slots[slotNumber].type == SlotTypes.initial)
                     {
                         byteCount = 128 + (128 * iconNumber);
 
@@ -535,12 +350,8 @@ namespace ScePSX
                         {
                             for (int x = 0; x < 16; x += 2)
                             {
-
-                                foreach (int selectedSlot in saveLinks)
-                                {
-                                    Slots[selectedSlot].IconData[iconNumber][x + (y * 16)] = Slots[slotNumber].IconPalette[Slots[slotNumber].Data[byteCount] & 0xF];
-                                    Slots[selectedSlot].IconData[iconNumber][x + (y * 16) + 1] = Slots[slotNumber].IconPalette[Slots[slotNumber].Data[byteCount] >> 4];
-                                }
+                                Slots[slotNumber].IconData[iconNumber][x + (y * 16)] = Slots[slotNumber].IconPalette[Slots[slotNumber].Data[byteCount] & 0xF];
+                                Slots[slotNumber].IconData[iconNumber][x + (y * 16) + 1] = Slots[slotNumber].IconPalette[Slots[slotNumber].Data[byteCount] >> 4];
 
                                 byteCount++;
                             }
@@ -562,8 +373,6 @@ namespace ScePSX
 
         public void SetIconBytes(int slotNumber, byte[] iconBytes)
         {
-            int[] saveSlots = FindSaveLinks(slotNumber);
-
             for (int i = 0; i < 416; i++)
                 Slots[slotNumber].Data[i + 96] = iconBytes[i];
 
@@ -704,6 +513,33 @@ namespace ScePSX
                 return false;
         }
 
+        private void SaveCardData()
+        {
+            RawData = new byte[131072];
+
+            RawData[0] = 0x4D;        //M
+            RawData[1] = 0x43;        //C
+            RawData[127] = 0x0E;      //XOR (precalculated)
+
+            RawData[8064] = 0x4D;     //M
+            RawData[8065] = 0x43;     //C
+            RawData[8191] = 0x0E;     //XOR (precalculated)
+
+            for (int slotNumber = 0; slotNumber < MaxSlot; slotNumber++)
+            {
+                for (int currentByte = 0; currentByte < 128; currentByte++)
+                {
+                    RawData[128 + (slotNumber * 128) + currentByte] = Slots[slotNumber].Head[currentByte];
+                }
+
+                for (int currentByte = 0; currentByte < 8192; currentByte++)
+                {
+                    RawData[8192 + (slotNumber * 8192) + currentByte] = Slots[slotNumber].Data[currentByte];
+                }
+            }
+
+        }
+
         public bool SaveCard(string fileName)
         {
             BinaryWriter binWriter = null;
@@ -716,9 +552,12 @@ namespace ScePSX
                 return false;
             }
 
-            LoadCard();
+            SaveCardData();
             binWriter.Write(RawData);
             binWriter.Close();
+            binWriter = null;
+
+            LoadCard();
             return true;
         }
 
@@ -732,7 +571,6 @@ namespace ScePSX
         private void LoadData()
         {
             loadSlotTypes();
-            findBrokenLinks();
             loadStringData();
             loadSaveSize();
             loadPalette();
@@ -767,6 +605,9 @@ namespace ScePSX
 
             LoadCard();
             LoadData();
+
+            binReader.Close();
+            binReader = null;
 
             return null;
         }
