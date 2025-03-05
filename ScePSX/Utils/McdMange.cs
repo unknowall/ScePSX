@@ -498,7 +498,7 @@ namespace ScePSX
                 return false;
         }
 
-        private void SaveCardData()
+        private void BuildCardData()
         {
             RawData = new byte[131072];
 
@@ -538,7 +538,7 @@ namespace ScePSX
             }
 
             calculateXOR();
-            SaveCardData();
+            BuildCardData();
             binWriter.Write(RawData);
             binWriter.Close();
             binWriter = null;
@@ -566,10 +566,7 @@ namespace ScePSX
 
         public string OpenCard(string FileName)
         {
-            byte[] tempData;
-            int startOffset;
             BinaryReader binReader;
-            long fileSize = 0;
 
             try
             {
@@ -579,21 +576,15 @@ namespace ScePSX
                 return errorException.Message;
             }
 
-            tempData = new byte[134976];
+            if (binReader.BaseStream.Length < 131072)
+                return "bad data";
 
-            binReader.BaseStream.Read(tempData, 0, 134976);
-            fileSize = binReader.BaseStream.Length;
+            binReader.BaseStream.Read(RawData, 0, 131072);
             binReader.Close();
-
-            startOffset = 0;
-
-            Array.Copy(tempData, startOffset, RawData, 0, 131072);
+            binReader = null;
 
             LoadCard();
             LoadData();
-
-            binReader.Close();
-            binReader = null;
 
             return null;
         }
