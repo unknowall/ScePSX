@@ -71,13 +71,6 @@ namespace ScePSX.UI
         {
             InitializeComponent();
 
-            //MainMenu.RenderMode = ToolStripRenderMode.Professional;
-            //MainMenu.Renderer = new CustomToolStripRenderer();
-            //MainMenu.BackColor = Color.FromArgb(45, 45, 45);
-            //MainMenu.ForeColor = Color.White;
-
-            //AddCustomTitleBar();
-
             if (ini.ReadInt("Main", "Console") == 1)
             {
                 AllocConsole();
