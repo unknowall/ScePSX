@@ -1,14 +1,13 @@
 <h2>这是一个小巧可用的 PS1 模拟器</h2>
 
 1. 即时存档、读档
-2. D2D1, D3D和OpenGL 渲染器，OpenGL可加载着色器，D3D, OpenGL 兼容ReShade
-3. 内部分辨率可调节
-4. 内存编辑及内存搜索功能
-5. 支持金手指
-6. 支持双手柄、双键盘
-7. 独立的游戏存档及即时存档
-8. 支持网络对战
-9. 游戏存档管理
+2. 可动态切换 D2D1、D3D、OpenGL 渲染器
+3. OpenGL可加载着色器，D3D, OpenGL 兼容ReShade
+4. 内部分辨率可调节
+5. 内存编辑及内存搜索功能
+6. 金手指
+7. 网络对战
+8. 游戏存档管理
 
 
 
@@ -28,12 +27,8 @@
 3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
 
-![new01](https://github.com/user-attachments/assets/869a7da4-a96d-4596-b31f-e64abc097aee)
-
-![捕获3](https://github.com/user-attachments/assets/a4941aae-7856-4ade-be5a-2d352d36eef4)
-
-![捕获22](https://github.com/user-attachments/assets/ece44ade-6564-4361-9f52-e1484317eadc)
-
+![捕获1](https://github.com/user-attachments/assets/27f7ac35-f296-4bdc-9164-498ea4342314)
+![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
 
 以下截图是老版本的
