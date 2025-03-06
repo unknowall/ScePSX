@@ -14,6 +14,10 @@
   <ApplicationIcon>001.ico</ApplicationIcon>
 </PropertyGroup>
 
+<PropertyGroup>
+    <TieredCompilation>true</TieredCompilation>
+</PropertyGroup>
+
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Optimize>True</Optimize>

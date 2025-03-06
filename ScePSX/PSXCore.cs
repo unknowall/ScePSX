@@ -191,7 +191,8 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            };
+            }
+            ;
 
             PsxBus = StateFromFile<BUS>(fn);
             PsxBus.DeSerializable(this);
@@ -213,7 +214,8 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            };
+            }
+            ;
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
@@ -283,6 +285,7 @@ namespace ScePSX
 
         private void PSX_EXECUTE()
         {
+            Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)0x0F;
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
