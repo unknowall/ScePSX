@@ -33,10 +33,10 @@ namespace ScePSX.UI
         private Rectangle _minButtonRect = new Rectangle(0, 0, 30, 25);
         private Rectangle _maxButtonRect = new Rectangle(0, 0, 30, 25);
 
-        private Label titleLabel;
-        private Panel titleBar;
+        public Label titleLabel;
+        public Panel titleBar;
 
-        private StatusStrip _statusBar;
+        public StatusStrip _statusBar;
 
         public CustomForm()
         {
@@ -59,35 +59,142 @@ namespace ScePSX.UI
             _statusBar = new StatusStrip
             {
                 BackColor = _titleBarColor,
-                Renderer = new RomList.CustomToolStripRenderer(),
+                Renderer = new CustomToolStripRenderer(),
                 Dock = DockStyle.Bottom,
                 Size = new Size(100, 24)
             };
             Controls.Add(_statusBar);
         }
 
-        public void UpdateStatus(int index, string text)
+        public void UpdateStatus(int index, string text, bool clear = false)
         {
+            if (clear)
+                foreach (ToolStripItem item in _statusBar.Items)
+                {
+                    item.Text = "";
+                }
             if (index < _statusBar.Items.Count)
             {
-                Invoke((MethodInvoker)delegate {
-                    _statusBar.Items[index].Text = text;
-                });
+                _statusBar.Items[index].Text = text;
             }
         }
 
-        public ToolStripStatusLabel AddStatusLabel(string text, int width = 100)
+        public void AddStatusSpring()
         {
-            var label = new ToolStripStatusLabel
+            _statusBar.Items.Add(new ToolStripStatusLabel { Spring = true, BorderSides = ToolStripStatusLabelBorderSides.None });
+        }
+
+        public ToolStripStatusLabel AddStatusLabel(string text, bool alignRight = false)
+        {
+            var label1 = new CustomToolStripStatusLabel
+            {
+                Text = text,
+                Font = new Font("Arial", 9, FontStyle.Bold),
+                ForeColor = Color.White,
+                BorderSides = ToolStripStatusLabelBorderSides.All,
+                BorderStyle = Border3DStyle.Flat,
+                Margin = new Padding(1, 0, 1, 0)
+            };
+
+            if (alignRight)
+            {
+                label1.Alignment = ToolStripItemAlignment.Right;
+                label1.Spring = false; // 不使用Spring，保持固定宽度
+            } else
+            {
+                label1.Alignment = ToolStripItemAlignment.Left;
+            }
+
+            _statusBar.Items.Add(label1);
+            return label1;
+        }
+
+        public class CustomToolStripStatusLabel : ToolStripStatusLabel
+        {
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                using (var brush = new SolidBrush(Color.FromArgb(50, 50, 50)))
+                {
+                    e.Graphics.FillRectangle(brush, new Rectangle(Point.Empty, this.Size));
+                }
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    this.Text,
+                    this.Font,
+                    this.ContentRectangle,
+                    Color.LightGray,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+        }
+
+        public class CustomToolStripRenderer : ToolStripProfessionalRenderer
+        {
+
+            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+            {
+                using (var pen = new Pen(Color.FromArgb(100, 100, 100)))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+                }
+            }
+
+            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+            {
+                e.TextColor = Color.LightGray;
+                base.OnRenderItemText(e);
+            }
+        }
+
+        public void AddTitleButton(string text, Action action, int x, Color entercolor)
+        {
+            Label Button = new Label
             {
                 Text = text,
                 ForeColor = Color.White,
-                Width = width,
-                BorderSides = ToolStripStatusLabelBorderSides.Left,
-                BorderStyle = Border3DStyle.Etched
+                BackColor = Color.Transparent,
+                Font = new Font("Franklin Gothic", 14f, FontStyle.Bold),
+                AutoSize = false,
+                //Dock = dock,
+                Width = 35,
+                Height = 25,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
             };
-            _statusBar.Items.Add(label);
-            return label;
+            Button.Location = new Point(this.Width - x, 0);
+            Button.MouseEnter += (sender, e) => Button.BackColor = entercolor;
+            Button.MouseLeave += (sender, e) => Button.BackColor = Color.Transparent;
+            Button.Click += (s, e) => action();
+            titleBar.Controls.Add(Button);
+        }
+
+        private void ToggleMaximize()
+        {
+            WindowState = (WindowState == FormWindowState.Maximized)
+                ? FormWindowState.Normal
+                : FormWindowState.Maximized;
+        }
+
+        bool isDragging = false;
+        Point dragStart = new Point();
+
+        private void BarMouseDown(MouseEventArgs e)
+        {
+            isDragging = true;
+            dragStart = new Point(e.X, e.Y);
+        }
+
+        private void BarMouseMove(MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                Point p = PointToScreen(e.Location);
+                this.Location = new Point(p.X - dragStart.X, p.Y - dragStart.Y);
+            }
+        }
+
+        private void BarMouseUp(MouseEventArgs e)
+        {
+            isDragging = false;
         }
 
         public void AddCustomTitleBar()
@@ -106,119 +213,32 @@ namespace ScePSX.UI
                 Text = this.Text,
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
-                Font = new Font("Franklin Gothic", 11f, FontStyle.Regular),
-                AutoSize = false,
+                Font = new Font("Franklin Gothic", 10f, FontStyle.Regular),
+                AutoSize = true,
                 Width = 150,
                 Height = 25,
-                TextAlign = ContentAlignment.MiddleCenter
+                TextAlign = ContentAlignment.MiddleLeft
             };
-            titleLabel.Location = new Point((titleBar.Width - titleLabel.Width) / 2, 0);
-            titleLabel.Anchor = AnchorStyles.Top;
+            //titleLabel.Location = new Point((titleBar.Width - titleLabel.Width) / 2, 0);
+            titleLabel.Location = new Point(6, 0);
+            //titleLabel.Anchor = AnchorStyles.Top;
             titleBar.Controls.Add(titleLabel);
 
-            // Close button
-            Label closeButton = new Label
-            {
-                Text = "×",
-                ForeColor = Color.White,
-                BackColor = Color.Transparent,
-                Font = new Font("Franklin Gothic", 14f, FontStyle.Bold),
-                AutoSize = false,
-                Width = 35,
-                Height = 25,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            closeButton.Location = new Point(this.Width - closeButton.Width, 0);
-            closeButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            closeButton.MouseEnter += (sender, e) => closeButton.BackColor = Color.FromArgb(232, 17, 35);
-            closeButton.MouseLeave += (sender, e) => closeButton.BackColor = Color.Transparent;
-            closeButton.Click += (sender, e) => this.Close();
-            closeButton.TextAlign = ContentAlignment.MiddleCenter;
-            titleBar.Controls.Add(closeButton);
+            AddTitleButton("×", Close, 35, Color.FromArgb(232, 17, 35));
+            AddTitleButton("□", ToggleMaximize, 70, Color.FromArgb(209, 209, 209));
+            AddTitleButton("−", () => WindowState = FormWindowState.Minimized, 105, Color.FromArgb(209, 209, 209));
 
-            // Minimize button
-            Label minimizeButton = new Label
-            {
-                Text = "−",
-                ForeColor = Color.White,
-                BackColor = Color.Transparent,
-                Font = new Font("Franklin Gothic", 14f, FontStyle.Bold),
-                AutoSize = false,
-                Width = 35,
-                Height = 25,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            minimizeButton.Location = new Point(this.Width - closeButton.Width - minimizeButton.Width, 0);
-            minimizeButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            minimizeButton.MouseEnter += (sender, e) => minimizeButton.BackColor = Color.FromArgb(209, 209, 209);
-            minimizeButton.MouseLeave += (sender, e) => minimizeButton.BackColor = Color.Transparent;
-            minimizeButton.Click += (sender, e) => this.WindowState = FormWindowState.Minimized;
-            minimizeButton.TextAlign = ContentAlignment.MiddleCenter;
-            titleBar.Controls.Add(minimizeButton);
+            titleLabel.MouseDown += (sender, e) => BarMouseDown(e);
 
-            // Max
-            Label maxButton = new Label
-            {
-                Text = "□",
-                ForeColor = Color.White,
-                BackColor = Color.Transparent,
-                Font = new Font("Franklin Gothic", 16f, FontStyle.Bold),
-                AutoSize = false,
-                Width = 35,
-                Height = 25,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            maxButton.Click += (s, e) =>
-            {
-                WindowState = (WindowState == FormWindowState.Maximized)
-                    ? FormWindowState.Normal
-                    : FormWindowState.Maximized;
-            };
-            maxButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            maxButton.MouseEnter += (sender, e) => maxButton.BackColor = Color.FromArgb(209, 209, 209);
-            maxButton.MouseLeave += (sender, e) => maxButton.BackColor = Color.Transparent;
-            maxButton.TextAlign = ContentAlignment.TopCenter;
-            titleBar.Controls.Add(maxButton);
+            titleBar.MouseDown += (sender, e) => BarMouseDown(e);
 
-            bool isDragging = false;
-            Point dragStart = new Point();
+            titleLabel.MouseMove += (sender, e) => BarMouseMove(e);
 
-            titleLabel.MouseDown += (sender, e) =>
-            {
-                isDragging = true;
-                dragStart = new Point(e.X, e.Y);
-            };
-            titleBar.MouseDown += (sender, e) =>
-            {
-                isDragging = true;
-                dragStart = new Point(e.X, e.Y);
-            };
+            titleBar.MouseMove += (sender, e) => BarMouseMove(e);
 
-            titleLabel.MouseMove += (sender, e) =>
-            {
-                if (isDragging)
-                {
-                    Point p = PointToScreen(e.Location);
-                    this.Location = new Point(p.X - dragStart.X, p.Y - dragStart.Y);
-                }
-            };
-            titleBar.MouseMove += (sender, e) =>
-            {
-                if (isDragging)
-                {
-                    Point p = PointToScreen(e.Location);
-                    this.Location = new Point(p.X - dragStart.X, p.Y - dragStart.Y);
-                }
-            };
+            titleLabel.MouseUp += (sender, e) => BarMouseUp(e);
 
-            titleLabel.MouseUp += (sender, e) =>
-            {
-                isDragging = false;
-            };
-            titleBar.MouseUp += (sender, e) =>
-            {
-                isDragging = false;
-            };
+            titleBar.MouseUp += (sender, e) => BarMouseUp(e);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -232,8 +252,10 @@ namespace ScePSX.UI
             set
             {
                 base.Text = value;
-                if(titleLabel != null)
+                if (titleLabel != null)
+                {
                     titleLabel.Text = value;
+                }  
             }
         }
 
@@ -251,6 +273,14 @@ namespace ScePSX.UI
         {
             const int WM_SIZE = 0x0005;
             const int WM_WINDOWPOSCHANGED = 0x0047;
+            const int HTLEFT = 10;
+            const int HTRIGHT = 11;
+            const int HTTOP = 12;
+            const int HTTOPLEFT = 13;
+            const int HTTOPRIGHT = 14;
+            const int HTBOTTOM = 15;
+            const int HTBOTTOMLEFT = 16;
+            const int HTBOTTOMRIGHT = 17;
 
             base.WndProc(ref m);
 
@@ -267,7 +297,25 @@ namespace ScePSX.UI
 
                 case WM_NCHITTEST:
                     var pt = PointToClient(new Point(m.LParam.ToInt32() & 0xffff, m.LParam.ToInt32() >> 16));
-                    m.Result = pt.Y <= TitleBarHeight ? (IntPtr)HTCAPTION : (IntPtr)HTCLIENT;
+                    if (pt.Y <= TitleBarHeight)
+                    {
+                        m.Result = (IntPtr)HTCAPTION;
+                    } else if (pt.X <= 5)
+                    {
+                        m.Result = (IntPtr)(pt.Y <= 5 ? HTTOPLEFT : (pt.Y >= ClientSize.Height - 5 ? HTBOTTOMLEFT : HTLEFT));
+                    } else if (pt.X >= ClientSize.Width - 5)
+                    {
+                        m.Result = (IntPtr)(pt.Y <= 5 ? HTTOPRIGHT : (pt.Y >= ClientSize.Height - 5 ? HTBOTTOMRIGHT : HTRIGHT));
+                    } else if (pt.Y <= 5)
+                    {
+                        m.Result = (IntPtr)HTTOP;
+                    } else if (pt.Y >= ClientSize.Height - 5)
+                    {
+                        m.Result = (IntPtr)HTBOTTOM;
+                    } else
+                    {
+                        m.Result = (IntPtr)HTCLIENT;
+                    }
                     break;
             }
         }
@@ -293,12 +341,6 @@ namespace ScePSX.UI
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-
-            if (titleBar != null)
-            {
-                titleBar.Invalidate();
-                titleBar.Update();
-            }
         }
 
         public class MainMenuRenderer : ToolStripProfessionalRenderer
@@ -401,6 +443,6 @@ namespace ScePSX.UI
                 }
             }
         }
-    
+
     }
 }

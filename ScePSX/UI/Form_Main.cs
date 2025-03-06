@@ -13,21 +13,21 @@ using static SDL2.SDL;
 namespace ScePSX.UI
 {
 
-    public partial class FrmMain : CustomForm, IAudioHandler, IRenderHandler
+    public partial class FrmMain : Form, IAudioHandler, IRenderHandler
     {
         [DllImport("kernel32.dll")]
         public static extern Boolean AllocConsole();
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.0.7";
+        public static string version = "ScePSX Beta 0.0.8";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
         private string currbios;
         private string shaderpath;
-        private string temphint;
-        private int hintdelay;
+        private int StatusDelay;
+        private string gamename;
 
         private int StateSlot;
         private int CoreWidth, CoreHeight;
@@ -47,7 +47,6 @@ namespace ScePSX.UI
         private CircularBuffer<byte> SamplesBuffer;
 
         private System.Windows.Forms.Timer timer;
-        private Label lbHint;
 
         public int scale;
         private bool cutblackline = false;
@@ -71,12 +70,20 @@ namespace ScePSX.UI
         {
             InitializeComponent();
 
-            MainMenu.RenderMode = ToolStripRenderMode.Professional;
-            MainMenu.Renderer = new MainMenuRenderer();
-            MainMenu.BackColor = Color.FromArgb(45, 45, 45);
+            //MainMenu.RenderMode = ToolStripRenderMode.Professional;
+            //MainMenu.Renderer = new MainMenuRenderer();
+            //MainMenu.BackColor = Color.FromArgb(45, 45, 45);
 
-            AddCustomTitleBar();
-            AddStatusBar();
+            //AddCustomTitleBar();
+            //AddStatusBar();
+            //AddStatusLabel("");
+            //AddStatusLabel("");
+            //AddStatusLabel("");
+            //AddStatusLabel("");
+            //AddStatusSpring();
+            //AddStatusLabel("", true);
+            //AddStatusLabel("", true);
+            //AddStatusLabel("", true);
 
             if (ini.ReadInt("Main", "Console") == 1)
             {
@@ -162,23 +169,6 @@ namespace ScePSX.UI
 
             KeyFirst = ini.ReadInt("main", "keyfirst") == 1;
             isAnalog = ini.ReadInt("main", "isAnalog") == 1;
-            ToolStripMenuItem springItem = new ToolStripMenuItem();
-            springItem.AutoSize = false;
-            springItem.Width = 0;
-            springItem.Enabled = false;
-            lbHint = new Label();
-            lbHint.Text = $" F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
-            lbHint.Font = new Font("微软雅黑", 11f, FontStyle.Bold);
-            lbHint.AutoSize = true;
-            lbHint.Padding = new Padding(0, 2, 10, 0);
-
-            ToolStripControlHost host = new ToolStripControlHost(lbHint);
-            host.Alignment = ToolStripItemAlignment.Right;
-
-            MainMenu.Items.Add(springItem);
-            MainMenu.Items.Add(host);
-
-            SDLInit();
 
             FrmInput.InitKeyMap();
             FrmInput.InitControllerMap();
@@ -193,30 +183,47 @@ namespace ScePSX.UI
             if (currbios == null)
                 currbios = "SCPH1001.BIN";
 
+            SDLInit();
+
             InitShaderMnu();
+        }
+
+        private void UpdateStatus(int index, string text, bool clean = false)
+        {
+            if (index < 0 || index >= StatusBar.Items.Count)
+                return;
+            if (clean)
+                foreach (ToolStripItem item in StatusBar.Items)
+                {
+                    item.Text = "";
+                }
+            StatusBar.Items[index].Text = text;
         }
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
-
-            lbHint.Text = $"{temphint} 即时档 [{StateSlot}] F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]  F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]";
-
-            if (hintdelay > 0)
-            {
-                hintdelay--;
-            } else
-            {
-                temphint = "";
-            }
-
             if (Core == null)
             {
                 this.Text = version;
                 return;
             }
 
+            if (StatusDelay > 0)
+            {
+                StatusDelay--;
+            } else
+            {
+                UpdateStatus(1, $"F3+ F4- 存档槽 [{StateSlot}]");
+                UpdateStatus(2, $"F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]");
+                UpdateStatus(3, $"F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]");
+            }
+
             if (Core.Pauseed)
-                lbHint.Text = "暂停中";
+            {
+                UpdateStatus(1, "暂停中", true);
+            }
+
+            this.Text = $"{version}  -  {gamename}";
 
             int scalew = CoreWidth;
             int scaleh = CoreHeight;
@@ -232,7 +239,10 @@ namespace ScePSX.UI
                 scalew *= scale;
                 scaleh *= scale;
             }
-            this.Text = $"ScePSX | {Core.DiskID} | {rendername} | IR {scalew}*{scaleh} | FPS {_currentFps:F1}";
+            UpdateStatus(0, Core.DiskID);
+            UpdateStatus(5, rendername);
+            UpdateStatus(6, $"IR {scalew}*{scaleh}");
+            UpdateStatus(7, $"FPS {_currentFps:F1}");
         }
 
         ~FrmMain()
@@ -440,8 +450,6 @@ namespace ScePSX.UI
         {
             if (Core != null)
             {
-                temphint = "现在不能操作";
-                hintdelay = 3;
                 return;
             }
             if (romList != null)
@@ -480,6 +488,8 @@ namespace ScePSX.UI
             romList.DoubleClick += new EventHandler(romList_DoubleClick);
             romList.FillByini();
             romList.BringToFront();
+
+            UpdateStatus(0, "", true);
         }
 
         private void directx2DRender_Click(object sender, EventArgs e)
@@ -599,43 +609,57 @@ namespace ScePSX.UI
             UnLoadState();
         }
 
+        private void ShowFrom(Form Frm)
+        {
+            Frm.StartPosition = FormStartPosition.Manual;
+            Frm.Owner = this;
+
+            Point parentCenterClient = new Point(
+                this.ClientSize.Width / 2,
+                this.ClientSize.Height / 2
+            );
+
+            Point parentCenterScreen = this.PointToScreen(parentCenterClient);
+
+            Frm.Location = new Point(
+                parentCenterScreen.X - Frm.Width / 2,
+                parentCenterScreen.Y - Frm.Height / 2
+                );
+
+            Frm.Show();
+        }
+
         private void CheatCode_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
             {
-                var frmcheat = new Form_Cheat(Core.DiskID);
-                frmcheat.Show(this);
+                ShowFrom(new Form_Cheat(Core.DiskID));
             }
         }
 
         private void MnuDebug_Click(object sender, EventArgs e)
         {
-            var frmmem = new Form_Mem();
-            frmmem.Show(this);
+            ShowFrom(new Form_Mem());
         }
 
         private void KeyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var frminput = new FrmInput();
-            frminput.Show(this);
+            ShowFrom(new FrmInput());
         }
 
         private void AboutMnu_Click(object sender, EventArgs e)
         {
-            var frm = new FrmAbout();
-            frm.Show(this);
+            ShowFrom(new FrmAbout());
         }
 
         private void NetPlaySetMnu_Click(object sender, EventArgs e)
         {
-            var frm = new FrmNetPlay();
-            frm.Show(this);
+            ShowFrom(new FrmNetPlay());
         }
 
         private void SysSetMnu_Click(object sender, EventArgs e)
         {
-            var frm = new Form_Set();
-            frm.Show(this);
+            ShowFrom(new Form_Set());
         }
         #endregion
 
@@ -644,8 +668,8 @@ namespace ScePSX.UI
             if (Core != null && Core.Running)
             {
                 Core.SaveState(Slot.ToString());
-                temphint = $"已保存到 ";
-                hintdelay = 3;
+                UpdateStatus(1, $"已保存到即时存档 [{StateSlot}]", true);
+                StatusDelay = 3;
             }
         }
 
@@ -674,6 +698,16 @@ namespace ScePSX.UI
                     Core.Pause();
                 return;
             }
+            if (e.KeyCode == Keys.F3)
+            {
+                StateSlot = StateSlot < 9 ? StateSlot + 1 : StateSlot;
+                return;
+            }
+            if (e.KeyCode == Keys.F4)
+            {
+                StateSlot = StateSlot > 0 ? StateSlot - 1 : StateSlot;
+                return;
+            }
             if (e.KeyCode == Keys.F5)
             {
                 foreach (ToolStripMenuItem item in SaveStripMenuItem.DropDownItems)
@@ -688,7 +722,7 @@ namespace ScePSX.UI
             }
             if (e.KeyCode == Keys.F6)
             {
-                LoadState();
+                LoadState(StateSlot);
                 return;
             }
             if (e.KeyCode == Keys.F7)
@@ -766,7 +800,7 @@ namespace ScePSX.UI
         {
             if (!File.Exists("./BIOS/" + currbios))
             {
-                lbHint.Text = "没有BIOS文件，无法运行 (Bios Not Found)";
+                UpdateStatus(0, "没有BIOS文件，无法运行 (Bios Not Found)", true);
                 timer.Enabled = false;
                 timer.Stop();
                 return;
@@ -785,6 +819,7 @@ namespace ScePSX.UI
                     return;
 
                 fn = FD.FileName;
+                gamename = Path.GetFileNameWithoutExtension(fn);
             }
 
             ini.Write("main", "LastPath", Path.GetDirectoryName(fn));
@@ -804,6 +839,8 @@ namespace ScePSX.UI
             IniFile sysini = null;
             if (game != null)
             {
+                gamename = game.Name;
+
                 string inifn = $"./Save/{game.ID}.ini";
                 if (File.Exists(inifn))
                 {
@@ -824,7 +861,7 @@ namespace ScePSX.UI
                 return;
             }
 
-            if(sysini != null)
+            if (sysini != null)
                 sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
             else
                 ini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
@@ -863,9 +900,6 @@ namespace ScePSX.UI
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
-
-            temphint = $"已启动 [{Core.DiskID}]";
-            hintdelay = 3;
 
             ChatCode.Enabled = true;
 
@@ -906,8 +940,8 @@ namespace ScePSX.UI
 
             Core.Pauseing = false;
 
-            temphint = $"已换盘 {Core.DiskID}";
-            hintdelay = 3;
+            UpdateStatus(1, $"更换光盘 {Core.DiskID}", true);
+            StatusDelay = 3;
         }
 
         public void RenderFrame(int[] pixels, int width, int height)

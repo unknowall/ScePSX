@@ -59,7 +59,17 @@
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
             AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
+            StatusBar = new System.Windows.Forms.StatusStrip();
+            toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel4 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel5 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel6 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel7 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel8 = new System.Windows.Forms.ToolStripStatusLabel();
             MainMenu.SuspendLayout();
+            StatusBar.SuspendLayout();
             SuspendLayout();
             // 
             // MainMenu
@@ -83,104 +93,104 @@
             // LoadDIsk
             // 
             LoadDIsk.Name = "LoadDIsk";
-            LoadDIsk.Size = new System.Drawing.Size(180, 22);
+            LoadDIsk.Size = new System.Drawing.Size(165, 22);
             LoadDIsk.Text = "加载光盘";
             LoadDIsk.Click += LoadDisk_Click;
             // 
             // SwapDisk
             // 
             SwapDisk.Name = "SwapDisk";
-            SwapDisk.Size = new System.Drawing.Size(180, 22);
+            SwapDisk.Size = new System.Drawing.Size(165, 22);
             SwapDisk.Text = "切换光盘";
             SwapDisk.Click += SwapDisk_Click;
             // 
             // CloseRomMnu
             // 
             CloseRomMnu.Name = "CloseRomMnu";
-            CloseRomMnu.Size = new System.Drawing.Size(180, 22);
+            CloseRomMnu.Size = new System.Drawing.Size(165, 22);
             CloseRomMnu.Text = "返回列表";
             CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem1.Size = new System.Drawing.Size(162, 6);
             // 
             // SearchMnu
             // 
             SearchMnu.Name = "SearchMnu";
-            SearchMnu.Size = new System.Drawing.Size(180, 22);
+            SearchMnu.Size = new System.Drawing.Size(165, 22);
             SearchMnu.Text = "扫描目录";
             SearchMnu.Click += SearchMnu_Click;
             // 
             // SysSetMnu
             // 
             SysSetMnu.Name = "SysSetMnu";
-            SysSetMnu.Size = new System.Drawing.Size(180, 22);
+            SysSetMnu.Size = new System.Drawing.Size(165, 22);
             SysSetMnu.Text = "系统设置";
             SysSetMnu.Click += SysSetMnu_Click;
             // 
             // KeyTool
             // 
             KeyTool.Name = "KeyTool";
-            KeyTool.Size = new System.Drawing.Size(180, 22);
+            KeyTool.Size = new System.Drawing.Size(165, 22);
             KeyTool.Text = "按键设置";
             KeyTool.Click += KeyToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem2.Size = new System.Drawing.Size(162, 6);
             // 
             // SaveStripMenuItem
             // 
             SaveStripMenuItem.Enabled = false;
             SaveStripMenuItem.Name = "SaveStripMenuItem";
-            SaveStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            SaveStripMenuItem.Size = new System.Drawing.Size(165, 22);
             SaveStripMenuItem.Text = "即时存档 (F5)";
             // 
             // LoadStripMenuItem
             // 
             LoadStripMenuItem.Enabled = false;
             LoadStripMenuItem.Name = "LoadStripMenuItem";
-            LoadStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            LoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
             LoadStripMenuItem.Text = "即时读取 (F6)";
             // 
             // UnLoadStripMenuItem
             // 
             UnLoadStripMenuItem.Enabled = false;
             UnLoadStripMenuItem.Name = "UnLoadStripMenuItem";
-            UnLoadStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            UnLoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
             UnLoadStripMenuItem.Text = "撤销读取 (F7)";
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem3.Size = new System.Drawing.Size(162, 6);
             // 
             // ChatCode
             // 
             ChatCode.Enabled = false;
             ChatCode.Name = "ChatCode";
-            ChatCode.Size = new System.Drawing.Size(180, 22);
+            ChatCode.Size = new System.Drawing.Size(165, 22);
             ChatCode.Text = "金手指";
             ChatCode.Click += CheatCode_Click;
             // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
-            toolStripMenuItem5.Size = new System.Drawing.Size(177, 6);
+            toolStripMenuItem5.Size = new System.Drawing.Size(162, 6);
             // 
             // FreeSpeed
             // 
             FreeSpeed.Name = "FreeSpeed";
-            FreeSpeed.Size = new System.Drawing.Size(180, 22);
+            FreeSpeed.Size = new System.Drawing.Size(165, 22);
             FreeSpeed.Text = "加速快进 (TAB)";
             // 
             // MnuPause
             // 
             MnuPause.Name = "MnuPause";
-            MnuPause.Size = new System.Drawing.Size(180, 22);
+            MnuPause.Size = new System.Drawing.Size(165, 22);
             MnuPause.Text = "暂停/继续 (空格)";
             MnuPause.Click += MnuPause_Click;
             // 
@@ -300,11 +310,69 @@
             AboutMnu.Text = "关于(&A)";
             AboutMnu.Click += AboutMnu_Click;
             // 
+            // StatusBar
+            // 
+            StatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2, toolStripStatusLabel3, toolStripStatusLabel4, toolStripStatusLabel5, toolStripStatusLabel6, toolStripStatusLabel7, toolStripStatusLabel8 });
+            StatusBar.Location = new System.Drawing.Point(0, 476);
+            StatusBar.Name = "StatusBar";
+            StatusBar.Size = new System.Drawing.Size(684, 22);
+            StatusBar.TabIndex = 1;
+            // 
+            // toolStripStatusLabel1
+            // 
+            toolStripStatusLabel1.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripStatusLabel2
+            // 
+            toolStripStatusLabel2.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripStatusLabel3
+            // 
+            toolStripStatusLabel3.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel3.Name = "toolStripStatusLabel3";
+            toolStripStatusLabel3.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripStatusLabel4
+            // 
+            toolStripStatusLabel4.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel4.Name = "toolStripStatusLabel4";
+            toolStripStatusLabel4.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripStatusLabel5
+            // 
+            toolStripStatusLabel5.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel5.Name = "toolStripStatusLabel5";
+            toolStripStatusLabel5.Size = new System.Drawing.Size(638, 17);
+            toolStripStatusLabel5.Spring = true;
+            // 
+            // toolStripStatusLabel6
+            // 
+            toolStripStatusLabel6.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel6.Name = "toolStripStatusLabel6";
+            toolStripStatusLabel6.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripStatusLabel7
+            // 
+            toolStripStatusLabel7.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel7.Name = "toolStripStatusLabel7";
+            toolStripStatusLabel7.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripStatusLabel8
+            // 
+            toolStripStatusLabel8.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel8.Name = "toolStripStatusLabel8";
+            toolStripStatusLabel8.Size = new System.Drawing.Size(0, 17);
+            // 
             // FrmMain
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(684, 498);
+            Controls.Add(StatusBar);
             Controls.Add(MainMenu);
             MainMenuStrip = MainMenu;
             Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
@@ -313,6 +381,8 @@
             Text = "ScePSX";
             MainMenu.ResumeLayout(false);
             MainMenu.PerformLayout();
+            StatusBar.ResumeLayout(false);
+            StatusBar.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
 
@@ -354,5 +424,14 @@
         private System.Windows.Forms.ToolStripMenuItem AboutMnu;
         private System.Windows.Forms.ToolStripMenuItem CloseRomMnu;
         private System.Windows.Forms.ToolStripMenuItem SearchMnu;
+        private System.Windows.Forms.StatusStrip StatusBar;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel4;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel5;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel6;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel7;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel8;
     }
 }

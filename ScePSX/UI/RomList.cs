@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime;
 using System.Windows.Forms;
 
 using ScePSX.CdRom2;
@@ -58,6 +59,24 @@ namespace ScePSX.UI
         private readonly Color ThumbColor = Color.FromArgb(100, 100, 100); // 滑块颜色
         private readonly Color ThumbHoverColor = Color.FromArgb(120, 120, 120); // 滑块悬停颜色
 
+        private Color TextColor = Color.White;
+        private Color InfoBackColor = Color.FromArgb(50, 50, 50);
+        private Color MainBackColor = Color.FromArgb(45, 45, 45);
+        private Color MenuBackColor = Color.FromArgb(45, 45, 45);
+        private Color ItemBackColor2 = Color.FromArgb(43, 43, 43);
+        private Color ItemBackColor1 = Color.FromArgb(50, 50, 50);
+        private Color HoverColor = Color.FromArgb(70, 70, 70); // 悬停时的高亮颜色
+        private Color SelectionColor = Color.Orange; // 选中时的高亮颜色
+        private Color BorderColor = Color.FromArgb(100, 100, 100); // 边框颜色
+        private Color ShadowColor = Color.FromArgb(50, 0, 0, 0); // 半透明阴影
+        private Color MainBoardColor = Color.FromArgb(60, 60, 60); // 主框背景颜色
+        private Color InfoBorderColor = Color.FromArgb(100, 100, 100);
+
+        private static Color MenuSelectColor = Color.FromArgb(70, 70, 70); // 菜单选中颜色
+        private static Color MenuHoverColor = Color.FromArgb(80, 80, 80); // 菜单悬停颜色
+        private static Color MenuUnSelectColor = Color.FromArgb(45, 45, 45);
+        private static Color SepColor = Color.FromArgb(100, 100, 100);
+
         public RomList()
         {
             InitializeComponent();
@@ -78,8 +97,8 @@ namespace ScePSX.UI
             UpdateStyles();
 
             DrawMode = DrawMode.OwnerDrawVariable;
-            BackColor = Color.FromArgb(45, 45, 45);
-            ForeColor = Color.White;
+            BackColor = MainBackColor;
+            ForeColor = TextColor;
             ItemHeight = 85;
 
             DefaultIcon = GetDefaultExeIcon();
@@ -91,7 +110,7 @@ namespace ScePSX.UI
             contextMenuStrip = new ContextMenuStrip();
             contextMenuStrip.RenderMode = ToolStripRenderMode.Professional;
             contextMenuStrip.Renderer = new CustomToolStripRenderer();
-            contextMenuStrip.BackColor = Color.FromArgb(45, 45, 45);
+            contextMenuStrip.BackColor = MenuBackColor;
             var split = new ToolStripSeparator();
 
             var item0 = new ToolStripMenuItem("存档管理", null, OnMcrClick);
@@ -164,6 +183,62 @@ namespace ScePSX.UI
             SortByLastPlayed();
         }
 
+        public void AddByFile(FileInfo f)
+        {
+            string ext = Path.GetExtension(f.FullName);
+            CDData cddata = new CDData(f.FullName);
+            if (cddata.DiskID != "")
+            {
+                string id = cddata.DiskID;
+
+                Game game = FindOrNew(id);
+
+                game.fullName = f.FullName;
+                game.Name = SimpleYaml.TryGetValue($"{id}.name").Replace("\"", "");
+                if (game.Name == "")
+                    game.Name = Path.GetFileNameWithoutExtension(f.FullName);
+                game.FileName = Path.GetFileName(f.FullName);
+                game.ID = id;
+                game.Size = cddata.tracks[0].FileLength;
+
+                string infos = FrmMain.ini.Read("history", id);
+
+                if (infos == "")
+                {
+                    game.LastPlayed = "";
+                    FrmMain.ini.Write("history", id, $"{f.FullName}|");
+                } else
+                {
+                    string[] infoary = infos.Split('|');
+                    game.LastPlayed = infoary[1];
+                }
+
+                game.HasSaveState = Directory.GetFiles("./SaveState/", $"{id}_Save?.dat").Length > 0;
+                game.HasCheats = File.Exists($"./Cheats/{id}.txt");
+
+                if (File.Exists($"./Icons/{id}.png"))
+                {
+                    game.Icon = Bitmap.FromFile($"./Icons/{id}.png");
+                } else if (File.Exists($"./Save/{id}.dat"))
+                {
+                    MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
+                    foreach (var Slot in mcr.Slots)
+                    {
+                        if (Slot.ProdCode == id && Slot.type == MemCardMange.SlotTypes.initial)
+                        {
+                            game.Icon = Slot.GetIconBitmap(0);
+                            game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
+                            break;
+                        }
+                    }
+                }
+
+                AddOrReplace(game);
+            }
+        }
+
+        private bool? _shouldSearchSubdirectories = null;
+
         public void SearchDir(string dir)
         {
             if (File.Exists("gamedb.yaml"))
@@ -171,57 +246,32 @@ namespace ScePSX.UI
             DirectoryInfo dirinfo = new DirectoryInfo(dir);
             foreach (FileInfo f in dirinfo.GetFiles())
             {
-                string ext = Path.GetExtension(f.FullName);
-                CDData cddata = new CDData(f.FullName);
-                if (cddata.DiskID != "")
+                AddByFile(f);
+            }
+            DirectoryInfo[] subDirectories = dirinfo.GetDirectories();
+            if (subDirectories.Length > 0)
+            {
+                if (_shouldSearchSubdirectories == null)
                 {
-                    string id = cddata.DiskID;
+                    DialogResult result = MessageBox.Show(
+                        "是否要搜索子目录？",
+                        "搜索多重目录",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question
+                    );
 
-                    Game game = FindOrNew(id);
+                    _shouldSearchSubdirectories = result == DialogResult.Yes;
+                }
 
-                    game.fullName = f.FullName;
-                    game.Name = SimpleYaml.TryGetValue($"{id}.name").Replace("\"", "");
-                    if (game.Name == "")
-                        game.Name = Path.GetFileNameWithoutExtension(f.FullName);
-                    game.FileName = Path.GetFileName(f.FullName);
-                    game.ID = id;
-                    game.Size = cddata.tracks[0].FileLength;
-
-                    string infos = FrmMain.ini.Read("history", id);
-
-                    if (infos == "")
+                if (_shouldSearchSubdirectories == true)
+                {
+                    foreach (DirectoryInfo subDir in subDirectories)
                     {
-                        game.LastPlayed = "";
-                        FrmMain.ini.Write("history", id, $"{f.FullName}|");
-                    } else
-                    {
-                        string[] infoary = infos.Split('|');
-                        game.LastPlayed = infoary[1];
+                        SearchDir(subDir.FullName);
                     }
-
-                    game.HasSaveState = Directory.GetFiles("./SaveState/", $"{id}_Save?.dat").Length > 0;
-                    game.HasCheats = File.Exists($"./Cheats/{id}.txt");
-
-                    if (File.Exists($"./Icons/{id}.png"))
-                    {
-                        game.Icon = Bitmap.FromFile($"./Icons/{id}.png");
-                    } else if (File.Exists($"./Save/{id}.dat"))
-                    {
-                        MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
-                        foreach (var Slot in mcr.Slots)
-                        {
-                            if (Slot.ProdCode == id && Slot.type == MemCardMange.SlotTypes.initial)
-                            {
-                                game.Icon = Slot.GetIconBitmap(0);
-                                game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
-                                break;
-                            }
-                        }
-                    }
-
-                    AddOrReplace(game);
                 }
             }
+
             SortByLastPlayed();
         }
 
@@ -271,16 +321,34 @@ namespace ScePSX.UI
             }
         }
 
+        private void ShowFrom(Form Frm)
+        {
+            Frm.StartPosition = FormStartPosition.Manual;
+            Frm.Owner = (Form)this.Parent;
+
+            Point parentCenterClient = new Point(
+                this.ClientSize.Width / 2,
+                this.ClientSize.Height / 2
+            );
+
+            Point parentCenterScreen = this.PointToScreen(parentCenterClient);
+
+            Frm.Location = new Point(
+                parentCenterScreen.X - Frm.Width / 2,
+                parentCenterScreen.Y - Frm.Height / 2
+                );
+
+            Frm.Show();
+        }
+
         private void OnSetClick(object sender, EventArgs e)
         {
-            var frm = new Form_Set(SelectedGame().ID);
-            frm.Show(this);
+            ShowFrom(new Form_Set(SelectedGame().ID));
         }
 
         private void OnMcrClick(object sender, EventArgs e)
         {
-            var frm = new Form_McrMange(SelectedGame().ID);
-            frm.Show(this);
+            ShowFrom(new Form_McrMange(SelectedGame().ID));
         }
 
         private void OnUpIconClick(object sender, EventArgs e)
@@ -306,8 +374,7 @@ namespace ScePSX.UI
 
         private void OnCheatClick(object sender, EventArgs e)
         {
-            var frm = new Form_Cheat(SelectedGame().ID);
-            frm.Show(this);
+            ShowFrom(new Form_Cheat(SelectedGame().ID));
         }
 
         private void OnSetIconClick(object sender, EventArgs e)
@@ -423,6 +490,31 @@ namespace ScePSX.UI
 
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
+            if (e.Index < 0 || e.Index >= Items.Count)
+                return;
+
+            if (e.Bounds.Width <= 0 || e.Bounds.Height <= 0)
+                return;
+
+            using (var doubleBuffer = new Bitmap(e.Bounds.Width, e.Bounds.Height))
+            using (var g = Graphics.FromImage(doubleBuffer))
+            {
+                var localArgs = new DrawItemEventArgs(
+                    g,
+                    e.Font,
+                    new Rectangle(0, 0, e.Bounds.Width, e.Bounds.Height),
+                    e.Index,
+                    e.State
+                );
+
+                DrawItems(localArgs);
+
+                e.Graphics.DrawImage(doubleBuffer, e.Bounds.Location);
+            }
+        }
+
+        private void DrawItems(DrawItemEventArgs e)
+        {
             if (e.Index < 0 || e.Index >= this.Items.Count)
                 return;
 
@@ -444,11 +536,11 @@ namespace ScePSX.UI
             bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
 
             Color rowBackColor = (e.Index % 2 == 0)
-                ? Color.FromArgb(43, 43, 43) // 偶数行稍浅
-                : Color.FromArgb(50, 50, 50); // 奇数行稍深
+                ? ItemBackColor2 // 偶数行稍浅
+                : ItemBackColor1; // 奇数行稍深
 
             if (isHovered)
-                rowBackColor = Color.FromArgb(70, 70, 70); // 悬停时的高亮颜色
+                rowBackColor = HoverColor; 
 
             using (var backBrush = new SolidBrush(rowBackColor))
             {
@@ -468,7 +560,7 @@ namespace ScePSX.UI
 
             DrawInfoBoxes(e.Graphics, game, bounds, iconSize, padding);
 
-            if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+            if (isSelected)
             {
                 DrawSelectionEffect(e.Graphics, bounds);
             }
@@ -476,9 +568,9 @@ namespace ScePSX.UI
 
         private void DrawMainBox(Graphics g, Rectangle bounds)
         {
-            using (var borderPen = new Pen(Color.FromArgb(100, 100, 100), 2)) // 边框颜色
-            using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0))) // 半透明阴影
-            //using (var mainBrush = new SolidBrush(Color.FromArgb(60, 60, 60))) // 主框背景颜色
+            using (var borderPen = new Pen(BorderColor, 2)) // 边框颜色
+            using (var shadowBrush = new SolidBrush(ShadowColor)) // 半透明阴影
+            //using (var mainBrush = new SolidBrush(MainBoardColor)) // 主框背景颜色
             {
                 // 阴影
                 g.FillRectangle(shadowBrush, bounds.X + 2, bounds.Y + 2, bounds.Width - 4, bounds.Height - 4);
@@ -517,7 +609,7 @@ namespace ScePSX.UI
 
             startX = bounds.Right - 340;
             startY = bounds.Bottom - 32;
-            if (game.LastPlayed != "")
+            if (game.LastPlayed != "" && this.Width>550)
                 DrawInfoBox(g, $"最后运行: {game.LastPlayed}", startX - 29, startY, 9);
             DrawInfoBox(g, $"即时存档: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
             DrawInfoBox(g, $"金手指: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
@@ -525,7 +617,7 @@ namespace ScePSX.UI
 
         private void DrawSelectionEffect(Graphics g, Rectangle bounds)
         {
-            using (var focusPen = new Pen(Color.Orange, 2))
+            using (var focusPen = new Pen(SelectionColor, 2))
             {
                 g.DrawRectangle(focusPen, bounds.X + 1, bounds.Y + 1, bounds.Width - 3, bounds.Height - 3);
             }
@@ -533,8 +625,8 @@ namespace ScePSX.UI
 
         private void DrawInfoBox(Graphics g, string label, int x, int y, int fontSize = 9)
         {
-            using (var boxBrush = new SolidBrush(Color.FromArgb(50, 50, 50))) // 框背景颜色
-            using (var borderPen = new Pen(Color.FromArgb(100, 100, 100))) // 边框颜色
+            using (var boxBrush = new SolidBrush(InfoBackColor)) // 框背景颜色
+            using (var borderPen = new Pen(InfoBorderColor)) // 边框颜色
             using (var textBrush = new SolidBrush(Color.White)) // 文字颜色
             using (var font = new Font("Arial", fontSize))
             {
@@ -551,9 +643,9 @@ namespace ScePSX.UI
 
         private void DrawInfoBoxValue(Graphics g, string label, string value, int x, int y, int width, int height, int fontsize = 9)
         {
-            using (var boxBrush = new SolidBrush(Color.LightSlateGray))
-            using (var borderPen = new Pen(Color.Gray))
-            using (var textBrush = new SolidBrush(Color.White))
+            using (var boxBrush = new SolidBrush(Color.FromArgb(50, 50, 50))) // 框背景颜色
+            using (var borderPen = new Pen(Color.FromArgb(100, 100, 100))) // 边框颜色
+            using (var textBrush = new SolidBrush(Color.White)) // 文字颜色
             using (var font = new Font("Arial", fontsize))
             {
                 SizeF labelSize = g.MeasureString(label, font);
@@ -587,13 +679,13 @@ namespace ScePSX.UI
             {
                 if (e.Item.Selected)
                 {
-                    using (var brush = new SolidBrush(Color.FromArgb(70, 70, 70)))
+                    using (var brush = new SolidBrush(RomList.MenuSelectColor))
                     {
                         e.Graphics.FillRectangle(brush, e.Item.ContentRectangle);
                     }
                 } else
                 {
-                    using (var brush = new SolidBrush(Color.FromArgb(45, 45, 45)))
+                    using (var brush = new SolidBrush(RomList.MenuUnSelectColor))
                     {
                         e.Graphics.FillRectangle(brush, e.Item.ContentRectangle);
                     }
@@ -608,7 +700,7 @@ namespace ScePSX.UI
 
             protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
             {
-                using (var pen = new Pen(Color.FromArgb(100, 100, 100)))
+                using (var pen = new Pen(RomList.SepColor))
                 {
                     e.Graphics.DrawLine(pen, e.Item.ContentRectangle.Left, e.Item.ContentRectangle.Height / 2, e.Item.ContentRectangle.Right, e.Item.ContentRectangle.Height / 2);
                 }
@@ -623,38 +715,15 @@ namespace ScePSX.UI
                     e.AffectedBounds.Height
                 );
 
-                using (var brush = new SolidBrush(Color.FromArgb(45, 45, 45)))
+                using (var brush = new SolidBrush(RomList.MenuUnSelectColor))
                 {
                     e.Graphics.FillRectangle(brush, imageMarginBounds);
                 }
             }
 
-            protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
-            {
-                Rectangle rect = new Rectangle(e.ImageRectangle.Location, e.ImageRectangle.Size);
-                using (var brush = new SolidBrush(Color.FromArgb(70, 70, 70)))
-                {
-                    e.Graphics.FillRectangle(brush, rect);
-                }
-
-                if (e.Item.Selected)
-                {
-                    using (var brush = new SolidBrush(Color.White))
-                    {
-                        e.Graphics.FillRectangle(brush, rect);
-                    }
-                } else
-                {
-                    using (var brush = new SolidBrush(Color.LightGray))
-                    {
-                        e.Graphics.FillRectangle(brush, rect);
-                    }
-                }
-            }
-
             protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
             {
-                using (var pen = new Pen(Color.FromArgb(100, 100, 100)))
+                using (var pen = new Pen(RomList.SepColor))
                 {
                     e.Graphics.DrawRectangle(pen, 0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
                 }
@@ -721,33 +790,32 @@ namespace ScePSX.UI
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            BufferedGraphicsContext currentContext;
-            BufferedGraphics myBuffer;
+            Graphics g = e.Graphics;
+            g.Clear(BackColor);
 
-            currentContext = BufferedGraphicsManager.Current;
-            myBuffer = currentContext.Allocate(e.Graphics, this.DisplayRectangle);
+            // 计算可见项范围
+            int firstVisibleIndex = TopIndex;
+            int itemsPerPage = ClientSize.Height / ItemHeight;
+            int lastVisibleIndex = Math.Min(Items.Count - 1, firstVisibleIndex + itemsPerPage + 1);
 
-            Graphics g = myBuffer.Graphics;
-            g.Clear(this.BackColor);
-
-            base.OnPaint(new PaintEventArgs(g, e.ClipRectangle));
-
-            for (int i = 0; i < Items.Count; i++)
+            // 绘制可见项
+            for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
             {
+                Rectangle itemRect = GetItemRectangle(i);
+                if (itemRect.Bottom < 0 || itemRect.Top > ClientSize.Height)
+                    continue;
+
                 DrawItemEventArgs args = new DrawItemEventArgs(
                     g,
-                    this.Font,
-                    GetItemRectangle(i),
+                    Font,
+                    itemRect,
                     i,
-                    DrawItemState.Default);
-
+                    DrawItemState.Default
+                );
                 OnDrawItem(args);
             }
 
-            myBuffer.Render(e.Graphics);
-            myBuffer.Dispose();
-
-            DrawScrollBar(e.Graphics);
+            DrawScrollBar(g);
         }
 
         private void DrawScrollBar(Graphics g)
@@ -865,6 +933,7 @@ namespace ScePSX.UI
 
         protected override void WndProc(ref Message m)
         {
+           
             base.WndProc(ref m);
         }
 
@@ -873,7 +942,6 @@ namespace ScePSX.UI
             get
             {
                 CreateParams createParams = base.CreateParams;
-                //createParams.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
                 createParams.Style &= ~0x00100000; // WS_HSCROLL (水平滚动条)
                 createParams.Style &= ~0x00200000; // WS_VSCROLL (垂直滚动条)
                 return (createParams);
