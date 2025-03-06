@@ -6,7 +6,7 @@ using DirectX.D2D1;
 
 namespace ScePSX.Render
 {
-    public class D2DRenderer : UserControl
+    public class D2DRenderer : UserControl, IRenderer
     {
         private D2D1Factory factory;
         private D2D1HwndRenderTarget renderTarget;
@@ -20,6 +20,9 @@ namespace ScePSX.Render
         private int scale, oldscale = 0;
         public int frameskip, fsk = 1;
         private float dpiX, dpiY;
+
+        public RenderMode Mode => RenderMode.Directx2D;
+        public bool IsPostProcessingActive => false;
 
         private readonly object bufferLock = new object();
 
@@ -44,6 +47,19 @@ namespace ScePSX.Render
             this.Size = new System.Drawing.Size(441, 246);
             this.Name = "D2DRenderer";
             this.ResumeLayout(false);
+        }
+
+        public void Initialize(Control parentControl)
+        {
+            Parent = parentControl;
+            Dock = DockStyle.Fill;
+            Enabled = false;
+            parentControl.Controls.Add(this);
+        }
+
+        public void SetParam(int Param)
+        {
+            frameskip = Param;
         }
 
         protected override void OnHandleCreated(EventArgs e)

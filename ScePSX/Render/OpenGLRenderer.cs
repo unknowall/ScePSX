@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using OpenGL;
 
 namespace ScePSX.Render
 {
-    class OpenGLRenderer : GlControl
+    class OpenGLRenderer : GlControl, IRenderer
     {
         private int[] Pixels = new int[4096 * 2048];
         private uint _textureId;
@@ -22,6 +25,8 @@ namespace ScePSX.Render
         private uint fragmentShaderID;
         private uint vboID;
 
+        public RenderMode Mode => RenderMode.OpenGL;
+
         public OpenGLRenderer()
         {
             Load += OpenGLRenderer_Load;
@@ -33,6 +38,26 @@ namespace ScePSX.Render
             //this.StencilBits = 8;
             //this.DepthBits = 24;
             //this.ColorBits = 32;
+        }
+
+        private bool CheckReShadeInjection()
+        {
+            var modules = Process.GetCurrentProcess().Modules;
+            return modules.Cast<ProcessModule>()
+                   .Any(m => m.ModuleName.Contains("ReShade"));
+        }
+
+        public void Initialize(Control parentControl)
+        {
+            Parent = parentControl;
+            Dock = DockStyle.Fill;
+            Enabled = false;
+            parentControl.Controls.Add(this);
+        }
+
+        public void SetParam(int Param)
+        {
+            MultisampleBits = (uint)Param;
         }
 
         protected override void OnHandleCreated(EventArgs e)

@@ -25,6 +25,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            var resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             MainMenu = new System.Windows.Forms.MenuStrip();
             MnuFile = new System.Windows.Forms.ToolStripMenuItem();
             LoadDIsk = new System.Windows.Forms.ToolStripMenuItem();
@@ -39,7 +40,7 @@
             LoadStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             UnLoadStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
-            ChatCode = new System.Windows.Forms.ToolStripMenuItem();
+            CheatCode = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             FreeSpeed = new System.Windows.Forms.ToolStripMenuItem();
             MnuPause = new System.Windows.Forms.ToolStripMenuItem();
@@ -85,7 +86,7 @@
             // 
             // MnuFile
             // 
-            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, ChatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
+            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, CheatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
             MnuFile.Size = new System.Drawing.Size(62, 21);
             MnuFile.Text = "文件(&F))";
@@ -170,11 +171,11 @@
             // 
             // ChatCode
             // 
-            ChatCode.Enabled = false;
-            ChatCode.Name = "ChatCode";
-            ChatCode.Size = new System.Drawing.Size(165, 22);
-            ChatCode.Text = "金手指";
-            ChatCode.Click += CheatCode_Click;
+            CheatCode.Enabled = false;
+            CheatCode.Name = "ChatCode";
+            CheatCode.Size = new System.Drawing.Size(165, 22);
+            CheatCode.Text = "金手指";
+            CheatCode.Click += CheatCode_Click;
             // 
             // toolStripMenuItem5
             // 
@@ -346,7 +347,7 @@
             // 
             toolStripStatusLabel5.Font = new System.Drawing.Font("微软雅黑", 9F);
             toolStripStatusLabel5.Name = "toolStripStatusLabel5";
-            toolStripStatusLabel5.Size = new System.Drawing.Size(638, 17);
+            toolStripStatusLabel5.Size = new System.Drawing.Size(669, 17);
             toolStripStatusLabel5.Spring = true;
             // 
             // toolStripStatusLabel6
@@ -374,6 +375,7 @@
             ClientSize = new System.Drawing.Size(684, 498);
             Controls.Add(StatusBar);
             Controls.Add(MainMenu);
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = MainMenu;
             Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             Name = "FrmMain";
@@ -408,7 +410,7 @@
         private System.Windows.Forms.ToolStripMenuItem SwapDisk;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
-        private System.Windows.Forms.ToolStripMenuItem ChatCode;
+        private System.Windows.Forms.ToolStripMenuItem CheatCode;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem FreeSpeed;
         private System.Windows.Forms.ToolStripMenuItem xBRScaleAdd;

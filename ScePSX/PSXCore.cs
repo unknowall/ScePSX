@@ -191,11 +191,9 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            }
-            ;
+            };
 
             PsxBus = StateFromFile<BUS>(fn);
-
             PsxBus.DeSerializable(this);
 
             Console.ForegroundColor = ConsoleColor.Blue;
@@ -215,13 +213,11 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            }
-            ;
+            };
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
             PsxBus.ReadySerializable();
-
             StateToFile(PsxBus, fn);
 
             Console.ForegroundColor = ConsoleColor.Blue;
@@ -351,5 +347,48 @@ namespace ScePSX
             _IRender.RenderFrame(pixels, width, height);
         }
     }
+
+    //public static class SaveManager
+    //{
+    //    public static unsafe byte[] Compress(byte[] data)
+    //    {
+    //        var compressed = new byte[LZ4Codec.MaximumOutputSize(data.Length)];
+    //        int compressedLength = LZ4Codec.Encode(
+    //            new ReadOnlySpan<byte>(data),
+    //            compressed,
+    //            LZ4Level.L12_MAX);
+    //        Array.Resize(ref compressed, compressedLength);
+    //        return compressed;
+    //    }
+
+    //    public static unsafe byte[] Decompress(byte[] compressedData)
+    //    {
+    //        int originalLength = BitConverter.ToInt32(compressedData, 0);
+    //        var decompressed = new byte[originalLength];
+    //        LZ4Codec.Decode(
+    //            new ReadOnlySpan<byte>(compressedData, 4, compressedData.Length - 4),
+    //            decompressed);
+
+    //        return decompressed;
+    //    }
+
+    //    public static void SaveState(BUS bus, string path)
+    //    {
+    //        bus.ReadySerializable();
+
+    //        var bytes = MemoryPackSerializer.Serialize(bus);
+    //        File.WriteAllBytes(path, Compress(bytes));
+    //    }
+
+    //    public static BUS LoadState(string path, ICoreHandler host)
+    //    {
+    //        var compressed = File.ReadAllBytes(path);
+    //        var bytes = Decompress(compressed);
+    //        var bus = MemoryPackSerializer.Deserialize<BUS>(bytes);
+
+    //        bus.DeSerializable(host);
+    //        return bus;
+    //    }
+    //}
 
 }

@@ -52,19 +52,10 @@ namespace ScePSX.UI
         private bool cutblackline = false;
         private int[] cutbuff = new int[1024 * 512];
 
-        private OpenGLRenderer OGLRENDER = new OpenGLRenderer();
-        private SDL2Renderer D3DRENDER = new SDL2Renderer();
-        private D2DRenderer D2DRENDER = new D2DRenderer();
-
         private RomList romList;
 
-        private enum RenderMode
-        {
-            Directx2D,
-            Directx3D,
-            OpenGL
-        }
         RenderMode Rendermode = RenderMode.OpenGL;
+        RendererManager Render = new RendererManager();
 
         public FrmMain()
         {
@@ -90,44 +81,6 @@ namespace ScePSX.UI
                 AllocConsole();
             }
 
-            OGLRENDER.Parent = this;
-            OGLRENDER.Dock = DockStyle.Fill;
-            Controls.Add(OGLRENDER);
-            OGLRENDER.Enabled = false;
-            switch (ini.ReadInt("OpenGL", "MSAA"))
-            {
-                case 0:
-                    OGLRENDER.MultisampleBits = 0;
-                    break;
-                case 1:
-                    OGLRENDER.MultisampleBits = 4;
-                    break;
-                case 2:
-                    OGLRENDER.MultisampleBits = 6;
-                    break;
-                case 3:
-                    OGLRENDER.MultisampleBits = 8;
-                    break;
-                case 4:
-                    OGLRENDER.MultisampleBits = 16;
-                    break;
-            }
-            //OGLRENDER.DepthBits = 24;
-            //OGLRENDER.ColorBits = 32;
-            //OGLRENDER.Visible = false;
-
-            D3DRENDER.Parent = this;
-            D3DRENDER.Dock = DockStyle.Fill;
-            Controls.Add(D3DRENDER);
-            D3DRENDER.Enabled = false;
-            //D3DRENDER.Visible = false;
-
-            D2DRENDER.Parent = this;
-            D2DRENDER.Dock = DockStyle.Fill;
-            Controls.Add(D2DRENDER);
-            D2DRENDER.Enabled = false;
-            //D2DRENDER.Visible = false;
-
             //CheckForIllegalCrossThreadCalls = false;
 
             KeyDown += new KeyEventHandler(ButtonsDown);
@@ -148,19 +101,33 @@ namespace ScePSX.UI
 
             CloseRomMnu_Click(null, null);
 
+            shaderpath = ini.Read("main", "shader");
             Rendermode = (RenderMode)ini.ReadInt("Main", "Render");
-            switch (Rendermode)
+
+            openGLRender.Checked = Rendermode == RenderMode.OpenGL;
+            directx2DRender.Checked = Rendermode == RenderMode.Directx2D;
+            directx3DRender.Checked = Rendermode == RenderMode.Directx3D;
+
+            switch (ini.ReadInt("OpenGL", "MSAA"))
             {
-                case RenderMode.Directx2D:
-                    directx2DRender.Checked = true;
+                case 0:
+                    Render.oglMSAA = 0;
                     break;
-                case RenderMode.Directx3D:
-                    directx3DRender.Checked = true;
+                case 1:
+                    Render.oglMSAA = 4;
                     break;
-                case RenderMode.OpenGL:
-                    openGLRender.Checked = true;
+                case 2:
+                    Render.oglMSAA = 6;
+                    break;
+                case 3:
+                    Render.oglMSAA = 8;
+                    break;
+                case 4:
+                    Render.oglMSAA = 16;
                     break;
             }
+            Render.frameskip = ini.ReadInt("main", "skipframe");
+            Render.oglShaderPath = ("./Shaders/" + shaderpath);
 
             frameskipmnu.Checked = ini.ReadInt("main", "frameskip") == 1;
             cutblackline = ini.ReadInt("main", "cutblackline") == 1;
@@ -231,8 +198,8 @@ namespace ScePSX.UI
             string rendername = Rendermode.ToString();
             if (Rendermode == RenderMode.OpenGL)
             {
-                if (OGLRENDER.MultisampleBits > 0)
-                    rendername += $" {OGLRENDER.MultisampleBits}xMSAA";
+                if (Render.oglMSAA > 0)
+                    rendername += $" {Render.oglMSAA}xMSAA";
             }
             if (scale > 0)
             {
@@ -304,7 +271,6 @@ namespace ScePSX.UI
         #region MENU
         private void InitShaderMnu()
         {
-            shaderpath = ini.Read("main", "shader");
             if (shaderpath == null)
                 shaderpath = "Base";
 
@@ -497,14 +463,11 @@ namespace ScePSX.UI
             directx3DRender.Checked = false;
             openGLRender.Checked = false;
 
-            OGLRENDER.Visible = false;
-            D3DRENDER.Visible = false;
-            D2DRENDER.Visible = true;
-
-            D2DRENDER.BringToFront();
-
             Rendermode = RenderMode.Directx2D;
             ini.WriteInt("Main", "Render", (int)Rendermode);
+
+            if (Core != null && Core.Running)
+                Render.SelectRenderer(Rendermode, this);
         }
 
         private void directx3DToolStripMenuItem_Click(object sender, EventArgs e)
@@ -512,14 +475,11 @@ namespace ScePSX.UI
             openGLRender.Checked = false;
             directx2DRender.Checked = false;
 
-            OGLRENDER.Visible = false;
-            D2DRENDER.Visible = false;
-            D3DRENDER.Visible = true;
-
-            D3DRENDER.BringToFront();
-
             Rendermode = RenderMode.Directx3D;
             ini.WriteInt("Main", "Render", (int)Rendermode);
+
+            if (Core != null && Core.Running)
+                Render.SelectRenderer(Rendermode, this);
         }
 
         private void openGLToolStripMenuItem_Click(object sender, EventArgs e)
@@ -528,31 +488,23 @@ namespace ScePSX.UI
             directx2DRender.Checked = false;
             directx3DRender.Checked = false;
 
-            if (OGLRENDER.ShadreName == "")
-            {
-                OGLRENDER.LoadShaders("./Shaders/" + shaderpath);
-            }
-
-            D3DRENDER.Visible = false;
-            D2DRENDER.Visible = false;
-            OGLRENDER.Visible = true;
-
-            OGLRENDER.BringToFront();
+            Render.oglShaderPath = "./Shaders/" + shaderpath;
 
             Rendermode = RenderMode.OpenGL;
             ini.WriteInt("Main", "Render", (int)Rendermode);
+
+            if (Core != null && Core.Running)
+                Render.SelectRenderer(Rendermode, this);
         }
 
         private void frameskipmnu_CheckedChanged(object sender, EventArgs e)
         {
-            if (frameskipmnu.Checked == false)
+            if (Rendermode != RenderMode.OpenGL && Render._currentRenderer != null)
             {
-                D2DRENDER.frameskip = 0;
-                D3DRENDER.frameskip = 0;
-            } else
-            {
-                D2DRENDER.frameskip = ini.ReadInt("Main", "SkipFrame");
-                D3DRENDER.frameskip = D2DRENDER.frameskip;
+                if (frameskipmnu.Checked == false)
+                    Render._currentRenderer.SetParam(0);
+                else
+                    Render._currentRenderer.SetParam(ini.ReadInt("Main", "SkipFrame"));
             }
 
             ini.WriteInt("main", "frameskip", Convert.ToInt16(frameskipmnu.Checked));
@@ -830,11 +782,6 @@ namespace ScePSX.UI
                 scale = 0;
             }
 
-            if (Rendermode == RenderMode.OpenGL)
-            {
-                OGLRENDER.LoadShaders("./Shaders/" + shaderpath);
-            }
-
             IniFile bootini = null;
             IniFile sysini = null;
             if (game != null)
@@ -882,18 +829,8 @@ namespace ScePSX.UI
             Core.PsxBus.cpu.cylesfix = ini.ReadInt("CPU", "Cycles");
 
             romList.Dispose();
-            switch (Rendermode)
-            {
-                case RenderMode.Directx2D:
-                    D2DRENDER.BringToFront();
-                    break;
-                case RenderMode.Directx3D:
-                    D3DRENDER.BringToFront();
-                    break;
-                case RenderMode.OpenGL:
-                    OGLRENDER.BringToFront();
-                    break;
-            }
+
+            Render.SelectRenderer(Rendermode, this);
 
             CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
 
@@ -901,7 +838,7 @@ namespace ScePSX.UI
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
 
-            ChatCode.Enabled = true;
+            CheatCode.Enabled = true;
 
             if (sysini != null)
             {
@@ -973,16 +910,7 @@ namespace ScePSX.UI
             QueryControllerState(1);
             QueryControllerState(2);
 
-            if (Rendermode == RenderMode.OpenGL)
-            {
-                OGLRENDER.RenderBuffer(pixels, width, height, scale);
-            } else if (Rendermode == RenderMode.Directx3D)
-            {
-                D3DRENDER.RenderBuffer(pixels, width, height, scale);
-            } else if (Rendermode == RenderMode.Directx2D)
-            {
-                D2DRENDER.RenderBuffer(pixels, width, height, scale);
-            }
+            Render.RenderBuffer(pixels, width, height, scale);
 
             _frameCount++;
             var elapsedSeconds = _fpsStopwatch.Elapsed.TotalSeconds;

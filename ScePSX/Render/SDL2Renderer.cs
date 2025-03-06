@@ -6,7 +6,7 @@ using static SDL2.SDL;
 
 namespace ScePSX.Render
 {
-    class SDL2Renderer : UserControl
+    class SDL2Renderer : UserControl, IRenderer
     {
         private int[] pixels = new int[4096 * 2048];
         private int scale, oldscale;
@@ -21,6 +21,8 @@ namespace ScePSX.Render
         private readonly object bufferLock = new object();
 
         public int frameskip, fsk = 1;
+
+        public RenderMode Mode => RenderMode.Directx3D;
 
         public SDL2Renderer()
         {
@@ -43,6 +45,19 @@ namespace ScePSX.Render
             this.Size = new System.Drawing.Size(441, 246);
             this.Name = "SDL2Renderer";
             this.ResumeLayout(false);
+        }
+
+        public void Initialize(Control parentControl)
+        {
+            Parent = parentControl;
+            Dock = DockStyle.Fill;
+            Enabled = false;
+            parentControl.Controls.Add(this);
+        }
+
+        public void SetParam(int Param)
+        {
+            frameskip = Param;
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -208,5 +223,6 @@ namespace ScePSX.Render
                 return (createParams);
             }
         }
+
     }
 }

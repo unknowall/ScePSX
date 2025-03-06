@@ -180,6 +180,7 @@ namespace ScePSX.UI
                     AddOrReplace(game);
                 }
             }
+            SimpleYaml.Clear();
             SortByLastPlayed();
         }
 
@@ -271,7 +272,7 @@ namespace ScePSX.UI
                     }
                 }
             }
-
+            SimpleYaml.Clear();
             SortByLastPlayed();
         }
 
@@ -928,6 +929,11 @@ namespace ScePSX.UI
             if (disposing)
             {
                 DefaultIcon.Dispose();
+                foreach (var item in Items)
+                {
+                    if((item as Game).Icon != null)
+                        (item as Game).Icon.Dispose();
+                }
             }
             base.Dispose(disposing);
         }
