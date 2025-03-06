@@ -533,8 +533,7 @@ namespace ScePSX.UI
             Rectangle bounds = e.Bounds;
 
             bool isHovered = e.Index == _hoverIndex;
-            bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-
+            
             Color rowBackColor = (e.Index % 2 == 0)
                 ? ItemBackColor2 // 偶数行稍浅
                 : ItemBackColor1; // 奇数行稍深
@@ -560,10 +559,10 @@ namespace ScePSX.UI
 
             DrawInfoBoxes(e.Graphics, game, bounds, iconSize, padding);
 
-            if (isSelected)
-            {
-                DrawSelectionEffect(e.Graphics, bounds);
-            }
+            //if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+            //{
+            //    DrawSelectionEffect(e.Graphics, bounds);
+            //}
         }
 
         private void DrawMainBox(Graphics g, Rectangle bounds)
@@ -793,24 +792,26 @@ namespace ScePSX.UI
             Graphics g = e.Graphics;
             g.Clear(BackColor);
 
-            // 计算可见项范围
             int firstVisibleIndex = TopIndex;
             int itemsPerPage = ClientSize.Height / ItemHeight;
             int lastVisibleIndex = Math.Min(Items.Count - 1, firstVisibleIndex + itemsPerPage + 1);
 
-            // 绘制可见项
             for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
             {
                 Rectangle itemRect = GetItemRectangle(i);
                 if (itemRect.Bottom < 0 || itemRect.Top > ClientSize.Height)
                     continue;
 
+                DrawItemState state = DrawItemState.Default;
+                if (i == SelectedIndex)
+                    state |= DrawItemState.Selected;
+
                 DrawItemEventArgs args = new DrawItemEventArgs(
-                    g,
+                    e.Graphics,
                     Font,
                     itemRect,
                     i,
-                    DrawItemState.Default
+                    state
                 );
                 OnDrawItem(args);
             }
