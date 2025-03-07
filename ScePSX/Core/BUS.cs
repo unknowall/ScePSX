@@ -76,11 +76,11 @@ namespace ScePSX
         [NonSerialized]
         private unsafe byte* memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
 
-        public BUS(ICoreHandler Host, string BiosFile, string RomFile)
+        public BUS(ICoreHandler Host, string BiosFile, string RomFile, string diskid = "")
         {
             InitializeJumpTables();
 
-            cddata = new CDData(RomFile);
+            cddata = new CDData(RomFile, diskid);
             DiskID = cddata.DiskID;
             if (DiskID == "")
             {

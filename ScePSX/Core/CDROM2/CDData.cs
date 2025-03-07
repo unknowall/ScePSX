@@ -26,7 +26,7 @@ namespace ScePSX.CdRom2
 
         public string DiskID = "";
 
-        public CDData(string diskFilename)
+        public CDData(string diskFilename, string diskid = "")
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
 
@@ -46,6 +46,9 @@ namespace ScePSX.CdRom2
                 return;
             }
 
+            if (diskid != "")
+                DiskID = diskid;
+
             streams = new FileStream[tracks.Count];
 
             for (var i = 0; i < tracks.Count; i++)
@@ -55,7 +58,11 @@ namespace ScePSX.CdRom2
                 {
                     try
                     {
-                        DiskID = ReadDiscId(tracks[i].File);
+                        if (Path.GetExtension(tracks[i].File) == ".img")
+                        {
+                            DiskID = $"{CalcCRC32(tracks[i].File):X8}";
+                        } else
+                            DiskID = ReadDiscId(tracks[i].File);
                     } catch
                     {
                         return;
@@ -219,6 +226,44 @@ namespace ScePSX.CdRom2
             }
             return (0, 0);
         }
+
+        public static uint CalcCRC32(string filename)
+        {
+            uint[] crc32Table = new uint[256];
+            const uint polynomial = 0xEDB88320;
+
+            for (uint i = 0; i < 256; i++)
+            {
+                uint crc = i;
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((crc & 1) == 1)
+                        crc = (crc >> 1) ^ polynomial;
+                    else
+                        crc >>= 1;
+                }
+                crc32Table[i] = crc;
+            }
+
+            uint crcValue = 0xFFFFFFFF;
+            using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+
+                while ((bytesRead = fs.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    for (int i = 0; i < bytesRead; i++)
+                    {
+                        byte index = (byte)((crcValue ^ buffer[i]) & 0xFF);
+                        crcValue = (crcValue >> 8) ^ crc32Table[index];
+                    }
+                }
+            }
+
+            return crcValue ^ 0xFFFFFFFF;
+        }
+
 
         public static List<CDTrack> FromBin(string file)
         {

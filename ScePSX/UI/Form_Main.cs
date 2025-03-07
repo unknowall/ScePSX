@@ -780,10 +780,11 @@ namespace ScePSX.UI
 
             IniFile bootini = null;
             IniFile sysini = null;
+            string gameid = "";
             if (game != null)
             {
                 gamename = game.Name;
-
+                gameid = game.ID;
                 string inifn = $"./Save/{game.ID}.ini";
                 if (File.Exists(inifn))
                 {
@@ -791,12 +792,12 @@ namespace ScePSX.UI
                     sysini = ini;
 
                     ini = bootini;
-
-                    currbios = bootini.Read("main", "bios");
                 }
             }
 
-            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios);
+            currbios = ini.Read("main", "bios");
+
+            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, gameid);
 
             if (Core.DiskID == "")
             {

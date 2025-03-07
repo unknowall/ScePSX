@@ -46,7 +46,7 @@ namespace ScePSX
         }
         public List<CheatCode> cheatCodes = new List<CheatCode> { };
 
-        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile)
+        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile, string diskid = "")
         {
             _Audio = audio;
             _IRender = render;
@@ -55,7 +55,7 @@ namespace ScePSX
             Console.WriteLine($"ScePSX Booting...");
             Console.ResetColor();
 
-            PsxBus = new BUS(this, BiosFile, RomFile);
+            PsxBus = new BUS(this, BiosFile, RomFile, diskid);
 
             DiskID = PsxBus.DiskID;
 
