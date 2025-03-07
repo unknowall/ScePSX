@@ -8,7 +8,7 @@ namespace ScePSX.Render
 {
     class SDL2Renderer : UserControl, IRenderer
     {
-        private int[] pixels = new int[4096 * 2048];
+        private int[] pixels = new int[1024 * 512];
         private int scale, oldscale;
 
         private IntPtr m_Window;

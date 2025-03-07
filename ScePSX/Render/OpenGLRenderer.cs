@@ -12,7 +12,7 @@ namespace ScePSX.Render
 {
     class OpenGLRenderer : GlControl, IRenderer
     {
-        private int[] Pixels = new int[4096 * 2048];
+        private int[] Pixels = new int[1024 * 512];
         private uint _textureId;
         public int iWidth = 1024;
         public int iHeight = 512;

@@ -33,6 +33,76 @@ namespace ScePSX
             int outputHeight = height * 2;
             int[] scaledPixels = new int[outputWidth * outputHeight];
 
+            System.Threading.Tasks.Parallel.For(0, height, y =>
+            {
+                int srcRow = y * width;
+                int dstRow = y * 2 * outputWidth;
+                for (int x = 0; x < width; x++)
+                {
+                    int idx = srcRow + x;
+
+                    int a = (x > 0 && y > 0) ? pixels[(y - 1) * width + (x - 1)] : 0;
+                    int b = (y > 0) ? pixels[(y - 1) * width + x] : 0;
+                    int c = (x < width - 1 && y > 0) ? pixels[(y - 1) * width + (x + 1)] : 0;
+                    int d = (x > 0) ? pixels[srcRow + (x - 1)] : 0;
+                    int e = pixels[idx];
+                    int f = (x < width - 1) ? pixels[srcRow + (x + 1)] : 0;
+                    int g = (x > 0 && y < height - 1) ? pixels[(y + 1) * width + (x - 1)] : 0;
+                    int h = (y < height - 1) ? pixels[(y + 1) * width + x] : 0;
+                    int i = (x < width - 1 && y < height - 1) ? pixels[(y + 1) * width + (x + 1)] : 0;
+
+                    int e0 = e, e1 = e, e2 = e, e3 = e;
+
+                    bool aSim = IsSimilarColors(e, a);
+                    bool iSim = IsSimilarColors(e, i);
+
+                    if (aSim && !iSim)
+                    {
+                        bool bSim = IsSimilarColors(e, b);
+                        bool dSim = IsSimilarColors(e, d);
+                        e0 = bSim ? AverageFast(e, b) : e;
+                        e1 = dSim ? AverageFast(e, d) : e;
+                    } else if (iSim && !aSim)
+                    {
+                        bool fSim = IsSimilarColors(e, f);
+                        bool hSim = IsSimilarColors(e, h);
+                        e2 = fSim ? AverageFast(e, f) : e;
+                        e3 = hSim ? AverageFast(e, h) : e;
+                    }
+
+                    int dstIndex = dstRow + x * 2;
+                    scaledPixels[dstIndex] = e0;
+                    scaledPixels[dstIndex + 1] = e1;
+                    scaledPixels[dstIndex + outputWidth] = e2;
+                    scaledPixels[dstIndex + outputWidth + 1] = e3;
+                }
+            });
+
+            return scaledPixels;
+        }
+
+        private static bool IsSimilarColors(int c1, int c2)
+        {
+            int r1 = (c1 >> 16) & 0xFF;
+            int g1 = (c1 >> 8) & 0xFF;
+            int b1 = c1 & 0xFF;
+
+            int r2 = (c2 >> 16) & 0xFF;
+            int g2 = (c2 >> 8) & 0xFF;
+            int b2 = c2 & 0xFF;
+
+            int dr = r1 - r2;
+            int dg = g1 - g2;
+            int db = b1 - b2;
+            return (dr * dr + dg * dg + db * db) < 225; // 15^2 = 225
+        }
+
+        private static int[] Scale2xBR_STAND(int[] pixels, int width, int height)
+        {
+            int outputWidth = width * 2;
+            int outputHeight = height * 2;
+            int[] scaledPixels = new int[outputWidth * outputHeight];
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)

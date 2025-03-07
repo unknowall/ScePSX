@@ -14,7 +14,7 @@ namespace ScePSX.Render
 
         private D2D1BitmapProperties bmpprops;
         private D2D1ColorF clearcolor = new D2D1ColorF(0, 0, 0, 1);
-        private int[] pixels = new int[4096 * 2048];
+        private int[] pixels = new int[1024 * 512];
         private int width = 1024;
         private int height = 512;
         private int scale, oldscale = 0;
@@ -179,6 +179,7 @@ namespace ScePSX.Render
 
             lock (bufferLock)
             {
+
                 bitmap.CopyFromMemory(Marshal.UnsafeAddrOfPinnedArrayElement<int>(pixels, 0), (uint)(width * 4));
 
                 renderTarget.BeginDraw();
