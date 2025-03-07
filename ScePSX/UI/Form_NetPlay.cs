@@ -69,7 +69,7 @@ namespace ScePSX.UI
             FrmMain.Core.PsxBus.SIO.Close();
             FrmMain.Core.PsxBus.SIO.Active(false, tblocalip.Text, tbsrvip.Text);
 
-            labhint.Text = "已启用客户机模式";
+            labhint.Text = ScePSX.Properties.Resources.FrmNetPlay_btncli_Click_已启用客户机模式;
         }
 
         private void btnsrv_Click(object sender, EventArgs e)
@@ -80,7 +80,7 @@ namespace ScePSX.UI
             FrmMain.Core.PsxBus.SIO.Close();
             FrmMain.Core.PsxBus.SIO.Active(true,tblocalip.Text,tbsrvip.Text);
 
-            labhint.Text = "已启用主机模式";
+            labhint.Text = ScePSX.Properties.Resources.FrmNetPlay_btnsrv_Click_已启用主机模式;
         }
     }
 }

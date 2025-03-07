@@ -43,7 +43,7 @@
             btncli.Name = "btncli";
             btncli.Size = new System.Drawing.Size(101, 29);
             btncli.TabIndex = 0;
-            btncli.Text = "作为客户机启动";
+            btncli.Text = ScePSX.Properties.Resources.FrmNetPlay_InitializeComponent_作为客户机启动;
             btncli.UseVisualStyleBackColor = true;
             btncli.Click += btncli_Click;
             // 
@@ -61,7 +61,7 @@
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(127, 17);
             label1.TabIndex = 2;
-            label1.Text = "作为主机时的IP地址：";
+            label1.Text = ScePSX.Properties.Resources.FrmNetPlay_InitializeComponent_作为主机时的IP地址;
             // 
             // label2
             // 
@@ -70,7 +70,7 @@
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(115, 17);
             label2.TabIndex = 3;
-            label2.Text = "目标主机的IP地址：";
+            label2.Text = ScePSX.Properties.Resources.FrmNetPlay_InitializeComponent_目标主机的IP地址;
             // 
             // tbsrvip
             // 
@@ -85,7 +85,7 @@
             btnsrv.Name = "btnsrv";
             btnsrv.Size = new System.Drawing.Size(104, 29);
             btnsrv.TabIndex = 5;
-            btnsrv.Text = "作为主机启动";
+            btnsrv.Text = ScePSX.Properties.Resources.FrmNetPlay_InitializeComponent_作为主机启动;
             btnsrv.UseVisualStyleBackColor = true;
             btnsrv.Click += btnsrv_Click;
             // 
@@ -97,7 +97,7 @@
             labhint.Name = "labhint";
             labhint.Size = new System.Drawing.Size(107, 19);
             labhint.TabIndex = 6;
-            labhint.Text = "未启动网络对战";
+            labhint.Text = ScePSX.Properties.Resources.FrmNetPlay_InitializeComponent_未启动网络对战;
             // 
             // FrmNetPlay
             // 
@@ -115,7 +115,7 @@
             MaximizeBox = false;
             Name = "FrmNetPlay";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "网络对战";
+            Text = "NetPlay";
             ResumeLayout(false);
             PerformLayout();
         }

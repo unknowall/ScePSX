@@ -52,7 +52,7 @@
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(56, 17);
             label2.TabIndex = 1;
-            label2.Text = "维护者：";
+            label2.Text = ScePSX.Properties.Resources.FrmAbout_InitializeComponent_维护者;
             // 
             // textBox1
             // 
@@ -70,7 +70,7 @@
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(350, 56);
             label3.TabIndex = 3;
-            label3.Text = "这是一个遵循 MIT 许可协议的开源 PS1 模拟器\r\n\r\n源码公开在GitHub：\r\n";
+            label3.Text = $"{ScePSX.Properties.Resources.FrmAbout_InitializeComponent_read}\r\n\r\n{ScePSX.Properties.Resources.FrmAbout_InitializeComponent_read2}\r\n";
             // 
             // linkLabel1
             // 
@@ -96,7 +96,7 @@
             MaximizeBox = false;
             Name = "FrmAbout";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            Text = "关于";
+            Text = ScePSX.Properties.Resources.FrmAbout_InitializeComponent_关于;
             ResumeLayout(false);
             PerformLayout();
         }

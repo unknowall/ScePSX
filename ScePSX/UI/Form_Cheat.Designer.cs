@@ -46,7 +46,7 @@
             this.btnadd.Name = "btnadd";
             this.btnadd.Size = new System.Drawing.Size(57, 26);
             this.btnadd.TabIndex = 0;
-            this.btnadd.Text = "增加";
+            this.btnadd.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_增加;
             this.btnadd.UseVisualStyleBackColor = true;
             this.btnadd.Click += new System.EventHandler(this.btnadd_Click);
             // 
@@ -57,7 +57,7 @@
             this.btndel.Name = "btndel";
             this.btndel.Size = new System.Drawing.Size(55, 26);
             this.btndel.TabIndex = 1;
-            this.btndel.Text = "删除";
+            this.btndel.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_删除;
             this.btndel.UseVisualStyleBackColor = true;
             this.btndel.Click += new System.EventHandler(this.btndel_Click);
             // 
@@ -78,7 +78,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(69, 19);
             this.label1.TabIndex = 4;
-            this.label1.Text = "地址代码:";
+            this.label1.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_地址代码;
             // 
             // btnload
             // 
@@ -87,7 +87,7 @@
             this.btnload.Name = "btnload";
             this.btnload.Size = new System.Drawing.Size(65, 26);
             this.btnload.TabIndex = 5;
-            this.btnload.Text = "读取";
+            this.btnload.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_读取;
             this.btnload.UseVisualStyleBackColor = true;
             this.btnload.Click += new System.EventHandler(this.btnload_Click);
             // 
@@ -98,7 +98,7 @@
             this.btnimp.Name = "btnimp";
             this.btnimp.Size = new System.Drawing.Size(64, 26);
             this.btnimp.TabIndex = 6;
-            this.btnimp.Text = "导入";
+            this.btnimp.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_导入;
             this.btnimp.UseVisualStyleBackColor = true;
             this.btnimp.Click += new System.EventHandler(this.btnimp_Click);
             // 
@@ -109,7 +109,7 @@
             this.btnsave.Name = "btnsave";
             this.btnsave.Size = new System.Drawing.Size(63, 26);
             this.btnsave.TabIndex = 7;
-            this.btnsave.Text = "保存";
+            this.btnsave.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_保存;
             this.btnsave.UseVisualStyleBackColor = true;
             this.btnsave.Click += new System.EventHandler(this.btnsave_Click);
             // 
@@ -120,7 +120,7 @@
             this.btnapply.Name = "btnapply";
             this.btnapply.Size = new System.Drawing.Size(121, 26);
             this.btnapply.TabIndex = 8;
-            this.btnapply.Text = "应用金手指";
+            this.btnapply.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_应用金手指;
             this.btnapply.UseVisualStyleBackColor = true;
             this.btnapply.Click += new System.EventHandler(this.btnapply_Click);
             // 
@@ -157,7 +157,7 @@
             this.MaximizeBox = false;
             this.Name = "Form_Cheat";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "金手指";
+            this.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_金手指;
             this.ResumeLayout(false);
             this.PerformLayout();
 

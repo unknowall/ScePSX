@@ -124,7 +124,7 @@
             del1.Name = "del1";
             del1.Size = new System.Drawing.Size(73, 32);
             del1.TabIndex = 6;
-            del1.Text = "删除选中";
+            del1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_删除选中;
             del1.UseVisualStyleBackColor = true;
             del1.Click += del1_Click;
             // 
@@ -134,7 +134,7 @@
             out1.Name = "out1";
             out1.Size = new System.Drawing.Size(73, 32);
             out1.TabIndex = 8;
-            out1.Text = "导出";
+            out1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_导出;
             out1.UseVisualStyleBackColor = true;
             out1.Click += out1_Click;
             // 
@@ -144,7 +144,7 @@
             save1.Name = "save1";
             save1.Size = new System.Drawing.Size(73, 32);
             save1.TabIndex = 9;
-            save1.Text = "保存修改";
+            save1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_保存修改;
             save1.UseVisualStyleBackColor = true;
             save1.Click += save1_Click;
             // 
@@ -154,7 +154,7 @@
             save2.Name = "save2";
             save2.Size = new System.Drawing.Size(73, 32);
             save2.TabIndex = 12;
-            save2.Text = "保存修改";
+            save2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_保存修改;
             save2.UseVisualStyleBackColor = true;
             save2.Click += save2_Click;
             // 
@@ -164,7 +164,7 @@
             out2.Name = "out2";
             out2.Size = new System.Drawing.Size(73, 32);
             out2.TabIndex = 11;
-            out2.Text = "导出";
+            out2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_导出;
             out2.UseVisualStyleBackColor = true;
             out2.Click += out2_Click;
             // 
@@ -174,7 +174,7 @@
             del2.Name = "del2";
             del2.Size = new System.Drawing.Size(73, 32);
             del2.TabIndex = 10;
-            del2.Text = "删除选中";
+            del2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_删除选中;
             del2.UseVisualStyleBackColor = true;
             del2.Click += del2_Click;
             // 
@@ -253,7 +253,7 @@
             MaximizeBox = false;
             Name = "Form_McrMange";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "存档管理";
+            Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_存档管理;
             ResumeLayout(false);
         }
 

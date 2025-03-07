@@ -31,7 +31,7 @@ namespace ScePSX.UI
                     loadini(ini);
                 }
                 btndel.Visible = true;
-                this.Text = $" {id} 的设置";
+                this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
             }
         }
 
@@ -61,14 +61,16 @@ namespace ScePSX.UI
 
         private void loadini(IniFile ini)
         {
-            tbcpusync.Text = ini.Read("CPU", "Sync");
-            tbcyles.Text = ini.Read("CPU", "Cycles");
+            tbbuscycles.Text = ini.Read("CPU", "BusCycles");
+            tbcylesfix.Text = ini.Read("CPU", "CyclesFix");
             tbframeidle.Text = ini.Read("CPU", "FrameIdle");
             tbframeskip.Text = ini.Read("Main", "SkipFrame");
-            tbmipslock.Text = ini.Read("CPU", "MipsLock");
+            tbcputicks.Text = ini.Read("CPU", "CpuTicks");
             tbaudiobuffer.Text = ini.Read("Audio", "Buffer");
 
             cbmsaa.SelectedIndex = ini.ReadInt("OpenGL", "MSAA");
+
+            cbscalemode.SelectedIndex = ini.ReadInt("Main", "Scale");
 
             chkbios.Checked = ini.ReadInt("Main", "BiosDebug") == 1;
             chkcpu.Checked = ini.ReadInt("Main", "CPUDebug") == 1;
@@ -98,11 +100,11 @@ namespace ScePSX.UI
 
         private void saveini(IniFile ini)
         {
-            ini.WriteInt("CPU", "Sync", int.Parse(tbcpusync.Text));
-            ini.WriteInt("CPU", "Cycles", int.Parse(tbcyles.Text));
+            ini.WriteInt("CPU", "BusCycles", int.Parse(tbbuscycles.Text));
+            ini.WriteInt("CPU", "CyclesFix", int.Parse(tbcylesfix.Text));
             ini.WriteInt("CPU", "FrameIdle", int.Parse(tbframeidle.Text));
             ini.WriteInt("Main", "SkipFrame", int.Parse(tbframeskip.Text));
-            ini.WriteInt("CPU", "MipsLock", int.Parse(tbmipslock.Text));
+            ini.WriteInt("CPU", "CpuTicks", int.Parse(tbcputicks.Text));
             ini.WriteInt("Audio", "Buffer", int.Parse(tbaudiobuffer.Text));
 
             ini.WriteInt("OpenGL", "MSAA", cbmsaa.SelectedIndex);

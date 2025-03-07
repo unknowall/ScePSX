@@ -211,7 +211,7 @@
             BtnSave.Name = "BtnSave";
             BtnSave.Size = new System.Drawing.Size(73, 25);
             BtnSave.TabIndex = 16;
-            BtnSave.Text = "保存设置";
+            BtnSave.Text = ScePSX.Properties.Resources.FrmInput_InitializeComponent_保存设置;
             BtnSave.UseVisualStyleBackColor = true;
             BtnSave.Click += BtnSave_Click;
             // 
@@ -232,7 +232,7 @@
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(168, 22);
             label1.TabIndex = 0;
-            label1.Text = "按下任意键，ESC取消";
+            label1.Text = ScePSX.Properties.Resources.FrmInput_InitializeComponent_按下;
             // 
             // cbcon
             // 
@@ -284,7 +284,7 @@
             MaximizeBox = false;
             Name = "FrmInput";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "按键设置";
+            Text = ScePSX.Properties.Resources.FrmInput_InitializeComponent_按键设置;
             Shown += FrmInput_Shown;
             KeyUp += FrmInput_KeyUp;
             plwait.ResumeLayout(false);

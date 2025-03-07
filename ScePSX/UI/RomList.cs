@@ -113,13 +113,13 @@ namespace ScePSX.UI
             contextMenuStrip.BackColor = MenuBackColor;
             var split = new ToolStripSeparator();
 
-            var item0 = new ToolStripMenuItem("存档管理", null, OnMcrClick);
-            var item1 = new ToolStripMenuItem("修改设置", null, OnSetClick);
-            var item2 = new ToolStripMenuItem("编辑金手指", null, OnCheatClick);
+            var item0 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_存档管理, null, OnMcrClick);
+            var item1 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_修改设置, null, OnSetClick);
+            var item2 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_编辑金手指, null, OnCheatClick);
 
-            var item5 = new ToolStripMenuItem("取存档图标", null, OnUpIconClick);
-            var item3 = new ToolStripMenuItem("设置图标", null, OnSetIconClick);
-            var item4 = new ToolStripMenuItem("删除", null, OnDeleteClick);
+            var item5 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_取存档图标, null, OnUpIconClick);
+            var item3 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_设置图标, null, OnSetIconClick);
+            var item4 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_删除, null, OnDeleteClick);
             contextMenuStrip.Items.AddRange(new ToolStripItem[]
             {
                 item0, split,
@@ -256,8 +256,8 @@ namespace ScePSX.UI
                 if (_shouldSearchSubdirectories == null)
                 {
                     DialogResult result = MessageBox.Show(
-                        "是否要搜索子目录？",
-                        "搜索多重目录",
+                        ScePSX.Properties.Resources.RomList_SearchDir_是否要搜索子目录,
+                        "",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question
                     );
@@ -611,9 +611,9 @@ namespace ScePSX.UI
             startX = bounds.Right - 340;
             startY = bounds.Bottom - 32;
             if (game.LastPlayed != "" && this.Width>550)
-                DrawInfoBox(g, $"最后运行: {game.LastPlayed}", startX - 29, startY, 9);
-            DrawInfoBox(g, $"即时存档: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
-            DrawInfoBox(g, $"金手指: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
+                DrawInfoBox(g, $"{ScePSX.Properties.Resources.RomList_DrawInfoBoxes_最后运行}: {game.LastPlayed}", startX - 29, startY, 9);
+            DrawInfoBox(g, $"{ScePSX.Properties.Resources.RomList_DrawInfoBoxes_即时存档}: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
+            DrawInfoBox(g, $"{ScePSX.Properties.Resources.RomList_DrawInfoBoxes_金手指}: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
         }
 
         private void DrawSelectionEffect(Graphics g, Rectangle bounds)

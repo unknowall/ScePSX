@@ -109,7 +109,7 @@ namespace ScePSX.UI
             string selectedFile = cbsave1.SelectedItem.ToString();
             if (cbsave2.SelectedItem != null && selectedFile == cbsave2.SelectedItem.ToString())
             {
-                MessageBox.Show("不能选择相同的文件，请选择其他文件。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ScePSX.Properties.Resources.Form_McrMange_Cbsave1_SelectedIndexChanged_同名, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 cbsave1.SelectedIndex = -1;
                 return;
             }
@@ -124,7 +124,7 @@ namespace ScePSX.UI
             string selectedFile = cbsave2.SelectedItem.ToString();
             if (cbsave1.SelectedItem != null && selectedFile == cbsave1.SelectedItem.ToString())
             {
-                MessageBox.Show("不能选择相同的文件，请选择其他文件。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ScePSX.Properties.Resources.Form_McrMange_Cbsave1_SelectedIndexChanged_同名, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 cbsave2.SelectedIndex = -1;
                 return;
             }
@@ -146,7 +146,7 @@ namespace ScePSX.UI
                 FillListView(lv2, card2, imageList2);
             } else
             {
-                MessageBox.Show("无法移动存档，请检查目标存储卡是否有足够的空间。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ScePSX.Properties.Resources.Form_McrMange_move1to2_Click_空位, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -164,7 +164,7 @@ namespace ScePSX.UI
                 FillListView(lv2, card2, imageList2);
             } else
             {
-                MessageBox.Show("无法移动存档，请检查目标存储卡是否有足够的空间。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ScePSX.Properties.Resources.Form_McrMange_move1to2_Click_空位, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -240,7 +240,7 @@ namespace ScePSX.UI
                 FillListView(lv2, card2, imageList2);
             } else
             {
-                MessageBox.Show("无法复制存档，请检查目标存储卡是否有足够的空间。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ScePSX.Properties.Resources.Form_McrMange_move1to2_Click_空位, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -256,7 +256,7 @@ namespace ScePSX.UI
                 FillListView(lv1, card1, imageList1);
             } else
             {
-                MessageBox.Show("无法复制存档，请检查目标存储卡是否有足够的空间。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ScePSX.Properties.Resources.Form_McrMange_move1to2_Click_空位, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -59,6 +60,8 @@ namespace ScePSX.UI
 
         public FrmMain()
         {
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
             InitializeComponent();
 
             //MainMenu.RenderMode = ToolStripRenderMode.Professional;
@@ -180,14 +183,14 @@ namespace ScePSX.UI
                 StatusDelay--;
             } else
             {
-                UpdateStatus(1, $"F3+ F4- 存档槽 [{StateSlot}]");
-                UpdateStatus(2, $"F9 [{(KeyFirst ? "键盘优先" : "手柄优先")}]");
-                UpdateStatus(3, $"F10[{(isAnalog ? "多轴手柄" : "数字手柄")}]");
+                UpdateStatus(1, $"F3+ F4- {ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [{StateSlot}]");
+                UpdateStatus(2, $"F9 [{(KeyFirst ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_键盘优先 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_手柄优先)}]");
+                UpdateStatus(3, $"F10[{(isAnalog ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_多轴手柄 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_数字手柄)}]");
             }
 
             if (Core.Pauseed)
             {
-                UpdateStatus(1, "暂停中", true);
+                UpdateStatus(1, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中, true);
             }
 
             this.Text = $"{version}  -  {gamename}";
@@ -421,12 +424,11 @@ namespace ScePSX.UI
             if (romList != null)
             {
                 OpenFileDialog FD = new OpenFileDialog();
-                FD.Title = "选择一个文件夹";
                 FD.InitialDirectory = ini.Read("main", "LastPath");
                 FD.ValidateNames = false;
                 FD.CheckFileExists = false;
                 FD.CheckPathExists = true;
-                FD.FileName = "选择文件夹";
+                FD.FileName = "select";
                 if (FD.ShowDialog() == DialogResult.Cancel)
                 {
                     return;
@@ -620,7 +622,7 @@ namespace ScePSX.UI
             if (Core != null && Core.Running)
             {
                 Core.SaveState(Slot.ToString());
-                UpdateStatus(1, $"已保存到即时存档 [{StateSlot}]", true);
+                UpdateStatus(1, $"{ScePSX.Properties.Resources.FrmMain_SaveState_saved} [{StateSlot}]", true);
                 StatusDelay = 3;
             }
         }
@@ -748,7 +750,7 @@ namespace ScePSX.UI
         {
             if (!File.Exists("./BIOS/" + currbios))
             {
-                UpdateStatus(0, "没有BIOS文件，无法运行 (Bios Not Found)", true);
+                UpdateStatus(0, $"{ScePSX.Properties.Resources.FrmMain_LoadRom_nobios} (Bios Not Found)", true);
                 timer.Enabled = false;
                 timer.Stop();
                 return;
@@ -820,10 +822,9 @@ namespace ScePSX.UI
             }
 
             Core.SYNC_CYCLES_IDLE = ini.ReadInt("CPU", "FrameIdle");
-            Core.SYNC_CYCLES_FIX = ini.ReadInt("CPU", "MipsLock");
-            Core.SYNC_CYCLES = ini.ReadInt("CPU", "Sync");
-
-            Core.PsxBus.cpu.cylesfix = ini.ReadInt("CPU", "Cycles");
+            Core.SYNC_CPU_TICK = ini.ReadInt("CPU", "CpuTicks");
+            Core.SYNC_CYCLES_BUS = ini.ReadInt("CPU", "BusCycles");
+            Core.SYNC_CYCLES_FIX = ini.ReadInt("CPU", "CyclesFix");
 
             romList.Dispose();
 
@@ -874,7 +875,7 @@ namespace ScePSX.UI
 
             Core.Pauseing = false;
 
-            UpdateStatus(1, $"更换光盘 {Core.DiskID}", true);
+            UpdateStatus(1, $"{ScePSX.Properties.Resources.FrmMain_SwapDisc_更换光盘} {Core.DiskID}", true);
             StatusDelay = 3;
         }
 

@@ -84,7 +84,7 @@ namespace ScePSX.UI
             // 
             // address
             // 
-            address.HeaderText = "地址";
+            address.HeaderText = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_地址;
             address.MinimumWidth = 160;
             address.Name = "address";
             address.ReadOnly = true;
@@ -92,7 +92,7 @@ namespace ScePSX.UI
             // 
             // val
             // 
-            val.HeaderText = "数值";
+            val.HeaderText = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_数值;
             val.MinimumWidth = 100;
             val.Name = "val";
             // 
@@ -169,7 +169,7 @@ namespace ScePSX.UI
             btnupd.Name = "btnupd";
             btnupd.Size = new System.Drawing.Size(70, 23);
             btnupd.TabIndex = 5;
-            btnupd.Text = "刷新";
+            btnupd.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_刷新;
             btnupd.UseVisualStyleBackColor = true;
             btnupd.Click += btnupd_Click;
             // 
@@ -180,7 +180,7 @@ namespace ScePSX.UI
             chkupd.Name = "chkupd";
             chkupd.Size = new System.Drawing.Size(75, 21);
             chkupd.TabIndex = 4;
-            chkupd.Text = "自动刷新";
+            chkupd.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_自动刷新;
             chkupd.UseVisualStyleBackColor = true;
             // 
             // btngo
@@ -189,7 +189,7 @@ namespace ScePSX.UI
             btngo.Name = "btngo";
             btngo.Size = new System.Drawing.Size(75, 23);
             btngo.TabIndex = 3;
-            btngo.Text = "前往地址";
+            btngo.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_前往地址;
             btngo.UseVisualStyleBackColor = true;
             btngo.Click += btngo_Click;
             // 
@@ -218,7 +218,7 @@ namespace ScePSX.UI
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(102, 25);
             label2.TabIndex = 43;
-            label2.Text = "内存搜索：";
+            label2.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_内存搜索;
             // 
             // btns
             // 
@@ -226,7 +226,7 @@ namespace ScePSX.UI
             btns.Name = "btns";
             btns.Size = new System.Drawing.Size(75, 26);
             btns.TabIndex = 42;
-            btns.Text = "搜索";
+            btns.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_搜索;
             btns.UseVisualStyleBackColor = true;
             btns.Click += btns_Click;
             // 
@@ -236,7 +236,7 @@ namespace ScePSX.UI
             btnr.Name = "btnr";
             btnr.Size = new System.Drawing.Size(75, 23);
             btnr.TabIndex = 41;
-            btnr.Text = "重置";
+            btnr.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_重置;
             btnr.UseVisualStyleBackColor = true;
             btnr.Click += btnr_Click;
             // 
@@ -259,7 +259,7 @@ namespace ScePSX.UI
             gbst.Size = new System.Drawing.Size(289, 100);
             gbst.TabIndex = 39;
             gbst.TabStop = false;
-            gbst.Text = "搜索类型";
+            gbst.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_搜索类型;
             // 
             // rbfloat
             // 
@@ -269,7 +269,7 @@ namespace ScePSX.UI
             rbfloat.Size = new System.Drawing.Size(86, 21);
             rbfloat.TabIndex = 42;
             rbfloat.TabStop = true;
-            rbfloat.Text = "浮点(Float)";
+            rbfloat.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_浮点Float;
             rbfloat.UseVisualStyleBackColor = true;
             // 
             // rbDword
@@ -280,7 +280,7 @@ namespace ScePSX.UI
             rbDword.Size = new System.Drawing.Size(106, 21);
             rbDword.TabIndex = 41;
             rbDword.TabStop = true;
-            rbDword.Text = "双字(DWORD)";
+            rbDword.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_双字DWORD;
             rbDword.UseVisualStyleBackColor = true;
             // 
             // rbWord
@@ -290,7 +290,7 @@ namespace ScePSX.UI
             rbWord.Name = "rbWord";
             rbWord.Size = new System.Drawing.Size(85, 21);
             rbWord.TabIndex = 40;
-            rbWord.Text = "字(WORD)";
+            rbWord.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_字WORD;
             rbWord.UseVisualStyleBackColor = true;
             // 
             // rbbyte
@@ -302,7 +302,7 @@ namespace ScePSX.UI
             rbbyte.Size = new System.Drawing.Size(83, 21);
             rbbyte.TabIndex = 39;
             rbbyte.TabStop = true;
-            rbbyte.Text = "字节(Byte)";
+            rbbyte.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_字节Byte;
             rbbyte.UseVisualStyleBackColor = true;
             // 
             // labse
@@ -313,7 +313,7 @@ namespace ScePSX.UI
             labse.Name = "labse";
             labse.Size = new System.Drawing.Size(225, 19);
             labse.TabIndex = 34;
-            labse.Text = "搜索到 0 个地址  (只显示前500个)";
+            labse.Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_搜索到0个地址只显示前500个;
             // 
             // Form_Mem
             // 
@@ -326,7 +326,7 @@ namespace ScePSX.UI
             MaximizeBox = false;
             Name = "Form_Mem";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "内存编辑";
+            Text = ScePSX.Properties.Resources.Form_Mem_InitializeComponent_内存编辑;
             ((System.ComponentModel.ISupportInitialize)ml).EndInit();
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel1.PerformLayout();

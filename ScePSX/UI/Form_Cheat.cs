@@ -25,7 +25,7 @@ namespace ScePSX.UI
             }
             DiskID = id;
 
-            this.Text = $"  {DiskID}  的金手指";
+            this.Text = $"  {DiskID}  {ScePSX.Properties.Resources.Form_Cheat_Form_Cheat_的金手指}";
 
             btnload_Click(this, null);
 
@@ -35,7 +35,7 @@ namespace ScePSX.UI
 
         private void btnadd_Click(object sender, EventArgs e)
         {
-            var item = clb.Items.Add("新建项，请修改名称");
+            var item = clb.Items.Add(ScePSX.Properties.Resources.Form_Cheat_btnadd_Click_新建);
             item.SubItems.Add("");
         }
 

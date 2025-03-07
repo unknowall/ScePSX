@@ -233,7 +233,7 @@ namespace ScePSX.UI
 
         private void updateml()
         {
-            labse.Text = $"搜索到 {SearchResults.Count} 个地址  (只显示前500个)";
+            labse.Text = $"{ScePSX.Properties.Resources.Form_Mem_updateml_搜索到} {SearchResults.Count} {ScePSX.Properties.Resources.Form_Mem_updateml_个地址只显示前500个}";
             ml.Rows.Clear();
             for (int i = 0; i < SearchResults.Count; i++)
             {

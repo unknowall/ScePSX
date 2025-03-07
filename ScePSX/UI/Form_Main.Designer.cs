@@ -45,8 +45,8 @@
             FreeSpeed = new System.Windows.Forms.ToolStripMenuItem();
             MnuPause = new System.Windows.Forms.ToolStripMenuItem();
             MnuDebug = new System.Windows.Forms.ToolStripMenuItem();
-            cPUToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            内存编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            CpuDbgMnu = new System.Windows.Forms.ToolStripMenuItem();
+            MemEditMnu = new System.Windows.Forms.ToolStripMenuItem();
             RenderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             CutBlackLineMnu = new System.Windows.Forms.ToolStripMenuItem();
             frameskipmnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -89,27 +89,27 @@
             MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, CheatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
             MnuFile.Size = new System.Drawing.Size(62, 21);
-            MnuFile.Text = "文件(&F))";
+            MnuFile.Text = ScePSX.Properties.Resources.File;
             // 
             // LoadDIsk
             // 
             LoadDIsk.Name = "LoadDIsk";
             LoadDIsk.Size = new System.Drawing.Size(165, 22);
-            LoadDIsk.Text = "加载光盘";
+            LoadDIsk.Text = ScePSX.Properties.Resources.LoadDIsk;
             LoadDIsk.Click += LoadDisk_Click;
             // 
             // SwapDisk
             // 
             SwapDisk.Name = "SwapDisk";
             SwapDisk.Size = new System.Drawing.Size(165, 22);
-            SwapDisk.Text = "切换光盘";
+            SwapDisk.Text = ScePSX.Properties.Resources.SwapDisc;
             SwapDisk.Click += SwapDisk_Click;
             // 
             // CloseRomMnu
             // 
             CloseRomMnu.Name = "CloseRomMnu";
             CloseRomMnu.Size = new System.Drawing.Size(165, 22);
-            CloseRomMnu.Text = "返回列表";
+            CloseRomMnu.Text = ScePSX.Properties.Resources.BackToMain;
             CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // toolStripMenuItem1
@@ -121,21 +121,21 @@
             // 
             SearchMnu.Name = "SearchMnu";
             SearchMnu.Size = new System.Drawing.Size(165, 22);
-            SearchMnu.Text = "扫描目录";
+            SearchMnu.Text = ScePSX.Properties.Resources.SearchDir;
             SearchMnu.Click += SearchMnu_Click;
             // 
             // SysSetMnu
             // 
             SysSetMnu.Name = "SysSetMnu";
             SysSetMnu.Size = new System.Drawing.Size(165, 22);
-            SysSetMnu.Text = "系统设置";
+            SysSetMnu.Text = ScePSX.Properties.Resources.Setting;
             SysSetMnu.Click += SysSetMnu_Click;
             // 
             // KeyTool
             // 
             KeyTool.Name = "KeyTool";
             KeyTool.Size = new System.Drawing.Size(165, 22);
-            KeyTool.Text = "按键设置";
+            KeyTool.Text = ScePSX.Properties.Resources.KeySet;
             KeyTool.Click += KeyToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
@@ -148,33 +148,33 @@
             SaveStripMenuItem.Enabled = false;
             SaveStripMenuItem.Name = "SaveStripMenuItem";
             SaveStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            SaveStripMenuItem.Text = "即时存档 (F5)";
+            SaveStripMenuItem.Text = ScePSX.Properties.Resources.SaveState;
             // 
             // LoadStripMenuItem
             // 
             LoadStripMenuItem.Enabled = false;
             LoadStripMenuItem.Name = "LoadStripMenuItem";
             LoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            LoadStripMenuItem.Text = "即时读取 (F6)";
+            LoadStripMenuItem.Text = ScePSX.Properties.Resources.LoadState;
             // 
             // UnLoadStripMenuItem
             // 
             UnLoadStripMenuItem.Enabled = false;
             UnLoadStripMenuItem.Name = "UnLoadStripMenuItem";
             UnLoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            UnLoadStripMenuItem.Text = "撤销读取 (F7)";
+            UnLoadStripMenuItem.Text = ScePSX.Properties.Resources.UnLoad;
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
             toolStripMenuItem3.Size = new System.Drawing.Size(162, 6);
             // 
-            // ChatCode
+            // CheatCode
             // 
             CheatCode.Enabled = false;
-            CheatCode.Name = "ChatCode";
+            CheatCode.Name = "CheatCode";
             CheatCode.Size = new System.Drawing.Size(165, 22);
-            CheatCode.Text = "金手指";
+            CheatCode.Text = ScePSX.Properties.Resources.CheatCode;
             CheatCode.Click += CheatCode_Click;
             // 
             // toolStripMenuItem5
@@ -186,49 +186,49 @@
             // 
             FreeSpeed.Name = "FreeSpeed";
             FreeSpeed.Size = new System.Drawing.Size(165, 22);
-            FreeSpeed.Text = "加速快进 (TAB)";
+            FreeSpeed.Text = ScePSX.Properties.Resources.FastSpeed;
             // 
             // MnuPause
             // 
             MnuPause.Name = "MnuPause";
             MnuPause.Size = new System.Drawing.Size(165, 22);
-            MnuPause.Text = "暂停/继续 (空格)";
+            MnuPause.Text = ScePSX.Properties.Resources.pause;
             MnuPause.Click += MnuPause_Click;
             // 
             // MnuDebug
             // 
-            MnuDebug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { cPUToolStripMenuItem, 内存编辑ToolStripMenuItem });
+            MnuDebug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CpuDbgMnu, MemEditMnu });
             MnuDebug.Name = "MnuDebug";
             MnuDebug.Size = new System.Drawing.Size(61, 21);
-            MnuDebug.Text = "调试(&D)";
+            MnuDebug.Text = ScePSX.Properties.Resources.debug;
             // 
-            // cPUToolStripMenuItem
+            // CpuDbgMnu
             // 
-            cPUToolStripMenuItem.Enabled = false;
-            cPUToolStripMenuItem.Name = "cPUToolStripMenuItem";
-            cPUToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            cPUToolStripMenuItem.Text = "CPU";
+            CpuDbgMnu.Enabled = false;
+            CpuDbgMnu.Name = "CpuDbgMnu";
+            CpuDbgMnu.Size = new System.Drawing.Size(180, 22);
+            CpuDbgMnu.Text = "CPU";
             // 
-            // 内存编辑ToolStripMenuItem
+            // MemEditMnu
             // 
-            内存编辑ToolStripMenuItem.Name = "内存编辑ToolStripMenuItem";
-            内存编辑ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            内存编辑ToolStripMenuItem.Text = "内存编辑";
-            内存编辑ToolStripMenuItem.Click += MnuDebug_Click;
+            MemEditMnu.Name = "MemEditMnu";
+            MemEditMnu.Size = new System.Drawing.Size(180, 22);
+            MemEditMnu.Text = ScePSX.Properties.Resources.memedit;
+            MemEditMnu.Click += MnuDebug_Click;
             // 
             // RenderToolStripMenuItem
             // 
             RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec });
             RenderToolStripMenuItem.Name = "RenderToolStripMenuItem";
             RenderToolStripMenuItem.Size = new System.Drawing.Size(72, 21);
-            RenderToolStripMenuItem.Text = "渲染器(&R)";
+            RenderToolStripMenuItem.Text = ScePSX.Properties.Resources.Render;
             // 
             // CutBlackLineMnu
             // 
             CutBlackLineMnu.CheckOnClick = true;
             CutBlackLineMnu.Name = "CutBlackLineMnu";
             CutBlackLineMnu.Size = new System.Drawing.Size(228, 22);
-            CutBlackLineMnu.Text = "裁剪上下黑边(可能造成失真)";
+            CutBlackLineMnu.Text = ScePSX.Properties.Resources.cutline;
             CutBlackLineMnu.CheckedChanged += CutBlackLineMnu_CheckedChanged;
             // 
             // frameskipmnu
@@ -238,7 +238,7 @@
             frameskipmnu.CheckState = System.Windows.Forms.CheckState.Checked;
             frameskipmnu.Name = "frameskipmnu";
             frameskipmnu.Size = new System.Drawing.Size(228, 22);
-            frameskipmnu.Text = "跳帧 (只对 D2D,D3D)";
+            frameskipmnu.Text = ScePSX.Properties.Resources.Frameskip;
             frameskipmnu.CheckedChanged += frameskipmnu_CheckedChanged;
             // 
             // toolStripMenuItem6
@@ -295,20 +295,20 @@
             NetPlayMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { NetPlaySetMnu });
             NetPlayMnu.Name = "NetPlayMnu";
             NetPlayMnu.Size = new System.Drawing.Size(86, 21);
-            NetPlayMnu.Text = "网络对战(&N)";
+            NetPlayMnu.Text = ScePSX.Properties.Resources.netplay;
             // 
             // NetPlaySetMnu
             // 
             NetPlaySetMnu.Name = "NetPlaySetMnu";
             NetPlaySetMnu.Size = new System.Drawing.Size(100, 22);
-            NetPlaySetMnu.Text = "设置";
+            NetPlaySetMnu.Text = ScePSX.Properties.Resources.netplayset;
             NetPlaySetMnu.Click += NetPlaySetMnu_Click;
             // 
             // AboutMnu
             // 
             AboutMnu.Name = "AboutMnu";
             AboutMnu.Size = new System.Drawing.Size(60, 21);
-            AboutMnu.Text = "关于(&A)";
+            AboutMnu.Text = ScePSX.Properties.Resources.about;
             AboutMnu.Click += AboutMnu_Click;
             // 
             // StatusBar
@@ -321,50 +321,50 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel1.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel2
             // 
-            toolStripStatusLabel2.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel2.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
             toolStripStatusLabel2.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel3
             // 
-            toolStripStatusLabel3.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel3.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel3.Name = "toolStripStatusLabel3";
             toolStripStatusLabel3.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel4
             // 
-            toolStripStatusLabel4.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel4.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel4.Name = "toolStripStatusLabel4";
             toolStripStatusLabel4.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel5
             // 
-            toolStripStatusLabel5.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel5.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel5.Name = "toolStripStatusLabel5";
             toolStripStatusLabel5.Size = new System.Drawing.Size(669, 17);
             toolStripStatusLabel5.Spring = true;
             // 
             // toolStripStatusLabel6
             // 
-            toolStripStatusLabel6.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel6.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel6.Name = "toolStripStatusLabel6";
             toolStripStatusLabel6.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel7
             // 
-            toolStripStatusLabel7.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel7.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel7.Name = "toolStripStatusLabel7";
             toolStripStatusLabel7.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel8
             // 
-            toolStripStatusLabel8.Font = new System.Drawing.Font("微软雅黑", 9F);
+            toolStripStatusLabel8.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
             toolStripStatusLabel8.Name = "toolStripStatusLabel8";
             toolStripStatusLabel8.Size = new System.Drawing.Size(0, 17);
             // 
@@ -395,8 +395,8 @@
         private System.Windows.Forms.MenuStrip MainMenu;
         private System.Windows.Forms.ToolStripMenuItem MnuFile;
         private System.Windows.Forms.ToolStripMenuItem MnuDebug;
-        private System.Windows.Forms.ToolStripMenuItem cPUToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 内存编辑ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CpuDbgMnu;
+        private System.Windows.Forms.ToolStripMenuItem MemEditMnu;
         private System.Windows.Forms.ToolStripMenuItem RenderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem directx3DRender;
         private System.Windows.Forms.ToolStripMenuItem openGLRender;
