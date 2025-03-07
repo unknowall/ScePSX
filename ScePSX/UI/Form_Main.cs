@@ -60,7 +60,7 @@ namespace ScePSX.UI
 
         public FrmMain()
         {
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
             InitializeComponent();
 
