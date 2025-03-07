@@ -1,41 +1,98 @@
-<h2>这是一个小巧可用的 PS1 模拟器</h2>
+<h2>这是一个完全用 c# 开发，小巧可用的 PS1 模拟器</h2>
 
-1. 即时存档、读档
-2. 可动态切换 D2D1、D3D、OpenGL 渲染器
-3. OpenGL可加载着色器，D3D, OpenGL 兼容ReShade
-4. 内部分辨率可调节
-5. 内存编辑及内存搜索功能
-6. 金手指
-7. 网络对战
-8. 游戏存档管理
+![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) 
+
+## 主要功能 🎮
+- **即时存档/读档**: 随时保存和加载游戏进度。
+- **多渲染器支持**: 动态切换 D2D、D3D 和 OpenGL 渲染器，适配不同硬件配置。
+- **ReShade 集成**: OpenGL 和 D3D 支持 ReShade 后处理效果，增强画质。
+- **分辨率调节**: 自定义内部分辨率（如 2x、4x），提升视觉体验。
+- **内存工具**: 提供内存编辑和搜索功能，适合高级用户修改游戏行为。
+- **金手指支持**: 开启作弊功能，解锁隐藏内容或调整游戏难度。
+- **网络对战**: 支持联机对战，重温经典游戏乐趣。
+- **存档管理**: 方便管理多个游戏存档。
 
 <b>the english version is available starting from Beta 0.1.0.</b>
 
-<b>各渲染模式模拟器内存占用 (完整进入游戏后)：<br>
-D2D 约32MB , D3D 约52MB, OpenGL 约86MB</b><br>
+## 性能表现 🚀
+
+| 渲染模式 | 内存占用 | 推荐硬件 |
+|----------|----------|----------|
+| D2D      | ~32MB    | 老机器   |
+| D3D      | ~52MB    | 较老设备 |
+| OpenGL   | ~86MB    | 现代设备 |
+
+> **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。
 *不使用gamedb, 不使用reshade
-
-<b>可在 Intel 赛扬 i3 3215u 上以60帧流畅运行</b>
-
 
 ![捕获1](https://github.com/user-attachments/assets/27f7ac35-f296-4bdc-9164-498ea4342314)
 ![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
+### 如何使用 🛠️
 
-如何使用:
+#### 1. 设置 BIOS 🔑
+> **注意**: 由于法律限制，模拟器不附带 BIOS 文件，请自行获取合法 BIOS。
+- 比如从你的 PlayStation 主机中提取 BIOS 文件（如 SCPH1001.BIN）
+- 将文件放入模拟器的 `bios` 文件夹中：
+- /ScePSx
+- ├── bios/
+- │ └── SCPH1001.bin
+- ├── saves/
+- └── ScePSX.exe
 
-1. BIOS 目录下至少有一个可用BIOS，启动后在文件菜单中选中
-2. 键盘设置在文件菜单里，手柄无需设置
-3. 自带的 ReShade 需用 OpenGL 渲染器，按 Home 键打开
-4. 多光盘游戏请使用存储卡2，存储卡1各盘独立，存储卡2共用
-5. 老机器请用D2D渲染器
-6. 控制台有详尽的运行日志，想看可以在系统设置里打开
+#### 2. 使用 ReShade 🎨
+- ReShade 仅在 OpenGL 渲染模式下可用。
+- 按 **Home 键** 打开 ReShade 设置界面。
+- 可加载预设的 Shader 文件（位于 `ReShade/` 文件夹中）。
+  
+#### 3. 多光盘游戏 📀
+- **存储卡1**: 每张光盘独立使用。
+- **存储卡2**: 所有光盘共用，推荐用于多光盘游戏。
+  
+#### 4. 控制设置 ⌨️🎮
+- 键盘设置在文件菜单中完成。
+- 手柄无需额外设置，即插即用。
 
-如何编译：
 
+  
+## 常见问题 ❓
+
+### Q: 为什么无法启动游戏？
+A: 请确保：
+1. 已正确设置 BIOS 文件。
+2. 游戏镜像文件格式正确（如 `.bin/.cue` 或 `.img/.cue` 或 `.iso`）。
+
+### Q: 如何获取更多 ReShade Shader？
+A: 访问 [ReShade 官方网站](https://reshade.me/) 下载 Shader 文件，并将其放入 `shaders/` 文件夹中。
+
+### Q: 模拟器支持哪些游戏？
+A: 大部分常见的游戏都已支持。
+
+### Q: CPU 占用较高怎么办？
+A: 如果 CPU 占用过高，建议使用 D2D 渲染器或降低内部分辨率。
+
+### Q: 是否支持跨平台？
+A: 目前仅支持 Windows，未来可能会考虑跨平台支持。
+
+
+
+## 如何编译
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
 3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+5. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+   
+**问题反馈**: 在 [Issues](https://github.com/unknowall/ScePSX/issues) 页面提交问题。
 
-Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+# 下载 📥
+
+- **轻量版 (1.29 MB)**: 仅包含核心功能，适合快速体验。
+- **完整版 (7.71 MB)**: 包含所有功能（如 ReShade 集成）。
+- **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
+- > **注意**: 由于法律限制，模拟器不附带 BIOS 文件，请自行获取合法 BIOS。
+
+[点击这里下载最新版本](https://github.com/unknowall/ScePSX/releases)
+
+
+
