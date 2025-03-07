@@ -176,7 +176,7 @@ namespace ScePSX.CdRom2
                         if (match.Success)
                         {
                             string[] id = match.Groups[1].Value.Split(".");
-                            return (id[0] + id[1]).Replace("_","-");
+                            return (id[0] + id[1]).Replace("_", "-");
                         }
                     }
                 }
@@ -251,7 +251,7 @@ namespace ScePSX.CdRom2
             const RegexOptions options = RegexOptions.Singleline | RegexOptions.Compiled;
 
             var rf = new Regex(@"^\s*FILE\s+("".*"")\s+BINARY\s*$", options);
-            var rt = new Regex(@"^\s*TRACK\s+(\d{2})\s+(MODE2/2352|AUDIO)\s*$", options);
+            var rt = new Regex(@"^\s*TRACK\s+(\d{2})\s+(MODE1/2352|MODE2/2352|AUDIO)\s*$", options);
             var ri = new Regex(@"^\s*INDEX\s+(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s*$", options);
 
             var files = new HashSet<string>();
@@ -281,7 +281,10 @@ namespace ScePSX.CdRom2
                 if (trackMatch.Success)
                 {
                     if (currentFile is null)
+                    {
                         Console.WriteLine($"[CDROM] TRACK at line {lineNumber} does not have a parent FILE.");
+                        return null;
+                    }
 
                     currentTrack = new CDTrack
                     {
@@ -298,7 +301,10 @@ namespace ScePSX.CdRom2
                 if (indexMatch.Success)
                 {
                     if (currentTrack is null)
+                    {
                         Console.WriteLine($"[CDROM] INDEX at line {lineNumber} does not have a parent TRACK.");
+                        return null;
+                    }
 
                     var n = Convert.ToInt32(indexMatch.Groups[1].Value);
                     var m = Convert.ToInt32(indexMatch.Groups[2].Value);

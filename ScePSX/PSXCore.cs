@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -17,8 +16,9 @@ namespace ScePSX
     {
         const int PSX_MHZ = 33868800;
         public const int CYCLES_PER_FRAME = PSX_MHZ / 60;
-        public int SYNC_CYCLES = 100;
-        public int MIPS_UNDERCLOCK = 1;
+        public int SYNC_CYCLES = 110;
+        public int SYNC_CYCLES_FIX = 1;
+        public int SYNC_CPU_STEP = 42;
         public int SYNC_LOOPS;
         public int SYNC_CYCLES_IDLE = 15;
 
@@ -27,7 +27,7 @@ namespace ScePSX
         public BUS PsxBus;
 
         public string DiskID = "";
-        public bool Pauseing, Pauseed, Running;
+        public bool Pauseing, Pauseed, Running, Boost;
 
         private IAudioHandler _Audio;
         private IRenderHandler _IRender;
@@ -48,8 +48,6 @@ namespace ScePSX
 
         public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile)
         {
-            SYNC_LOOPS = (CYCLES_PER_FRAME / (SYNC_CYCLES * MIPS_UNDERCLOCK)) + 1;
-
             _Audio = audio;
             _IRender = render;
 
@@ -296,7 +294,7 @@ namespace ScePSX
 
             double singleTickTime = sw.Elapsed.TotalMilliseconds / CalibrationCycles;
             SYNC_CYCLES = (int)(0.1 / singleTickTime); // 每0.1ms执行一次循环
-            SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES) + 1;
+            SYNC_LOOPS = (CYCLES_PER_FRAME / 110) + SYNC_CYCLES_FIX;
 
             Console.WriteLine($"CalibrateSyncParams SYNC_CYCLES {SYNC_CYCLES} SYNC_LOOPS {SYNC_LOOPS}");
         }
@@ -307,7 +305,7 @@ namespace ScePSX
             var stopwatch = new Stopwatch();
             double accumulatedError = 0;
 
-            SYNC_LOOPS = (CYCLES_PER_FRAME / 110) + 1;
+            SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES) + SYNC_CYCLES_FIX;
 
             while (Running)
             {
@@ -318,7 +316,7 @@ namespace ScePSX
                     Pauseed = false;
                     for (int i = 0; i < SYNC_LOOPS; i++)
                     {
-                        for (int j = 0; j < 42; j++) //42
+                        for (int j = 0; j < SYNC_CPU_STEP; j++) //42
                         {
                             PsxBus.cpu.tick();
                         }
@@ -328,6 +326,9 @@ namespace ScePSX
                     ApplyCheats();
                 } else
                     Pauseed = true;
+
+                if (Boost)
+                    continue;
 
                 // 精确帧时间控制
                 double elapsed = stopwatch.Elapsed.TotalMilliseconds;
@@ -380,7 +381,7 @@ namespace ScePSX
                     {
                         PsxBus.cpu.tick();
                     }
-                    PsxBus.tick(SYNC_CYCLES * MIPS_UNDERCLOCK);
+                    PsxBus.tick(SYNC_CYCLES * 1);
                     PsxBus.cpu.handleInterrupts();
                 }
 

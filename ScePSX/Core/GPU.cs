@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace ScePSX
 {
@@ -404,6 +405,7 @@ namespace ScePSX
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort GetPixelBGR555(int color)
         {
             byte m = (byte)((color & 0xFF000000) >> 24);
@@ -414,28 +416,32 @@ namespace ScePSX
             return (ushort)(m << 15 | b << 10 | g << 5 | r);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Sub24ToPixels(int[] vramIN, int[] vramOUT)
         {
-            int LineOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
+            int lineOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
+            int effectiveVertical = verticalRes - lineOffset;
 
-            for (int line = LineOffset; line < verticalRes - LineOffset; line++)
+            Parallel.For(lineOffset, effectiveVertical, line =>
             {
-                int offset = 0;
-                int readline = DisplayVRAMStartX + ((line - LineOffset + DisplayVRAMStartY) * 1024);
-                int writeline = (line - LineOffset) * horizontalRes;
+                int localLine = line - lineOffset;
+                int sourceLine = DisplayVRAMStartY + localLine;
+                int srcBase = DisplayVRAMStartX + (sourceLine * 1024);
+                int destBase = localLine * horizontalRes;
 
-                for (int x = 0; x < horizontalRes; x += 2)
+                int hRes = horizontalRes;
+                int offset = 0;
+                for (int x = 0; x < hRes; x += 2)
                 {
-                    int p0rgb = vramIN[readline + offset++];
-                    int p1rgb = vramIN[readline + offset++];
-                    int p2rgb = vramIN[readline + offset++];
+                    int p0rgb = vramIN[srcBase + offset];
+                    int p1rgb = vramIN[srcBase + offset + 1];
+                    int p2rgb = vramIN[srcBase + offset + 2];
+                    offset += 3;
 
                     ushort p0bgr555 = GetPixelBGR555(p0rgb);
                     ushort p1bgr555 = GetPixelBGR555(p1rgb);
                     ushort p2bgr555 = GetPixelBGR555(p2rgb);
 
-                    //[(G0R0][R1)(B0][B1G1)]
-                    //   RG    B - R   GB
                     int p0R = p0bgr555 & 0xFF;
                     int p0G = (p0bgr555 >> 8) & 0xFF;
                     int p0B = p1bgr555 & 0xFF;
@@ -443,30 +449,27 @@ namespace ScePSX
                     int p1G = p2bgr555 & 0xFF;
                     int p1B = (p2bgr555 >> 8) & 0xFF;
 
-                    int p0rgb24bpp = p0R << 16 | p0G << 8 | p0B;
-                    int p1rgb24bpp = p1R << 16 | p1G << 8 | p1B;
-
-                    vramOUT[writeline + x] = p0rgb24bpp;
-                    vramOUT[writeline + x + 1] = p1rgb24bpp;
+                    int p0rgb24 = (p0R << 16) | (p0G << 8) | p0B;
+                    int p1rgb24 = (p1R << 16) | (p1G << 8) | p1B;
+                    vramOUT[destBase + x] = p0rgb24;
+                    vramOUT[destBase + x + 1] = p1rgb24;
                 }
-            }
+            });
 
             OutWidth = horizontalRes;
-            OutHeight = verticalRes - LineOffset * 2 - 1;
+            OutHeight = verticalRes - lineOffset * 2 - 1;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SubToPixels(int[] vramIn, int[] vramOut)
         {
             int LineOffset = (240 - (DisplayY2 - DisplayY1)) >> (verticalRes == 480 ? 0 : 1);
-            var vram = new Span<int>(vramIn);
-            var display = new Span<int>(vramOut);
-
-            for (int line = LineOffset; line < verticalRes - LineOffset; line++)
+            Parallel.For(LineOffset, verticalRes - LineOffset, line =>
             {
-                var from = vram.Slice(DisplayVRAMStartX + ((line - LineOffset + DisplayVRAMStartY) * 1024), horizontalRes);
-                var to = display.Slice((line - LineOffset) * horizontalRes);
-                from.CopyTo(to);
-            }
+                int srcIndex = DisplayVRAMStartX + ((line - LineOffset + DisplayVRAMStartY) * 1024);
+                int dstIndex = (line - LineOffset) * horizontalRes;
+                Array.Copy(vramIn, srcIndex, vramOut, dstIndex, horizontalRes);
+            });
 
             OutWidth = horizontalRes;
             OutHeight = verticalRes - LineOffset * 2 - 1;

@@ -700,9 +700,7 @@ namespace ScePSX.UI
             }
             if (e.KeyCode == Keys.Tab && Core != null)
             {
-                Core.MIPS_UNDERCLOCK = 5;
-                Core.SYNC_CYCLES_IDLE = 0;
-                Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (Core.SYNC_CYCLES * Core.MIPS_UNDERCLOCK)) + 1;
+                Core.Boost = true;
                 return;
             }
             if (e.KeyCode == Keys.F11)
@@ -733,9 +731,7 @@ namespace ScePSX.UI
         {
             if (e.KeyCode == Keys.Tab && Core != null)
             {
-                Core.MIPS_UNDERCLOCK = 1;
-                Core.SYNC_CYCLES_IDLE = 15;
-                Core.SYNC_LOOPS = (PSXCore.CYCLES_PER_FRAME / (Core.SYNC_CYCLES)) + 1;
+                Core.Boost = false;
                 return;
             }
 
@@ -823,7 +819,7 @@ namespace ScePSX.UI
             }
 
             Core.SYNC_CYCLES_IDLE = ini.ReadInt("CPU", "FrameIdle");
-            Core.MIPS_UNDERCLOCK = ini.ReadInt("CPU", "MipsLock");
+            Core.SYNC_CYCLES_FIX = ini.ReadInt("CPU", "MipsLock");
             Core.SYNC_CYCLES = ini.ReadInt("CPU", "Sync");
 
             Core.PsxBus.cpu.cylesfix = ini.ReadInt("CPU", "Cycles");
