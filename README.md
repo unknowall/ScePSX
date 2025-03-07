@@ -9,7 +9,9 @@
 7. 网络对战
 8. 游戏存档管理
 
-
+<b>各渲染模式模拟器内存占用 (完整进入游戏后)：<br>
+D2D 约32MB , D3D 约52MB, OpenGL 约86MB</b><br>
+*不使用gamedb, 不使用reshade
 
 如何使用:
 
@@ -30,14 +32,6 @@
 ![捕获1](https://github.com/user-attachments/assets/27f7ac35-f296-4bdc-9164-498ea4342314)
 ![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
-
-以下截图是老版本的
-
-![read2](https://github.com/user-attachments/assets/4e3209e6-04a3-4aab-9072-eb3514d3e381)
-
-![read1](https://github.com/user-attachments/assets/1688f0ec-bd7b-441d-a818-0c06b4e235c4)
-
-![read3](https://github.com/user-attachments/assets/fc688b7c-5852-4213-a58b-e4bd56ab459d)
 
 
 Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
