@@ -11,17 +11,6 @@ namespace ScePSX
     [Serializable]
     public class BUS : IDisposable
     {
-        [NonSerialized]
-        public unsafe byte* ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
-        [NonSerialized]
-        private unsafe byte* scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
-        [NonSerialized]
-        private unsafe byte* biosPtr = (byte*)Marshal.AllocHGlobal(512 * 1024);
-        [NonSerialized]
-        private unsafe byte* memoryControl1 = (byte*)Marshal.AllocHGlobal(0x40);
-        [NonSerialized]
-        private unsafe byte* memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
-
         //to Serializable
         private byte[] ram = new byte[2048 * 1024];
         private byte[] scrathpadram = new byte[1024];
@@ -75,6 +64,17 @@ namespace ScePSX
         private List<AddressRange> _write16JumpTable;
         [NonSerialized]
         private List<AddressRange> _write8JumpTable;
+
+        [NonSerialized]
+        public unsafe byte* ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
+        [NonSerialized]
+        private unsafe byte* scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
+        [NonSerialized]
+        private unsafe byte* biosPtr = (byte*)Marshal.AllocHGlobal(512 * 1024);
+        [NonSerialized]
+        private unsafe byte* memoryControl1 = (byte*)Marshal.AllocHGlobal(0x40);
+        [NonSerialized]
+        private unsafe byte* memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
 
         public BUS(ICoreHandler Host, string BiosFile, string RomFile)
         {

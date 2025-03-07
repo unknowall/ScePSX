@@ -325,17 +325,6 @@ namespace ScePSX
                         PsxBus.tick(SYNC_CYCLES);
                         PsxBus.cpu.handleInterrupts();
                     }
-                    //int sync = 0;
-                    //for (int i = 0; i < SYNC_LOOPS; i++)
-                    //{
-                    //    while (sync < SYNC_CYCLES)
-                    //    {
-                    //        sync += PsxBus.cpu.tick();
-                    //    }
-                    //    sync -= SYNC_CYCLES;
-                    //    PsxBus.tick(SYNC_CYCLES);
-                    //    PsxBus.cpu.handleInterrupts();
-                    //}
                     ApplyCheats();
                 } else
                     Pauseed = true;
