@@ -15,6 +15,8 @@
 D2D 约32MB , D3D 约52MB, OpenGL 约86MB</b><br>
 *不使用gamedb, 不使用reshade
 
+<b>可在 Intel 赛扬 i3 3215u 上以60帧流畅运行</b>
+
 如何使用:
 
 1. BIOS 目录下至少有一个可用BIOS，启动后在文件菜单中选中
