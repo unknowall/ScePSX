@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
+using System.Threading;
 using ScePSX.Disassembler;
 
 namespace ScePSX
@@ -23,10 +23,10 @@ namespace ScePSX
         private static Action<CPU, uint> handleSWC2Exception;
 
         private uint PC_Now;
-        private uint PC = 0xbfc0_0000; // Bios Entry Point
-        private uint PC_Predictor = 0xbfc0_0004; //next op for branch delay slot emulation
+        private uint PC;
+        private uint PC_Predictor;
 
-        private uint[] GPR = new uint[32];
+        private uint[] GPR;
         private uint HI;
         private uint LO;
 
@@ -36,10 +36,10 @@ namespace ScePSX
         private bool opcodeTookBranch;
         private bool opcodeInDelaySlotTookBranch;
 
-        private static uint[] ExceptionAdress = new uint[] { 0x8000_0080, 0xBFC0_0180 };
+        private static uint[] ExceptionAdress;
 
         //CoPro Regs
-        private uint[] COP0_GPR = new uint[16];
+        private uint[] COP0_GPR;
         private const int SR = 12;
         private const int CAUSE = 13;
         private const int EPC = 14;
@@ -79,7 +79,7 @@ namespace ScePSX
             public uint addr => value & 0x3FFFFFF;  //Target Address
 
             //id / Cop
-            public uint id => opcode & 0x3; //This is used mainly for coprocesor opcode id but its also used on opcodes that trigger exception
+            public uint id => opcode & 0x3;
         }
         private Instr instr;
 
@@ -110,19 +110,48 @@ namespace ScePSX
         public CPU(BUS bus, bool isExecept)
         {
             this.bus = bus;
-            bios = new BIOS_Disassembler(bus);
-            mips = new MIPS_Disassembler(ref HI, ref LO, GPR, COP0_GPR);
             gte = new GTE();
 
-            COP0_GPR[15] = 0x2; //PRID Processor ID
+            Reset();
 
             SetExecution(isExecept);
+        }
+
+        public void Reset()
+        {
+            PC = 0xbfc0_0000; // Bios Entry Point
+            PC_Predictor = 0xbfc0_0004;
+
+            GPR = new uint[32];
+            opcodeIsBranch = false;
+            opcodeIsDelaySlot = false;
+
+            opcodeTookBranch = false;
+            opcodeInDelaySlotTookBranch = false;
+
+            ExceptionAdress = new uint[] { 0x8000_0080, 0xBFC0_0180 };
+
+            COP0_GPR = new uint[16];
+            COP0_GPR[15] = 0x2; //PRID Processor ID
+
+            bios = new BIOS_Disassembler(bus);
+            mips = new MIPS_Disassembler(ref HI, ref LO, GPR, COP0_GPR);
         }
 
         public void disassemblePC()
         {
             mips.PrintRegs();
             mips.disassemble(instr, PC_Now, PC_Predictor);
+        }
+
+        private void TTY()
+        {
+            if (PC == 0x00000B0 && GPR[9] == 0x3D || PC == 0x00000A0 && GPR[9] == 0x3C)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.Write((char)GPR[4]);
+                Console.ResetColor();
+            }
         }
 
         public static void SetExecution(bool enableExceptions)
@@ -279,7 +308,7 @@ namespace ScePSX
 
             if (instr.value != 0)
             {
-                opcodeMainTable[instr.opcode](this); //Execute
+                opcodeMainTable[instr.opcode](this);
             }
 
             MemAccess();
@@ -287,8 +316,7 @@ namespace ScePSX
 
             if (debug)
             {
-                mips.PrintRegs();
-                mips.disassemble(instr, PC_Now, PC_Predictor);
+                disassemblePC();
             }
             if (biosdebug)
             {
@@ -643,7 +671,7 @@ namespace ScePSX
         {
             uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
 
-            handleLWC2Exception(cpu,addr);
+            handleLWC2Exception(cpu, addr);
             uint value = cpu.bus.read32(addr);
             cpu.gte.writeData(cpu.instr.rt, value);
         }
@@ -652,7 +680,7 @@ namespace ScePSX
         {
             uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
 
-            handleSWC2Exception(cpu,addr);
+            handleSWC2Exception(cpu, addr);
             cpu.bus.write32(addr, cpu.gte.readData(cpu.instr.rt));
         }
 
@@ -679,7 +707,7 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-                handleLHException(cpu,addr);
+                handleLHException(cpu, addr);
                 uint value = (uint)(short)cpu.bus.read32(addr);
                 delayedread(cpu, cpu.instr.rt, value);
             } //else Console.WriteLine("IsolatedCache: Ignoring read");
@@ -690,7 +718,7 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-                handleLHUException(cpu,addr);
+                handleLHUException(cpu, addr);
                 uint value = (ushort)cpu.bus.read32(addr);
                 delayedread(cpu, cpu.instr.rt, value);
             } //else Console.WriteLine("IsolatedCache: Ignoring read");
@@ -701,7 +729,7 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-                handleLWException(cpu,addr);
+                handleLWException(cpu, addr);
                 uint value = cpu.bus.read32(addr);
                 delayedread(cpu, cpu.instr.rt, value);
             } //else Console.WriteLine("IsolatedCache: Ignoring read");
@@ -759,7 +787,7 @@ namespace ScePSX
             if (cpu.dontIsolateCache)
             {
                 uint addr = cpu.GPR[cpu.instr.rs] + cpu.instr.imm_s;
-                handleSHException(cpu,addr);
+                handleSHException(cpu, addr);
                 cpu.bus.write16(addr, (ushort)cpu.GPR[cpu.instr.rt]);
             } //else Console.WriteLine("IsolatedCache: Ignoring Write");
         }
@@ -922,7 +950,7 @@ namespace ScePSX
             uint rt = cpu.GPR[cpu.instr.rt];
             uint result = rs - rt;
 
-            handleSubException(cpu,rs,rt,result);
+            handleSubException(cpu, rs, rt, result);
         }
 
         private static void SUBU(CPU cpu) => cpu.setGPR(cpu.instr.rd, cpu.GPR[cpu.instr.rs] - cpu.GPR[cpu.instr.rt]);
@@ -967,16 +995,6 @@ namespace ScePSX
         {
             cpu.delayedMemoryread.register = regN;
             cpu.delayedMemoryread.value = value;
-        }
-
-        private void TTY()
-        {
-            if (PC == 0x00000B0 && GPR[9] == 0x3D || PC == 0x00000A0 && GPR[9] == 0x3C)
-            {
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.Write((char)GPR[4]);
-                Console.ResetColor();
-            }
         }
 
     }

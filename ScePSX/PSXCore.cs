@@ -355,46 +355,42 @@ namespace ScePSX
             }
         }
 
-        //private void PSX_EXECUTE()
-        //{
-        //    //Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)0x0F;
-        //    //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
-        //    //Thread.CurrentThread.Priority = ThreadPriority.Highest;
+        private void PSX_EXECUTE_FAST()
+        {
+            //Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)0x0F;
+            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+            //Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
-        //    Stopwatch s0 = new Stopwatch();
-        //    try
-        //    {
-        //        while (Running)
-        //        {
-        //            if (Pauseing)
-        //            {
-        //                Pauseed = true;
-        //                continue;
-        //            }
-        //            Pauseed = false;
+            Stopwatch s0 = new Stopwatch();
 
-        //            s0.Restart();
+            while (Running)
+            {
+                if (Pauseing)
+                {
+                    Pauseed = true;
+                    continue;
+                }
+                Pauseed = false;
 
-        //            for (int i = 0; i < SYNC_LOOPS; i++)
-        //            {
-        //                for (int j = 0; j < SYNC_CYCLES; j++)
-        //                {
-        //                    PsxBus.cpu.tick();
-        //                }
-        //                PsxBus.tick(SYNC_CYCLES * MIPS_UNDERCLOCK);
-        //                PsxBus.cpu.handleInterrupts();
-        //            }
+                s0.Restart();
 
-        //            ApplyCheats();
+                for (int i = 0; i < SYNC_LOOPS; i++)
+                {
+                    for (int j = 0; j < SYNC_CYCLES; j++)
+                    {
+                        PsxBus.cpu.tick();
+                    }
+                    PsxBus.tick(SYNC_CYCLES * MIPS_UNDERCLOCK);
+                    PsxBus.cpu.handleInterrupts();
+                }
 
-        //            if (SYNC_CYCLES_IDLE > 0)
-        //                Thread.Sleep(Math.Max((int)(SYNC_CYCLES_IDLE - s0.ElapsedMilliseconds), 0));
-        //        }
-        //    } catch (Exception e)
-        //    {
-        //        Console.WriteLine(e.ToString());
-        //    }
-        //}
+                ApplyCheats();
+
+                if (SYNC_CYCLES_IDLE > 0)
+                    Thread.Sleep(Math.Max((int)(SYNC_CYCLES_IDLE - s0.ElapsedMilliseconds), 0));
+            }
+
+        }
 
         public void Button(Controller.InputAction button, bool Down = false, int conidx = 0)
         {
