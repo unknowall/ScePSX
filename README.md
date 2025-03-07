@@ -17,6 +17,11 @@ D2D 约32MB , D3D 约52MB, OpenGL 约86MB</b><br>
 
 <b>可在 Intel 赛扬 i3 3215u 上以60帧流畅运行</b>
 
+
+![捕获1](https://github.com/user-attachments/assets/27f7ac35-f296-4bdc-9164-498ea4342314)
+![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
+
+
 如何使用:
 
 1. BIOS 目录下至少有一个可用BIOS，启动后在文件菜单中选中
@@ -32,10 +37,5 @@ D2D 约32MB , D3D 约52MB, OpenGL 约86MB</b><br>
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
 3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-
-![捕获1](https://github.com/user-attachments/assets/27f7ac35-f296-4bdc-9164-498ea4342314)
-![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
-
-
 
 Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
