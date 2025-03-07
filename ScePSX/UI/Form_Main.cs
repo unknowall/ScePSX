@@ -706,15 +706,15 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.F11)
             {
                 if (Core != null && Core.Running)
-                    if (scale < 6)
-                        scale += 2;
+                    if (scale < 8)
+                        scale = scale ==0 ? 2 : scale * 2;
                 return;
             }
             if (e.KeyCode == Keys.F12)
             {
                 if (Core != null && Core.Running)
                     if (scale > 0)
-                        scale -= 2;
+                        scale /= 2;
                 return;
             }
 
@@ -895,13 +895,6 @@ namespace ScePSX.UI
                     pixels = cutbuff;
                     height = CoreHeight;
                 }
-            }
-
-            if (scale > 0)
-            {
-
-                if (scale * height > 2048 || scale * width > 4096)
-                    scale -= 2;
             }
 
             QueryControllerState(1);
