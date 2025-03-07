@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace ScePSX
     {
         const int PSX_MHZ = 33868800;
         public const int CYCLES_PER_FRAME = PSX_MHZ / 60;
-        public int SYNC_CYCLES = 110;
+        public int SYNC_CYCLES = 100;
         public int MIPS_UNDERCLOCK = 1;
         public int SYNC_LOOPS;
         public int SYNC_CYCLES_IDLE = 15;
@@ -283,46 +284,128 @@ namespace ScePSX
             }
         }
 
+        void CalibrateSyncParams()
+        {
+            const int CalibrationCycles = 1000;
+            var sw = Stopwatch.StartNew();
+
+            for (int i = 0; i < CalibrationCycles; i++)
+            {
+                PsxBus.cpu.tick();
+            }
+
+            double singleTickTime = sw.Elapsed.TotalMilliseconds / CalibrationCycles;
+            SYNC_CYCLES = (int)(0.1 / singleTickTime); // 每0.1ms执行一次循环
+            SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES) + 1;
+
+            Console.WriteLine($"CalibrateSyncParams SYNC_CYCLES {SYNC_CYCLES} SYNC_LOOPS {SYNC_LOOPS}");
+        }
+
         private void PSX_EXECUTE()
         {
-            Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)0x0F;
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            const double TargetFrameTime = 1000 / 60.0; // 60 FPS
+            var stopwatch = new Stopwatch();
+            double accumulatedError = 0;
 
-            Stopwatch s0 = new Stopwatch();
-            try
+            SYNC_LOOPS = (CYCLES_PER_FRAME / 110) + 1;
+
+            while (Running)
             {
-                while (Running)
+                stopwatch.Restart();
+
+                if (!Pauseing)
                 {
-                    if (Pauseing)
-                    {
-                        Pauseed = true;
-                        continue;
-                    }
                     Pauseed = false;
-
-                    s0.Restart();
-
                     for (int i = 0; i < SYNC_LOOPS; i++)
                     {
-                        for (int j = 0; j < SYNC_CYCLES; j++)
+                        for (int j = 0; j < 42; j++) //42
                         {
                             PsxBus.cpu.tick();
                         }
-                        PsxBus.tick(SYNC_CYCLES * MIPS_UNDERCLOCK);
+                        PsxBus.tick(SYNC_CYCLES);
                         PsxBus.cpu.handleInterrupts();
                     }
-
+                    //int sync = 0;
+                    //for (int i = 0; i < SYNC_LOOPS; i++)
+                    //{
+                    //    while (sync < SYNC_CYCLES)
+                    //    {
+                    //        sync += PsxBus.cpu.tick();
+                    //    }
+                    //    sync -= SYNC_CYCLES;
+                    //    PsxBus.tick(SYNC_CYCLES);
+                    //    PsxBus.cpu.handleInterrupts();
+                    //}
                     ApplyCheats();
+                } else
+                    Pauseed = true;
 
-                    if (SYNC_CYCLES_IDLE > 0)
-                        Thread.Sleep(Math.Max((int)(SYNC_CYCLES_IDLE - s0.ElapsedMilliseconds), 0));
+                // 精确帧时间控制
+                double elapsed = stopwatch.Elapsed.TotalMilliseconds;
+                double targetDelay = TargetFrameTime - elapsed + accumulatedError;
+
+                if (targetDelay > 1)
+                {
+                    int sleepTime = (int)(targetDelay - 0.1); // 预留0.1ms给SpinWait
+                    Thread.Sleep(sleepTime);
+
+                    // 亚毫秒级补偿
+                    var spin = new SpinWait();
+                    while (stopwatch.Elapsed.TotalMilliseconds < TargetFrameTime)
+                    {
+                        spin.SpinOnce();
+                    }
+                } else
+                {
+                    Thread.Yield();
                 }
-            } catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
+
+                // 累计时间误差用于补偿
+                accumulatedError += TargetFrameTime - stopwatch.Elapsed.TotalMilliseconds;
+                accumulatedError = Math.Max(-TargetFrameTime, Math.Min(accumulatedError, TargetFrameTime));
             }
         }
+
+        //private void PSX_EXECUTE()
+        //{
+        //    //Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)0x0F;
+        //    //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+        //    //Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
+        //    Stopwatch s0 = new Stopwatch();
+        //    try
+        //    {
+        //        while (Running)
+        //        {
+        //            if (Pauseing)
+        //            {
+        //                Pauseed = true;
+        //                continue;
+        //            }
+        //            Pauseed = false;
+
+        //            s0.Restart();
+
+        //            for (int i = 0; i < SYNC_LOOPS; i++)
+        //            {
+        //                for (int j = 0; j < SYNC_CYCLES; j++)
+        //                {
+        //                    PsxBus.cpu.tick();
+        //                }
+        //                PsxBus.tick(SYNC_CYCLES * MIPS_UNDERCLOCK);
+        //                PsxBus.cpu.handleInterrupts();
+        //            }
+
+        //            ApplyCheats();
+
+        //            if (SYNC_CYCLES_IDLE > 0)
+        //                Thread.Sleep(Math.Max((int)(SYNC_CYCLES_IDLE - s0.ElapsedMilliseconds), 0));
+        //        }
+        //    } catch (Exception e)
+        //    {
+        //        Console.WriteLine(e.ToString());
+        //    }
+        //}
 
         public void Button(Controller.InputAction button, bool Down = false, int conidx = 0)
         {

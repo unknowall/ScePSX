@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ScePSX.CdRom2;
@@ -50,8 +52,34 @@ namespace ScePSX
 
         public string DiskID = "";
 
+        private delegate uint ReadHandler(uint address);
+        private delegate void WriteHandler(uint address, uint value);
+        private delegate void Write16Handler(uint address, ushort value);
+        private delegate void Write8Handler(uint address, byte value);
+
+        private class AddressRange
+        {
+            public uint Start;
+            public uint End;
+            public ReadHandler Read32;
+            public WriteHandler Write32;
+            public Write16Handler Write16;
+            public Write8Handler Write8;
+        }
+
+        [NonSerialized]
+        private List<AddressRange> _read32JumpTable;
+        [NonSerialized]
+        private List<AddressRange> _write32JumpTable;
+        [NonSerialized]
+        private List<AddressRange> _write16JumpTable;
+        [NonSerialized]
+        private List<AddressRange> _write8JumpTable;
+
         public BUS(ICoreHandler Host, string BiosFile, string RomFile)
         {
+            InitializeJumpTables();
+
             cddata = new CDData(RomFile);
             DiskID = cddata.DiskID;
             if (DiskID == "")
@@ -135,6 +163,8 @@ namespace ScePSX
 
             Marshal.Copy(spuram, 0, (IntPtr)spu.ram, spuram.Length);
 
+            InitializeJumpTables();
+
             mdec = new MDEC();
 
             SIO = new SerialIO();
@@ -152,6 +182,8 @@ namespace ScePSX
             Marshal.FreeHGlobal((nint)biosPtr);
             Marshal.FreeHGlobal((nint)memoryControl1);
             Marshal.FreeHGlobal((nint)memoryControl2);
+
+            Marshal.FreeHGlobal((nint)spu.ram);
         }
 
         public unsafe bool LoadBios(string biosfile)
@@ -176,314 +208,423 @@ namespace ScePSX
             //write32(0x1F02_0018, 0x1); //Enable exp flag
         }
 
-        //PSX executables are having an 800h-byte header, followed by the code/data.
-        //
-        // 000h-007h ASCII ID "PS-x EXE"
-        // 008h-00Fh Zerofilled
-        // 010h Initial PC(usually 80010000h, or higher)
-        // 014h Initial GP/R28(usually 0)
-        // 018h Destination Address in RAM(usually 80010000h, or higher)
-        // 01Ch Filesize(must be N*800h)    (excluding 800h-byte header)
-        // 020h Unknown/Unused(usually 0)
-        // 024h Unknown/Unused(usually 0)
-        // 028h Memfill Start Address(usually 0) (when below Size = None)
-        // 02Ch Memfill Size in bytes(usually 0) (0=None)
-        // 030h Initial SP/R29 & FP/R30 Base(usually 801FFFF0h) (or 0=None)
-        // 034h Initial SP/R29 & FP/R30 Offs(usually 0, added to above Base)
-        // 038h-04Bh Reserved for A(43h) Function(should be zerofilled in exefile)
-        // 04Ch-xxxh ASCII marker
-        //            "Sony Computer Entertainment Inc. for Japan area"
-        //            "Sony Computer Entertainment Inc. for Europe area"
-        //            "Sony Computer Entertainment Inc. for North America area"
-        //            (or often zerofilled in some homebrew files)
-        //            (the BIOS doesn't verify this string, and boots fine without it)
-        // xxxh-7FFh Zerofilled
-        // 800h...   Code/Data(readed to entry[018h] and up)
-        public unsafe void LoadEXE(String fileName)
+        private void InitializeJumpTables()
         {
-            byte[] exe = File.ReadAllBytes(fileName);
-            uint PC = Unsafe.As<byte, uint>(ref exe[0x10]);
-            uint R28 = Unsafe.As<byte, uint>(ref exe[0x14]);
-            uint R29 = Unsafe.As<byte, uint>(ref exe[0x30]);
-            uint R30 = R29; //base
-            R30 += Unsafe.As<byte, uint>(ref exe[0x34]); //offset
+            _read32JumpTable = new();
+            _write32JumpTable = new();
+            _write16JumpTable = new();
+            _write8JumpTable = new();
 
-            uint DestAdress = Unsafe.As<byte, uint>(ref exe[0x18]);
+            // --------------------------
+            //  read 跳转表 按优先级
+            // --------------------------
 
-            Console.WriteLine($"SideLoad PSX EXE: PC {PC:x8} R28 {R28:x8} R29 {R29:x8} R30 {R30:x8}");
+            // RAM 区域：0x0000_0000 - 0x1F00_0000  
+            //AddReadHandler(0x00000000, 0x1F000000, addr => BusReadRam(addr));
 
-            Marshal.Copy(exe, 0x800, (IntPtr)(ramPtr + (DestAdress & 0x1F_FFFF)), exe.Length - 0x800);
+            // GPU 寄存器：0x1F80_1810 和 0x1F80_1814
+            AddReadHandler(0x1F801810, 0x1F801811, addr => gpu.GPUREAD());
+            AddReadHandler(0x1F801814, 0x1F801815, addr => gpu.GPUSTAT());
 
-            // Patch Bios readRunShell() at 0xBFC06FF0 before the jump to 0x80030000 so we don't poll the address every cycle
-            // Instructions are LUI and ORI duos that read to the specified register but PC that reads to R8/Temp0
-            // The last 2 instr are a JR to R8 and a NOP.
-            write(0x6FF0 + 0, 0x3C080000 | PC >> 16, biosPtr);
-            write(0x6FF0 + 4, 0x35080000 | PC & 0xFFFF, biosPtr);
+            // SPU：其余范围：0x1F80_1830 - 0x1F80_2000  
+            AddReadHandler(0x1F801830, 0x1F802000, addr => spu.read(addr));
 
-            write(0x6FF0 + 8, 0x3C1C0000 | R28 >> 16, biosPtr);
-            write(0x6FF0 + 12, 0x379C0000 | R28 & 0xFFFF, biosPtr);
+            // DMA 控制器：0x1F80_1080 - 0x1F80_1100  
+            AddReadHandler(0x1F801080, 0x1F801100, addr => dma.read(addr));
 
-            if (R29 != 0)
-            {
-                write(0x6FF0 + 16, 0x3C1D0000 | R29 >> 16, biosPtr);
-                write(0x6FF0 + 20, 0x37BD0000 | R29 & 0xFFFF, biosPtr);
+            // CD-ROM 控制器：0x1F80_1140 - 0x1F80_1804  
+            AddReadHandler(0x1F801140, 0x1F801804, addr => cdrom.read(addr));
 
-                write(0x6FF0 + 24, 0x3C1E0000 | R30 >> 16, biosPtr);
-                write(0x6FF0 + 28, 0x37DE0000 | R30 & 0xFFFF, biosPtr);
+            // 高速缓存：0x1F80_0000 - 0x1F80_0400  
+            AddReadHandler(0x1F800000, 0x1F800400, addr => ReadScratchpad(addr));
 
-                write(0x6FF0 + 32, 0x01000008, biosPtr);
-                write(0x6FF0 + 36, 0x00000000, biosPtr);
-            } else
-            {
-                write(0x6FF0 + 16, 0x01000008, biosPtr);
-                write(0x6FF0 + 20, 0x00000000, biosPtr);
-            }
+            // 内存控制1：0x1F80_0400 - 0x1F80_1040  
+            AddReadHandler(0x1F800400, 0x1F801040, addr => ReadMemoryControl1(addr));
+
+            // 内存控制2：0x1F80_1060 - 0x1F80_1070  
+            AddReadHandler(0x1F801060, 0x1F801070, addr => ReadMemoryControl2(addr));
+
+            // 中断控制器：0x1F80_1070 - 0x1F80_1080  
+            AddReadHandler(0x1F801070, 0x1F801080, addr => IRQCTL.read(addr));
+
+            // 内存缓存：0xFFFE_0130（单独注册）
+            AddReadHandler(0xFFFE0130, 0xFFFE0131, addr => memoryCache);
+
+            // BIOS 区域：0x1FC0_0000 - 0x1FC8_0000  
+            AddReadHandler(0x1FC00000, 0x1FC80000, addr => BusReadBios(addr));
+
+            // 手柄总线：0x1F80_1040 - 0x1F80_1050  
+            AddReadHandler(0x1F801040, 0x1F801050, addr => joybus.read(addr));
+
+            // 串口：0x1F80_1050 - 0x1F80_1060  
+            AddReadHandler(0x1F801050, 0x1F801060, addr => SIO.read(addr));
+
+            // 定时器：0x1F80_1100 - 0x1F80_1140  
+            AddReadHandler(0x1F801100, 0x1F801140, addr => timers.read(addr));
+
+            // MDEC 解码器：0x1F80_1820 和 0x1F80_1824  
+            AddReadHandler(0x1F801820, 0x1F801821, addr => mdec.readMDEC0_Data());
+            AddReadHandler(0x1F801824, 0x1F801825, addr => mdec.readMDEC1_Status());
+
+            // 扩展设备 EXP2：0x1F80_2000 - 0x1F80_4000  
+            AddReadHandler(0x1F802000, 0x1F804000, addr => exp2.read(addr));
+
+            // 扩展区域1：0x1F00_0000 - 0x1F80_0000（暂未实现）
+            AddReadHandler(0x1F000000, 0x1F800000, addr => 0);
+
+            // --------------------------
+            // write 跳转表
+            // --------------------------
+
+            // RAM 写入：0x0000_0000 - 0x1F00_0000  
+            //AddWriteHandler(0x00000000, 0x1F000000, (addr, value) => WriteRam(addr, value));
+
+            // GPU 寄存器写入：0x1F80_1810 - 0x1F80_1820  
+            AddWriteHandler(0x1F801810, 0x1F801820, (addr, value) => gpu.write(addr, value));
+
+            // SPU 写入：0x1F80_1830 - 0x1F80_2000  
+            AddWriteHandler(0x1F801830, 0x1F802000, (addr, value) => spu.write(addr, (ushort)value));
+
+            // DMA 控制器写入：0x1F80_1080 - 0x1F80_1100  
+            AddWriteHandler(0x1F801080, 0x1F801100, (addr, value) => dma.write(addr, value));
+
+            // CD-ROM 控制器写入：0x1F80_1140 - 0x1F80_1810 写入时转换为 byte 值 
+            AddWriteHandler(0x1F801140, 0x1F801810, (addr, value) => cdrom.write(addr, (byte)value));
+
+            // 高速缓存写入：0x1F80_0000 - 0x1F80_0400  
+            AddWriteHandler(0x1F800000, 0x1F800400, (addr, value) => WriteScratchpad32(addr, value));
+
+            // 内存控制1写入：0x1F80_0400 - 0x1F80_1040  
+            AddWriteHandler(0x1F800400, 0x1F801040, (addr, value) => WriteMemoryContro1_32(addr, value));
+
+            // 内存控制2写入：0x1F80_1060 - 0x1F80_1070  
+            AddWriteHandler(0x1F801060, 0x1F801070, (addr, value) => WriteMemoryContro2_32(addr, value));
+
+            // 中断控制器写入：0x1F80_1070 - 0x1F80_1080  
+            AddWriteHandler(0x1F801070, 0x1F801080, (addr, value) => IRQCTL.write(addr, value));
+
+            // 内存缓存写入：0xFFFE_0130（单独注册）
+            AddWriteHandler(0xFFFE0130, 0xFFFE0131, (addr, value) => memoryCache = value);
+
+            // 手柄总线写入：0x1F80_1040 - 0x1F80_1050  
+            AddWriteHandler(0x1F801040, 0x1F801050, (addr, value) => joybus.write(addr, value));
+
+            // 串口写入：0x1F80_1050 - 0x1F80_1060  
+            AddWriteHandler(0x1F801050, 0x1F801060, (addr, value) => SIO.write(addr, value));
+
+            // 定时器写入：0x1F80_1100 - 0x1F80_1140  
+            AddWriteHandler(0x1F801100, 0x1F801140, (addr, value) => timers.write(addr, value));
+
+            // MDEC 解码器写入：0x1F80_1820 - 0x1F80_1830  
+            AddWriteHandler(0x1F801820, 0x1F801830, (addr, value) => mdec.write(addr, value));
+
+            // 扩展设备写入：EXP2，0x1F80_2000 - 0x1F80_4000  
+            AddWriteHandler(0x1F802000, 0x1F804000, (addr, value) => exp2.write(addr, value));
+
+            // 扩展区域1：0x1F00_0000 - 0x1F80_0000（未处理）
+            AddWriteHandler(0x1F000000, 0x1F800000, (addr, value) => { });
+
+            // --------------------------
+            //  write16 跳转表
+            // --------------------------
+
+            //AddWrite16Handler(0x0000_0000, 0x1F00_0000, (addr, value) => WriteRam16(addr, value));
+            AddWrite16Handler(0x1F80_1810, 0x1F80_1820, (addr, value) => gpu.write(addr, value));
+            AddWrite16Handler(0x1F80_1830, 0x1F80_2000, (addr, value) => spu.write(addr, value));
+            AddWrite16Handler(0x1F80_1080, 0x1F80_1100, (addr, value) => dma.write(addr, value));
+            AddWrite16Handler(0x1F80_0000, 0x1F80_0400, (addr, value) => WriteScratchpad16(addr, value));
+            // 对于 CD-ROM 控制器，写入时转换为 byte 值
+            AddWrite16Handler(0x1F80_1140, 0x1F80_1810, (addr, value) => cdrom.write(addr, (byte)value));
+            AddWrite16Handler(0x1F80_1070, 0x1F80_1080, (addr, value) => IRQCTL.write(addr, value));
+            // 对于内存控制1，整个区域 0x1F80_0400 ~ 0x1F80_1040 均做写入
+            AddWrite16Handler(0x1F80_0400, 0x1F80_1040, (addr, value) => WriteMemoryContro1_16(addr, value));
+            AddWrite16Handler(0x1F80_1060, 0x1F80_1070, (addr, value) => WriteMemoryContro2_16(addr, value));
+            AddWrite16Handler(0xFFFE_0130, 0xFFFE_0131, (addr, value) => memoryCache = value);
+            AddWrite16Handler(0x1F80_1040, 0x1F80_1050, (addr, value) => joybus.write(addr, value));
+            AddWrite16Handler(0x1F80_1100, 0x1F80_1140, (addr, value) => timers.write(addr, value));
+            AddWrite16Handler(0x1F80_1820, 0x1F80_1830, (addr, value) => mdec.write(addr, value));
+            AddWrite16Handler(0x1F80_2000, 0x1F80_4000, (addr, value) => exp2.write(addr, value));
+            AddWrite16Handler(0x1F80_1050, 0x1F80_1060, (addr, value) => SIO.write(addr, value));
+            AddWrite16Handler(0x1F00_0000, 0x1F80_0000, (addr, value) => { });
+
+            // --------------------------
+            //  write8 跳转表
+            // --------------------------
+
+            //AddWrite8Handler(0x0000_0000, 0x1F00_0000, (addr, value) => WriteRam8(addr, value));
+            AddWrite8Handler(0x1F80_1810, 0x1F80_1820, (addr, value) => gpu.write(addr, value));
+            AddWrite8Handler(0x1F80_1830, 0x1F80_2000, (addr, value) => spu.write(addr, value));
+            AddWrite8Handler(0x1F80_1080, 0x1F80_1100, (addr, value) => dma.write(addr, value));
+            AddWrite8Handler(0x1F80_1140, 0x1F80_1810, (addr, value) => cdrom.write(addr, value));
+            AddWrite8Handler(0x1F80_0000, 0x1F80_0400, (addr, value) => WriteScratchpad8(addr, value));
+            AddWrite8Handler(0x1F80_0400, 0x1F80_1040, (addr, value) => WriteMemoryContro1_8(addr, value));
+            AddWrite8Handler(0x1F80_1060, 0x1F80_1070, (addr, value) => WriteMemoryContro2_8(addr, value));
+            AddWrite8Handler(0x1F80_1070, 0x1F80_1080, (addr, value) => IRQCTL.write(addr, value));
+            AddWrite8Handler(0xFFFE_0130, 0xFFFE_0131, (addr, value) => memoryCache = value);
+            AddWrite8Handler(0x1F80_1040, 0x1F80_1050, (addr, value) => joybus.write(addr, value));
+            AddWrite8Handler(0x1F80_1100, 0x1F80_1140, (addr, value) => timers.write(addr, value));
+            AddWrite8Handler(0x1F80_1820, 0x1F80_1830, (addr, value) => mdec.write(addr, value));
+            AddWrite8Handler(0x1F80_2000, 0x1F80_4000, (addr, value) => exp2.write(addr, value));
+            AddWrite8Handler(0x1F80_1050, 0x1F80_1060, (addr, value) => SIO.write(addr, value));
+            AddWrite8Handler(0x1F00_0000, 0x1F80_0000, (addr, value) => { });
         }
 
+        private void AddReadHandler(uint start, uint end, ReadHandler handler)
+        {
+            _read32JumpTable.Add(new AddressRange
+            {
+                Start = start,
+                End = end,
+                Read32 = handler
+            });
+            _read32JumpTable.Sort((a, b) => a.Start.CompareTo(b.Start));
+        }
+
+        private void AddWriteHandler(uint start, uint end, WriteHandler handler)
+        {
+            _write32JumpTable.Add(new AddressRange
+            {
+                Start = start,
+                End = end,
+                Write32 = handler
+            });
+            _write32JumpTable.Sort((a, b) => a.Start.CompareTo(b.Start));
+        }
+
+        private void AddWrite16Handler(uint start, uint end, Write16Handler handler)
+        {
+            _write16JumpTable.Add(new AddressRange
+            {
+                Start = start,
+                End = end,
+                Write16 = handler
+            });
+            _write16JumpTable.Sort((a, b) => a.Start.CompareTo(b.Start));
+        }
+
+        private void AddWrite8Handler(uint start, uint end, Write8Handler handler)
+        {
+            _write8JumpTable.Add(new AddressRange
+            {
+                Start = start,
+                End = end,
+                Write8 = handler
+            });
+            _write8JumpTable.Sort((a, b) => a.Start.CompareTo(b.Start));
+        }
+
+        private unsafe uint BusReadRam(uint address)
+        {
+            return *(uint*)(ramPtr + (address & 0x1F_FFFF));
+        }
+
+        private unsafe uint BusReadBios(uint address)
+        {
+            return *(uint*)(biosPtr + (address & 0x7_FFFF));
+        }
+
+        private unsafe uint ReadScratchpad(uint address)
+        {
+            return *(uint*)(scrathpadPtr + (address & 0x3FF));
+        }
+
+        private unsafe uint ReadMemoryControl1(uint address)
+        {
+            return *(uint*)(memoryControl1 + (address & 0x3F));
+        }
+
+        private unsafe uint ReadMemoryControl2(uint address)
+        {
+            return *(uint*)(memoryControl2 + (address & 0xF));
+        }
+
+        private unsafe void WriteRam(uint address, uint value)
+        {
+            *(uint*)(ramPtr + (address & 0x1F_FFFF)) = value;
+        }
+
+        private unsafe void WriteRam16(uint addr, ushort value)
+        {
+            *(ushort*)(ramPtr + (addr & 0x1F_FFFF)) = value;
+        }
+
+        private unsafe void WriteRam8(uint addr, byte value)
+        {
+            *(byte*)(ramPtr + (addr & 0x1F_FFFF)) = value;
+        }
+
+        private unsafe void WriteScratchpad32(uint address, uint value)
+        {
+            *(uint*)(scrathpadPtr + (address & 0x3FF)) = value;
+        }
+
+        private unsafe void WriteScratchpad16(uint address, ushort value)
+        {
+            *(ushort*)(scrathpadPtr + (address & 0x3FF)) = value;
+        }
+
+        private unsafe void WriteScratchpad8(uint address, byte value)
+        {
+            *(byte*)(scrathpadPtr + (address & 0x3FF)) = value;
+        }
+
+        private unsafe void WriteMemoryContro1_32(uint addr, uint value)
+        {
+            *(uint*)(memoryControl1 + (addr & 0x3F)) = value;
+        }
+
+        private unsafe void WriteMemoryContro1_16(uint addr, ushort value)
+        {
+            *(ushort*)(memoryControl1 + (addr & 0x3F)) = value;
+        }
+
+        private unsafe void WriteMemoryContro1_8(uint addr, byte value)
+        {
+            *(byte*)(memoryControl1 + (addr & 0x3F)) = value;
+        }
+
+        private unsafe void WriteMemoryContro2_32(uint addr, uint value)
+        {
+            *(uint*)(memoryControl2 + (addr & 0xF)) = value;
+        }
+
+        private unsafe void WriteMemoryContro2_16(uint addr, ushort value)
+        {
+            *(ushort*)(memoryControl2 + (addr & 0xF)) = value;
+        }
+
+        private unsafe void WriteMemoryContro2_8(uint addr, byte value)
+        {
+            *(byte*)(memoryControl2 + (addr & 0xF)) = value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe uint read32(uint address)
         {
-            uint i = address >> 29;
-            uint addr = address & RegionMask[i];
+            // 二分查找匹配的地址范围
+            uint addr = GetMask(address);
+
+            //内存不查表
             if (addr < 0x1F00_0000)
+                return *(uint*)(ramPtr + (addr & 0x1F_FFFF));
+
+            int low = 0, high = _read32JumpTable.Count - 1;
+            while (low <= high)
             {
-                return read<uint>(addr & 0x1F_FFFF, ramPtr);
-            } else if (addr < 0x1F80_0000)
-            {
-                return 0;//read<uint>(addr & 0x7_FFFF, ex1Ptr);
-            } else if (addr < 0x1f80_0400)
-            {
-                return read<uint>(addr & 0x3FF, scrathpadPtr);
-            } else if (addr < 0x1F80_1040)
-            {
-                return read<uint>(addr & 0xF, memoryControl1);
-            } else if (addr < 0x1F80_1050)
-            {
-                return joybus.read(addr);
-            } else if (addr < 0x1F80_1060)
-            {
-                return SIO.read(addr);
-                //SIO_STAT
-                //if (addr == 0x1F80_1054)
-                //    return 0x0000_0805;
-                //return sio[addr & 0xF];
-            } else if (addr < 0x1F80_1070)
-            {
-                return read<uint>(addr & 0xF, memoryControl2);
-            } else if (addr < 0x1F80_1080)
-            {
-                return IRQCTL.read(addr);
-            } else if (addr < 0x1F80_1100)
-            {
-                return dma.read(addr);
-            } else if (addr < 0x1F80_1140)
-            {
-                return timers.read(addr);
-            } else if (addr <= 0x1F80_1803)
-            {
-                return cdrom.read(addr);
-            } else if (addr == 0x1F80_1810)
-            {
-                return gpu.GPUREAD();
-            } else if (addr == 0x1F80_1814)
-            {
-                return gpu.GPUSTAT();
-            } else if (addr == 0x1F80_1820)
-            {
-                return mdec.readMDEC0_Data();
-            } else if (addr == 0x1F80_1824)
-            {
-                return mdec.readMDEC1_Status();
-            } else if (addr < 0x1F80_2000)
-            {
-                return spu.read(addr);
-            } else if (addr < 0x1F80_4000)
-            {
-                return exp2.read(addr);
-            } else if (addr < 0x1FC8_0000)
-            {
-                return read<uint>(addr & 0x7_FFFF, biosPtr);
-            } else if (addr == 0xFFFE0130)
-            {
-                return memoryCache;
-            } else
-            {
-                Console.WriteLine("[BUS] read32 Unsupported: " + addr.ToString("x8"));
-                return 0xFFFF_FFFF;
+                int mid = (low + high) / 2;
+                var range = _read32JumpTable[mid];
+
+                if (addr < range.Start)
+                {
+                    high = mid - 1;
+                } else if (addr >= range.End)
+                {
+                    low = mid + 1;
+                } else
+                {
+                    return range.Read32(addr);
+                }
             }
+
+            Console.WriteLine($"[BUS] Read32 Unsupported: {address:x8} mask {addr:x8}");
+            return 0xFFFF_FFFF;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void write32(uint address, uint value)
         {
-            uint i = address >> 29;
-            uint addr = address & RegionMask[i];
+            uint addr = GetMask(address);
+
             if (addr < 0x1F00_0000)
             {
-                write(addr & 0x1F_FFFF, value, ramPtr);
-            } else if (addr < 0x1F80_0000)
-            {
-                //write(addr & 0x7_FFFF, value, ex1Ptr);
-            } else if (addr < 0x1f80_0400)
-            {
-                write(addr & 0x3FF, value, scrathpadPtr);
-            } else if (addr < 0x1F80_1040)
-            {
-                write(addr & 0x3F, value, memoryControl1);
-            } else if (addr < 0x1F80_1050)
-            {
-                joybus.write(addr, value);
-            } else if (addr < 0x1F80_1060)
-            {
-                SIO.write(addr, value);
-            } else if (addr < 0x1F80_1070)
-            {
-                write(addr & 0xF, value, memoryControl2);
-            } else if (addr < 0x1F80_1080)
-            {
-                IRQCTL.write(addr, value);
-            } else if (addr < 0x1F80_1100)
-            {
-                dma.write(addr, value);
-            } else if (addr < 0x1F80_1140)
-            {
-                timers.write(addr, value);
-            } else if (addr < 0x1F80_1810)
-            {
-                cdrom.write(addr, (byte)value);
-            } else if (addr < 0x1F80_1820)
-            {
-                gpu.write(addr, value);
-            } else if (addr < 0x1F80_1830)
-            {
-                mdec.write(addr, value);
-            } else if (addr < 0x1F80_2000)
-            {
-                spu.write(addr, (ushort)value);
-            } else if (addr < 0x1F80_4000)
-            {
-                exp2.write(addr, value);
-            } else if (addr == 0xFFFE_0130)
-            {
-                memoryCache = value;
-            } else
-            {
-                Console.WriteLine($"[BUS] Write32 Unsupported: {addr:x8}");
+                *(uint*)(ramPtr + (addr & 0x1F_FFFF)) = value;
+                return;
             }
+
+            int low = 0, high = _write32JumpTable.Count - 1;
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                var range = _write32JumpTable[mid];
+
+                if (addr < range.Start)
+                {
+                    high = mid - 1;
+                } else if (addr >= range.End)
+                {
+                    low = mid + 1;
+                } else
+                {
+                    range.Write32(addr, value);
+                    return;
+                }
+            }
+
+            Console.WriteLine($"[BUS] Write32 Unsupported: {address:x8} mask {addr:x8}");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void write16(uint address, ushort value)
         {
-            uint i = address >> 29;
-            uint addr = address & RegionMask[i];
+            uint addr = GetMask(address);
+
             if (addr < 0x1F00_0000)
             {
-                write(addr & 0x1F_FFFF, value, ramPtr);
-            } else if (addr < 0x1F80_0000)
-            {
-                //write(addr & 0x7_FFFF, value, ex1Ptr);
-            } else if (addr < 0x1F80_0400)
-            {
-                write(addr & 0x3FF, value, scrathpadPtr);
-            } else if (addr < 0x1F80_1040)
-            {
-                write(addr & 0x3F, value, memoryControl1);
-            } else if (addr < 0x1F80_1050)
-            {
-                joybus.write(addr, value);
-            } else if (addr < 0x1F80_1060)
-            {
-                SIO.write(addr, value);
-            } else if (addr < 0x1F80_1070)
-            {
-                write(addr & 0xF, value, memoryControl2);
-            } else if (addr < 0x1F80_1080)
-            {
-                IRQCTL.write(addr, value);
-            } else if (addr < 0x1F80_1100)
-            {
-                dma.write(addr, value);
-            } else if (addr < 0x1F80_1140)
-            {
-                timers.write(addr, value);
-            } else if (addr < 0x1F80_1810)
-            {
-                cdrom.write(addr, (byte)value);
-            } else if (addr < 0x1F80_1820)
-            {
-                gpu.write(addr, value);
-            } else if (addr < 0x1F80_1830)
-            {
-                mdec.write(addr, value);
-            } else if (addr < 0x1F80_2000)
-            {
-                spu.write(addr, value);
-            } else if (addr < 0x1F80_4000)
-            {
-                exp2.write(addr, value);
-            } else if (addr == 0xFFFE_0130)
-            {
-                memoryCache = value;
-            } else
-            {
-                Console.WriteLine($"[BUS] Write16 Unsupported: {addr:x8}");
+                *(ushort*)(ramPtr + (addr & 0x1F_FFFF)) = value;
+                return;
             }
+
+            int low = 0, high = _write16JumpTable.Count - 1;
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                var range = _write16JumpTable[mid];
+
+                if (addr < range.Start)
+                {
+                    high = mid - 1;
+                } else if (addr >= range.End)
+                {
+                    low = mid + 1;
+                } else
+                {
+                    range.Write16(addr, value);
+                    return;
+                }
+            }
+            Console.WriteLine($"[BUS] Write16 Unsupported: {address:x8} mask {addr:x8}");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void write8(uint address, byte value)
         {
-            uint i = address >> 29;
-            uint addr = address & RegionMask[i];
+            uint addr = GetMask(address);
+
             if (addr < 0x1F00_0000)
             {
-                write(addr & 0x1F_FFFF, value, ramPtr);
-            } else if (addr < 0x1F80_0000)
-            {
-                //write(addr & 0x7_FFFF, value, ex1Ptr);
-            } else if (addr < 0x1f80_0400)
-            {
-                write(addr & 0x3FF, value, scrathpadPtr);
-            } else if (addr < 0x1F80_1040)
-            {
-                write(addr & 0x3F, value, memoryControl1);
-            } else if (addr < 0x1F80_1050)
-            {
-                joybus.write(addr, value);
-            } else if (addr < 0x1F80_1060)
-            {
-                SIO.write(addr, value);
-            } else if (addr < 0x1F80_1070)
-            {
-                write(addr & 0xF, value, memoryControl2);
-            } else if (addr < 0x1F80_1080)
-            {
-                IRQCTL.write(addr, value);
-            } else if (addr < 0x1F80_1100)
-            {
-                dma.write(addr, value);
-            } else if (addr < 0x1F80_1140)
-            {
-                timers.write(addr, value);
-            } else if (addr < 0x1F80_1810)
-            {
-                cdrom.write(addr, value);
-            } else if (addr < 0x1F80_1820)
-            {
-                gpu.write(addr, value);
-            } else if (addr < 0x1F80_1830)
-            {
-                mdec.write(addr, value);
-            } else if (addr < 0x1F80_2000)
-            {
-                spu.write(addr, value);
-            } else if (addr < 0x1F80_4000)
-            {
-                exp2.write(addr, value);
-            } else if (addr == 0xFFFE_0130)
-            {
-                memoryCache = value;
-            } else
-            {
-                Console.WriteLine($"[BUS] Write8 Unsupported: {addr:x8}");
+                *(byte*)(ramPtr + (addr & 0x1F_FFFF)) = value;
+                return;
             }
+
+            int low = 0, high = _write8JumpTable.Count - 1;
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                var range = _write8JumpTable[mid];
+
+                if (addr < range.Start)
+                {
+                    high = mid - 1;
+                } else if (addr >= range.End)
+                {
+                    low = mid + 1;
+                } else
+                {
+                    range.Write8(addr, value);
+                    return;
+                }
+            }
+            Console.WriteLine($"[BUS] Write8 Unsupported: {address:x8} mask {addr:x8}");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -551,7 +692,23 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void DmaToRam(uint addr, byte[] buffer, uint size)
         {
-            Marshal.Copy(buffer, 0, (IntPtr)(ramPtr + (addr & 0x1F_FFFF)), (int)size * 4);
+            fixed (byte* src = buffer)
+            {
+                byte* dest = ramPtr + (addr & 0x1F_FFFF);
+                if (((ulong)dest & 0x3) == 0) // 地址4字节对齐
+                    Buffer.MemoryCopy(src, dest, size, size);
+                else
+                    ManualAlignedCopy(src, dest, size); // 手动处理非对齐
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void ManualAlignedCopy(byte* src, byte* dest, uint size)
+        {
+            for (uint i = 0; i < size; i++)
+            {
+                *(dest + i) = *(src + i);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -608,6 +765,7 @@ namespace ScePSX
             dma.CopyTo(dest);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void DmaOTC(uint baseAddress, int size)
         {
             for (int i = 0; i < size - 1; i++)
@@ -626,11 +784,76 @@ namespace ScePSX
             0xFFFF_FFFF, 0xFFFF_FFFF,                           // KSEG2: 1024MB
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetMask(uint address)
         {
             uint i = address >> 29;
             uint addr = address & RegionMask[i];
             return addr;
+        }
+
+        //PSX executables are having an 800h-byte header, followed by the code/data.
+        //
+        // 000h-007h ASCII ID "PS-x EXE"
+        // 008h-00Fh Zerofilled
+        // 010h Initial PC(usually 80010000h, or higher)
+        // 014h Initial GP/R28(usually 0)
+        // 018h Destination Address in RAM(usually 80010000h, or higher)
+        // 01Ch Filesize(must be N*800h)    (excluding 800h-byte header)
+        // 020h Unknown/Unused(usually 0)
+        // 024h Unknown/Unused(usually 0)
+        // 028h Memfill Start Address(usually 0) (when below Size = None)
+        // 02Ch Memfill Size in bytes(usually 0) (0=None)
+        // 030h Initial SP/R29 & FP/R30 Base(usually 801FFFF0h) (or 0=None)
+        // 034h Initial SP/R29 & FP/R30 Offs(usually 0, added to above Base)
+        // 038h-04Bh Reserved for A(43h) Function(should be zerofilled in exefile)
+        // 04Ch-xxxh ASCII marker
+        //            "Sony Computer Entertainment Inc. for Japan area"
+        //            "Sony Computer Entertainment Inc. for Europe area"
+        //            "Sony Computer Entertainment Inc. for North America area"
+        //            (or often zerofilled in some homebrew files)
+        //            (the BIOS doesn't verify this string, and boots fine without it)
+        // xxxh-7FFh Zerofilled
+        // 800h...   Code/Data(readed to entry[018h] and up)
+        public unsafe void LoadEXE(String fileName)
+        {
+            byte[] exe = File.ReadAllBytes(fileName);
+            uint PC = Unsafe.As<byte, uint>(ref exe[0x10]);
+            uint R28 = Unsafe.As<byte, uint>(ref exe[0x14]);
+            uint R29 = Unsafe.As<byte, uint>(ref exe[0x30]);
+            uint R30 = R29; //base
+            R30 += Unsafe.As<byte, uint>(ref exe[0x34]); //offset
+
+            uint DestAdress = Unsafe.As<byte, uint>(ref exe[0x18]);
+
+            Console.WriteLine($"SideLoad PSX EXE: PC {PC:x8} R28 {R28:x8} R29 {R29:x8} R30 {R30:x8}");
+
+            Marshal.Copy(exe, 0x800, (IntPtr)(ramPtr + (DestAdress & 0x1F_FFFF)), exe.Length - 0x800);
+
+            // Patch Bios readRunShell() at 0xBFC06FF0 before the jump to 0x80030000 so we don't poll the address every cycle
+            // Instructions are LUI and ORI duos that read to the specified register but PC that reads to R8/Temp0
+            // The last 2 instr are a JR to R8 and a NOP.
+            write(0x6FF0 + 0, 0x3C080000 | PC >> 16, biosPtr);
+            write(0x6FF0 + 4, 0x35080000 | PC & 0xFFFF, biosPtr);
+
+            write(0x6FF0 + 8, 0x3C1C0000 | R28 >> 16, biosPtr);
+            write(0x6FF0 + 12, 0x379C0000 | R28 & 0xFFFF, biosPtr);
+
+            if (R29 != 0)
+            {
+                write(0x6FF0 + 16, 0x3C1D0000 | R29 >> 16, biosPtr);
+                write(0x6FF0 + 20, 0x37BD0000 | R29 & 0xFFFF, biosPtr);
+
+                write(0x6FF0 + 24, 0x3C1E0000 | R30 >> 16, biosPtr);
+                write(0x6FF0 + 28, 0x37DE0000 | R30 & 0xFFFF, biosPtr);
+
+                write(0x6FF0 + 32, 0x01000008, biosPtr);
+                write(0x6FF0 + 36, 0x00000000, biosPtr);
+            } else
+            {
+                write(0x6FF0 + 16, 0x01000008, biosPtr);
+                write(0x6FF0 + 20, 0x00000000, biosPtr);
+            }
         }
 
     }

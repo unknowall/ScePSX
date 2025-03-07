@@ -149,7 +149,8 @@ namespace ScePSX.UI
                 if (id != "")
                 {
                     string[] infos = FrmMain.ini.Read("history", id).Split('|');
-
+                    if (!File.Exists(infos[0]))
+                        continue;
                     Game game = FindOrNew(id);
                     game.ID = id;
                     game.fullName = infos[0];
