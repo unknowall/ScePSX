@@ -9,7 +9,7 @@
 7. 网络对战
 8. 游戏存档管理
 
-the english version is available starting from Beta 0.1.0.
+<b>the english version is available starting from Beta 0.1.0.</b>
 
 <b>各渲染模式模拟器内存占用 (完整进入游戏后)：<br>
 D2D 约32MB , D3D 约52MB, OpenGL 约86MB</b><br>
