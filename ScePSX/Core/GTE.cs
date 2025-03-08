@@ -481,50 +481,65 @@ namespace ScePSX
 
         private void MVMVA()
         {
-            uint mxIndex = (currentCommand >> 17) & 0x3; //MVMVA 乘矩阵    (0=旋转, 1=光照, 2=颜色, 3=保留)
-            uint mvIndex = (currentCommand >> 15) & 0x3; //MVMVA 乘向量    (0=V0, 1=V1, 2=V2, 3=IR/长)
-            uint tvIndex = (currentCommand >> 13) & 0x3; //MVMVA 平移向量 (0=TR, 1=BK, 2=FC/错误, 3=无)
+            const int factor = 0x1000;
+            uint mxIndex = (currentCommand >> 17) & 0x3; // 乘矩阵
+            uint mvIndex = (currentCommand >> 15) & 0x3; // 乘向量
+            uint tvIndex = (currentCommand >> 13) & 0x3; // 平移向量
+            long tx, ty, tz;
 
-            Matrix mx;
-            Vector3 vx;
-            Vector4 mac1;
-            long tx;
-            long ty;
-            long tz;
+            // 根据 mxIndex 选择矩阵
+            Matrix mx = mxIndex switch
+            {
+                0 => RT,
+                1 => LM,
+                2 => LRGB,
+                _ => new Matrix
+                {
+                    v1 = new Vector3 { x = (short)-(RGBC.r << 4), y = (short)(RGBC.r << 4), z = IR[0] },
+                    v2 = new Vector3 { x = RT.v1.z, y = RT.v1.z, z = RT.v1.z },
+                    v3 = new Vector3 { x = RT.v2.y, y = RT.v2.y, z = RT.v2.y }
+                }
+            };
 
-            if (mxIndex == 0)
+            // 根据 mvIndex 选择向量
+            Vector3 vx = mvIndex switch
             {
-                mx = RT;
-            } else if (mxIndex == 1)
+                0 => V[0],
+                1 => V[1],
+                2 => V[2],
+                _ => new Vector3 { x = IR[1], y = IR[2], z = IR[3] }
+            };
+
+            // 如果 tvIndex==2，特殊处理（硬件中该向量未正确添加）
+            if (tvIndex == 2)
             {
-                mx = LM;
-            } else if (mxIndex == 2)
-            {
-                mx = LRGB;
-            } else
-            {
-                mx = new Matrix();
-                mx.v1.x = (short)-(RGBC.r << 4);
-                mx.v1.y = (short)(RGBC.r << 4);
-                mx.v1.z = IR[0];
-                mx.v2.x = mx.v2.y = mx.v2.z = RT.v1.z;
-                mx.v3.x = mx.v3.y = mx.v3.z = RT.v2.y;
+                tx = RFC; ty = GFC; tz = BFC;
+                Vector4 macPart1 = new Vector4(
+                    tx * factor + mx.v1.x * vx.x,
+                    ty * factor + mx.v2.x * vx.x,
+                    tz * factor + mx.v3.x * vx.x,
+                    0);
+                macPart1 /= (1 << sf);
+                setIR(1, (int)macPart1.X, false);
+                setIR(2, (int)macPart1.Y, false);
+                setIR(3, (int)macPart1.Z, false);
+
+                Vector4 macPart2 = new Vector4(
+                    mx.v1.y * vx.y + mx.v1.z * vx.z,
+                    mx.v2.y * vx.y + mx.v2.z * vx.z,
+                    mx.v3.y * vx.y + mx.v3.z * vx.z,
+                    0);
+                macPart2 /= (1 << sf);
+                MAC1 = (int)macPart2.X;
+                MAC2 = (int)macPart2.Y;
+                MAC3 = (int)macPart2.Z;
+                IR[1] = setIR(1, MAC1, lm);
+                IR[2] = setIR(2, MAC2, lm);
+                IR[3] = setIR(3, MAC3, lm);
+                return;
             }
 
-            if (mvIndex == 0)
-            {
-                vx = V[0];
-            } else if (mvIndex == 1)
-            {
-                vx = V[1];
-            } else if (mvIndex == 2)
-            {
-                vx = V[2];
-            } else
-            {
-                vx = new Vector3() { x = IR[1], y = IR[2], z = IR[3] };
-            }
-
+            // 根据 tvIndex 计算平移向量（tvIndex==0,1，其余归零）
             if (tvIndex == 0)
             {
                 tx = TRX;
@@ -535,46 +550,27 @@ namespace ScePSX
                 tx = RBK;
                 ty = GBK;
                 tz = BBK;
-            } else if (tvIndex == 2)
-            {
-                // 这个向量在硬件中没有正确添加
-                tx = RFC;
-                ty = GFC;
-                tz = BFC;
-
-                mac1 = new Vector4(tx * 0x1000 + mx.v1.x * vx.x, ty * 0x1000 + mx.v2.x * vx.x, tz * 0x1000 + mx.v3.x * vx.x, 0);
-                mac1 /= (1 << sf);
-
-                setIR(1, (int)mac1.X, false);
-                setIR(2, (int)mac1.Y, false);
-                setIR(3, (int)mac1.Z, false);
-
-                mac1 = new Vector4(mx.v1.y * vx.y + mx.v1.z * vx.z, mx.v2.y * vx.y + mx.v2.z * vx.z, mx.v3.y * vx.y + mx.v3.z * vx.z, 0);
-                mac1 /= (1 << sf);
-
-                MAC1 = (int)mac1.X;
-                MAC2 = (int)mac1.Y;
-                MAC3 = (int)mac1.Z;
-
-                IR[1] = setIR(1, MAC1, lm);
-                IR[2] = setIR(2, MAC2, lm);
-                IR[3] = setIR(3, MAC3, lm);
-
-                return;
             } else
             {
                 tx = ty = tz = 0;
             }
 
-            // 使用SIMD进行矩阵-向量乘法
-            mac1 = new Vector4(tx * 0x1000 + mx.v1.x * vx.x, ty * 0x1000 + mx.v2.x * vx.x, tz * 0x1000 + mx.v3.x * vx.x, 0);
-            mac1 += new Vector4(mx.v1.y * vx.y + mx.v1.z * vx.z, mx.v2.y * vx.y + mx.v2.z * vx.z, mx.v3.y * vx.y + mx.v3.z * vx.z, 0);
-            mac1 /= (1 << sf);
+            // 使用 SIMD 风格的运算进行矩阵–向量乘法运算（分两部分相加）
+            Vector4 mac = new Vector4(
+                tx * factor + mx.v1.x * vx.x,
+                ty * factor + mx.v2.x * vx.x,
+                tz * factor + mx.v3.x * vx.x,
+                0);
+            mac += new Vector4(
+                mx.v1.y * vx.y + mx.v1.z * vx.z,
+                mx.v2.y * vx.y + mx.v2.z * vx.z,
+                mx.v3.y * vx.y + mx.v3.z * vx.z,
+                0);
+            mac /= (1 << sf);
 
-            MAC1 = (int)mac1.X;
-            MAC2 = (int)mac1.Y;
-            MAC3 = (int)mac1.Z;
-
+            MAC1 = (int)mac.X;
+            MAC2 = (int)mac.Y;
+            MAC3 = (int)mac.Z;
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
@@ -640,19 +636,22 @@ namespace ScePSX
 
         private void OP()
         {
-            //[MAC1, MAC2, MAC3] = [IR3*D2-IR2*D3, IR1*D3-IR3*D1, IR2*D1-IR1*D2] SAR(sf*12)
-            //[IR1, IR2, IR3]    = [MAC1, MAC2, MAC3]                        ;copy result
-            //Calculates the outer product of two signed 16bit vectors.
-            //Note: D1,D2,D3 are meant to be the RT11,RT22,RT33 elements of the RT matrix "misused" as vector. lm should be usually zero.
-
+            // 提取 RT 的对角线元素（RT 的 RT11, RT22, RT33）
             short d1 = RT.v1.x;
             short d2 = RT.v2.y;
             short d3 = RT.v3.z;
 
-            MAC1 = (int)setMAC(1, ((IR[3] * d2) - (IR[2] * d3)) >> sf);
-            MAC2 = (int)setMAC(2, ((IR[1] * d3) - (IR[3] * d1)) >> sf);
-            MAC3 = (int)setMAC(3, ((IR[2] * d1) - (IR[1] * d2)) >> sf);
+            // 计算外积各分量，结果右移 sf 位（SAR(sf)）
+            int r1 = ((IR[3] * d2) - (IR[2] * d3)) >> sf;
+            int r2 = ((IR[1] * d3) - (IR[3] * d1)) >> sf;
+            int r3 = ((IR[2] * d1) - (IR[1] * d2)) >> sf;
 
+            // 更新 MAC 寄存器并触发相应的 flag 检查
+            MAC1 = (int)setMAC(1, r1);
+            MAC2 = (int)setMAC(2, r2);
+            MAC3 = (int)setMAC(3, r3);
+
+            // 将最终结果写入 IR 寄存器
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
@@ -689,37 +688,73 @@ namespace ScePSX
 
         private void NCDS(int r)
         {
-            //Normal color depth cue (single vector) //329048 WIP FLAGS
-            //In: V0 = Normal vector(for triple variants repeated with V1 and V2),
-            //BK = Background color, RGBC = Primary color / code, LLM = Light matrix, LCM = Color matrix, IR0 = Interpolation value.
+            // 根据 Vector<int>.Count 构造长度一致的数组
+            int vLen = Vector<int>.Count;
+            int[] vArr = new int[vLen];
+            vArr[0] = V[r].x;
+            vArr[1] = V[r].y;
+            vArr[2] = V[r].z;
+            var vecV = new Vector<int>(vArr);
 
-            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (LLM * V0) SAR(sf * 12)
-            MAC1 = (int)(setMAC(1, (long)LM.v1.x * V[r].x + LM.v1.y * V[r].y + LM.v1.z * V[r].z) >> sf);
-            MAC2 = (int)(setMAC(2, (long)LM.v2.x * V[r].x + LM.v2.y * V[r].y + LM.v2.z * V[r].z) >> sf);
-            MAC3 = (int)(setMAC(3, (long)LM.v3.x * V[r].x + LM.v3.y * V[r].y + LM.v3.z * V[r].z) >> sf);
+            // 构造 Light Matrix 的每一行向量
+            int[] lm1Arr = new int[vLen];
+            lm1Arr[0] = LM.v1.x;
+            lm1Arr[1] = LM.v1.y;
+            lm1Arr[2] = LM.v1.z;
+            var vecL1 = new Vector<int>(lm1Arr);
+
+            int[] lm2Arr = new int[vLen];
+            lm2Arr[0] = LM.v2.x;
+            lm2Arr[1] = LM.v2.y;
+            lm2Arr[2] = LM.v2.z;
+            var vecL2 = new Vector<int>(lm2Arr);
+
+            int[] lm3Arr = new int[vLen];
+            lm3Arr[0] = LM.v3.x;
+            lm3Arr[1] = LM.v3.y;
+            lm3Arr[2] = LM.v3.z;
+            var vecL3 = new Vector<int>(lm3Arr);
+
+            // 第一阶段：使用 SIMD 计算点积（LLM * V[r]），再调用 setMAC 与移位
+            long macL1 = setMAC(1, Vector.Dot(vecL1, vecV));
+            long macL2 = setMAC(2, Vector.Dot(vecL2, vecV));
+            long macL3 = setMAC(3, Vector.Dot(vecL3, vecV));
+            MAC1 = (int)(macL1 >> sf);
+            MAC2 = (int)(macL2 >> sf);
+            MAC3 = (int)(macL3 >> sf);
 
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
 
-            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (BK * 1000h + LCM * IR) SAR(sf * 12)
-            // WARNING each multiplication can trigger mac flags so the check is needed on each op! Somehow this only affects the color matrix and not the light one
-            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)RBK * 0x1000 + LRGB.v1.x * IR[1]) + (long)LRGB.v1.y * IR[2]) + (long)LRGB.v1.z * IR[3]) >> sf);
-            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)GBK * 0x1000 + LRGB.v2.x * IR[1]) + (long)LRGB.v2.y * IR[2]) + (long)LRGB.v2.z * IR[3]) >> sf);
-            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, (long)BBK * 0x1000 + LRGB.v3.x * IR[1]) + (long)LRGB.v3.y * IR[2]) + (long)LRGB.v3.z * IR[3]) >> sf);
+            // 定义局部函数，保持链式调用顺序（触发 setMAC 的 flag 检查）
+            long ChainMAC(int index, long initial, params long[] values)
+            {
+                long result = setMAC(index, initial);
+                foreach (long v in values)
+                {
+                    result = setMAC(index, result + v);
+                }
+                return result;
+            }
+
+            // 第二阶段：利用颜色矩阵进行累加计算（保持链式调用顺序）
+            MAC1 = (int)(ChainMAC(1, (long)RBK * 0x1000, LRGB.v1.x * IR[1], LRGB.v1.y * IR[2], LRGB.v1.z * IR[3]) >> sf);
+            MAC2 = (int)(ChainMAC(2, (long)GBK * 0x1000, LRGB.v2.x * IR[1], LRGB.v2.y * IR[2], LRGB.v2.z * IR[3]) >> sf);
+            MAC3 = (int)(ChainMAC(3, (long)BBK * 0x1000, LRGB.v3.x * IR[1], LRGB.v3.y * IR[2], LRGB.v3.z * IR[3]) >> sf);
 
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
 
-            // [MAC1, MAC2, MAC3] = [R * IR1, G * IR2, B * IR3] SHL 4;< --- for NCDx / NCCx
+            // 第三阶段：计算最终颜色调节
             MAC1 = (int)setMAC(1, ((long)RGBC.r * IR[1]) << 4);
             MAC2 = (int)setMAC(2, ((long)RGBC.g * IR[2]) << 4);
             MAC3 = (int)setMAC(3, ((long)RGBC.b * IR[3]) << 4);
 
             interpolateColor(MAC1, MAC2, MAC3);
 
-            // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE]
+            // 更新颜色 FIFO（移位操作）
             RGB[0] = RGB[1];
             RGB[1] = RGB[2];
 
@@ -740,17 +775,30 @@ namespace ScePSX
             // [MAC1, MAC2, MAC3] = [MAC1, MAC2, MAC3] SAR(sf * 12);< --- for NCDx / NCCx
             // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
 
-            MAC1 = (int)(setMAC(1, ((long)RFC << 12) - mac1) >> sf);
-            MAC2 = (int)(setMAC(2, ((long)GFC << 12) - mac2) >> sf);
-            MAC3 = (int)(setMAC(3, ((long)BFC << 12) - mac3) >> sf);
+            // 将 MAC1, MAC2, MAC3 转换为 Vector4 进行 SIMD 操作
+            Vector4 mac = new Vector4(mac1, mac2, mac3, 0);
 
-            IR[1] = setIR(1, MAC1, false);
-            IR[2] = setIR(2, MAC2, false);
-            IR[3] = setIR(3, MAC3, false);
+            // 将 RFC, GFC, BFC 转换为 Vector4 进行 SIMD 操作
+            Vector4 fc = new Vector4(RFC, GFC, BFC, 0);
 
-            MAC1 = (int)(setMAC(1, ((long)IR[1] * IR[0]) + mac1) >> sf);
-            MAC2 = (int)(setMAC(2, ((long)IR[2] * IR[0]) + mac2) >> sf);
-            MAC3 = (int)(setMAC(3, ((long)IR[3] * IR[0]) + mac3) >> sf);
+            // [IR1, IR2, IR3] = (([RFC, GFC, BFC] SHL 12) - [MAC1, MAC2, MAC3]) SAR(sf * 12)
+            Vector4 ir = (fc * 0x1000 - mac) / (1 << sf);
+
+            // 确保 IR 在合理范围内 (-8000h..+7FFFh)
+            Vector4 min = new Vector4(-0x8000, -0x8000, -0x8000, 0);
+            Vector4 max = new Vector4(0x7FFF, 0x7FFF, 0x7FFF, 0);
+            ir = Vector4.Clamp(ir, min, max);
+
+            // [MAC1, MAC2, MAC3] = (([IR1, IR2, IR3] * IR0) + [MAC1, MAC2, MAC3])
+            mac = ir * IR[0] + mac;
+
+            // [MAC1, MAC2, MAC3] = [MAC1, MAC2, MAC3] SAR(sf * 12);< --- for NCDx / NCCx
+            mac /= (1 << sf);
+
+            // 确保 MAC1, MAC2, MAC3 在合理范围内
+            MAC1 = (int)mac.X;
+            MAC2 = (int)mac.Y;
+            MAC3 = (int)mac.Z;
 
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
@@ -772,42 +820,33 @@ namespace ScePSX
 
         private void RTPS(int r, bool setMac0)
         {
-            //IR1 = MAC1 = (TRX*1000h + RT11*VX0 + RT12*VY0 + RT13*VZ0) SAR (sf*12)
-            //IR2 = MAC2 = (TRY*1000h + RT21*VX0 + RT22*VY0 + RT23*VZ0) SAR (sf*12)
-            //IR3 = MAC3 = (TRZ*1000h + RT31*VX0 + RT32*VY0 + RT33*VZ0) SAR (sf*12)
-            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)TRX * 0x1000 + RT.v1.x * V[r].x) + (long)RT.v1.y * V[r].y) + (long)RT.v1.z * V[r].z) >> sf);
-            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)TRY * 0x1000 + RT.v2.x * V[r].x) + (long)RT.v2.y * V[r].y) + (long)RT.v2.z * V[r].z) >> sf);
-            long mac3 = setMAC(3, setMAC(3, setMAC(3, (long)TRZ * 0x1000 + RT.v3.x * V[r].x) + (long)RT.v3.y * V[r].y) + (long)RT.v3.z * V[r].z);
-            MAC3 = (int)(mac3 >> sf);
+            // 计算第一行：MAC1 = (TRX*0x1000 + RT.v1.x*V[r].x + RT.v1.y*V[r].y + RT.v1.z*V[r].z) SAR (sf)
+            long sum1 = (long)TRX * 0x1000 + RT.v1.x * V[r].x + RT.v1.y * V[r].y + RT.v1.z * V[r].z;
+            MAC1 = (int)(setMAC(1, sum1) >> sf);
 
+            // 计算第二行：MAC2 = (TRY*0x1000 + RT.v2.x*V[r].x + RT.v2.y*V[r].y + RT.v2.z*V[r].z) SAR (sf)
+            long sum2 = (long)TRY * 0x1000 + RT.v2.x * V[r].x + RT.v2.y * V[r].y + RT.v2.z * V[r].z;
+            MAC2 = (int)(setMAC(2, sum2) >> sf);
+
+            // 计算第三行：MAC3 = (TRZ*0x1000 + RT.v3.x*V[r].x + RT.v3.y*V[r].y + RT.v3.z*V[r].z) SAR (sf)
+            long sum3 = (long)TRZ * 0x1000 + RT.v3.x * V[r].x + RT.v3.y * V[r].y + RT.v3.z * V[r].z;
+            MAC3 = (int)(setMAC(3, sum3) >> sf);
+
+            // 更新 IR 寄存器
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
-            setIR(3, (int)(mac3 >> 12), false);
+            // 对 IR[3] 的设置采取先计算中间值后调用 setIR
+            int ir3Value = (int)(sum3 >> 12);
+            setIR(3, ir3Value, false);
             IR[3] = (short)Math.Clamp(MAC3, lm ? 0 : -0x8000, 0x7FFF);
 
-            //SZ3 = MAC3 SAR ((1-sf)*12)                           ;ScreenZ FIFO 0..+FFFFh
+            // 更新屏幕Z FIFO：SZ3 = MAC3 SAR ((1-sf)*12)
             SZ[0] = SZ[1];
             SZ[1] = SZ[2];
             SZ[2] = SZ[3];
-            SZ[3] = setSZ3(mac3 >> 12);
+            SZ[3] = setSZ3(sum3 >> 12);
 
-            //NON UNR Div Version
-            //long result;
-            //long div;
-            //if (SZ[3] == 0) {
-            //    result = 0x1FFFF;
-            //} else {
-            //    div = (((long)H * 0x20000 / SZ[3]) + 1) / 2;
-            //
-            //    if (div > 0x1FFFF) {
-            //        result = 0x1FFFF;
-            //        FLAG |= 0x1 << 17;
-            //    } else {
-            //        result = div;
-            //    }
-            //}
-
-            //UNR Div
+            // UNR 除法运算部分保持不变
             long n;
             if (H < SZ[3] * 2)
             {
@@ -824,9 +863,7 @@ namespace ScePSX
                 n = 0x1FFFF;
             }
 
-            //MAC0=(((H*20000h/SZ3)+1)/2)*IR1+OFX, SX2=MAC0/10000h ;ScrX FIFO -400h..+3FFh
-            //MAC0=(((H*20000h/SZ3)+1)/2)*IR2+OFY, SY2=MAC0/10000h ;ScrY FIFO -400h..+3FFh
-            //MAC0=(((H*20000h/SZ3)+1)/2)*DQA+DQB, IR0=MAC0/1000h  ;Depth cueing 0..+1000h
+            // 根据计算结果更新屏幕坐标
             int x = (int)(setMAC0(n * IR[1] + OFX) >> 16);
             int y = (int)(setMAC0(n * IR[2] + OFY) >> 16);
 
@@ -835,6 +872,7 @@ namespace ScePSX
             SXY[2].x = setSXY(1, x);
             SXY[2].y = setSXY(2, y);
 
+            // 如果需要更新 MAC0 及 IR[0]
             if (setMac0)
             {
                 long mac0 = setMAC0(n * DQA + DQB);
