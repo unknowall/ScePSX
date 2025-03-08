@@ -1070,8 +1070,8 @@ namespace ScePSX
                     color |= MaskWhileDrawing << 24;
 
                     _VRAM32.SetPixel(x, y, color);
-                    var color3 = (ushort)Rgb888ToRgb555(color);
-                    _VRAM16.SetPixel(x, y, color3);
+                    //var color3 = (ushort)Rgb888ToRgb555(color);
+                    //_VRAM16.SetPixel(x, y, color3);
                 }
 
                 numerator += shortest;
@@ -1149,8 +1149,8 @@ namespace ScePSX
                     color |= MaskWhileDrawing << 24;
 
                     _VRAM32.SetPixel(x, y, color);
-                    var color3 = (ushort)Rgb888ToRgb555(color);
-                    _VRAM16.SetPixel(x, y, color3);
+                    //var color3 = (ushort)Rgb888ToRgb555(color);
+                    //_VRAM16.SetPixel(x, y, color3);
                 }
             }
         }
@@ -1273,8 +1273,8 @@ namespace ScePSX
 
                         _VRAM32.SetPixel(x, y, color);
 
-                        var color3 = (ushort)Rgb888ToRgb555(color);
-                        _VRAM16.SetPixel(x, y, color3); //need?
+                        //var color3 = (ushort)Rgb888ToRgb555(color);
+                        //_VRAM16.SetPixel(x, y, color3); //need?
                     }
 
                     w0 += a12;
