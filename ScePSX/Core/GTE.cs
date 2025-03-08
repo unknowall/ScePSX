@@ -21,7 +21,6 @@ namespace ScePSX
             int ax = a[0], ay = a[1], az = a[2];
             int bx = b[0], by = b[1], bz = b[2];
 
-            // 计算叉积
             int cx = ay * bz - az * by;
             int cy = az * bx - ax * bz;
             int cz = ax * by - ay * bx;
