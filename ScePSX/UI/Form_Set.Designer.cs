@@ -104,7 +104,7 @@
             chkTTY.Name = "chkTTY";
             chkTTY.Size = new System.Drawing.Size(72, 21);
             chkTTY.TabIndex = 18;
-            chkTTY.Text = "TTY";
+            chkTTY.Text = "TTY log";
             chkTTY.UseVisualStyleBackColor = true;
             // 
             // chkcpu
@@ -114,7 +114,7 @@
             chkcpu.Name = "chkcpu";
             chkcpu.Size = new System.Drawing.Size(75, 21);
             chkcpu.TabIndex = 17;
-            chkcpu.Text = "CPU";
+            chkcpu.Text = "CPU log";
             chkcpu.UseVisualStyleBackColor = true;
             // 
             // chkbios
@@ -124,7 +124,7 @@
             chkbios.Name = "chkbios";
             chkbios.Size = new System.Drawing.Size(76, 21);
             chkbios.TabIndex = 16;
-            chkbios.Text = "Bios";
+            chkbios.Text = "Bios log";
             chkbios.UseVisualStyleBackColor = true;
             // 
             // tbcylesfix

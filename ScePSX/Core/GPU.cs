@@ -316,7 +316,7 @@ namespace ScePSX
 
         private int Pointer;
 
-        private Point2D PointMax, PointMin;
+        //private Point2D PointMax, PointMin;
 
         private int ScanLine;
 
@@ -1000,9 +1000,9 @@ namespace ScePSX
 
         #endregion
 
-        #region Rasterization
+        #region DrawPixels
 
-        private void RasterizeLine(uint v1, uint v2, uint color1, uint color2, bool isTransparent)
+        private void DrawLine(uint v1, uint v2, uint color1, uint color2, bool isTransparent)
         {
             var x = Read11BitShort(v1 & 0xFFFF);
             var y = Read11BitShort(v1 >> 16);
@@ -1060,12 +1060,8 @@ namespace ScePSX
                 var ratio = (float)i / longest;
                 var color = Interpolate(color1, color2, ratio);
 
-                //x = (short)Math.Min(Math.Max(x, drawingAreaLeft), drawingAreaRight); //this generates glitches on RR4
-                //y = (short)Math.Min(Math.Max(y, drawingAreaTop), drawingAreaBottom);
-
                 if (x >= DrawingAreaTopLeft.X && x < DrawingAreaBottomRight.X && y >= DrawingAreaTopLeft.Y && y < DrawingAreaBottomRight.Y)
                 {
-                    //if (primitive.isSemiTransparent && (!primitive.isTextured || (color & 0xFF00_0000) != 0)) {
                     if (isTransparent)
                     {
                         color = HandleSemiTransp(x, y, color, DrawMode.SemiTransparency);
@@ -1090,10 +1086,9 @@ namespace ScePSX
                     y += (short)dy2;
                 }
             }
-            //Console.ReadLine();
         }
 
-        private void RasterizeRect(Point2D origin, Point2D size, TextureData texture, uint bgrColor, Primitive primitive)
+        private void DrawRect(Point2D origin, Point2D size, TextureData texture, uint bgrColor, Primitive primitive)
         {
             var xOrigin = Math.Max(origin.X, DrawingAreaTopLeft.X);
             var yOrigin = Math.Max(origin.Y, DrawingAreaTopLeft.Y);
@@ -1109,11 +1104,11 @@ namespace ScePSX
             {
                 for (int x = xOrigin, u = uOrigin; x < width; x++, u++)
                 {
-                    //Check background mask
+                    // Check background mask
                     if (CheckMaskBeforeDraw)
                     {
                         var y1 = y & 0x1FF;
-                        Color0.Value = (uint)_VRAM32.GetPixel(x & 0x3FF, y1); //back
+                        Color0.Value = (uint)_VRAM32.GetPixel(x & 0x3FF, y1); // back
                         if (Color0.M != 0)
                             continue;
                     }
@@ -1122,9 +1117,10 @@ namespace ScePSX
 
                     if (primitive.IsTextured)
                     {
-                        //int texel = getTexel(u, v, clut, textureBase, depth);
-                        var texel = GetTexel(MaskTexelAxis(u, TextureWindowPreMaskX, TextureWindowPostMaskX),
-                            MaskTexelAxis(v, TextureWindowPreMaskY, TextureWindowPostMaskY), primitive.Clut, primitive.TextureBase, primitive.Depth);
+                        var texel = GetTexel(
+                            MaskTexelAxis(u, TextureWindowPreMaskX, TextureWindowPostMaskX),
+                            MaskTexelAxis(v, TextureWindowPreMaskY, TextureWindowPostMaskY),
+                            primitive.Clut, primitive.TextureBase, primitive.Depth);
 
                         if (texel == 0)
                         {
@@ -1159,8 +1155,7 @@ namespace ScePSX
             }
         }
 
-        private void RasterizeTri(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2,
-            Primitive primitive)
+        private void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
             var area = Orient2d(v0, v1, v2);
 
@@ -1175,7 +1170,6 @@ namespace ScePSX
                 area = -area;
             }
 
-            /*boundingBox*/
             int minX = Math.Min(v0.X, Math.Min(v1.X, v2.X));
             int minY = Math.Min(v0.Y, Math.Min(v1.Y, v2.Y));
             int maxX = Math.Max(v0.X, Math.Max(v1.X, v2.X));
@@ -1184,11 +1178,10 @@ namespace ScePSX
             if (maxX - minX > 1024 || maxY - minY > 512)
                 return;
 
-            /*clip*/
-            PointMin.X = (short)Math.Max(minX, DrawingAreaTopLeft.X);
-            PointMin.Y = (short)Math.Max(minY, DrawingAreaTopLeft.Y);
-            PointMax.X = (short)Math.Min(maxX, DrawingAreaBottomRight.X);
-            PointMax.Y = (short)Math.Min(maxY, DrawingAreaBottomRight.Y);
+            short pointMinX = (short)Math.Max(minX, DrawingAreaTopLeft.X);
+            short pointMinY = (short)Math.Max(minY, DrawingAreaTopLeft.Y);
+            short pointMaxX = (short)Math.Min(maxX, DrawingAreaBottomRight.X);
+            short pointMaxY = (short)Math.Min(maxY, DrawingAreaBottomRight.Y);
 
             int a01 = v0.Y - v1.Y, b01 = v1.X - v0.X;
             int a12 = v1.Y - v2.Y, b12 = v2.X - v1.X;
@@ -1198,33 +1191,26 @@ namespace ScePSX
             var bias1 = IsTopLeft(v2, v0) ? 0 : -1;
             var bias2 = IsTopLeft(v0, v1) ? 0 : -1;
 
-            var w0Row = Orient2d(v1, v2, PointMin) + bias0;
-            var w1Row = Orient2d(v2, v0, PointMin) + bias1;
-            var w2Row = Orient2d(v0, v1, PointMin) + bias2;
+            Point2D pointMin = new Point2D { X = pointMinX, Y = pointMinY };
+            var w0Row = Orient2d(v1, v2, pointMin) + bias0;
+            var w1Row = Orient2d(v2, v0, pointMin) + bias1;
+            var w2Row = Orient2d(v0, v1, pointMin) + bias2;
 
             var baseColor = GetRgbColor(c0);
 
-            // Rasterize
-            for (int y = PointMin.Y; y < PointMax.Y; y++)
+            for (int y = pointMinY; y < pointMaxY; y++)
             {
-                // Barycentric coordinates at start of row
                 var w0 = w0Row;
                 var w1 = w1Row;
                 var w2 = w2Row;
 
-                for (int x = PointMin.X; x < PointMax.X; x++)
+                for (int x = pointMinX; x < pointMaxX; x++)
                 {
-                    // If p is on or inside all edges, render pixel.
                     if ((w0 | w1 | w2) >= 0)
                     {
-                        //Adjustements per triangle instead of per pixel can be done at area level
-                        //but it still does some little by 1 error apreciable on some textured quads
-                        //I assume it could be handled recalculating AXX and BXX offsets but those maths are beyond my scope
-
-                        //Check background mask
                         if (CheckMaskBeforeDraw)
                         {
-                            Color0.Value = (uint)_VRAM32.GetPixel(x, y); //back
+                            Color0.Value = (uint)_VRAM32.GetPixel(x, y);
                             if (Color0.M != 0)
                             {
                                 w0 += a12;
@@ -1234,7 +1220,6 @@ namespace ScePSX
                             }
                         }
 
-                        // reset default color of the triangle calculated outside the for as it gets overwriten as follows...
                         var color = baseColor;
 
                         if (primitive.IsShaded)
@@ -1292,13 +1277,11 @@ namespace ScePSX
                         _VRAM16.SetPixel(x, y, color3);
                     }
 
-                    // One step to the right
                     w0 += a12;
                     w1 += a20;
                     w2 += a01;
                 }
 
-                // One row step
                 w0Row += b12;
                 w1Row += b20;
                 w2Row += b01;
@@ -1456,7 +1439,7 @@ namespace ScePSX
             var v2 = buffer[Pointer++];
             //arguments++;
 
-            RasterizeLine(v1, v2, color1, color2, isTransparent);
+            DrawLine(v1, v2, color1, color2, isTransparent);
 
             if (!isPoly)
                 return;
@@ -1474,7 +1457,7 @@ namespace ScePSX
 
                 v1 = v2;
                 v2 = buffer[Pointer++];
-                RasterizeLine(v1, v2, color1, color2, isTransparent);
+                DrawLine(v1, v2, color1, color2, isTransparent);
                 //Console.WriteLine("RASTERIZE " + ++rasterizeline);
                 //window.update(_VRAM32.Bits);
                 //Console.ReadLine();
@@ -1556,9 +1539,9 @@ namespace ScePSX
                 }
             }
 
-            RasterizeTri(v[0], v[1], v[2], t[0], t[1], t[2], c[0], c[1], c[2], primitive);
+            DrawTriangle(v[0], v[1], v[2], t[0], t[1], t[2], c[0], c[1], c[2], primitive);
             if (isQuad)
-                RasterizeTri(v[1], v[2], v[3], t[1], t[2], t[3], c[1], c[2], c[3], primitive);
+                DrawTriangle(v[1], v[2], v[3], t[1], t[2], t[3], c[1], c[2], c[3], primitive);
         }
 
         private void GP0_RenderRectangle(Span<uint> buffer)
@@ -1637,7 +1620,7 @@ namespace ScePSX
             size.X = (short)(x + width);
             size.Y = (short)(y + height);
 
-            RasterizeRect(origin, size, _TextureData, color, primitive);
+            DrawRect(origin, size, _TextureData, color, primitive);
         }
 
         private void GP0_MemCopyRectVRAMtoVRAM(Span<uint> buffer)
