@@ -95,6 +95,17 @@ namespace ScePSX
             return string.IsNullOrEmpty(str) ? 0 : Convert.ToInt32(str);
         }
 
+        public double ReadFloat(string section, string key)
+        {
+            var str = Read(section, key);
+            return string.IsNullOrEmpty(str) ? 0.0 : Convert.ToDouble(str);
+        }
+
+        public void WriteFloat(string section, string key, double value)
+        {
+            Write(section, key, value.ToString());
+        }
+
         public void WriteDictionary<TKey, TValue>(string section, Dictionary<TKey, TValue> dictionary)
             where TKey : Enum
             where TValue : Enum

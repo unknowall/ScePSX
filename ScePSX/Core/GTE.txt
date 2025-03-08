@@ -37,7 +37,7 @@ namespace ScePSX
         }
 
         [Serializable]
-        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        [StructLayout(LayoutKind.Explicit)]
         private struct Vector3
         {
             [FieldOffset(0)] public uint XY;
@@ -47,7 +47,7 @@ namespace ScePSX
         }
 
         [Serializable]
-        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        [StructLayout(LayoutKind.Explicit)]
         private struct Vector2
         {
             [FieldOffset(0)] public uint val;
@@ -56,7 +56,7 @@ namespace ScePSX
         }
 
         [Serializable]
-        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        [StructLayout(LayoutKind.Explicit)]
         private struct Color
         {
             [FieldOffset(0)] public uint val;

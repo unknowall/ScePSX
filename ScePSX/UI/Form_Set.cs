@@ -102,7 +102,7 @@ namespace ScePSX.UI
         {
             ini.WriteInt("CPU", "BusCycles", int.Parse(tbbuscycles.Text));
             ini.WriteInt("CPU", "CyclesFix", int.Parse(tbcylesfix.Text));
-            ini.WriteInt("CPU", "FrameIdle", int.Parse(tbframeidle.Text));
+            ini.WriteFloat("CPU", "FrameIdle", double.Parse(tbframeidle.Text));
             ini.WriteInt("Main", "SkipFrame", int.Parse(tbframeskip.Text));
             ini.WriteInt("CPU", "CpuTicks", int.Parse(tbcputicks.Text));
             ini.WriteInt("Audio", "Buffer", int.Parse(tbaudiobuffer.Text));

@@ -20,7 +20,7 @@ namespace ScePSX
         public int SYNC_CYCLES_FIX = 1;
         public int SYNC_CPU_TICK = 42;
         public int SYNC_LOOPS;
-        public int SYNC_CYCLES_IDLE = 60;
+        public double SYNC_CYCLES_IDLE = 60.0;
 
         private Task MainTask;
 
@@ -301,7 +301,7 @@ namespace ScePSX
 
         private void PSX_EXECUTE()
         {
-            const double TargetFrameTime = 1000 / 60.8; // 60 FPS
+            double TargetFrameTime = 1000 / SYNC_CYCLES_IDLE; // 60 FPS
             var stopwatch = new Stopwatch();
             double accumulatedError = 0;
 
@@ -364,43 +364,6 @@ namespace ScePSX
                 accumulatedError += TargetFrameTime - stopwatch.Elapsed.TotalMilliseconds;
                 accumulatedError = Math.Max(-TargetFrameTime, Math.Min(accumulatedError, TargetFrameTime));
             }
-        }
-
-        private void PSX_EXECUTE_FAST()
-        {
-            //Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)0x0F;
-            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
-            //Thread.CurrentThread.Priority = ThreadPriority.Highest;
-
-            Stopwatch s0 = new Stopwatch();
-
-            while (Running)
-            {
-                if (Pauseing)
-                {
-                    Pauseed = true;
-                    continue;
-                }
-                Pauseed = false;
-
-                s0.Restart();
-
-                for (int i = 0; i < SYNC_LOOPS; i++)
-                {
-                    for (int j = 0; j < SYNC_CYCLES_BUS; j++)
-                    {
-                        PsxBus.cpu.tick();
-                    }
-                    PsxBus.tick(SYNC_CYCLES_BUS * 1);
-                    PsxBus.cpu.handleInterrupts();
-                }
-
-                ApplyCheats();
-
-                if (SYNC_CYCLES_IDLE > 0)
-                    Thread.Sleep(Math.Max((int)(SYNC_CYCLES_IDLE - s0.ElapsedMilliseconds), 0));
-            }
-
         }
 
         public void Button(Controller.InputAction button, bool Down = false, int conidx = 0)
