@@ -15,8 +15,8 @@ namespace ScePSX.Render
         private D2D1BitmapProperties bmpprops;
         private D2D1ColorF clearcolor = new D2D1ColorF(0, 0, 0, 1);
         private int[] pixels = new int[1024 * 512];
-        private int width = 1024;
-        private int height = 512;
+        private int width , oldwidth = 1024;
+        private int height, oldheight = 512;
         private int scale, oldscale = 0;
         public int frameskip, fsk = 1;
         private float dpiX, dpiY;
@@ -152,7 +152,7 @@ namespace ScePSX.Render
 
         private void Render()
         {
-            if (renderTarget == null || bitmap == null || this.Visible == false)
+            if (renderTarget == null || bitmap == null || this.Visible == false || width <= 0 || height <= 0)
                 return;
 
             if (scale > 0)
@@ -163,30 +163,25 @@ namespace ScePSX.Render
                 height = height * scale;
             }
 
-            if (oldscale != scale)
+            if (oldscale != scale || oldwidth != width || oldheight != height)
             {
-                oldscale = scale;
-
-                if (bitmap != null)
-                {
-                    bitmap.Dispose();
-                }
-
                 var bitmapSize = new D2D1SizeU((uint)width, (uint)height);
-
                 bitmap = renderTarget.CreateBitmap(bitmapSize, IntPtr.Zero, 0, bmpprops);
+
+                oldscale = scale;
+                oldwidth = width;
+                oldheight = height;
             }
 
             lock (bufferLock)
             {
-
                 bitmap.CopyFromMemory(Marshal.UnsafeAddrOfPinnedArrayElement<int>(pixels, 0), (uint)(width * 4));
 
                 renderTarget.BeginDraw();
 
                 renderTarget.Clear();
 
-                var dstrect = new D2D1RectF(0, 0, this.ClientSize.Width, ClientSize.Height);
+                var dstrect = new D2D1RectF(0, 0, ClientSize.Width, ClientSize.Height);
                 var srcrect = new D2D1RectF(0, 0, width, height);
                 renderTarget.DrawBitmap(bitmap, dstrect, 1.0f, D2D1BitmapInterpolationMode.Linear, srcrect);
 

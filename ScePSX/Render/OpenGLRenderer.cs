@@ -89,7 +89,7 @@ namespace ScePSX.Render
         {
             Gl.MatrixMode(MatrixMode.Projection);
             Gl.LoadIdentity();
-            Gl.Viewport(0, 0, Width, Height);
+            Gl.Viewport(0, 0, this.ClientSize.Width, this.ClientSize.Height);
             Gl.Ortho(0d, 1d, 0d, 1d, -1d, 1d);
             Gl.MatrixMode(MatrixMode.Modelview);
             Gl.LoadIdentity();

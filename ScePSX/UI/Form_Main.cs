@@ -762,7 +762,6 @@ namespace ScePSX.UI
             if (Core != null)
             {
                 Core.Stop();
-                scale = 0;
             }
 
             IniFile bootini = null;
@@ -808,10 +807,11 @@ namespace ScePSX.UI
 
             romList.Dispose();
 
+            scale = 0;
             Render.SelectRenderer(Rendermode, this);
 
             CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
-
+            
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;

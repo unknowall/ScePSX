@@ -11,8 +11,8 @@ namespace ScePSX
 
         public static int[] ScaleXBR(int[] pixels, int width, int height, int scaleFactor)
         {
-            if ((scaleFactor & (scaleFactor - 1)) != 0)
-                return null;
+            if ((scaleFactor & (scaleFactor - 1)) != 0 || width < 0 || height <0)
+                return pixels;
 
             int currentWidth = width;
             int currentHeight = height;

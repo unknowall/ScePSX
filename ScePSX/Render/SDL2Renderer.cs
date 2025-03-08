@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -11,10 +12,13 @@ namespace ScePSX.Render
         private int[] pixels = new int[1024 * 512];
         private int scale, oldscale;
 
-        private IntPtr m_Window;
+        private IntPtr m_Window , p_Window;
         private IntPtr m_Renderer;
         private IntPtr m_Texture;
         private SDL_Rect srcRect, dstRect;
+
+        private int oldwidth = 1024;
+        private int oldheight = 512;
 
         private bool sizeing = false;
         private readonly object _renderLock = new object();
@@ -89,19 +93,25 @@ namespace ScePSX.Render
                 h = this.Height
             };
             //SDL事件全部给主窗口
-            IntPtr p_Window = SDL_CreateWindowFrom(this.Parent.Handle);
+            p_Window = SDL_CreateWindowFrom(this.Parent.Handle);
             SDL_RaiseWindow(p_Window);
             SDL_SetWindowInputFocus(p_Window);
         }
 
-        ~SDL2Renderer()
+        protected override void Dispose(bool disposing)
         {
-            if (m_Texture != IntPtr.Zero)
-                SDL_DestroyTexture(m_Texture);
-            if (m_Renderer != IntPtr.Zero)
-                SDL_DestroyRenderer(m_Renderer);
-            if (m_Window != IntPtr.Zero)
-                SDL_DestroyWindow(m_Window);
+            if (disposing)
+            {
+                if (m_Texture != IntPtr.Zero)
+                    SDL_DestroyTexture(m_Texture);
+                if (m_Renderer != IntPtr.Zero)
+                    SDL_DestroyRenderer(m_Renderer);
+                if (m_Window != IntPtr.Zero)
+                    SDL_DestroyWindow(m_Window);
+                if (p_Window != IntPtr.Zero)
+                    SDL_DestroyWindow(p_Window);
+            }
+            base.Dispose(disposing);
         }
 
         public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
@@ -134,7 +144,7 @@ namespace ScePSX.Render
 
         private void Render()
         {
-            if (sizeing || this.Visible == false)
+            if (sizeing || this.Visible == false || srcRect.w <= 0 || srcRect.h <= 0)
                 return;
 
             if (scale > 0)
@@ -145,9 +155,11 @@ namespace ScePSX.Render
                 srcRect.h = srcRect.h * scale;
             }
 
-            if (oldscale != scale)
+            if (oldscale != scale || oldwidth != srcRect.w || oldheight != srcRect.h)
             {
                 oldscale = scale;
+                oldwidth = srcRect.w;
+                oldheight = srcRect.h;
                 SDL_DestroyTexture(m_Texture);
                 m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_ARGB8888, (int)SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, srcRect.w, srcRect.h);
             }

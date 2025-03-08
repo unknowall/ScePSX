@@ -11,11 +11,11 @@
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   <PlatformTarget>AnyCPU</PlatformTarget>
   <PackageIcon></PackageIcon>
-  <ApplicationIcon>001.ico</ApplicationIcon>
 </PropertyGroup>
 
 <PropertyGroup>
     <TieredCompilation>true</TieredCompilation>
+    <ApplicationIcon>001.ico</ApplicationIcon>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

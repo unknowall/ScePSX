@@ -4,6 +4,32 @@ using System.Runtime.InteropServices;
 
 namespace ScePSX
 {
+    public static class VectorExtensions
+    {
+        public static int Sum(this Vector<int> vector)
+        {
+            int sum = 0;
+            for (int i = 0; i < Vector<int>.Count; i++)
+            {
+                sum += vector[i];
+            }
+            return sum;
+        }
+
+        public static Vector<int> Cross(this Vector<int> a, Vector<int> b)
+        {
+            int ax = a[0], ay = a[1], az = a[2];
+            int bx = b[0], by = b[1], bz = b[2];
+
+            // 计算叉积
+            int cx = ay * bz - az * by;
+            int cy = az * bx - ax * bz;
+            int cz = ax * by - ay * bx;
+
+            return new Vector<int>(new int[] { cx, cy, cz });
+        }
+    }
+
     [Serializable]
     public class GTE
     { //PSX MIPS Coprocessor 02 - Geometry Transformation Engine
@@ -185,67 +211,48 @@ namespace ScePSX
 
         private void CDP()
         {
-            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (BK * 1000h + LCM * IR) SAR(sf * 12)
-            // WARNING each multiplication can trigger mac flags so the check is needed on each op! Somehow this only affects the color matrix and not the light one
-            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)RBK * 0x1000 + LRGB.v1.x * IR[1]) + (long)LRGB.v1.y * IR[2]) + (long)LRGB.v1.z * IR[3]) >> sf);
-            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)GBK * 0x1000 + LRGB.v2.x * IR[1]) + (long)LRGB.v2.y * IR[2]) + (long)LRGB.v2.z * IR[3]) >> sf);
-            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, (long)BBK * 0x1000 + LRGB.v3.x * IR[1]) + (long)LRGB.v3.y * IR[2]) + (long)LRGB.v3.z * IR[3]) >> sf);
+            Vector<int> bkVec = new Vector<int>(new int[]
+            {
+                RBK * 0x1000, // 背景红色偏移
+                GBK * 0x1000, // 背景绿色偏移
+                BBK * 0x1000  // 背景蓝色偏移
+            });
+
+            Vector<int> irVec = new Vector<int>(new int[] { IR[1], IR[2], IR[3] });
+            Vector<int> lrgbVec = new Vector<int>(new int[] { LRGB.v1.x, LRGB.v2.y, LRGB.v3.z });
+            Vector<int> result = bkVec + (lrgbVec * irVec);
+
+            MAC1 = (int)setMAC(1, result[0] >> sf);
+            MAC2 = (int)setMAC(2, result[1] >> sf);
+            MAC3 = (int)setMAC(3, result[2] >> sf);
 
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
-
-            // [MAC1, MAC2, MAC3] = [R * IR1, G * IR2, B * IR3] SHL 4;
-            MAC1 = (int)(setMAC(1, (long)RGBC.r * IR[1]) << 4);
-            MAC2 = (int)(setMAC(2, (long)RGBC.g * IR[2]) << 4);
-            MAC3 = (int)(setMAC(3, (long)RGBC.b * IR[3]) << 4);
-
-            interpolateColor(MAC1, MAC2, MAC3);
-
-            // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE]
-            RGB[0] = RGB[1];
-            RGB[1] = RGB[2];
-
-            RGB[2].r = setRGB(1, MAC1 >> 4);
-            RGB[2].g = setRGB(2, MAC2 >> 4);
-            RGB[2].b = setRGB(3, MAC3 >> 4);
-            RGB[2].c = RGBC.c;
         }
 
         private void CC()
         {
-            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (BK * 1000h + LCM * IR) SAR(sf * 12)
-            // WARNING each multiplication can trigger mac flags so the check is needed on each op! Somehow this only affects the color matrix and not the light one
-            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)RBK * 0x1000 + LRGB.v1.x * IR[1]) + (long)LRGB.v1.y * IR[2]) + (long)LRGB.v1.z * IR[3]) >> sf);
-            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)GBK * 0x1000 + LRGB.v2.x * IR[1]) + (long)LRGB.v2.y * IR[2]) + (long)LRGB.v2.z * IR[3]) >> sf);
-            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, (long)BBK * 0x1000 + LRGB.v3.x * IR[1]) + (long)LRGB.v3.y * IR[2]) + (long)LRGB.v3.z * IR[3]) >> sf);
+            // 使用 SIMD 向量化计算 [R * IR1, G * IR2, B * IR3]
+            Vector<int> rgbcVec = new Vector<int>(new int[] { RGBC.r, RGBC.g, RGBC.b });
+            Vector<int> irVec = new Vector<int>(new int[] { IR[1], IR[2], IR[3] });
+            Vector<int> macVec = (rgbcVec * irVec) << 4;
 
-            IR[1] = setIR(1, MAC1, lm);
-            IR[2] = setIR(2, MAC2, lm);
-            IR[3] = setIR(3, MAC3, lm);
+            MAC1 = (int)setMAC(1, macVec[0]);
+            MAC2 = (int)setMAC(2, macVec[1]);
+            MAC3 = (int)setMAC(3, macVec[2]);
 
-            // [MAC1, MAC2, MAC3] = [R * IR1, G * IR2, B * IR3] SHL 4;
-            MAC1 = (int)(setMAC(1, (long)RGBC.r * IR[1]) << 4);
-            MAC2 = (int)(setMAC(2, (long)RGBC.g * IR[2]) << 4);
-            MAC3 = (int)(setMAC(3, (long)RGBC.b * IR[3]) << 4);
+            interpolateColor(MAC1, MAC2, MAC3);
 
-            // [MAC1, MAC2, MAC3] = [MAC1, MAC2, MAC3] SAR(sf * 12);< --- for NCDx / NCCx
-            MAC1 = (int)(setMAC(1, MAC1) >> sf);
-            MAC2 = (int)(setMAC(2, MAC2) >> sf);
-            MAC3 = (int)(setMAC(3, MAC3) >> sf);
-
-            // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE], [IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
             RGB[0] = RGB[1];
             RGB[1] = RGB[2];
 
-            RGB[2].r = setRGB(1, MAC1 >> 4);
-            RGB[2].g = setRGB(2, MAC2 >> 4);
-            RGB[2].b = setRGB(3, MAC3 >> 4);
+            // 使用 SIMD 向量化更新 RGB[2]
+            Vector<int> rgbShifted = macVec >> 4;
+            RGB[2].r = setRGB(1, rgbShifted[0]);
+            RGB[2].g = setRGB(2, rgbShifted[1]);
+            RGB[2].b = setRGB(3, rgbShifted[2]);
             RGB[2].c = RGBC.c;
-
-            IR[1] = setIR(1, MAC1, lm);
-            IR[2] = setIR(2, MAC2, lm);
-            IR[3] = setIR(3, MAC3, lm);
         }
 
         private void DCPT()
@@ -803,6 +810,7 @@ namespace ScePSX
 
             return (short)value;
         }
+        
         private short setSXY(int i, int value)
         {
             if (value < -0x400)
@@ -817,6 +825,7 @@ namespace ScePSX
 
             return (short)value;
         }
+        
         private ushort setSZ3(long value)
         {
             if (value < 0)
