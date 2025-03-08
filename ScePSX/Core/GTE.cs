@@ -416,35 +416,61 @@ namespace ScePSX
 
         private void NCS(int r)
         {
-            //In: V0 = Normal vector(for triple variants repeated with V1 and V2),
-            //BK = Background color, RGBC = Primary color / code, LLM = Light matrix, LCM = Color matrix, IR0 = Interpolation value.
+            // 使用 SIMD 向量化计算 LLM * V[r]
+            Vector<int> vVec = new Vector<int>(new int[] { V[r].x, V[r].y, V[r].z });
+            Vector<int> lm1Vec = new Vector<int>(new int[] { LM.v1.x, LM.v1.y, LM.v1.z });
+            Vector<int> lm2Vec = new Vector<int>(new int[] { LM.v2.x, LM.v2.y, LM.v2.z });
+            Vector<int> lm3Vec = new Vector<int>(new int[] { LM.v3.x, LM.v3.y, LM.v3.z });
 
-            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (LLM * V0) SAR(sf * 12)
-            MAC1 = (int)(setMAC(1, (long)LM.v1.x * V[r].x + LM.v1.y * V[r].y + LM.v1.z * V[r].z) >> sf);
-            MAC2 = (int)(setMAC(2, (long)LM.v2.x * V[r].x + LM.v2.y * V[r].y + LM.v2.z * V[r].z) >> sf);
-            MAC3 = (int)(setMAC(3, (long)LM.v3.x * V[r].x + LM.v3.y * V[r].y + LM.v3.z * V[r].z) >> sf);
+            // 计算点积并移位
+            long mac1 = (long)(lm1Vec * vVec).Sum() >> sf;
+            long mac2 = (long)(lm2Vec * vVec).Sum() >> sf;
+            long mac3 = (long)(lm3Vec * vVec).Sum() >> sf;
 
-            IR[1] = setIR(1, MAC1, lm);
-            IR[2] = setIR(2, MAC2, lm);
-            IR[3] = setIR(3, MAC3, lm);
-
-            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (BK * 1000h + LCM * IR) SAR(sf * 12)
-            // WARNING each multiplication can trigger mac flags so the check is needed on each op! Somehow this only affects the color matrix and not the light one
-            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)RBK * 0x1000 + LRGB.v1.x * IR[1]) + (long)LRGB.v1.y * IR[2]) + (long)LRGB.v1.z * IR[3]) >> sf);
-            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)GBK * 0x1000 + LRGB.v2.x * IR[1]) + (long)LRGB.v2.y * IR[2]) + (long)LRGB.v2.z * IR[3]) >> sf);
-            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, (long)BBK * 0x1000 + LRGB.v3.x * IR[1]) + (long)LRGB.v3.y * IR[2]) + (long)LRGB.v3.z * IR[3]) >> sf);
+            // 更新 MAC 和 IR 寄存器
+            MAC1 = (int)setMAC(1, mac1);
+            MAC2 = (int)setMAC(2, mac2);
+            MAC3 = (int)setMAC(3, mac3);
 
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
 
-            // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE], [IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
+            // 使用 SIMD 向量化计算 BK 和 LCM 的贡献
+            Vector<int> bkVec = new Vector<int>(new int[]
+            {
+                RBK * 0x1000, // 背景红色偏移
+                GBK * 0x1000, // 背景绿色偏移
+                BBK * 0x1000  // 背景蓝色偏移
+            });
+
+            Vector<int> irVec = new Vector<int>(new int[] { IR[1], IR[2], IR[3] });
+            Vector<int> lrgbVec1 = new Vector<int>(new int[] { LRGB.v1.x, LRGB.v1.y, LRGB.v1.z });
+            Vector<int> lrgbVec2 = new Vector<int>(new int[] { LRGB.v2.x, LRGB.v2.y, LRGB.v2.z });
+            Vector<int> lrgbVec3 = new Vector<int>(new int[] { LRGB.v3.x, LRGB.v3.y, LRGB.v3.z });
+
+            // 计算结果：bkVec + (lrgbVec * irVec)
+            Vector<int> result1 = bkVec + (lrgbVec1 * irVec);
+            Vector<int> result2 = bkVec + (lrgbVec2 * irVec);
+            Vector<int> result3 = bkVec + (lrgbVec3 * irVec);
+
+            // 更新 MAC 和 IR 寄存器
+            MAC1 = (int)setMAC(1, result1[0] >> sf);
+            MAC2 = (int)setMAC(2, result2[1] >> sf);
+            MAC3 = (int)setMAC(3, result3[2] >> sf);
+
+            IR[1] = setIR(1, MAC1, lm);
+            IR[2] = setIR(2, MAC2, lm);
+            IR[3] = setIR(3, MAC3, lm);
+
+            // 更新 Color FIFO
             RGB[0] = RGB[1];
             RGB[1] = RGB[2];
 
-            RGB[2].r = setRGB(1, MAC1 >> 4);
-            RGB[2].g = setRGB(2, MAC2 >> 4);
-            RGB[2].b = setRGB(3, MAC3 >> 4);
+            Vector<int> rgbFinal = new Vector<int>(new int[] { MAC1 >> 4, MAC2 >> 4, MAC3 >> 4 });
+            RGB[2].r = setRGB(1, rgbFinal[0]);
+            RGB[2].g = setRGB(2, rgbFinal[1]);
+            RGB[2].b = setRGB(3, rgbFinal[2]);
             RGB[2].c = RGBC.c;
 
             IR[1] = setIR(1, MAC1, lm);
