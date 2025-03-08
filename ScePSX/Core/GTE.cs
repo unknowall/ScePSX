@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing.Drawing2D;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -223,7 +224,7 @@ namespace ScePSX
             MAC1 = (int)setMAC(1, result[0] >> sf);
             MAC2 = (int)setMAC(2, result[1] >> sf);
             MAC3 = (int)setMAC(3, result[2] >> sf);
-            
+
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
@@ -479,17 +480,14 @@ namespace ScePSX
         }
 
         private void MVMVA()
-        { //WIP
-            //Mx = matrix specified by mx; RT / LLM / LCM - Rotation, light or color matrix
-            //Vx = vector specified by v; V0, V1, V2, or[IR1, IR2, IR3]
-            //Tx = translation vector specified by cv; TR or BK or Bugged / FC, or None
-
-            uint mxIndex = (currentCommand >> 17) & 0x3; //MVMVA Multiply Matrix    (0=Rotation. 1=Light, 2=Color, 3=Reserved)
-            uint mvIndex = (currentCommand >> 15) & 0x3; //MVMVA Multiply Vector    (0=V0, 1=V1, 2=V2, 3=IR/long)
-            uint tvIndex = (currentCommand >> 13) & 0x3; //MVMVA Translation Vector (0=TR, 1=BK, 2=FC/Bugged, 3=None)
+        {
+            uint mxIndex = (currentCommand >> 17) & 0x3; //MVMVA 乘矩阵    (0=旋转, 1=光照, 2=颜色, 3=保留)
+            uint mvIndex = (currentCommand >> 15) & 0x3; //MVMVA 乘向量    (0=V0, 1=V1, 2=V2, 3=IR/长)
+            uint tvIndex = (currentCommand >> 13) & 0x3; //MVMVA 平移向量 (0=TR, 1=BK, 2=FC/错误, 3=无)
 
             Matrix mx;
             Vector3 vx;
+            Vector4 mac1;
             long tx;
             long ty;
             long tz;
@@ -539,26 +537,24 @@ namespace ScePSX
                 tz = BBK;
             } else if (tvIndex == 2)
             {
-                //This vector is not added correctly by the hardware
+                // 这个向量在硬件中没有正确添加
                 tx = RFC;
                 ty = GFC;
                 tz = BFC;
 
-                long mac1 = setMAC(1, tx * 0x1000 + mx.v1.x * vx.x);
-                long mac2 = setMAC(2, ty * 0x1000 + mx.v2.x * vx.x);
-                long mac3 = setMAC(3, tz * 0x1000 + mx.v3.x * vx.x);
+                mac1 = new Vector4(tx * 0x1000 + mx.v1.x * vx.x, ty * 0x1000 + mx.v2.x * vx.x, tz * 0x1000 + mx.v3.x * vx.x, 0);
+                mac1 /= (1 << sf);
 
-                setIR(1, (int)(mac1 >> sf), false);
-                setIR(2, (int)(mac2 >> sf), false);
-                setIR(3, (int)(mac3 >> sf), false);
+                setIR(1, (int)mac1.X, false);
+                setIR(2, (int)mac1.Y, false);
+                setIR(3, (int)mac1.Z, false);
 
-                mac1 = setMAC(1, setMAC(1, (long)mx.v1.y * vx.y) + (long)mx.v1.z * vx.z);
-                mac2 = setMAC(2, setMAC(2, (long)mx.v2.y * vx.y) + (long)mx.v2.z * vx.z);
-                mac3 = setMAC(3, setMAC(3, (long)mx.v3.y * vx.y) + (long)mx.v3.z * vx.z);
+                mac1 = new Vector4(mx.v1.y * vx.y + mx.v1.z * vx.z, mx.v2.y * vx.y + mx.v2.z * vx.z, mx.v3.y * vx.y + mx.v3.z * vx.z, 0);
+                mac1 /= (1 << sf);
 
-                MAC1 = (int)(mac1 >> sf);
-                MAC2 = (int)(mac2 >> sf);
-                MAC3 = (int)(mac3 >> sf);
+                MAC1 = (int)mac1.X;
+                MAC2 = (int)mac1.Y;
+                MAC3 = (int)mac1.Z;
 
                 IR[1] = setIR(1, MAC1, lm);
                 IR[2] = setIR(2, MAC2, lm);
@@ -570,14 +566,14 @@ namespace ScePSX
                 tx = ty = tz = 0;
             }
 
-            //MAC1 = (Tx1 * 1000h + Mx11 * Vx1 + Mx12 * Vx2 + Mx13 * Vx3) SAR(sf * 12)
-            //MAC2 = (Tx2 * 1000h + Mx21 * Vx1 + Mx22 * Vx2 + Mx23 * Vx3) SAR(sf * 12)
-            //MAC3 = (Tx3 * 1000h + Mx31 * Vx1 + Mx32 * Vx2 + Mx33 * Vx3) SAR(sf * 12)
-            //[IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
+            // 使用SIMD进行矩阵-向量乘法
+            mac1 = new Vector4(tx * 0x1000 + mx.v1.x * vx.x, ty * 0x1000 + mx.v2.x * vx.x, tz * 0x1000 + mx.v3.x * vx.x, 0);
+            mac1 += new Vector4(mx.v1.y * vx.y + mx.v1.z * vx.z, mx.v2.y * vx.y + mx.v2.z * vx.z, mx.v3.y * vx.y + mx.v3.z * vx.z, 0);
+            mac1 /= (1 << sf);
 
-            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, tx * 0x1000 + mx.v1.x * vx.x) + (long)mx.v1.y * vx.y) + (long)mx.v1.z * vx.z) >> sf);
-            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, ty * 0x1000 + mx.v2.x * vx.x) + (long)mx.v2.y * vx.y) + (long)mx.v2.z * vx.z) >> sf);
-            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, tz * 0x1000 + mx.v3.x * vx.x) + (long)mx.v3.y * vx.y) + (long)mx.v3.z * vx.z) >> sf);
+            MAC1 = (int)mac1.X;
+            MAC2 = (int)mac1.Y;
+            MAC3 = (int)mac1.Z;
 
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
@@ -861,7 +857,7 @@ namespace ScePSX
 
             return (short)value;
         }
-        
+
         private short setSXY(int i, int value)
         {
             if (value < -0x400)
@@ -876,7 +872,7 @@ namespace ScePSX
 
             return (short)value;
         }
-        
+
         private ushort setSZ3(long value)
         {
             if (value < 0)
