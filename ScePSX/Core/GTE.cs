@@ -216,7 +216,6 @@ namespace ScePSX
                 GBK * 0x1000, // 背景绿色偏移
                 BBK * 0x1000  // 背景蓝色偏移
             });
-
             Vector<int> irVec = new Vector<int>(new int[] { IR[1], IR[2], IR[3] });
             Vector<int> lrgbVec = new Vector<int>(new int[] { LRGB.v1.x, LRGB.v2.y, LRGB.v3.z });
             Vector<int> result = bkVec + (lrgbVec * irVec);
@@ -224,7 +223,7 @@ namespace ScePSX
             MAC1 = (int)setMAC(1, result[0] >> sf);
             MAC2 = (int)setMAC(2, result[1] >> sf);
             MAC3 = (int)setMAC(3, result[2] >> sf);
-
+            
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
