@@ -6,11 +6,8 @@
 	<UseWindowsForms>True</UseWindowsForms>
 	<StartupObject>ScePSX.Program</StartupObject>
 	<Platforms>AnyCPU</Platforms>
-	<IsPublishable>False</IsPublishable>
 	<BaseIntermediateOutputPath></BaseIntermediateOutputPath>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
-  <PlatformTarget>AnyCPU</PlatformTarget>
-  <PackageIcon></PackageIcon>
 </PropertyGroup>
 
 <PropertyGroup>

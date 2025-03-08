@@ -35,6 +35,14 @@ namespace ScePSX.UI
             }
         }
 
+        private void edtxt_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
+            {
+                e.Handled = true;
+            }
+        }
+
         private void btnsave_Click(object sender, EventArgs e)
         {
             if (id == "")
@@ -100,23 +108,28 @@ namespace ScePSX.UI
 
         private void saveini(IniFile ini)
         {
-            ini.WriteInt("CPU", "BusCycles", int.Parse(tbbuscycles.Text));
-            ini.WriteInt("CPU", "CyclesFix", int.Parse(tbcylesfix.Text));
-            ini.WriteFloat("CPU", "FrameIdle", double.Parse(tbframeidle.Text));
-            ini.WriteInt("Main", "SkipFrame", int.Parse(tbframeskip.Text));
-            ini.WriteInt("CPU", "CpuTicks", int.Parse(tbcputicks.Text));
-            ini.WriteInt("Audio", "Buffer", int.Parse(tbaudiobuffer.Text));
+            try
+            {
+                ini.WriteInt("CPU", "BusCycles", int.Parse(tbbuscycles.Text));
+                ini.WriteInt("CPU", "CyclesFix", int.Parse(tbcylesfix.Text));
+                ini.WriteFloat("CPU", "FrameIdle", double.Parse(tbframeidle.Text));
+                ini.WriteInt("Main", "SkipFrame", int.Parse(tbframeskip.Text));
+                ini.WriteInt("CPU", "CpuTicks", int.Parse(tbcputicks.Text));
+                ini.WriteInt("Audio", "Buffer", int.Parse(tbaudiobuffer.Text));
 
-            ini.WriteInt("OpenGL", "MSAA", cbmsaa.SelectedIndex);
+                ini.WriteInt("OpenGL", "MSAA", cbmsaa.SelectedIndex);
 
-            ini.WriteInt("Main", "BiosDebug", chkbios.Checked ? 1 : 0);
-            ini.WriteInt("Main", "CPUDebug", chkcpu.Checked ? 1 : 0);
-            ini.WriteInt("Main", "TTYDebug", chkTTY.Checked ? 1 : 0);
-            ini.WriteInt("Main", "Console", cbconsole.Checked ? 1 : 0);
+                ini.WriteInt("Main", "BiosDebug", chkbios.Checked ? 1 : 0);
+                ini.WriteInt("Main", "CPUDebug", chkcpu.Checked ? 1 : 0);
+                ini.WriteInt("Main", "TTYDebug", chkTTY.Checked ? 1 : 0);
+                ini.WriteInt("Main", "Console", cbconsole.Checked ? 1 : 0);
 
-            ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
+                ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
 
-            ini.Write("main", "bios", cbbios.Items[cbbios.SelectedIndex].ToString());
+                ini.Write("main", "bios", cbbios.Items[cbbios.SelectedIndex].ToString());
+            } catch
+            {
+            }
         }
 
     }

@@ -16,18 +16,18 @@ namespace ScePSX
             }
             return sum;
         }
+        // Cross 方法在 seq,avsz3,avsz4 方法不可用
+        //public static Vector<int> Cross(this Vector<int> a, Vector<int> b)
+        //{
+        //    int ax = a[0], ay = a[1], az = a[2];
+        //    int bx = b[0], by = b[1], bz = b[2];
 
-        public static Vector<int> Cross(this Vector<int> a, Vector<int> b)
-        {
-            int ax = a[0], ay = a[1], az = a[2];
-            int bx = b[0], by = b[1], bz = b[2];
+        //    int cx = ay * bz - az * by;
+        //    int cy = az * bx - ax * bz;
+        //    int cz = ax * by - ay * bx;
 
-            int cx = ay * bz - az * by;
-            int cy = az * bx - ax * bz;
-            int cz = ax * by - ay * bx;
-
-            return new Vector<int>(new int[] { cx, cy, cz });
-        }
+        //    return new Vector<int>(new int[] { cx, cy, cz });
+        //}
     }
 
     [Serializable]

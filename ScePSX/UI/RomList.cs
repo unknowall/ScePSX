@@ -345,11 +345,15 @@ namespace ScePSX.UI
 
         private void OnSetClick(object sender, EventArgs e)
         {
+            if (SelectedGame() == null)
+                return;
             ShowFrom(new Form_Set(SelectedGame().ID));
         }
 
         private void OnMcrClick(object sender, EventArgs e)
         {
+            if (SelectedGame() == null)
+                return;
             ShowFrom(new Form_McrMange(SelectedGame().ID));
         }
 
@@ -376,6 +380,8 @@ namespace ScePSX.UI
 
         private void OnCheatClick(object sender, EventArgs e)
         {
+            if (SelectedGame() == null)
+                return;
             ShowFrom(new Form_Cheat(SelectedGame().ID));
         }
 
@@ -454,9 +460,12 @@ namespace ScePSX.UI
                     SelectedIndex = -1;
                 }
 
-                if (SelectedIndex != -1)
+                if (SelectedIndex != -1 && Items.Count > 0)
                 {
                     contextMenuStrip.Show(this, e.Location);
+                } else
+                {
+                    return;
                 }
             }
 

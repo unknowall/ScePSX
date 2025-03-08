@@ -1274,7 +1274,7 @@ namespace ScePSX
                         _VRAM32.SetPixel(x, y, color);
 
                         var color3 = (ushort)Rgb888ToRgb555(color);
-                        _VRAM16.SetPixel(x, y, color3);
+                        _VRAM16.SetPixel(x, y, color3); //need?
                     }
 
                     w0 += a12;
