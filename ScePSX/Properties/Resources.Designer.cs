@@ -232,6 +232,24 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Import 的本地化字符串。
+        /// </summary>
+        internal static string Form_McrMange_InitializeComponent_Import {
+            get {
+                return ResourceManager.GetString("Form_McrMange_InitializeComponent_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Memcard Mange 的本地化字符串。
+        /// </summary>
+        internal static string Form_McrMange_InitializeComponent_MemcardMange {
+            get {
+                return ResourceManager.GetString("Form_McrMange_InitializeComponent_MemcardMange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Save 的本地化字符串。
         /// </summary>
         internal static string Form_McrMange_InitializeComponent_保存修改 {
@@ -574,7 +592,7 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 PS1 emulator released under the MIT License. 的本地化字符串。
+        ///   查找类似 PS1 emulator released under the MIT License 的本地化字符串。
         /// </summary>
         internal static string FrmAbout_InitializeComponent_read {
             get {

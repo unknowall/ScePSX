@@ -64,21 +64,6 @@ namespace ScePSX.UI
 
             InitializeComponent();
 
-            //MainMenu.RenderMode = ToolStripRenderMode.Professional;
-            //MainMenu.Renderer = new MainMenuRenderer();
-            //MainMenu.BackColor = Color.FromArgb(45, 45, 45);
-
-            //AddCustomTitleBar();
-            //AddStatusBar();
-            //AddStatusLabel("");
-            //AddStatusLabel("");
-            //AddStatusLabel("");
-            //AddStatusLabel("");
-            //AddStatusSpring();
-            //AddStatusLabel("", true);
-            //AddStatusLabel("", true);
-            //AddStatusLabel("", true);
-
             if (ini.ReadInt("Main", "Console") == 1)
             {
                 AllocConsole();
@@ -184,7 +169,7 @@ namespace ScePSX.UI
             } else
             {
                 UpdateStatus(1, $"F3+ F4- {ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [{StateSlot}]");
-                UpdateStatus(2, $"F9 [{(KeyFirst ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_键盘优先 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_手柄优先)}]");
+                UpdateStatus(2, $"F9[{(KeyFirst ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_键盘优先 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_手柄优先)}]");
                 UpdateStatus(3, $"F10[{(isAnalog ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_多轴手柄 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_数字手柄)}]");
             }
 
@@ -781,7 +766,7 @@ namespace ScePSX.UI
             }
 
             IniFile bootini = null;
-            IniFile sysini = null;
+            IniFile sysini = ini;
             string gameid = "";
             if (game != null)
             {
@@ -791,8 +776,6 @@ namespace ScePSX.UI
                 if (File.Exists(inifn))
                 {
                     bootini = new IniFile(inifn);
-                    sysini = ini;
-
                     ini = bootini;
                 }
             }
@@ -807,10 +790,7 @@ namespace ScePSX.UI
                 return;
             }
 
-            if (sysini != null)
-                sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
-            else
-                ini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
+            sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
             SetAudioBuffer();
 

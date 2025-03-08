@@ -418,12 +418,18 @@
     <value>这是一个遵循 MIT 许可协议的开源 PS1 模拟器</value>
   </data>
   <data name="FrmAbout_InitializeComponent_read2" xml:space="preserve">
-    <value>源码公开在GitHub</value>
+    <value>源码公开在GitHub:</value>
   </data>
   <data name="Form_Cheat_Form_Cheat_的金手指" xml:space="preserve">
     <value>的金手指</value>
   </data>
   <data name="Form_Cheat_btnadd_Click_新建" xml:space="preserve">
     <value>新建项，请修改名称</value>
+  </data>
+  <data name="Form_McrMange_InitializeComponent_Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Form_McrMange_InitializeComponent_MemcardMange" xml:space="preserve">
+    <value>内存卡管理</value>
   </data>
 </root>

@@ -15,7 +15,7 @@ namespace ScePSX
     public class PSXCore : ICoreHandler
     {
         const int PSX_MHZ = 33868800;
-        public const int CYCLES_PER_FRAME = PSX_MHZ / 60;
+        const int CYCLES_PER_FRAME = PSX_MHZ / 60;
         public int SYNC_CYCLES_BUS = 110;
         public int SYNC_CYCLES_FIX = 1;
         public int SYNC_CPU_TICK = 42;
@@ -293,19 +293,20 @@ namespace ScePSX
             }
 
             double singleTickTime = sw.Elapsed.TotalMilliseconds / CalibrationCycles;
-            SYNC_CYCLES_BUS = (int)(0.1 / singleTickTime); // 每0.1ms执行一次循环
-            SYNC_LOOPS = (CYCLES_PER_FRAME / 110) + SYNC_CYCLES_FIX;
+            SYNC_CPU_TICK = (int)(0.1 / singleTickTime); // 每0.1ms执行一次循环
+            SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES_BUS) + SYNC_CYCLES_FIX;
 
-            Console.WriteLine($"CalibrateSyncParams SYNC_CYCLES {SYNC_CYCLES_BUS} SYNC_LOOPS {SYNC_LOOPS}");
+            Console.WriteLine($"CalibrateSyncParams SYNC_CYCLES {SYNC_CPU_TICK} SYNC_LOOPS {SYNC_LOOPS}");
         }
 
         private void PSX_EXECUTE()
         {
-            const double TargetFrameTime = 1000 / 60.0; // 60 FPS
+            const double TargetFrameTime = 1000 / 60.8; // 60 FPS
             var stopwatch = new Stopwatch();
             double accumulatedError = 0;
 
             SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES_BUS) + SYNC_CYCLES_FIX;
+            int totalTicks = SYNC_LOOPS * SYNC_CPU_TICK;
 
             while (Running)
             {
@@ -314,14 +315,23 @@ namespace ScePSX
                 if (!Pauseing)
                 {
                     Pauseed = false;
-                    for (int i = 0; i < SYNC_LOOPS; i++)
+                    //for (int i = 0; i < SYNC_LOOPS; i++)
+                    //{
+                    //    for (int j = 0; j < SYNC_CPU_TICK; j++) //42
+                    //    {
+                    //        PsxBus.cpu.tick();
+                    //    }
+                    //    PsxBus.tick(SYNC_CYCLES_BUS);
+                    //    PsxBus.cpu.handleInterrupts();
+                    //}
+                    for (int i = 0; i < totalTicks; i++)
                     {
-                        for (int j = 0; j < SYNC_CPU_TICK; j++) //42
+                        PsxBus.cpu.tick();
+                        if (i % SYNC_CPU_TICK == 0)
                         {
-                            PsxBus.cpu.tick();
+                            PsxBus.tick(SYNC_CYCLES_BUS);
+                            PsxBus.cpu.handleInterrupts();
                         }
-                        PsxBus.tick(SYNC_CYCLES_BUS);
-                        PsxBus.cpu.handleInterrupts();
                     }
                     ApplyCheats();
                 } else

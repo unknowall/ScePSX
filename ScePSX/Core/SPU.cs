@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using ScePSX.CdRom2;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScePSX
 {
@@ -11,9 +14,7 @@ namespace ScePSX
         private const int CYCLES_PER_SAMPLE = 0x300; //33868800 / 44100hz
         private int counter = 0;
         private int reverbCounter = 0;
-        // Todo:
-        // lr sweep envelope
-        // clean up queue/list dequeues enqueues and casts
+
         private static short[] gaussTable = new short[] {
                 -0x001, -0x001, -0x001, -0x001, -0x001, -0x001, -0x001, -0x001,
                 -0x001, -0x001, -0x001, -0x001, -0x001, -0x001, -0x001, -0x001,

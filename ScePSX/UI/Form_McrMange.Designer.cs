@@ -48,6 +48,8 @@
             columnHeader3 = new System.Windows.Forms.ColumnHeader();
             copy2to1 = new System.Windows.Forms.Button();
             copy1to2 = new System.Windows.Forms.Button();
+            btnimport1 = new System.Windows.Forms.Button();
+            btnimport2 = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // cbsave1
@@ -55,7 +57,7 @@
             cbsave1.FormattingEnabled = true;
             cbsave1.Location = new System.Drawing.Point(25, 12);
             cbsave1.Name = "cbsave1";
-            cbsave1.Size = new System.Drawing.Size(344, 25);
+            cbsave1.Size = new System.Drawing.Size(274, 25);
             cbsave1.TabIndex = 0;
             // 
             // cbsave2
@@ -63,7 +65,7 @@
             cbsave2.FormattingEnabled = true;
             cbsave2.Location = new System.Drawing.Point(424, 12);
             cbsave2.Name = "cbsave2";
-            cbsave2.Size = new System.Drawing.Size(344, 25);
+            cbsave2.Size = new System.Drawing.Size(274, 25);
             cbsave2.TabIndex = 1;
             // 
             // lv1
@@ -124,7 +126,7 @@
             del1.Name = "del1";
             del1.Size = new System.Drawing.Size(73, 32);
             del1.TabIndex = 6;
-            del1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_删除选中;
+            del1.Text = Properties.Resources.Form_McrMange_InitializeComponent_删除选中;
             del1.UseVisualStyleBackColor = true;
             del1.Click += del1_Click;
             // 
@@ -134,7 +136,7 @@
             out1.Name = "out1";
             out1.Size = new System.Drawing.Size(73, 32);
             out1.TabIndex = 8;
-            out1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_导出;
+            out1.Text = Properties.Resources.Form_McrMange_InitializeComponent_导出;
             out1.UseVisualStyleBackColor = true;
             out1.Click += out1_Click;
             // 
@@ -144,7 +146,7 @@
             save1.Name = "save1";
             save1.Size = new System.Drawing.Size(73, 32);
             save1.TabIndex = 9;
-            save1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_保存修改;
+            save1.Text = Properties.Resources.Form_McrMange_InitializeComponent_保存修改;
             save1.UseVisualStyleBackColor = true;
             save1.Click += save1_Click;
             // 
@@ -154,7 +156,7 @@
             save2.Name = "save2";
             save2.Size = new System.Drawing.Size(73, 32);
             save2.TabIndex = 12;
-            save2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_保存修改;
+            save2.Text = Properties.Resources.Form_McrMange_InitializeComponent_保存修改;
             save2.UseVisualStyleBackColor = true;
             save2.Click += save2_Click;
             // 
@@ -164,7 +166,7 @@
             out2.Name = "out2";
             out2.Size = new System.Drawing.Size(73, 32);
             out2.TabIndex = 11;
-            out2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_导出;
+            out2.Text = Properties.Resources.Form_McrMange_InitializeComponent_导出;
             out2.UseVisualStyleBackColor = true;
             out2.Click += out2_Click;
             // 
@@ -174,7 +176,7 @@
             del2.Name = "del2";
             del2.Size = new System.Drawing.Size(73, 32);
             del2.TabIndex = 10;
-            del2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_删除选中;
+            del2.Text = Properties.Resources.Form_McrMange_InitializeComponent_删除选中;
             del2.UseVisualStyleBackColor = true;
             del2.Click += del2_Click;
             // 
@@ -230,11 +232,33 @@
             copy1to2.UseVisualStyleBackColor = true;
             copy1to2.Click += copy1to2_Click;
             // 
+            // btnimport1
+            // 
+            btnimport1.Location = new System.Drawing.Point(305, 10);
+            btnimport1.Name = "btnimport1";
+            btnimport1.Size = new System.Drawing.Size(64, 28);
+            btnimport1.TabIndex = 16;
+            btnimport1.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_Import;
+            btnimport1.UseVisualStyleBackColor = true;
+            btnimport1.Click += btnimport1_Click;
+            // 
+            // btnimport2
+            // 
+            btnimport2.Location = new System.Drawing.Point(704, 9);
+            btnimport2.Name = "btnimport2";
+            btnimport2.Size = new System.Drawing.Size(64, 28);
+            btnimport2.TabIndex = 17;
+            btnimport2.Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_Import;
+            btnimport2.UseVisualStyleBackColor = true;
+            btnimport2.Click += btnimport2_Click;
+            // 
             // Form_McrMange
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(790, 467);
+            Controls.Add(btnimport2);
+            Controls.Add(btnimport1);
             Controls.Add(copy2to1);
             Controls.Add(copy1to2);
             Controls.Add(lv2);
@@ -253,7 +277,7 @@
             MaximizeBox = false;
             Name = "Form_McrMange";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_存档管理;
+            Text = ScePSX.Properties.Resources.Form_McrMange_InitializeComponent_MemcardMange;
             ResumeLayout(false);
         }
 
@@ -279,5 +303,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.Button copy2to1;
         private System.Windows.Forms.Button copy1to2;
+        private System.Windows.Forms.Button btnimport1;
+        private System.Windows.Forms.Button btnimport2;
     }
 }

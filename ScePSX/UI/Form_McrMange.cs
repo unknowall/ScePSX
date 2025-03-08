@@ -260,5 +260,47 @@ namespace ScePSX.UI
             }
         }
 
+        private void btnimport1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fd = new OpenFileDialog
+            {
+                Filter = "Memory Card (*.mcr.*.dat,*.mcd,&.mc)|*.mcr;*.dat;*.mcd;&.mc",
+            };
+
+            if (fd.ShowDialog() == DialogResult.OK)
+            {
+                if (File.Exists(fd.FileName))
+                {
+                    var mcr = new MemCardMange(fd.FileName);
+                    if (mcr != null)
+                    {
+                        card1 = mcr;
+                        FillListView(lv1, card1, imageList1);
+                    }
+                }
+            }
+        }
+
+        private void btnimport2_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fd = new OpenFileDialog
+            {
+                Filter = "Memory Card (*.mcr.*.dat,*.mcd,&.mc)|*.mcr;*.dat;*.mcd;&.mc",
+            };
+
+            if (fd.ShowDialog() == DialogResult.OK)
+            {
+                if (File.Exists(fd.FileName))
+                {
+                    var mcr = new MemCardMange(fd.FileName);
+                    if (mcr != null)
+                    {
+                        card2 = mcr;
+                        FillListView(lv2, card2, imageList2);
+                    }
+                }
+            }
+
+        }
     }
 }

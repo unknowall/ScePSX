@@ -251,7 +251,7 @@ namespace ScePSX
             AddReadHandler(0xFFFE0130, 0xFFFE0131, addr => memoryCache);
 
             // BIOS 区域：0x1FC0_0000 - 0x1FC8_0000  
-            AddReadHandler(0x1FC00000, 0x1FC80000, addr => BusReadBios(addr));
+            //AddReadHandler(0x1FC00000, 0x1FC80000, addr => BusReadBios(addr));
 
             // 手柄总线：0x1F80_1040 - 0x1F80_1050  
             AddReadHandler(0x1F801040, 0x1F801050, addr => joybus.read(addr));
@@ -507,6 +507,9 @@ namespace ScePSX
             //内存不查表
             if (addr < 0x1F00_0000)
                 return *(uint*)(ramPtr + (addr & 0x1F_FFFF));
+            //BIOS不查表
+            if(addr >= 0x1FC00000 && addr <0x1FC80000)
+                return *(uint*)(biosPtr + (addr & 0x7_FFFF));
 
             int low = 0, high = _read32JumpTable.Count - 1;
             while (low <= high)

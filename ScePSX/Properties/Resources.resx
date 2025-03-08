@@ -395,7 +395,7 @@
     <value>About</value>
   </data>
   <data name="FrmAbout_InitializeComponent_read" xml:space="preserve">
-    <value>PS1 emulator released under the MIT License.</value>
+    <value>PS1 emulator released under the MIT License</value>
   </data>
   <data name="FrmAbout_InitializeComponent_read2" xml:space="preserve">
     <value>GitHub:</value>
@@ -405,5 +405,11 @@
   </data>
   <data name="Form_Cheat_btnadd_Click_新建" xml:space="preserve">
     <value>New Address</value>
+  </data>
+  <data name="Form_McrMange_InitializeComponent_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Form_McrMange_InitializeComponent_MemcardMange" xml:space="preserve">
+    <value>Memcard Mange</value>
   </data>
 </root>
