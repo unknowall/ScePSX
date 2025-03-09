@@ -78,7 +78,7 @@ namespace ScePSX.UI
 
             cbmsaa.SelectedIndex = ini.ReadInt("OpenGL", "MSAA");
 
-            cbscalemode.SelectedIndex = ini.ReadInt("Main", "Scale");
+            cbscalemode.SelectedIndex = ini.ReadInt("Main", "ScaleMode");
 
             chkbios.Checked = ini.ReadInt("Main", "BiosDebug") == 1;
             chkcpu.Checked = ini.ReadInt("Main", "CPUDebug") == 1;
@@ -125,6 +125,8 @@ namespace ScePSX.UI
                 ini.WriteInt("Main", "Console", cbconsole.Checked ? 1 : 0);
 
                 ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
+
+                ini.WriteInt("Main", "ScaleMode", cbscalemode.SelectedIndex);
 
                 ini.Write("main", "bios", cbbios.Items[cbbios.SelectedIndex].ToString());
             } catch

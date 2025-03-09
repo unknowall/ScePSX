@@ -258,9 +258,7 @@ namespace ScePSX
             public byte M;
         }
 
-        //This needs to go away once a BGR bitmap is achieved
-
-        private static readonly int[] Resolutions = { 256, 320, 512, 640, 368 }; // GPUSTAT resolution index
+        private static readonly int[] Resolutions = { 256, 320, 512, 640, 368 };
 
         private static readonly int[] DotClockDiv = { 10, 8, 5, 4, 7 };
 
@@ -315,8 +313,6 @@ namespace ScePSX
         private Mode _Mode;
 
         private int Pointer;
-
-        //private Point2D PointMax, PointMin;
 
         private int ScanLine;
 
@@ -400,7 +396,8 @@ namespace ScePSX
             {
                 SubToPixels(_VRAM32.Pixels, _Pixels);
             }
-            host.FrameReady(_Pixels, OutWidth, OutHeight);
+            if (OutHeight > 0)
+                host.FrameReady(_Pixels, OutWidth, OutHeight);
 
             return true;
         }
@@ -507,14 +504,11 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void DecodeGP0Command(Span<uint> buffer)
         {
-            //Console.WriteLine(CommandBuffer.Length);
-
             while (Pointer < buffer.Length)
             {
                 if (_Mode == Mode.COMMAND)
                 {
                     Command = buffer[Pointer] >> 24;
-                    //if (debug) Console.WriteLine("Buffer Executing " + command.ToString("x2") + " pointer " + pointer);
                     ExecuteGP0(Command, buffer);
                 } else
                 {
@@ -523,7 +517,6 @@ namespace ScePSX
             }
 
             Pointer = 0;
-            //Console.WriteLine("fin");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -533,17 +526,14 @@ namespace ScePSX
             {
                 Command = value >> 24;
                 CommandSize = CommandSizeTable[(int)Command];
-                //Console.WriteLine("[GPU] Direct GP0 COMMAND: {0} size: {1}", value.ToString("x8"), commandSize);
             }
 
             CommandBuffer[Pointer++] = value;
-            //Console.WriteLine("[GPU] Direct GP0: {0} buffer: {1}", value.ToString("x8"), pointer);
 
             if (Pointer != CommandSize && (CommandSize != 16 || (value & 0xF000_F000) != 0x5000_5000))
                 return;
 
             Pointer = 0;
-            //Console.WriteLine("EXECUTING");
             ExecuteGP0(Command, CommandBuffer.AsSpan());
             Pointer = 0;
         }
@@ -646,10 +636,7 @@ namespace ScePSX
 
         public (int dot, bool hblank, bool bBlank) GetBlanksAndDot()
         {
-            // test
-
             var dot = DotClockDiv[(DisplayMode.HorizontalResolution2 << 2) | DisplayMode.HorizontalResolution1];
-
             var hBlank = VideoCycles < DisplayX1 || VideoCycles > DisplayX2;
             var vBlank = ScanLine < DisplayY1 || ScanLine > DisplayY2;
 
@@ -780,8 +767,6 @@ namespace ScePSX
 
         public uint GPUREAD()
         {
-            // TODO check if correct and refactor
-
             uint value;
 
             if (_VRAMTransfer.HalfWords > 0)
@@ -791,8 +776,6 @@ namespace ScePSX
             {
                 value = GPUREADData;
             }
-
-            //Console.WriteLine("[GPU] LOAD GPUREAD: {0}", value.ToString("x8"));
 
             return value;
         }
@@ -914,9 +897,6 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteGP0(uint value)
         {
-            // Console.WriteLine("Direct " + value.ToString("x8"));
-            // Console.WriteLine(Mode);
-
             if (_Mode == Mode.COMMAND)
             {
                 DecodeGP0Command(value);
@@ -928,7 +908,6 @@ namespace ScePSX
 
         public void WriteGP1(uint value)
         {
-            //Console.WriteLine($"[GPU] GP1 Write Value: {value:x8}");
             var opcode = value >> 24;
             switch (opcode)
             {
@@ -1068,8 +1047,8 @@ namespace ScePSX
                     }
 
                     color |= MaskWhileDrawing << 24;
-
                     _VRAM32.SetPixel(x, y, color);
+
                     //var color3 = (ushort)Rgb888ToRgb555(color);
                     //_VRAM16.SetPixel(x, y, color3);
                 }
@@ -1147,8 +1126,8 @@ namespace ScePSX
                     }
 
                     color |= MaskWhileDrawing << 24;
-
                     _VRAM32.SetPixel(x, y, color);
+
                     //var color3 = (ushort)Rgb888ToRgb555(color);
                     //_VRAM16.SetPixel(x, y, color3);
                 }
@@ -1270,7 +1249,6 @@ namespace ScePSX
                         }
 
                         color |= MaskWhileDrawing << 24;
-
                         _VRAM32.SetPixel(x, y, color);
 
                         //var color3 = (ushort)Rgb888ToRgb555(color);
@@ -1309,7 +1287,6 @@ namespace ScePSX
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GP0_02_FillRectVRAM(Span<uint> buffer)
-        // GP0(02h) - Fill Rectangle in VRAM
         {
             Color0.Value = buffer[Pointer++];
 
@@ -1369,8 +1346,6 @@ namespace ScePSX
             DrawMode.TextureDisable = IsTextureDisabledAllowed && ((val >> 11) & 0x1) != 0;
             DrawMode.TexturedRectangleXFlip = ((val >> 12) & 0x1) != 0;
             DrawMode.TexturedRectangleYFlip = ((val >> 13) & 0x1) != 0;
-
-            //Console.WriteLine("[GPU] [GP0] DrawMode ");
         }
 
         private void GP0_E2_SetTextureWindow(uint value)
@@ -1410,13 +1385,9 @@ namespace ScePSX
             CheckMaskBeforeDraw = (val & 0x2) != 0;
         }
 
-        [SuppressMessage("ReSharper", "CommentTypo")]
         private void GP0_RenderLine(Span<uint> buffer)
         {
-            //Console.WriteLine("size " + CommandBuffer.Count);
-            //int arguments = 0;
             var command = buffer[Pointer++];
-            //arguments++;
 
             var color1 = command & 0xFFFFFF;
             var color2 = color1;
@@ -1425,55 +1396,38 @@ namespace ScePSX
             var isShaded = (command & (1 << 28)) != 0;
             var isTransparent = (command & (1 << 25)) != 0;
 
-            //if (isTextureMapped /*isRaw*/) return;
-
             var v1 = buffer[Pointer++];
-            //arguments++;
-
             if (isShaded)
             {
                 color2 = buffer[Pointer++];
-                //arguments++;
             }
 
             var v2 = buffer[Pointer++];
-            //arguments++;
-
             DrawLine(v1, v2, color1, color2, isTransparent);
 
             if (!isPoly)
                 return;
-            //renderline = 0;
-            while ( /*arguments < 0xF &&*/ (buffer[Pointer] & 0xF000_F000) != 0x5000_5000)
+
+            while ((buffer[Pointer] & 0xF000_F000) != 0x5000_5000)
             {
-                //Console.WriteLine("DOING ANOTHER LINE " + ++renderline);
-                //arguments++;
                 color1 = color2;
                 if (isShaded)
                 {
                     color2 = buffer[Pointer++];
-                    //arguments++;
                 }
 
                 v1 = v2;
                 v2 = buffer[Pointer++];
                 DrawLine(v1, v2, color1, color2, isTransparent);
-                //Console.WriteLine("RASTERIZE " + ++rasterizeline);
-                //window.update(_VRAM32.Bits);
-                //Console.ReadLine();
             }
 
-            /*if (arguments != 0xF) */
             Pointer++; // discard 5555_5555 termination (need to rewrite all this from the GP0...)
         }
 
         public void GP0_RenderPolygon(Span<uint> buffer)
         {
             var command = buffer[Pointer];
-            //Console.WriteLine(command.ToString("x8") +  " "  + CommandBuffer.Length + " " + pointer);
-
             var isQuad = (command & (1 << 27)) != 0;
-
             var isShaded = (command & (1 << 28)) != 0;
             var isTextured = (command & (1 << 26)) != 0;
             var isSemiTransparent = (command & (1 << 25)) != 0;
@@ -1667,7 +1621,6 @@ namespace ScePSX
 
         private void GP0_MemCopyRectCPUtoVRAM(Span<uint> buffer)
         {
-            // todo rewrite VRAM coord struct mess
             Pointer++; //Command/Color parameter unused
             var yx = buffer[Pointer++];
             var wh = buffer[Pointer++];

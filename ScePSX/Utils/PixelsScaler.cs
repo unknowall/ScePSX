@@ -4,26 +4,59 @@ using System.Threading.Tasks;
 
 namespace ScePSX
 {
+    public enum ScaleMode
+    {
+        Neighbor = 0,
+        Jinc = 1,
+        xBR = 2,
+        Lanczos = 3
+    }
+    public struct ScaleParam
+    {
+        public ScaleMode mode;
+        public int scale;
+    }
 
-    class XbrScaler
+    class PixelsScaler
     {
         private const float Threshold = 15.0f;
 
-        public static int[] ScaleXBR(int[] pixels, int width, int height, int scaleFactor)
+        private const int LanczosWindow = 3;
+
+        public static int[] Scale(int[] pixels, int width, int height, int scaleFactor, ScaleMode mode = 0)
         {
-            if ((scaleFactor & (scaleFactor - 1)) != 0 || width < 0 || height <0)
+            if ((scaleFactor & (scaleFactor - 1)) != 0 || width < 0 || height < 0)
                 return pixels;
 
             int currentWidth = width;
             int currentHeight = height;
             int[] currentPixels = (int[])pixels.Clone();
 
-            while (scaleFactor > 1)
+            if (mode == ScaleMode.Neighbor)
             {
-                currentPixels = Scale2xBR_Unsafe(currentPixels, currentWidth, currentHeight);
-                currentWidth *= 2;
-                currentHeight *= 2;
-                scaleFactor /= 2;
+                currentPixels = FastScale(currentPixels, currentWidth, currentHeight, scaleFactor);
+                currentWidth *= scaleFactor;
+                currentHeight *= scaleFactor;
+            }
+            if (mode == ScaleMode.Jinc)
+            {
+                currentPixels = JINCScale(currentPixels, currentWidth, currentHeight, scaleFactor);
+                currentWidth *= scaleFactor;
+                currentHeight *= scaleFactor;
+            }
+            if (mode == ScaleMode.xBR)
+            {
+                while (scaleFactor > 1)
+                {
+                    currentPixels = Scale2xBR_Unsafe(currentPixels, currentWidth, currentHeight);
+                    currentWidth *= 2;
+                    currentHeight *= 2;
+                    scaleFactor /= 2;
+                }
+            }
+            if (mode == ScaleMode.Lanczos)
+            {
+                currentPixels = LanczosScale(pixels, width, height, width * scaleFactor, height * scaleFactor);
             }
 
             return currentPixels;
@@ -233,7 +266,7 @@ namespace ScePSX
             pixels[y * width + x] = color;
         }
 
-        public static int[] ScaleImage(int[] pixels, int width, int height, int scaleFactor)
+        public static int[] FastScale(int[] pixels, int width, int height, int scaleFactor)
         {
             int originalWidth = width;
             int originalHeight = height;
@@ -264,6 +297,99 @@ namespace ScePSX
             });
 
             return scaledPixels;
+        }
+
+        public static int[] JINCScale(int[] pixels, int width, int height, int scaleFactor)
+        {
+            int newWidth = width * scaleFactor;
+            int newHeight = height * scaleFactor;
+            int[] scaledPixels = new int[newWidth * newHeight];
+
+            Parallel.For(0, newHeight, y =>
+            {
+                int srcY = y / scaleFactor;
+                int srcRowOffset = srcY * width;
+
+                for (int x = 0; x < newWidth; x++)
+                {
+                    int srcX = x / scaleFactor;
+                    int srcIndex = srcRowOffset + srcX;
+                    scaledPixels[y * newWidth + x] = pixels[srcIndex];
+                }
+            });
+
+            return scaledPixels;
+        }
+
+        public static int[] LanczosScale(int[] pixels, int width, int height, int newWidth, int newHeight)
+        {
+            int[] scaledPixels = new int[newWidth * newHeight];
+
+            double scaleX = (double)width / newWidth;
+            double scaleY = (double)height / newHeight;
+
+            Parallel.For(0, newHeight, y =>
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    double srcX = (x + 0.5) * scaleX - 0.5;
+                    double srcY = (y + 0.5) * scaleY - 0.5;
+
+                    int pixelValue = LanczosInterpolate(pixels, width, height, srcX, srcY);
+                    scaledPixels[y * newWidth + x] = pixelValue;
+                }
+            });
+
+            return scaledPixels;
+        }
+
+        private static int LanczosInterpolate(int[] pixels, int width, int height, double srcX, double srcY)
+        {
+            double r = 0, g = 0, b = 0, totalWeight = 0;
+
+            for (int dy = -LanczosWindow + 1; dy < LanczosWindow; dy++)
+            {
+                for (int dx = -LanczosWindow + 1; dx < LanczosWindow; dx++)
+                {
+                    int x = (int)Math.Floor(srcX) + dx;
+                    int y = (int)Math.Floor(srcY) + dy;
+
+                    if (x < 0 || x >= width || y < 0 || y >= height)
+                        continue;
+
+                    int pixel = pixels[y * width + x];
+                    int bSrc = pixel & 0xFF;
+                    int gSrc = (pixel >> 8) & 0xFF;
+                    int rSrc = (pixel >> 16) & 0xFF;
+
+                    double weightX = LanczosKernel((srcX - x) / LanczosWindow);
+                    double weightY = LanczosKernel((srcY - y) / LanczosWindow);
+                    double weight = weightX * weightY;
+
+                    r += rSrc * weight;
+                    g += gSrc * weight;
+                    b += bSrc * weight;
+                    totalWeight += weight;
+                }
+            }
+
+            // 归一化并返回插值结果
+            r /= totalWeight;
+            g /= totalWeight;
+            b /= totalWeight;
+
+            return (int)(r) << 16 | (int)(g) << 8 | (int)(b);
+        }
+
+        private static double LanczosKernel(double x)
+        {
+            if (x == 0)
+                return 1;
+            if (Math.Abs(x) > 1)
+                return 0;
+
+            double piX = Math.PI * x;
+            return Math.Sin(piX) / piX * Math.Sin(piX / LanczosWindow) / (piX / LanczosWindow);
         }
 
         public static unsafe int CutBlackLine(int[] In, int[] Out, int width, int height)

@@ -101,7 +101,7 @@
             // 
             cbscalemode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbscalemode.FormattingEnabled = true;
-            cbscalemode.Items.AddRange(new object[] { "xBR", "Fast" });
+            cbscalemode.Items.AddRange(new object[] { "Neighbor", "JINC", "xBR" });
             cbscalemode.Location = new System.Drawing.Point(331, 44);
             cbscalemode.Name = "cbscalemode";
             cbscalemode.Size = new System.Drawing.Size(66, 25);
@@ -114,7 +114,7 @@
             label7.Name = "label7";
             label7.Size = new System.Drawing.Size(54, 17);
             label7.TabIndex = 19;
-            label7.Text = "IR Scale";
+            label7.Text = Properties.Resources.Form_Set_InitializeComponent_内部分辨率放大;
             // 
             // chkTTY
             // 
@@ -161,7 +161,7 @@
             label9.Name = "label9";
             label9.Size = new System.Drawing.Size(55, 17);
             label9.TabIndex = 14;
-            label9.Text = "Cyles fix";
+            label9.Text = Properties.Resources.Form_Set_InitializeComponent_cyles;
             // 
             // tbframeidle
             // 
@@ -178,7 +178,7 @@
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(72, 17);
             label8.TabIndex = 12;
-            label8.Text = "Frame limit";
+            label8.Text = Properties.Resources.Form_Set_InitializeComponent_limit;
             // 
             // tbaudiobuffer
             // 
@@ -195,7 +195,7 @@
             label6.Name = "label6";
             label6.Size = new System.Drawing.Size(102, 17);
             label6.TabIndex = 9;
-            label6.Text = "Audiobuffer(ms)";
+            label6.Text = Properties.Resources.Form_Set_InitializeComponent_audio;
             // 
             // tbframeskip
             // 
@@ -212,7 +212,7 @@
             label5.Name = "label5";
             label5.Size = new System.Drawing.Size(72, 17);
             label5.TabIndex = 7;
-            label5.Text = "Frame skip";
+            label5.Text = Properties.Resources.Form_Set_InitializeComponent_fsk;
             // 
             // cbmsaa
             // 
@@ -248,7 +248,7 @@
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(65, 17);
             label3.TabIndex = 3;
-            label3.Text = "CPU Ticks";
+            label3.Text = Properties.Resources.Form_Set_InitializeComponent_CPUt;
             // 
             // tbbuscycles
             // 
@@ -265,7 +265,7 @@
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(62, 17);
             label2.TabIndex = 1;
-            label2.Text = "Bus Ticks";
+            label2.Text = Properties.Resources.Form_Set_InitializeComponent_bt;
             // 
             // cbconsole
             // 
@@ -331,7 +331,7 @@
             label11.Name = "label11";
             label11.Size = new System.Drawing.Size(211, 23);
             label11.TabIndex = 8;
-            label11.Text = "Modify only if known";
+            label11.Text = Properties.Resources.Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改;
             // 
             // Form_Set
             // 
@@ -350,7 +350,7 @@
             MaximizeBox = false;
             Name = "Form_Set";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "Setting";
+            Text = Properties.Resources.Form_Set_InitializeComponent_设置;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             ResumeLayout(false);

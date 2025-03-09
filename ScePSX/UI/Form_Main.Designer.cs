@@ -88,147 +88,147 @@
             // 
             MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, CheatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
-            MnuFile.Size = new System.Drawing.Size(62, 21);
-            MnuFile.Text = ScePSX.Properties.Resources.File;
+            MnuFile.Size = new System.Drawing.Size(57, 21);
+            MnuFile.Text = Properties.Resources.File;
             // 
             // LoadDIsk
             // 
             LoadDIsk.Name = "LoadDIsk";
-            LoadDIsk.Size = new System.Drawing.Size(165, 22);
-            LoadDIsk.Text = ScePSX.Properties.Resources.LoadDIsk;
+            LoadDIsk.Size = new System.Drawing.Size(191, 22);
+            LoadDIsk.Text = Properties.Resources.LoadDIsk;
             LoadDIsk.Click += LoadDisk_Click;
             // 
             // SwapDisk
             // 
             SwapDisk.Name = "SwapDisk";
-            SwapDisk.Size = new System.Drawing.Size(165, 22);
-            SwapDisk.Text = ScePSX.Properties.Resources.SwapDisc;
+            SwapDisk.Size = new System.Drawing.Size(191, 22);
+            SwapDisk.Text = Properties.Resources.SwapDisc;
             SwapDisk.Click += SwapDisk_Click;
             // 
             // CloseRomMnu
             // 
             CloseRomMnu.Name = "CloseRomMnu";
-            CloseRomMnu.Size = new System.Drawing.Size(165, 22);
-            CloseRomMnu.Text = ScePSX.Properties.Resources.BackToMain;
+            CloseRomMnu.Size = new System.Drawing.Size(191, 22);
+            CloseRomMnu.Text = Properties.Resources.BackToMain;
             CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new System.Drawing.Size(162, 6);
+            toolStripMenuItem1.Size = new System.Drawing.Size(188, 6);
             // 
             // SearchMnu
             // 
             SearchMnu.Name = "SearchMnu";
-            SearchMnu.Size = new System.Drawing.Size(165, 22);
-            SearchMnu.Text = ScePSX.Properties.Resources.SearchDir;
+            SearchMnu.Size = new System.Drawing.Size(191, 22);
+            SearchMnu.Text = Properties.Resources.SearchDir;
             SearchMnu.Click += SearchMnu_Click;
             // 
             // SysSetMnu
             // 
             SysSetMnu.Name = "SysSetMnu";
-            SysSetMnu.Size = new System.Drawing.Size(165, 22);
-            SysSetMnu.Text = ScePSX.Properties.Resources.Setting;
+            SysSetMnu.Size = new System.Drawing.Size(191, 22);
+            SysSetMnu.Text = Properties.Resources.Setting;
             SysSetMnu.Click += SysSetMnu_Click;
             // 
             // KeyTool
             // 
             KeyTool.Name = "KeyTool";
-            KeyTool.Size = new System.Drawing.Size(165, 22);
-            KeyTool.Text = ScePSX.Properties.Resources.KeySet;
+            KeyTool.Size = new System.Drawing.Size(191, 22);
+            KeyTool.Text = Properties.Resources.KeySet;
             KeyTool.Click += KeyToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new System.Drawing.Size(162, 6);
+            toolStripMenuItem2.Size = new System.Drawing.Size(188, 6);
             // 
             // SaveStripMenuItem
             // 
             SaveStripMenuItem.Enabled = false;
             SaveStripMenuItem.Name = "SaveStripMenuItem";
-            SaveStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            SaveStripMenuItem.Text = ScePSX.Properties.Resources.SaveState;
+            SaveStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            SaveStripMenuItem.Text = Properties.Resources.SaveState;
             // 
             // LoadStripMenuItem
             // 
             LoadStripMenuItem.Enabled = false;
             LoadStripMenuItem.Name = "LoadStripMenuItem";
-            LoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            LoadStripMenuItem.Text = ScePSX.Properties.Resources.LoadState;
+            LoadStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            LoadStripMenuItem.Text = Properties.Resources.LoadState;
             // 
             // UnLoadStripMenuItem
             // 
             UnLoadStripMenuItem.Enabled = false;
             UnLoadStripMenuItem.Name = "UnLoadStripMenuItem";
-            UnLoadStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            UnLoadStripMenuItem.Text = ScePSX.Properties.Resources.UnLoad;
+            UnLoadStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            UnLoadStripMenuItem.Text = Properties.Resources.UnLoad;
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new System.Drawing.Size(162, 6);
+            toolStripMenuItem3.Size = new System.Drawing.Size(188, 6);
             // 
             // CheatCode
             // 
             CheatCode.Enabled = false;
             CheatCode.Name = "CheatCode";
-            CheatCode.Size = new System.Drawing.Size(165, 22);
-            CheatCode.Text = ScePSX.Properties.Resources.CheatCode;
+            CheatCode.Size = new System.Drawing.Size(191, 22);
+            CheatCode.Text = Properties.Resources.CheatCode;
             CheatCode.Click += CheatCode_Click;
             // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
-            toolStripMenuItem5.Size = new System.Drawing.Size(162, 6);
+            toolStripMenuItem5.Size = new System.Drawing.Size(188, 6);
             // 
             // FreeSpeed
             // 
             FreeSpeed.Name = "FreeSpeed";
-            FreeSpeed.Size = new System.Drawing.Size(165, 22);
-            FreeSpeed.Text = ScePSX.Properties.Resources.FastSpeed;
+            FreeSpeed.Size = new System.Drawing.Size(191, 22);
+            FreeSpeed.Text = Properties.Resources.FastSpeed;
             // 
             // MnuPause
             // 
             MnuPause.Name = "MnuPause";
-            MnuPause.Size = new System.Drawing.Size(165, 22);
-            MnuPause.Text = ScePSX.Properties.Resources.pause;
+            MnuPause.Size = new System.Drawing.Size(191, 22);
+            MnuPause.Text = Properties.Resources.pause;
             MnuPause.Click += MnuPause_Click;
             // 
             // MnuDebug
             // 
             MnuDebug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CpuDbgMnu, MemEditMnu });
             MnuDebug.Name = "MnuDebug";
-            MnuDebug.Size = new System.Drawing.Size(61, 21);
-            MnuDebug.Text = ScePSX.Properties.Resources.debug;
+            MnuDebug.Size = new System.Drawing.Size(76, 21);
+            MnuDebug.Text = Properties.Resources.debug;
             // 
             // CpuDbgMnu
             // 
             CpuDbgMnu.Enabled = false;
             CpuDbgMnu.Name = "CpuDbgMnu";
-            CpuDbgMnu.Size = new System.Drawing.Size(180, 22);
+            CpuDbgMnu.Size = new System.Drawing.Size(167, 22);
             CpuDbgMnu.Text = "CPU";
             // 
             // MemEditMnu
             // 
             MemEditMnu.Name = "MemEditMnu";
-            MemEditMnu.Size = new System.Drawing.Size(180, 22);
-            MemEditMnu.Text = ScePSX.Properties.Resources.memedit;
+            MemEditMnu.Size = new System.Drawing.Size(167, 22);
+            MemEditMnu.Text = Properties.Resources.memedit;
             MemEditMnu.Click += MnuDebug_Click;
             // 
             // RenderToolStripMenuItem
             // 
             RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec });
             RenderToolStripMenuItem.Name = "RenderToolStripMenuItem";
-            RenderToolStripMenuItem.Size = new System.Drawing.Size(72, 21);
-            RenderToolStripMenuItem.Text = ScePSX.Properties.Resources.Render;
+            RenderToolStripMenuItem.Size = new System.Drawing.Size(78, 21);
+            RenderToolStripMenuItem.Text = Properties.Resources.Render;
             // 
             // CutBlackLineMnu
             // 
             CutBlackLineMnu.CheckOnClick = true;
             CutBlackLineMnu.Name = "CutBlackLineMnu";
-            CutBlackLineMnu.Size = new System.Drawing.Size(228, 22);
-            CutBlackLineMnu.Text = ScePSX.Properties.Resources.cutline;
+            CutBlackLineMnu.Size = new System.Drawing.Size(384, 22);
+            CutBlackLineMnu.Text = Properties.Resources.cutline;
             CutBlackLineMnu.CheckedChanged += CutBlackLineMnu_CheckedChanged;
             // 
             // frameskipmnu
@@ -237,20 +237,20 @@
             frameskipmnu.CheckOnClick = true;
             frameskipmnu.CheckState = System.Windows.Forms.CheckState.Checked;
             frameskipmnu.Name = "frameskipmnu";
-            frameskipmnu.Size = new System.Drawing.Size(228, 22);
-            frameskipmnu.Text = ScePSX.Properties.Resources.Frameskip;
+            frameskipmnu.Size = new System.Drawing.Size(384, 22);
+            frameskipmnu.Text = Properties.Resources.Frameskip;
             frameskipmnu.CheckedChanged += frameskipmnu_CheckedChanged;
             // 
             // toolStripMenuItem6
             // 
             toolStripMenuItem6.Name = "toolStripMenuItem6";
-            toolStripMenuItem6.Size = new System.Drawing.Size(225, 6);
+            toolStripMenuItem6.Size = new System.Drawing.Size(381, 6);
             // 
             // directx2DRender
             // 
             directx2DRender.CheckOnClick = true;
             directx2DRender.Name = "directx2DRender";
-            directx2DRender.Size = new System.Drawing.Size(228, 22);
+            directx2DRender.Size = new System.Drawing.Size(384, 22);
             directx2DRender.Text = "DirectxD2D";
             directx2DRender.Click += directx2DRender_Click;
             // 
@@ -258,7 +258,7 @@
             // 
             directx3DRender.CheckOnClick = true;
             directx3DRender.Name = "directx3DRender";
-            directx3DRender.Size = new System.Drawing.Size(228, 22);
+            directx3DRender.Size = new System.Drawing.Size(384, 22);
             directx3DRender.Text = "DirectxD3D";
             directx3DRender.Click += directx3DToolStripMenuItem_Click;
             // 
@@ -267,48 +267,48 @@
             openGLRender.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             openGLRender.CheckOnClick = true;
             openGLRender.Name = "openGLRender";
-            openGLRender.Size = new System.Drawing.Size(228, 22);
+            openGLRender.Size = new System.Drawing.Size(384, 22);
             openGLRender.Text = "OpenGL";
             openGLRender.Click += openGLToolStripMenuItem_Click;
             // 
             // toolStripMenuItem4
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new System.Drawing.Size(225, 6);
+            toolStripMenuItem4.Size = new System.Drawing.Size(381, 6);
             // 
             // xBRScaleAdd
             // 
             xBRScaleAdd.Name = "xBRScaleAdd";
-            xBRScaleAdd.Size = new System.Drawing.Size(228, 22);
-            xBRScaleAdd.Text = "xBR Scale++ (F11)";
+            xBRScaleAdd.Size = new System.Drawing.Size(384, 22);
+            xBRScaleAdd.Text = "IR Scale++ (F11)";
             xBRScaleAdd.Click += xBRScaleAdd_Click;
             // 
             // xBRScaleDec
             // 
             xBRScaleDec.Name = "xBRScaleDec";
-            xBRScaleDec.Size = new System.Drawing.Size(228, 22);
-            xBRScaleDec.Text = "xBR Scale --  (F12)";
+            xBRScaleDec.Size = new System.Drawing.Size(384, 22);
+            xBRScaleDec.Text = "IR Scale --  (F12)";
             xBRScaleDec.Click += xBRScaleDec_Click;
             // 
             // NetPlayMnu
             // 
             NetPlayMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { NetPlaySetMnu });
             NetPlayMnu.Name = "NetPlayMnu";
-            NetPlayMnu.Size = new System.Drawing.Size(86, 21);
-            NetPlayMnu.Text = ScePSX.Properties.Resources.netplay;
+            NetPlayMnu.Size = new System.Drawing.Size(82, 21);
+            NetPlayMnu.Text = Properties.Resources.netplay;
             // 
             // NetPlaySetMnu
             // 
             NetPlaySetMnu.Name = "NetPlaySetMnu";
-            NetPlaySetMnu.Size = new System.Drawing.Size(100, 22);
-            NetPlaySetMnu.Text = ScePSX.Properties.Resources.netplayset;
+            NetPlaySetMnu.Size = new System.Drawing.Size(116, 22);
+            NetPlaySetMnu.Text = Properties.Resources.netplayset;
             NetPlaySetMnu.Click += NetPlaySetMnu_Click;
             // 
             // AboutMnu
             // 
             AboutMnu.Name = "AboutMnu";
-            AboutMnu.Size = new System.Drawing.Size(60, 21);
-            AboutMnu.Text = ScePSX.Properties.Resources.about;
+            AboutMnu.Size = new System.Drawing.Size(71, 21);
+            AboutMnu.Text = Properties.Resources.about;
             AboutMnu.Click += AboutMnu_Click;
             // 
             // StatusBar
@@ -321,50 +321,50 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel1.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel2
             // 
-            toolStripStatusLabel2.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel2.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
             toolStripStatusLabel2.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel3
             // 
-            toolStripStatusLabel3.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel3.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel3.Name = "toolStripStatusLabel3";
             toolStripStatusLabel3.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel4
             // 
-            toolStripStatusLabel4.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel4.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel4.Name = "toolStripStatusLabel4";
             toolStripStatusLabel4.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel5
             // 
-            toolStripStatusLabel5.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel5.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel5.Name = "toolStripStatusLabel5";
             toolStripStatusLabel5.Size = new System.Drawing.Size(669, 17);
             toolStripStatusLabel5.Spring = true;
             // 
             // toolStripStatusLabel6
             // 
-            toolStripStatusLabel6.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel6.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel6.Name = "toolStripStatusLabel6";
             toolStripStatusLabel6.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel7
             // 
-            toolStripStatusLabel7.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel7.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel7.Name = "toolStripStatusLabel7";
             toolStripStatusLabel7.Size = new System.Drawing.Size(0, 17);
             // 
             // toolStripStatusLabel8
             // 
-            toolStripStatusLabel8.Font = new System.Drawing.Font(ScePSX.Properties.Resources.Font, 9F);
+            toolStripStatusLabel8.Font = new System.Drawing.Font("Arial", 9F);
             toolStripStatusLabel8.Name = "toolStripStatusLabel8";
             toolStripStatusLabel8.Size = new System.Drawing.Size(0, 17);
             // 

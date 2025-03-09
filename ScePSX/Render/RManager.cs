@@ -19,7 +19,7 @@ namespace ScePSX.Render
             get;
         }
 
-        void RenderBuffer(int[] pixels, int width, int height, int scale = 0);
+        void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale);
 
         void Initialize(Control parentControl);
 
@@ -76,7 +76,7 @@ namespace ScePSX.Render
             _currentRenderer = null;
         }
 
-        public void RenderBuffer(int[] pixels, int width, int height, int scale)
+        public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
         {
             _currentRenderer?.RenderBuffer(pixels, width, height, scale);
         }

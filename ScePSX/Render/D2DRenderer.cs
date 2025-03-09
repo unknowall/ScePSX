@@ -17,7 +17,7 @@ namespace ScePSX.Render
         private int[] pixels = new int[1024 * 512];
         private int width , oldwidth = 1024;
         private int height, oldheight = 512;
-        private int scale, oldscale = 0;
+        private ScaleParam scale, oldscale;
         public int frameskip, fsk = 1;
         private float dpiX, dpiY;
 
@@ -115,7 +115,7 @@ namespace ScePSX.Render
             bitmap = renderTarget.CreateBitmap(bitmapSize, IntPtr.Zero, 0, bmpprops);
         }
 
-        public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
+        public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
         {
             if (InvokeRequired)
             {
@@ -155,15 +155,15 @@ namespace ScePSX.Render
             if (renderTarget == null || bitmap == null || this.Visible == false || width <= 0 || height <= 0)
                 return;
 
-            if (scale > 0)
+            if (scale.scale > 0)
             {
-                pixels = XbrScaler.ScaleXBR(pixels, width, height, scale);
+                pixels = PixelsScaler.Scale(pixels, width, height, scale.scale, scale.mode);
 
-                width = width * scale;
-                height = height * scale;
+                width = width * scale.scale;
+                height = height * scale.scale;
             }
 
-            if (oldscale != scale || oldwidth != width || oldheight != height)
+            if (oldscale.scale != scale.scale || oldwidth != width || oldheight != height)
             {
                 var bitmapSize = new D2D1SizeU((uint)width, (uint)height);
                 bitmap = renderTarget.CreateBitmap(bitmapSize, IntPtr.Zero, 0, bmpprops);

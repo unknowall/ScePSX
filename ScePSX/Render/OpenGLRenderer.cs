@@ -16,7 +16,7 @@ namespace ScePSX.Render
         private uint _textureId;
         public int iWidth = 1024;
         public int iHeight = 512;
-        public int scale;
+        private ScaleParam scale;
 
         public string ShadreName = "";
 
@@ -100,12 +100,12 @@ namespace ScePSX.Render
             if (this.Visible == false || DesignMode)
                 return;
 
-            if (scale > 0)
+            if (scale.scale > 0)
             {
-                Pixels = XbrScaler.ScaleXBR(Pixels, iWidth, iHeight, scale);
+                Pixels = PixelsScaler.Scale(Pixels, iWidth, iHeight, scale.scale, scale.mode);
 
-                iWidth = iWidth * scale;
-                iHeight = iHeight * scale;
+                iWidth = iWidth * scale.scale;
+                iHeight = iHeight * scale.scale;
             }
 
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -121,7 +121,7 @@ namespace ScePSX.Render
             Gl.DrawArrays(PrimitiveType.Quads, 0, 4);
         }
 
-        public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
+        public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
         {
             if (InvokeRequired)
             {

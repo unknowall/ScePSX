@@ -21,7 +21,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.1";
+        public static string version = "ScePSX Beta 0.1.2";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -49,7 +49,7 @@ namespace ScePSX.UI
 
         private System.Windows.Forms.Timer timer;
 
-        public int scale;
+        public ScaleParam scale;
         private bool cutblackline = false;
         private int[] cutbuff = new int[1024 * 512];
 
@@ -141,6 +141,30 @@ namespace ScePSX.UI
             SDLInit();
 
             InitShaderMnu();
+
+            this.Load += MainForm_Load;
+            this.FormClosing += MainForm_Closing;
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            string[] PosStr = ini.Read("Main", "FromPos").Split('|');
+            if (PosStr.Length >= 4)
+            {
+                this.Location = new Point(Convert.ToInt16(PosStr[0]), Convert.ToInt16(PosStr[1]));
+                this.Size = new Size(Convert.ToInt16(PosStr[2]), Convert.ToInt16(PosStr[3]));
+                Rectangle screenBounds = Screen.PrimaryScreen.WorkingArea;
+                if (!screenBounds.Contains(this.Bounds))
+                {
+                    this.Location = new Point(0, 0);
+                }
+            }
+        }
+
+        private void MainForm_Closing(object sender, FormClosingEventArgs e)
+        {
+            string PosStr = $"{this.Location.X}|{this.Location.Y}|{this.Size.Width}|{this.Size.Height}";
+            ini.Write("Main", "FromPos", PosStr);
         }
 
         private void UpdateStatus(int index, string text, bool clean = false)
@@ -189,14 +213,14 @@ namespace ScePSX.UI
                 if (Render.oglMSAA > 0)
                     rendername += $" {Render.oglMSAA}xMSAA";
             }
-            if (scale > 0)
+            if (scale.scale > 0)
             {
-                scalew *= scale;
-                scaleh *= scale;
+                scalew *= scale.scale;
+                scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
             UpdateStatus(5, rendername);
-            UpdateStatus(6, $"IR {scalew}*{scaleh}");
+            UpdateStatus(6, $"{(scale.scale > 0 ? scale.mode.ToString() : "")} IR {scalew}*{scaleh}");
             UpdateStatus(7, $"FPS {_currentFps:F1}");
         }
 
@@ -526,15 +550,15 @@ namespace ScePSX.UI
         private void xBRScaleAdd_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
-                if (scale < 8)
-                    scale += 2;
+                if (scale.scale < 8)
+                    scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
         }
 
         private void xBRScaleDec_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
-                if (scale > 0)
-                    scale -= 2;
+                if (scale.scale > 0)
+                    scale.scale /= 2;
         }
 
         private void MnuPause_Click(object sender, EventArgs e)
@@ -693,15 +717,15 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.F11)
             {
                 if (Core != null && Core.Running)
-                    if (scale < 8)
-                        scale = scale ==0 ? 2 : scale * 2;
+                    if (scale.scale < 8)
+                        scale.scale = scale.scale ==0 ? 2 : scale.scale * 2;
                 return;
             }
             if (e.KeyCode == Keys.F12)
             {
                 if (Core != null && Core.Running)
-                    if (scale > 0)
-                        scale /= 2;
+                    if (scale.scale > 0)
+                        scale.scale /= 2;
                 return;
             }
 
@@ -807,7 +831,9 @@ namespace ScePSX.UI
 
             romList.Dispose();
 
-            scale = 0;
+            scale.scale = 0;
+            scale.mode = (ScaleMode)ini.ReadInt("Main", "ScaleMode");
+
             Render.SelectRenderer(Rendermode, this);
 
             CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
@@ -866,7 +892,7 @@ namespace ScePSX.UI
 
             if (cutblackline)
             {
-                CoreHeight = XbrScaler.CutBlackLine(pixels, cutbuff, width, height);
+                CoreHeight = PixelsScaler.CutBlackLine(pixels, cutbuff, width, height);
                 if (CoreHeight == 0)
                 {
                     CoreHeight = height;

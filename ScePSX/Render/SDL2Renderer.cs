@@ -10,7 +10,7 @@ namespace ScePSX.Render
     class SDL2Renderer : UserControl, IRenderer
     {
         private int[] pixels = new int[1024 * 512];
-        private int scale, oldscale;
+        private ScaleParam scale, oldscale;
 
         private IntPtr m_Window , p_Window;
         private IntPtr m_Renderer;
@@ -114,7 +114,7 @@ namespace ScePSX.Render
             base.Dispose(disposing);
         }
 
-        public void RenderBuffer(int[] pixels, int width, int height, int scale = 0)
+        public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
         {
             if (InvokeRequired)
             {
@@ -147,15 +147,15 @@ namespace ScePSX.Render
             if (sizeing || this.Visible == false || srcRect.w <= 0 || srcRect.h <= 0)
                 return;
 
-            if (scale > 0)
+            if (scale.scale > 0)
             {
-                pixels = XbrScaler.ScaleXBR(pixels, srcRect.w, srcRect.h, scale);
+                pixels = PixelsScaler.Scale(pixels, srcRect.w, srcRect.h, scale.scale, scale.mode);
 
-                srcRect.w = srcRect.w * scale;
-                srcRect.h = srcRect.h * scale;
+                srcRect.w = srcRect.w * scale.scale;
+                srcRect.h = srcRect.h * scale.scale;
             }
 
-            if (oldscale != scale || oldwidth != srcRect.w || oldheight != srcRect.h)
+            if (oldscale.scale != scale.scale || oldwidth != srcRect.w || oldheight != srcRect.h)
             {
                 oldscale = scale;
                 oldwidth = srcRect.w;
