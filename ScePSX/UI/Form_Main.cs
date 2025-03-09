@@ -718,7 +718,7 @@ namespace ScePSX.UI
             {
                 if (Core != null && Core.Running)
                     if (scale.scale < 8)
-                        scale.scale = scale.scale ==0 ? 2 : scale.scale * 2;
+                        scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
                 return;
             }
             if (e.KeyCode == Keys.F12)
@@ -731,7 +731,11 @@ namespace ScePSX.UI
 
             InputAction button = FrmInput.KMM1.GetKeyButton(e.KeyCode);
             if ((int)button != 0xFF && Core != null && Core.Running)
+            {
                 Core.Button(button, true, 0);
+                if (!KeyFirst)
+                    KeyFirst = true;
+            }
 
             InputAction button1 = FrmInput.KMM2.GetKeyButton(e.KeyCode);
             if ((int)button1 != 0xFF && Core != null && Core.Running)
@@ -837,7 +841,7 @@ namespace ScePSX.UI
             Render.SelectRenderer(Rendermode, this);
 
             CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
-            
+
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
@@ -993,7 +997,7 @@ namespace ScePSX.UI
 
             }
 
-            if (Core == null || KeyFirst)
+            if (Core == null || controller == 0)
                 return;
 
             conidx--;
@@ -1011,11 +1015,17 @@ namespace ScePSX.UI
                         isPadPressed = true;
                     }
                 }
-                if (FrmInput.AnalogMap.TryGetValue(button, out var gamepadInput))
-                {
-                    Core.Button(gamepadInput, isPressed, conidx);
-                }
+                if (isPressed && KeyFirst)
+                    KeyFirst = false;
+                if (!KeyFirst)
+                    if (FrmInput.AnalogMap.TryGetValue(button, out var gamepadInput))
+                    {
+                        Core.Button(gamepadInput, isPressed, conidx);
+                    }
             }
+
+            if (KeyFirst)
+                return;
 
             //AnalogAxis
             float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
