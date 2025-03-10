@@ -64,10 +64,15 @@ A: 请确保：
 2. 游戏镜像文件格式正确（如 `.bin/.cue` 或 `.img/.cue` 或 `.iso`）。
 
 ### Q: 如何获取更多 ReShade Shader？
-A: 访问 [ReShade 官方网站](https://reshade.me/) 下载 Shader 文件，并将其放入 `shaders/` 文件夹中。
+A: 访问 [ReShade 官方网站](https://reshade.me/) 下载 Shader 文件，并将其放入 `reshade/` 文件夹中。
+- /ScePSx
+- ├── reshade/
+- │ └── 放在这里
+- ├── saves/
+- └── ScePSX.exe
 
 ### Q: 模拟器支持哪些游戏？
-A: 大部分常见的游戏都已支持。
+A: 绝大部分常见的游戏都已支持。
 
 ### Q: CPU 占用较高怎么办？
 A: 如果 CPU 占用过高，建议使用 D2D 渲染器或降低内部分辨率。
