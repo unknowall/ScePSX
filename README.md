@@ -1,6 +1,6 @@
 <h2>这是一个完全用 c# 开发，小巧可用的 PS1 模拟器</h2>
 
-![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) 
+![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![Gitee Repo](https://img.shields.io/badge/Gitee-Mirror-FFB71B)](https://gitee.com/unknowall/ScePSX)
 ## 主要功能 🎮
 - **即时存档/读档**: 随时保存和加载游戏进度。
 - **多渲染器支持**: 动态切换 D2D、D3D、OpenGL、Vulkan 渲染器，适配不同硬件配置。
@@ -12,6 +12,8 @@
 - **存档管理**: 方便管理多个游戏存档。
 
 <b>the english version is available starting from Beta 0.1.0.</b>
+
+**项目已同步至 Gitee，国内用户可优先访问以加速下载。镜像仓库通过 GitHub Actions 自动同步更新，确保内容一致**
 
 ## 性能表现 🚀
 
@@ -78,7 +80,7 @@ A: 绝大部分常见的游戏都已支持。
 A: 如果 CPU 占用过高，建议使用 D2D 渲染器或降低内部分辨率。
 
 ### Q: 是否支持跨平台？
-A: 目前仅支持 Windows，未来可能会考虑跨平台支持。
+A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
 
 
 
