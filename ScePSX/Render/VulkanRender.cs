@@ -255,6 +255,10 @@ namespace ScePSX.Render
 
         public void VulkanInit(IntPtr hwnd, int width, int height)
         {
+            Console.ForegroundColor = ConsoleColor.Blue;
+
+            Console.WriteLine($"[VULKAN] Initialization....");
+
             CreateInstance();
             CreateSurface(hwnd);
             SelectPhysicalDevice();
@@ -281,6 +285,10 @@ namespace ScePSX.Render
             presentInfo = VkPresentInfoKHR.New();
             presentInfo.sType = VkStructureType.PresentInfoKHR;
             presentInfo.swapchainCount = 1;
+
+            Console.WriteLine($"[VULKAN] Initializationed...");
+
+            Console.ResetColor();
         }
 
         public unsafe void VulkanDispose()
@@ -436,7 +444,7 @@ namespace ScePSX.Render
                 if (hasGraphicsQueue)
                 {
                     physicalDevice = device;
-                    Console.WriteLine($"Selected physical device: {Marshal.PtrToStringAnsi((IntPtr)deviceProperties.deviceName)}");
+                    Console.WriteLine($"[VULKAN] Selected physical device: {Marshal.PtrToStringAnsi((IntPtr)deviceProperties.deviceName)}");
                     return;
                 }
             }
@@ -728,7 +736,9 @@ namespace ScePSX.Render
             dyn.dynamicStateCount = dynstate.Count;
             dyn.pDynamicStates = &dynstate.First;
 
-            vkFixedArray2<VkPipelineShaderStageCreateInfo> shaderStages = new vkFixedArray2<VkPipelineShaderStageCreateInfo>(vertShaderStageInfo, fragShaderStageInfo);
+            vkFixedArray2<VkPipelineShaderStageCreateInfo> shaderStages;
+            shaderStages.First = vertShaderStageInfo;
+            shaderStages.Second = fragShaderStageInfo;
 
             var pipelineInfo = new VkGraphicsPipelineCreateInfo
             {
@@ -754,6 +764,8 @@ namespace ScePSX.Render
             {
                 throw new Exception("Failed to create graphics pipeline!");
             }
+
+            Console.WriteLine("[VULKAN] GraphicsPipelines Created.");
 
             // 清理着色器模块
             vkDestroyShaderModule(device, vertShaderModule, null);
@@ -1190,6 +1202,7 @@ namespace ScePSX.Render
             }
 
             vkGetImageMemoryRequirements(device, image, out var memRequirements);
+
             var allocInfo = new VkMemoryAllocateInfo
             {
                 sType = VkStructureType.MemoryAllocateInfo,
@@ -1203,12 +1216,13 @@ namespace ScePSX.Render
             }
 
             vkBindImageMemory(device, image, imageMemory, 0);
+
             return image;
         }
 
         private unsafe void CopyBufferToImage(VkBuffer buffer, VkImage image, int width, int height)
         {
-            var commandBuffer = BeginSingleTimeCommands();
+            VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             var subresource = new VkImageSubresourceLayers
             {
@@ -1288,9 +1302,6 @@ namespace ScePSX.Render
 
         private VkCommandBuffer BeginSingleTimeCommands()
         {
-            if (device == VkDevice.Null)
-                return VkCommandBuffer.Null;
-
             VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.New();
             allocInfo.commandBufferCount = 1;
             allocInfo.commandPool = commandPool;
@@ -1308,9 +1319,6 @@ namespace ScePSX.Render
 
         private unsafe void EndSingleTimeCommands(VkCommandBuffer commandBuffer)
         {
-            if (device == VkDevice.Null)
-                return;
-
             vkEndCommandBuffer(commandBuffer);
             var submitInfo = new VkSubmitInfo
             {
@@ -1325,9 +1333,6 @@ namespace ScePSX.Render
 
         private unsafe void TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
         {
-            if (device == VkDevice.Null)
-                return;
-
             const uint VkQueueFamilyIgnored = ~0U;
             var commandBuffer = BeginSingleTimeCommands();
             var barrier = new VkImageMemoryBarrier
