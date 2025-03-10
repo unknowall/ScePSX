@@ -41,7 +41,8 @@
 - └── ScePSX.exe
 
 #### 2. 使用 ReShade 🎨
-- ReShade 仅在 OpenGL 渲染模式下可用。
+- ReShade 在 OpenGL、Vulkan 渲染模式下可用
+- >D3D需额外安装reShade。
 - 按 **Home 键** 打开 ReShade 设置界面。
 - 可加载预设的 Shader 文件（位于 `ReShade/` 文件夹中）。
   
