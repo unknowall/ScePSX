@@ -1,11 +1,10 @@
 <h2>这是一个完全用 c# 开发，小巧可用的 PS1 模拟器</h2>
 
-![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) 
-
+![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) 
 ## 主要功能 🎮
 - **即时存档/读档**: 随时保存和加载游戏进度。
-- **多渲染器支持**: 动态切换 D2D、D3D 和 OpenGL 渲染器，适配不同硬件配置。
-- **ReShade 集成**: OpenGL 和 D3D 支持 ReShade 后处理效果，增强画质。
+- **多渲染器支持**: 动态切换 D2D、D3D、OpenGL、Vulkan 渲染器，适配不同硬件配置。
+- **ReShade 集成**: D3D、OpenGL、Vulkan 支持 ReShade 后处理效果，增强画质。
 - **分辨率调节**: 自定义内部分辨率（如 2x、4x），提升视觉体验。
 - **内存工具**: 提供内存编辑和搜索功能，适合高级用户修改游戏行为。
 - **金手指支持**: 开启作弊功能，解锁隐藏内容或调整游戏难度。
@@ -21,6 +20,7 @@
 | D2D      | ~32MB    | 老机器   |
 | D3D      | ~52MB    | 较老设备 |
 | OpenGL   | ~86MB    | 现代设备 |
+| Vulkan   | ~120MB   | 现代设备 |
 
 > **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。
 *不使用gamedb, 不使用reshade
@@ -80,15 +80,16 @@ A: 目前仅支持 Windows，未来可能会考虑跨平台支持。
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
 3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
-4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-5. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+4. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
+5. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+6. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
    
 **问题反馈**: 在 [Issues](https://github.com/unknowall/ScePSX/issues) 页面提交问题。
 
 # 下载 📥
 
-- **轻量版 (1.29 MB)**: 仅包含核心功能，适合快速体验。
-- **完整版 (7.71 MB)**: 包含所有功能（如 ReShade 集成）。
+- **轻量版 (1.42 MB)**: 仅包含核心功能，适合快速体验。
+- **完整版 (7.81 MB)**: 包含所有功能（如 ReShade 集成）。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - > **注意**: 由于法律限制，模拟器不附带 BIOS 文件，请自行获取合法 BIOS。
 
