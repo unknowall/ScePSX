@@ -9,7 +9,8 @@ namespace ScePSX.Render
     {
         Directx2D,
         Directx3D,
-        OpenGL
+        OpenGL,
+        Vulkan
     }
     
     public interface IRenderer : IDisposable
@@ -41,7 +42,8 @@ namespace ScePSX.Render
         {
             { RenderMode.OpenGL, () => new OpenGLRenderer() },
             { RenderMode.Directx3D, () => new SDL2Renderer() },
-            { RenderMode.Directx2D, () => new D2DRenderer() }
+            { RenderMode.Directx2D, () => new D2DRenderer() },
+            { RenderMode.Vulkan, () => new VulkanRenderer() }
         };
         }
 

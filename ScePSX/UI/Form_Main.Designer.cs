@@ -54,6 +54,7 @@
             directx2DRender = new System.Windows.Forms.ToolStripMenuItem();
             directx3DRender = new System.Windows.Forms.ToolStripMenuItem();
             openGLRender = new System.Windows.Forms.ToolStripMenuItem();
+            VulkanRenderMnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             xBRScaleAdd = new System.Windows.Forms.ToolStripMenuItem();
             xBRScaleDec = new System.Windows.Forms.ToolStripMenuItem();
@@ -218,7 +219,7 @@
             // 
             // RenderToolStripMenuItem
             // 
-            RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec });
+            RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, VulkanRenderMnu, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec });
             RenderToolStripMenuItem.Name = "RenderToolStripMenuItem";
             RenderToolStripMenuItem.Size = new System.Drawing.Size(78, 21);
             RenderToolStripMenuItem.Text = Properties.Resources.Render;
@@ -270,6 +271,14 @@
             openGLRender.Size = new System.Drawing.Size(384, 22);
             openGLRender.Text = "OpenGL";
             openGLRender.Click += openGLToolStripMenuItem_Click;
+            // 
+            // VulkanRenderMnu
+            // 
+            VulkanRenderMnu.CheckOnClick = true;
+            VulkanRenderMnu.Name = "VulkanRenderMnu";
+            VulkanRenderMnu.Size = new System.Drawing.Size(384, 22);
+            VulkanRenderMnu.Text = "Vulkan";
+            VulkanRenderMnu.Click += VulkanRenderMnu_Click;
             // 
             // toolStripMenuItem4
             // 
@@ -435,5 +444,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel6;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel7;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel8;
+        private System.Windows.Forms.ToolStripMenuItem VulkanRenderMnu;
     }
 }

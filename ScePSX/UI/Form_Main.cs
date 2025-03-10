@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -21,7 +22,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.2";
+        public static string version = "ScePSX Beta 0.1.3";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -95,6 +96,7 @@ namespace ScePSX.UI
             openGLRender.Checked = Rendermode == RenderMode.OpenGL;
             directx2DRender.Checked = Rendermode == RenderMode.Directx2D;
             directx3DRender.Checked = Rendermode == RenderMode.Directx3D;
+            VulkanRenderMnu.Checked = Rendermode == RenderMode.Vulkan;
 
             switch (ini.ReadInt("OpenGL", "MSAA"))
             {
@@ -181,6 +183,8 @@ namespace ScePSX.UI
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
+            CheckController();
+
             if (Core == null)
             {
                 this.Text = version;
@@ -473,6 +477,7 @@ namespace ScePSX.UI
         {
             directx3DRender.Checked = false;
             openGLRender.Checked = false;
+            VulkanRenderMnu.Checked = false;
 
             Rendermode = RenderMode.Directx2D;
             ini.WriteInt("Main", "Render", (int)Rendermode);
@@ -485,6 +490,7 @@ namespace ScePSX.UI
         {
             openGLRender.Checked = false;
             directx2DRender.Checked = false;
+            VulkanRenderMnu.Checked = false;
 
             Rendermode = RenderMode.Directx3D;
             ini.WriteInt("Main", "Render", (int)Rendermode);
@@ -498,10 +504,24 @@ namespace ScePSX.UI
 
             directx2DRender.Checked = false;
             directx3DRender.Checked = false;
+            VulkanRenderMnu.Checked = false;
 
             Render.oglShaderPath = "./Shaders/" + shaderpath;
 
             Rendermode = RenderMode.OpenGL;
+            ini.WriteInt("Main", "Render", (int)Rendermode);
+
+            if (Core != null && Core.Running)
+                Render.SelectRenderer(Rendermode, this);
+        }
+
+        private void VulkanRenderMnu_Click(object sender, EventArgs e)
+        {
+            openGLRender.Checked = false;
+            directx2DRender.Checked = false;
+            directx3DRender.Checked = false;
+
+            Rendermode = RenderMode.Vulkan;
             ini.WriteInt("Main", "Render", (int)Rendermode);
 
             if (Core != null && Core.Running)
@@ -947,6 +967,35 @@ namespace ScePSX.UI
 
         #region SDLController
 
+        private void CheckController()
+        {
+            concount = SDL_NumJoysticks();
+
+            if (controller1 == 0 && concount >= 1)
+            {
+                if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
+                {
+                    controller1 = SDL_GameControllerOpen(0);
+                } else
+                {
+                    controller1 = SDL_JoystickOpen(0);
+                }
+                Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected");
+            }
+
+            if (controller2 == 0 && concount >= 2)
+            {
+                if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
+                {
+                    controller2 = SDL_GameControllerOpen(1);
+                } else
+                {
+                    controller2 = SDL_JoystickOpen(1);
+                }
+                Console.WriteLine($"Controller Device 2 : {SDL_JoystickNameForIndex(1)} Connected");
+            }
+        } 
+
         private void QueryControllerState(int conidx)
         {
             nint controller;
@@ -960,41 +1009,6 @@ namespace ScePSX.UI
             } else
             {
                 return;
-            }
-
-            if (controller == 0)
-            {
-                concount = SDL_NumJoysticks();
-
-                if (concount < conidx)
-                {
-                    return;
-                }
-
-                if (controller1 == 0 && concount >= 1)
-                {
-                    if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
-                    {
-                        controller1 = SDL_GameControllerOpen(0);
-                    } else
-                    {
-                        controller1 = SDL_JoystickOpen(0);
-                    }
-                    Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected");
-                }
-
-                if (controller2 == 0 && concount >= 2)
-                {
-                    if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
-                    {
-                        controller2 = SDL_GameControllerOpen(1);
-                    } else
-                    {
-                        controller2 = SDL_JoystickOpen(1);
-                    }
-                    Console.WriteLine($"Controller Device 2 : {SDL_JoystickNameForIndex(1)} Connected");
-                }
-
             }
 
             if (Core == null || controller == 0)
@@ -1088,6 +1102,7 @@ namespace ScePSX.UI
         }
 
         #endregion
+
 
     }
 

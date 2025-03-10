@@ -22,7 +22,6 @@ namespace ScePSX.Render
         private float dpiX, dpiY;
 
         public RenderMode Mode => RenderMode.Directx2D;
-        public bool IsPostProcessingActive => false;
 
         private readonly object bufferLock = new object();
 
