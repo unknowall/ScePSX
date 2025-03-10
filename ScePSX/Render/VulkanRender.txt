@@ -8,7 +8,6 @@ using System.Windows.Forms;
 
 using Vulkan;
 using Vulkan.Win32;
-using static Khronos.Platform;
 using static Vulkan.VulkanNative;
 
 namespace ScePSX.Render
@@ -66,15 +65,10 @@ namespace ScePSX.Render
         private VkRect2D scissor;
         private VkCommandPool commandPool;
 
-        private VkSubmitInfo submitInfo;
-        private VkPresentInfoKHR presentInfo;
-
         private int graphicsQueueFamilyIndex = -1;
         private int presentQueueFamilyIndex = -1;
 
         private int currentWidth, currentHeight = 0;
-
-        private bool _isDisposed = false;
 
         public RenderMode Mode => RenderMode.Vulkan;
 
@@ -124,7 +118,7 @@ namespace ScePSX.Render
         {
             base.OnPaint(e);
 
-            if (device == VkDevice.Null || _isDisposed)
+            if (device == VkDevice.Null)
                 return;
 
             Draw();
@@ -156,23 +150,17 @@ namespace ScePSX.Render
 
         protected override void Dispose(bool disposing)
         {
-            if (_isDisposed)
-                return;
             if (disposing)
             {
                 vkDeviceWaitIdle(device);
 
                 VulkanDispose();
             }
-            _isDisposed = true;
             base.Dispose(disposing);
         }
 
         public unsafe void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
         {
-            if (_isDisposed)
-                return;
-
             if (InvokeRequired)
             {
                 BeginInvoke(new Action(() => RenderBuffer(pixels, width, height, scale)));
@@ -195,15 +183,22 @@ namespace ScePSX.Render
                 UpdateViewportAndScissor();
             }
 
-            if (device != VkDevice.Null && stagingBufferMemory != VkDeviceMemory.Null)
-                UploadImage(pixels, width, height);
+            try
+            {
+
+                if (device != VkDevice.Null && stagingBufferMemory != VkDeviceMemory.Null)
+                    UploadImage(pixels, width, height);
+            } catch
+            {
+
+            }
 
             Invalidate();
         }
 
         public unsafe void Draw()
         {
-            VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+            var commandBuffer = commandBuffers[currentFrame];
 
             renderPassInfo.framebuffer = framebuffers[currentFrame];
             renderPassInfo.renderArea.extent = swapChainExtent;
@@ -225,7 +220,7 @@ namespace ScePSX.Render
 
             vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.Graphics, pipelineLayout, 0, 1, ref descriptorSet, 0, null);
 
-            if (currentWidth > 0 && currentHeight > 0)
+            if (currentWidth != 0 && currentHeight != 0)
                 vkCmdDraw(commandBuffer, 4, 1, 0, 0);
 
             vkCmdEndRenderPass(commandBuffer);
@@ -238,16 +233,24 @@ namespace ScePSX.Render
             vkWaitForFences(device, 1, ref inFlightFences[currentFrame], true, ulong.MaxValue);
             vkResetFences(device, 1, ref inFlightFences[currentFrame]);
 
-            VkCommandBuffer cb = commandBuffers[currentFrame];
-            submitInfo.pCommandBuffers = &cb;
-
+            var cb = commandBuffers[currentFrame];
+            VkSubmitInfo submitInfo = new VkSubmitInfo
+            {
+                sType = VkStructureType.SubmitInfo,
+                commandBufferCount = 1,
+                pCommandBuffers = &cb
+            };
             vkQueueSubmit(graphicsQueue, 1, ref submitInfo, VkFence.Null);
 
             uint idx = (uint)currentFrame;
             VkSwapchainKHR _swapchain = swapChain;
-            presentInfo.pSwapchains = &_swapchain;
-            presentInfo.pImageIndices = &idx;
-
+            var presentInfo = new VkPresentInfoKHR
+            {
+                sType = VkStructureType.PresentInfoKHR,
+                swapchainCount = 1,
+                pSwapchains = &_swapchain,
+                pImageIndices = &idx
+            };
             vkQueuePresentKHR(presentQueue, ref presentInfo);
 
             currentFrame = (currentFrame + 1) % (int)swapChainImages.Count;
@@ -270,23 +273,15 @@ namespace ScePSX.Render
             renderPassInfo.clearValueCount = 0;
             renderPassInfo.renderPass = renderPass;
 
-            drawbegininfo = VkCommandBufferBeginInfo.New();
-            drawbegininfo.sType = VkStructureType.CommandBufferBeginInfo;
-            drawbegininfo.flags = VkCommandBufferUsageFlags.OneTimeSubmit;
-
-            submitInfo = VkSubmitInfo.New();
-            submitInfo.sType = VkStructureType.SubmitInfo;
-            submitInfo.commandBufferCount = 1;
-
-            presentInfo = VkPresentInfoKHR.New();
-            presentInfo.sType = VkStructureType.PresentInfoKHR;
-            presentInfo.swapchainCount = 1;
+            drawbegininfo = new VkCommandBufferBeginInfo
+            {
+                sType = VkStructureType.CommandBufferBeginInfo,
+                flags = VkCommandBufferUsageFlags.OneTimeSubmit
+            };
         }
 
         public unsafe void VulkanDispose()
         {
-            CleanupResources();
-
             vkDestroyPipeline(device, graphicsPipeline, IntPtr.Zero);
             vkDestroyPipelineLayout(device, pipelineLayout, IntPtr.Zero);
             vkDestroyRenderPass(device, renderPass, IntPtr.Zero);
