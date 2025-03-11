@@ -143,6 +143,8 @@ namespace ScePSX
             Marshal.Copy((IntPtr)memoryControl2, memctl2, 0, memctl2.Length);
 
             Marshal.Copy((IntPtr)spu.ram, spuram, 0, spuram.Length);
+
+            gpu.ReadySerialized();
         }
 
         public unsafe void DeSerializable(ICoreHandler Host)
@@ -171,6 +173,10 @@ namespace ScePSX
 
             spu.host = Host;
             gpu.host = Host;
+
+            gpu.Manger = new GPUManager();
+            gpu.SelectGPU(GPUType.Software);
+            gpu.DeSerialized();
 
             cddata.LoadFileStream();
         }
