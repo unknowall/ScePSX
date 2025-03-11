@@ -109,8 +109,6 @@ namespace ScePSX
 
         private static readonly byte[] LookupTable1555to8888 = new byte[32];
 
-        private static readonly byte[] LookupTable8888to1555 = new byte[256];
-
         public SoftwareGPU()
         {
             for (int i = 0; i < 256; i++)
@@ -121,11 +119,6 @@ namespace ScePSX
             for (int i = 0; i < 32; i++)
             {
                 LookupTable1555to8888[i] = (byte)((i * 255 + 15) / 31);
-            }
-
-            for (int i = 0; i < 256; i++)
-            {
-                LookupTable8888to1555[i] = (byte)((i + 4) >> 3);
             }
         }
 
@@ -842,11 +835,11 @@ namespace ScePSX
         private static ushort rgb8888to1555(int color)
         {
             byte m = (byte)((color & 0xFF000000) >> 24);
-            byte r = LookupTable8888to1555[(color & 0x00FF0000) >> 16];
-            byte g = LookupTable8888to1555[(color & 0x0000FF00) >> 8];
-            byte b = LookupTable8888to1555[color & 0x000000FF];
+            byte r = (byte)((color & 0x00FF0000) >> 16 + 3);
+            byte g = (byte)((color & 0x0000FF00) >> 8 + 3);
+            byte b = (byte)((color & 0x000000FF) >> 3);
 
-            return (ushort)((m << 15) | (b << 10) | (g << 5) | r);
+            return (ushort)(m << 15 | b << 10 | g << 5 | r);
         }
 
         #endregion
