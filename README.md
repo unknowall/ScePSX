@@ -13,7 +13,7 @@
 
 <b>the english version is available starting from Beta 0.1.0.</b>
 
-**项目已同步至 Gitee，国内用户可优先访问以加速下载。镜像仓库通过 GitHub Actions 自动同步更新，确保内容一致**
+**项目已同步至 Gitee，国内用户可优先访问以加速下载。镜像仓库自动同步更新，确保内容一致**
 
 ## 性能表现 🚀
 
