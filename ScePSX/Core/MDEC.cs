@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ScePSX
 {
-    public class MDEC
+    public class MDEC: IDisposable
     {
         private const int NUM_BLOCKS = 6;
         //For some reason even tho it iterates all blocks it starts at 4
@@ -41,6 +41,11 @@ namespace ScePSX
 
         private IMemoryOwner<byte> outBuffer = MemoryPool<byte>.Shared.Rent(0x30000); //wild guess while resumable dmas come...
         private int outBufferPos = 0;
+
+        public void Dispose()
+        {
+            outBuffer?.Dispose();
+        }
 
         public void write(uint addr, uint value)
         {

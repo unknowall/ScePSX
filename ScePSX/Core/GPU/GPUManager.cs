@@ -9,7 +9,7 @@ namespace ScePSX
         OpenGL,
         Vulkan
     }
-    
+
     public interface IGPU : IDisposable
     {
         GPUType type
@@ -37,11 +37,11 @@ namespace ScePSX
 
         void SetVRAMTransfer(VRAMTransfer val);
 
-        void SetDrawingAreaTopLeft(uint value);
+        void SetDrawingAreaTopLeft(TDrawingArea value);
 
-        void SetDrawingAreaBottomRight(uint value);
+        void SetDrawingAreaBottomRight(TDrawingArea value);
 
-        void SetDrawingOffset(uint value);
+        void SetDrawingOffset(TDrawingOffset value);
 
         void SetTextureWindow(uint value);
 

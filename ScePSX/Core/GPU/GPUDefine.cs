@@ -1,71 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace ScePSX
 {
-
-    [Serializable]
-    public abstract class VRAM<T> where T : unmanaged
-    {
-        public int Width;
-        public int Height;
-        public T[] Pixels;
-
-        protected VRAM(int width, int height)
-        {
-            Width = width;
-            Height = height;
-            Pixels = new T[width * height];
-        }
-
-        public abstract T GetPixel(int x, int y);
-
-        public abstract void SetPixel(int x, int y, T color);
-
-        protected int GetIndex(int x, int y)
-        {
-            var offset = y * Width + x;
-
-            return offset;
-        }
-    }
-
-    [Serializable]
-    public sealed class VRAM16 : VRAM<ushort>
-    {
-        public VRAM16(int width, int height) : base(width, height)
-        {
-        }
-
-        public override ushort GetPixel(int x, int y)
-        {
-            return Pixels[GetIndex(x, y)];
-        }
-
-        public override void SetPixel(int x, int y, ushort color)
-        {
-            Pixels[GetIndex(x, y)] = color;
-        }
-    }
-
-    [Serializable]
-    public sealed class VRAM32 : VRAM<int>
-    {
-        public VRAM32(int width, int height) : base(width, height)
-        {
-        }
-
-        public override int GetPixel(int x, int y)
-        {
-            return Pixels[GetIndex(x, y)];
-        }
-
-        public override void SetPixel(int x, int y, int color)
-        {
-            Pixels[GetIndex(x, y)] = color;
-        }
-    }
 
     [Serializable]
     [StructLayout(LayoutKind.Explicit)]

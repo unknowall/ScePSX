@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using static ScePSX.Voice;
 
 namespace ScePSX
 {
@@ -104,9 +100,6 @@ namespace ScePSX
 
         //for Serialized
         private uint SetTextureWindow_value;
-        private uint SetDrawingAreaTopLeft_value;
-        private uint SetDrawingAreaBottomRight_value;
-        private uint SetDrawingOffset_value;
         private uint SetMaskBit_value;
 
         private byte[] Ram;
@@ -180,11 +173,11 @@ namespace ScePSX
 
             Manger.GPU.SetTextureWindow(SetTextureWindow_value);
 
-            Manger.GPU.SetDrawingAreaTopLeft(SetDrawingAreaTopLeft_value);
+            Manger.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
 
-            Manger.GPU.SetDrawingAreaBottomRight(SetDrawingAreaBottomRight_value);
+            Manger.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
 
-            Manger.GPU.SetDrawingOffset(SetDrawingOffset_value);
+            Manger.GPU.SetDrawingOffset(DrawingOffset);
 
             Manger.GPU.SetMaskBit(SetMaskBit_value);
 
@@ -595,29 +588,23 @@ namespace ScePSX
 
         private void GP0_E3_SetDrawingAreaTopLeft(uint value)
         {
-            SetDrawingAreaTopLeft_value = value;
-
             DrawingAreaTopLeft = new TDrawingArea(value);
 
-            Manger.GPU.SetDrawingAreaTopLeft(value);
+            Manger.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
         }
 
         private void GP0_E4_SetDrawingAreaBottomRight(uint value)
         {
-            SetDrawingAreaBottomRight_value = value;
-
             DrawingAreaBottomRight = new TDrawingArea(value);
 
-            Manger.GPU.SetDrawingAreaBottomRight(value);
+            Manger.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
         }
 
         private void GP0_E5_SetDrawingOffset(uint value)
         {
-            SetDrawingOffset_value = value;
-
             DrawingOffset = new TDrawingOffset(value);
 
-            Manger.GPU.SetDrawingOffset(value);
+            Manger.GPU.SetDrawingOffset(DrawingOffset);
         }
 
         private void GP0_E6_SetMaskBit(uint value)

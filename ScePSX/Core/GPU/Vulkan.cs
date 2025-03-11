@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ScePSX
+﻿namespace ScePSX
 {
     public class VulkanGPU : IGPU
     {
@@ -65,15 +62,15 @@ namespace ScePSX
         {
         }
 
-        public void SetDrawingAreaTopLeft(uint value)
+        public void SetDrawingAreaTopLeft(TDrawingArea value)
         {
         }
 
-        public void SetDrawingAreaBottomRight(uint value)
+        public void SetDrawingAreaBottomRight(TDrawingArea value)
         {
         }
 
-        public void SetDrawingOffset(uint value)
+        public void SetDrawingOffset(TDrawingOffset value)
         {
         }
 

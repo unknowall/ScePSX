@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Vulkan;
 
 namespace ScePSX
 {
@@ -26,12 +23,110 @@ namespace ScePSX
 
         private int TextureWindowPostMaskX, TextureWindowPostMaskY, TextureWindowPreMaskX, TextureWindowPreMaskY;
 
-        private readonly VRAM16 RamData = new(1024, 512);
+        public unsafe class RamBuff: IDisposable
+        {
+            public int Width;
+            public int Height;
+            public int length;
+            public int size;
+            public ushort* Pixels;
 
-        private readonly VRAM32 FrameData = new(1024, 512);
+            public RamBuff(int width, int height)
+            {
+                Width = width;
+                Height = height;
+                length = width * height;
+                size = length * 2;
+
+                Pixels = (ushort*)Marshal.AllocHGlobal(size);
+            }
+
+            public Span<ushort> AsSpan()
+            {
+                return new Span<ushort>(Pixels, length);
+            }
+
+            public unsafe ushort GetPixel(int x, int y)
+            {
+                return *(ushort*)(Pixels + y * Width + x);
+            }
+
+            public unsafe void SetPixel(int x, int y, ushort color)
+            {
+                *(ushort*)(Pixels + y * Width + x) = color;
+            }
+
+            public void Dispose()
+            {
+                Marshal.FreeHGlobal((nint)Pixels);
+            }
+        }
+
+        public unsafe class FrameBuff : IDisposable
+        {
+            public int Width;
+            public int Height;
+            public int length;
+            public int size;
+            public int* Pixels;
+
+            public FrameBuff(int width, int height)
+            {
+                Width = width;
+                Height = height;
+                length = width * height;
+                size = length * 4;
+
+                Pixels = (int*)Marshal.AllocHGlobal(size);
+            }
+
+            public Span<int> AsSpan()
+            {
+                return new Span<int>(Pixels, length);
+            }
+
+            public unsafe int GetPixel(int x, int y)
+            {
+                return *(int*)(Pixels + y * Width + x);
+            }
+
+            public unsafe void SetPixel(int x, int y, int color)
+            {
+                *(int*)(Pixels + y * Width + x) = color;
+            }
+
+            public void Dispose()
+            {
+                Marshal.FreeHGlobal((nint)Pixels);
+            }
+        }
+
+        private readonly RamBuff RamData = new(1024, 512);
+
+        private readonly FrameBuff FrameData = new(1024, 512);
+
+        private static readonly byte[] LookupTable888to555 = new byte[256];
+
+        private static readonly byte[] LookupTable1555to8888 = new byte[32];
+
+        private static readonly byte[] LookupTable8888to1555 = new byte[256];
 
         public SoftwareGPU()
         {
+            for (int i = 0; i < 256; i++)
+            {
+                LookupTable888to555[i] = (byte)(i * 31 >> 8);
+            }
+
+            for (int i = 0; i < 32; i++)
+            {
+                LookupTable1555to8888[i] = (byte)((i * 255 + 15) / 31);
+            }
+
+            for (int i = 0; i < 256; i++)
+            {
+                LookupTable8888to1555[i] = (byte)((i + 4) >> 3);
+            }
         }
 
         public void Initialize()
@@ -40,46 +135,47 @@ namespace ScePSX
 
         public void Dispose()
         {
+            FrameData.Dispose();
+            RamData.Dispose();
         }
 
         public void SetParams(int[] Params)
         {
         }
 
-        public void SetRam(byte[] Ram)
+        public unsafe void SetRam(byte[] Ram)
         {
-            Buffer.BlockCopy(Ram, 0, RamData.Pixels, 0, Ram.Length);
+            Marshal.Copy(Ram, 0, (IntPtr)RamData.Pixels, Ram.Length);
         }
 
-        public byte[] GetRam()
+        public unsafe byte[] GetRam()
         {
-            byte[] Ram = new byte[RamData.Pixels.Length * 2];
+            byte[] Ram = new byte[RamData.size];
 
-            Buffer.BlockCopy(RamData.Pixels, 0, Ram, 0, Ram.Length);
+            Marshal.Copy((IntPtr)RamData.Pixels, Ram, 0, RamData.size);
 
             return Ram;
         }
 
-        public void SetFrameBuff(byte[] FrameBuffer)
+        public unsafe void SetFrameBuff(byte[] FrameBuffer)
         {
-            Buffer.BlockCopy(FrameBuffer, 0, FrameData.Pixels, 0, FrameBuffer.Length);
+            Marshal.Copy(FrameBuffer,0, (IntPtr)FrameData.Pixels, FrameBuffer.Length);
         }
 
-        public byte[] GetFrameBuff()
+        public unsafe byte[] GetFrameBuff()
         {
-            byte[] FrameBuffer = new byte[FrameData.Pixels.Length * 4];
 
-            Buffer.BlockCopy(FrameData.Pixels, 0, FrameBuffer, 0, FrameBuffer.Length);
+            byte[] FrameBuffer = new byte[FrameData.size];
+
+            Marshal.Copy((IntPtr)FrameData.Pixels, FrameBuffer, 0, FrameData.size);
 
             return FrameBuffer;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int w, int h) GetPixels(bool is24bit, int dy1, int dy2, int rx, int ry, int w, int h, int[] Pixels)
+        public unsafe (int w, int h) GetPixels(bool is24bit, int dy1, int dy2, int rx, int ry, int w, int h, int[] Pixels)
         {
             int retw, reth;
-
-            int[] IN = FrameData.Pixels;
 
             if (is24bit)
             {
@@ -97,14 +193,14 @@ namespace ScePSX
                     int offset = 0;
                     for (int x = 0; x < hRes; x += 2)
                     {
-                        int p0rgb = IN[srcBase + offset];
-                        int p1rgb = IN[srcBase + offset + 1];
-                        int p2rgb = IN[srcBase + offset + 2];
+                        int p0rgb = *(int*)(FrameData.Pixels + srcBase + offset);
+                        int p1rgb = *(int*)(FrameData.Pixels + srcBase + offset + 1);
+                        int p2rgb = *(int*)(FrameData.Pixels + srcBase + offset + 2);
                         offset += 3;
 
-                        ushort p0bgr555 = GetPixelBGR555(p0rgb);
-                        ushort p1bgr555 = GetPixelBGR555(p1rgb);
-                        ushort p2bgr555 = GetPixelBGR555(p2rgb);
+                        ushort p0bgr555 = rgb8888to1555(p0rgb);
+                        ushort p1bgr555 = rgb8888to1555(p1rgb);
+                        ushort p2bgr555 = rgb8888to1555(p2rgb);
 
                         int p0R = p0bgr555 & 0xFF;
                         int p0G = (p0bgr555 >> 8) & 0xFF;
@@ -130,7 +226,7 @@ namespace ScePSX
                 {
                     int srcIndex = rx + ((line - LineOffset + ry) * 1024);
                     int dstIndex = (line - LineOffset) * w;
-                    Array.Copy(IN, srcIndex, Pixels, dstIndex, w);
+                    Marshal.Copy((IntPtr)(FrameData.Pixels + srcIndex), Pixels, dstIndex, w);
                 });
 
                 retw = w;
@@ -142,7 +238,7 @@ namespace ScePSX
 
         public void SetVRAMTransfer(VRAMTransfer val)
         {
-             _VRAMTransfer = val;
+            _VRAMTransfer = val;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -168,19 +264,19 @@ namespace ScePSX
             CheckMaskBeforeDraw = (value & 0x2) != 0;
         }
 
-        public void SetDrawingAreaTopLeft(uint value)
+        public void SetDrawingAreaTopLeft(TDrawingArea value)
         {
-            DrawingAreaTopLeft = new TDrawingArea(value);
+            DrawingAreaTopLeft = value;
         }
 
-        public void SetDrawingAreaBottomRight(uint value)
+        public void SetDrawingAreaBottomRight(TDrawingArea value)
         {
-            DrawingAreaBottomRight = new TDrawingArea(value);
+            DrawingAreaBottomRight = value;
         }
 
-        public void SetDrawingOffset(uint value)
+        public void SetDrawingOffset(TDrawingOffset value)
         {
-            DrawingOffset = new TDrawingOffset(value);
+            DrawingOffset = value;
         }
 
         public void SetTextureWindow(uint value)
@@ -193,6 +289,7 @@ namespace ScePSX
             TextureWindowPostMaskY = (textureWindow.OffsetY & textureWindow.MaskY) * 8;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void FillRectVRAM(ushort x, ushort y, ushort w, ushort h, uint colorval)
         {
             GPUColor color = new GPUColor();
@@ -203,8 +300,8 @@ namespace ScePSX
 
             if (x + w <= 0x3FF && y + h <= 0x1FF)
             {
-                var span16 = new Span<ushort>(RamData.Pixels);
-                var span24 = new Span<int>(FrameData.Pixels);
+                var span16 = RamData.AsSpan();
+                var span24 = FrameData.AsSpan();
 
                 for (int yPos = y; yPos < h + y; yPos++)
                 {
@@ -227,6 +324,7 @@ namespace ScePSX
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyRectVRAMtoVRAM(ushort sx, ushort sy, ushort dx, ushort dy, ushort w, ushort h)
         {
             for (var yPos = 0; yPos < h; yPos++)
@@ -258,6 +356,7 @@ namespace ScePSX
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DrawPixel(ushort value)
         {
             if (CheckMaskBeforeDraw)
@@ -267,7 +366,7 @@ namespace ScePSX
                 if (bg >> 24 == 0)
                 {
                     var y1 = _VRAMTransfer.Y & 0x1FF;
-                    var color = Color1555To8888(value);
+                    var color = rgb1555To8888(value);
                     FrameData.SetPixel(_VRAMTransfer.X & 0x3FF, y1, color);
                     var y2 = _VRAMTransfer.Y & 0x1FF;
                     RamData.SetPixel(_VRAMTransfer.X & 0x3FF, y2, value);
@@ -275,7 +374,7 @@ namespace ScePSX
             } else
             {
                 var y1 = _VRAMTransfer.Y & 0x1FF;
-                var color = Color1555To8888(value);
+                var color = rgb1555To8888(value);
                 FrameData.SetPixel(_VRAMTransfer.X & 0x3FF, y1, color);
                 var y2 = _VRAMTransfer.Y & 0x1FF;
                 RamData.SetPixel(_VRAMTransfer.X & 0x3FF, y2, value);
@@ -290,6 +389,7 @@ namespace ScePSX
             _VRAMTransfer.Y++;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DrawLine(uint v1, uint v2, uint color1, uint color2, bool isTransparent, int SemiTransparency)
         {
             var x = Read11BitShort(v1 & 0xFFFF);
@@ -358,7 +458,7 @@ namespace ScePSX
                     color |= MaskWhileDrawing << 24;
                     FrameData.SetPixel(x, y, color);
 
-                    ushort color3 = (ushort)Rgb888ToRgb555(color);
+                    ushort color3 = (ushort)rgb888To555(color);
                     RamData.SetPixel(x, y, color3);
                 }
 
@@ -376,6 +476,7 @@ namespace ScePSX
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DrawRect(Point2D origin, Point2D size, TextureData texture, uint bgrColor, Primitive primitive)
         {
             var xOrigin = Math.Max(origin.X, DrawingAreaTopLeft.X);
@@ -436,12 +537,13 @@ namespace ScePSX
                     color |= MaskWhileDrawing << 24;
                     FrameData.SetPixel(x, y, color);
 
-                    ushort color3 = (ushort)Rgb888ToRgb555(color);
+                    ushort color3 = (ushort)rgb888To555(color);
                     RamData.SetPixel(x, y, color3);
                 }
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
             var area = Orient2d(v0, v1, v2);
@@ -559,7 +661,7 @@ namespace ScePSX
                         color |= MaskWhileDrawing << 24;
                         FrameData.SetPixel(x, y, color);
 
-                        ushort color3 = (ushort)Rgb888ToRgb555(color);
+                        ushort color3 = (ushort)rgb888To555(color);
                         RamData.SetPixel(x, y, color3);
                     }
 
@@ -577,17 +679,6 @@ namespace ScePSX
         #region Helpers
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ushort GetPixelBGR555(int color)
-        {
-            byte m = (byte)((color & 0xFF000000) >> 24);
-            byte r = (byte)((color & 0x00FF0000) >> 16 + 3);
-            byte g = (byte)((color & 0x0000FF00) >> 8 + 3);
-            byte b = (byte)((color & 0x000000FF) >> 3);
-
-            return (ushort)(m << 15 | b << 10 | g << 5 | r);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte ClampToFF(int v)
         {
             if (v > 0xFF)
@@ -601,17 +692,6 @@ namespace ScePSX
             if (v < 0)
                 return 0;
             return (byte)v;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Color1555To8888(ushort val)
-        {
-            var m = (byte)(val >> 15);
-            var r = (byte)((val & 0x1F) << 3);
-            var g = (byte)(((val >> 5) & 0x1F) << 3);
-            var b = (byte)(((val >> 10) & 0x1F) << 3);
-
-            return (m << 24) | (r << 16) | (g << 8) | b;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -662,6 +742,7 @@ namespace ScePSX
             return (Color0.M << 24) | (Color0.R << 16) | (Color0.G << 8) | Color0.B;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int HandleSemiTransp(int x, int y, int color, int semiTranspMode)
         {
             Color0.Value = (uint)FrameData.GetPixel(x, y); //back
@@ -696,7 +777,6 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Interpolate(int w0, int w1, int w2, int t0, int t1, int t2, int area)
         {
-            //https://codeplea.com/triangular-interpolation
             return (t0 * w0 + t1 * w1 + t2 * w2) / area;
         }
 
@@ -738,13 +818,35 @@ namespace ScePSX
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static short Rgb888ToRgb555(int color)
+        private static short rgb888To555(int color)
         {
-            var r = ((color >> 00) & 0xFF) * 31 / 255;
-            var g = ((color >> 08) & 0xFF) * 31 / 255;
-            var b = ((color >> 16) & 0xFF) * 31 / 255;
+            int r = LookupTable888to555[color & 0xFF];
+            int g = LookupTable888to555[(color >> 8) & 0xFF];
+            int b = LookupTable888to555[(color >> 16) & 0xFF];
 
             return (short)((r << 10) | (g << 5) | b);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int rgb1555To8888(ushort color)
+        {
+            var m = (byte)(color >> 15);
+            var r = LookupTable1555to8888[color & 0x1F];
+            var g = LookupTable1555to8888[(color >> 5) & 0x1F];
+            var b = LookupTable1555to8888[(color >> 10) & 0x1F];
+
+            return (m << 24) | (r << 16) | (g << 8) | b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ushort rgb8888to1555(int color)
+        {
+            byte m = (byte)((color & 0xFF000000) >> 24);
+            byte r = LookupTable8888to1555[(color & 0x00FF0000) >> 16];
+            byte g = LookupTable8888to1555[(color & 0x0000FF00) >> 8];
+            byte b = LookupTable8888to1555[color & 0x000000FF];
+
+            return (ushort)((m << 15) | (b << 10) | (g << 5) | r);
         }
 
         #endregion
