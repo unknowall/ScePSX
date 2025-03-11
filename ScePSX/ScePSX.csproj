@@ -19,7 +19,7 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Optimize>True</Optimize>
 	<DebugType>full</DebugType>
-	<NoWarn>1701;1702;CS8500;CS0649</NoWarn>
+	<NoWarn>1701;1702</NoWarn>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -27,7 +27,7 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Optimize>False</Optimize>
 	<DebugType>full</DebugType>
-	<NoWarn>1701;1702;CS8500;CS0649</NoWarn>
+	<NoWarn>1701;1702</NoWarn>
 </PropertyGroup>
 
 <ItemGroup>
@@ -53,10 +53,6 @@
 
   <ItemGroup>
     <Content Include="001.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Render\VulkanHelper.cs" />
   </ItemGroup>
 
   <ItemGroup>

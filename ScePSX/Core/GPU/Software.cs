@@ -229,11 +229,6 @@ namespace ScePSX
             return (retw, reth);
         }
 
-        public void SetVRAMTransfer(VRAMTransfer val)
-        {
-            _VRAMTransfer = val;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadFromVRAM()
         {
@@ -249,6 +244,11 @@ namespace ScePSX
             _VRAMTransfer.HalfWords -= 2;
 
             return (uint)((pixel1 << 16) | pixel0);
+        }
+
+        public void SetVRAMTransfer(VRAMTransfer val)
+        {
+            _VRAMTransfer = val;
         }
 
         public void SetMaskBit(uint value)

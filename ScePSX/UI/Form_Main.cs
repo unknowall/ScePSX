@@ -62,6 +62,8 @@ namespace ScePSX.UI
         public FrmMain()
         {
             //Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+            AllocConsole();
+            var ggg = new OpenglGPU();
 
             InitializeComponent();
 
