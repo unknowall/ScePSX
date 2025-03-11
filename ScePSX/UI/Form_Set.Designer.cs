@@ -56,12 +56,19 @@
             label10 = new System.Windows.Forms.Label();
             cbcpumode = new System.Windows.Forms.ComboBox();
             label11 = new System.Windows.Forms.Label();
+            label12 = new System.Windows.Forms.Label();
+            cbgpu = new System.Windows.Forms.ComboBox();
+            label13 = new System.Windows.Forms.Label();
+            cbgpures = new System.Windows.Forms.ComboBox();
+            chkrealcolor = new System.Windows.Forms.CheckBox();
+            chkpgxp = new System.Windows.Forms.CheckBox();
+            chkpgxpt = new System.Windows.Forms.CheckBox();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // btnsave
             // 
-            btnsave.Location = new System.Drawing.Point(343, 227);
+            btnsave.Location = new System.Drawing.Point(348, 266);
             btnsave.Name = "btnsave";
             btnsave.Size = new System.Drawing.Size(75, 27);
             btnsave.TabIndex = 0;
@@ -290,14 +297,14 @@
             // 
             cbbios.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbbios.FormattingEnabled = true;
-            cbbios.Location = new System.Drawing.Point(61, 190);
+            cbbios.Location = new System.Drawing.Point(74, 190);
             cbbios.Name = "cbbios";
             cbbios.Size = new System.Drawing.Size(141, 25);
             cbbios.TabIndex = 4;
             // 
             // btndel
             // 
-            btndel.Location = new System.Drawing.Point(236, 228);
+            btndel.Location = new System.Drawing.Point(241, 267);
             btndel.Name = "btndel";
             btndel.Size = new System.Drawing.Size(101, 27);
             btndel.TabIndex = 5;
@@ -319,25 +326,105 @@
             cbcpumode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbcpumode.FormattingEnabled = true;
             cbcpumode.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_性能优化模式, Properties.Resources.Form_Set_InitializeComponent_完整指令模式 });
-            cbcpumode.Location = new System.Drawing.Point(277, 190);
+            cbcpumode.Location = new System.Drawing.Point(309, 190);
             cbcpumode.Name = "cbcpumode";
-            cbcpumode.Size = new System.Drawing.Size(141, 25);
+            cbcpumode.Size = new System.Drawing.Size(109, 25);
             cbcpumode.TabIndex = 7;
             // 
             // label11
             // 
             label11.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            label11.Location = new System.Drawing.Point(12, 231);
+            label11.Location = new System.Drawing.Point(17, 270);
             label11.Name = "label11";
             label11.Size = new System.Drawing.Size(211, 23);
             label11.TabIndex = 8;
             label11.Text = Properties.Resources.Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改;
             // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new System.Drawing.Point(13, 231);
+            label12.Name = "label12";
+            label12.Size = new System.Drawing.Size(33, 17);
+            label12.TabIndex = 9;
+            label12.Text = "GPU";
+            // 
+            // cbgpu
+            // 
+            cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbgpu.Enabled = false;
+            cbgpu.FormattingEnabled = true;
+            cbgpu.Items.AddRange(new object[] { "software", "OpenGL", "Vulkan" });
+            cbgpu.Location = new System.Drawing.Point(74, 227);
+            cbgpu.Name = "cbgpu";
+            cbgpu.Size = new System.Drawing.Size(141, 25);
+            cbgpu.TabIndex = 10;
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new System.Drawing.Point(230, 231);
+            label13.Name = "label13";
+            label13.Size = new System.Drawing.Size(58, 17);
+            label13.TabIndex = 11;
+            label13.Text = Properties.Resources.Form_Set_InitializeComponent_GPU分辨率;
+            // 
+            // cbgpures
+            // 
+            cbgpures.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbgpures.Enabled = false;
+            cbgpures.FormattingEnabled = true;
+            cbgpures.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x(720P)", "4x", "5x(1080P)", "6x(1440P)", "7x", "8x", "9x(4K)" });
+            cbgpures.Location = new System.Drawing.Point(309, 227);
+            cbgpures.Name = "cbgpures";
+            cbgpures.Size = new System.Drawing.Size(109, 25);
+            cbgpures.TabIndex = 12;
+            // 
+            // chkrealcolor
+            // 
+            chkrealcolor.AutoSize = true;
+            chkrealcolor.Location = new System.Drawing.Point(15, 266);
+            chkrealcolor.Name = "chkrealcolor";
+            chkrealcolor.Size = new System.Drawing.Size(89, 21);
+            chkrealcolor.TabIndex = 13;
+            chkrealcolor.Text = Properties.Resources.Form_Set_InitializeComponent_真彩色渲染;
+            chkrealcolor.UseVisualStyleBackColor = true;
+            chkrealcolor.Visible = false;
+            // 
+            // chkpgxp
+            // 
+            chkpgxp.AutoSize = true;
+            chkpgxp.Location = new System.Drawing.Point(126, 266);
+            chkpgxp.Name = "chkpgxp";
+            chkpgxp.Size = new System.Drawing.Size(123, 21);
+            chkpgxp.TabIndex = 14;
+            chkpgxp.Text = Properties.Resources.Form_Set_InitializeComponent_PGXP几何校正;
+            chkpgxp.UseVisualStyleBackColor = true;
+            chkpgxp.Visible = false;
+            // 
+            // chkpgxpt
+            // 
+            chkpgxpt.AutoSize = true;
+            chkpgxpt.Location = new System.Drawing.Point(250, 266);
+            chkpgxpt.Name = "chkpgxpt";
+            chkpgxpt.Size = new System.Drawing.Size(112, 21);
+            chkpgxpt.TabIndex = 15;
+            chkpgxpt.Text = Properties.Resources.Form_Set_InitializeComponent_透视校正;
+            chkpgxpt.UseVisualStyleBackColor = true;
+            chkpgxpt.Visible = false;
+            // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(435, 266);
+            ClientSize = new System.Drawing.Size(435, 311);
+            Controls.Add(chkpgxpt);
+            Controls.Add(chkpgxp);
+            Controls.Add(chkrealcolor);
+            Controls.Add(cbgpures);
+            Controls.Add(label13);
+            Controls.Add(cbgpu);
+            Controls.Add(label12);
             Controls.Add(label11);
             Controls.Add(cbcpumode);
             Controls.Add(label10);
@@ -387,5 +474,12 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.ComboBox cbscalemode;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.ComboBox cbgpu;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.ComboBox cbgpures;
+        private System.Windows.Forms.CheckBox chkrealcolor;
+        private System.Windows.Forms.CheckBox chkpgxp;
+        private System.Windows.Forms.CheckBox chkpgxpt;
     }
 }

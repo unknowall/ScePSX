@@ -520,11 +520,29 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 GPU Res 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_GPU分辨率 {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_GPU分辨率", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Frame limit 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_limit {
             get {
                 return ResourceManager.GetString("Form_Set_InitializeComponent_limit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Correction 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXP几何校正 {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXP几何校正", resourceCulture);
             }
         }
         
@@ -574,11 +592,38 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 True Color 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_真彩色渲染 {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_真彩色渲染", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Adaptive 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_自适应 {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_自适应", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Setting 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_设置 {
             get {
                 return ResourceManager.GetString("Form_Set_InitializeComponent_设置", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Perspective Fix 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_透视校正 {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_透视校正", resourceCulture);
             }
         }
         

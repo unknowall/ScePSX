@@ -33,6 +33,9 @@ namespace ScePSX.UI
                 btndel.Visible = true;
                 this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
             }
+
+            cbgpu.SelectedIndex = 0;
+            cbgpures.SelectedIndex = 1;
         }
 
         private void edtxt_KeyPress(object sender, KeyPressEventArgs e)

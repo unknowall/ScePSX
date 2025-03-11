@@ -144,6 +144,8 @@ namespace ScePSX.UI
 
             InitShaderMnu();
 
+            BackColor = Color.Black;
+            StatusBar.BackColor = Color.White;
             this.Load += MainForm_Load;
             this.FormClosing += MainForm_Closing;
         }

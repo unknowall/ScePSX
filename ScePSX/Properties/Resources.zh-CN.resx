@@ -432,4 +432,19 @@
   <data name="Form_McrMange_InitializeComponent_MemcardMange" xml:space="preserve">
     <value>内存卡管理</value>
   </data>
+  <data name="Form_Set_InitializeComponent_透视校正" xml:space="preserve">
+    <value>透视校正</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXP几何校正" xml:space="preserve">
+    <value>PGXP几何校正</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_真彩色渲染" xml:space="preserve">
+    <value>真彩色渲染</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_GPU分辨率" xml:space="preserve">
+    <value>GPU分辨率</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_自适应" xml:space="preserve">
+    <value>自适应</value>
+  </data>
 </root>
