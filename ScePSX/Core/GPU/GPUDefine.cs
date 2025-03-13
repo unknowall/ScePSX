@@ -22,10 +22,17 @@ namespace ScePSX
         public bool IsTextured;
         public bool IsSemiTransparent;
         public bool IsRawTextured;
-        public int Depth;
-        public int SemiTransparencyMode;
+        public byte TextureDepth;
+        public byte SemiTransparencyMode;
+        public ushort clut;
         public Point2D Clut;
+        public ushort texturebase;
         public Point2D TextureBase;
+        public short texwidth;
+        public short texheight;
+        public ushort texpage;
+        public bool isDithered;
+        public uint rawcolor;
     }
 
     [Serializable]
@@ -139,6 +146,8 @@ namespace ScePSX
         public int OriginX;
         public int OriginY;
         public int HalfWords;
+        public int currentpos;
+        public bool isRead;
     }
 
     [Serializable]

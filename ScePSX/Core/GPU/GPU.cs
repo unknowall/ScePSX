@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace ScePSX
 {
@@ -148,6 +149,7 @@ namespace ScePSX
         {
             Ram = Manger.GPU.GetRam();
             FrameBuffer = Manger.GPU.GetFrameBuff();
+            _VRAMTransfer = Manger.GPU.GetVRAMTransfer();
         }
 
         public void DeSerialized()
@@ -502,7 +504,7 @@ namespace ScePSX
             pixel0 |= (ushort)(MaskWhileDrawing << 15);
             pixel1 |= (ushort)(MaskWhileDrawing << 15);
 
-            Manger.GPU.DrawPixel(pixel0);
+            Manger.GPU.WriteToVRAM(pixel0);
 
             // Force exit if we arrived to the end pixel (fixes weird artifacts on textures in Metal Gear Solid)
 
@@ -512,7 +514,7 @@ namespace ScePSX
                 return;
             }
 
-            Manger.GPU.DrawPixel(pixel1);
+            Manger.GPU.WriteToVRAM(pixel1);
 
             if (--_VRAMTransfer.HalfWords == 0)
             {
@@ -617,6 +619,7 @@ namespace ScePSX
             Manger.GPU.SetMaskBit(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GP0_RenderLine(Span<uint> buffer)
         {
             var command = buffer[Pointer++];
@@ -639,7 +642,10 @@ namespace ScePSX
             Manger.GPU.DrawLine(v1, v2, color1, color2, isTransparent, DrawMode.SemiTransparency);
 
             if (!isPoly)
+            {
+                Manger.GPU.DrawLineBatch(isTransparent, isPoly, DrawMode.Dither24BitTo15Bit, DrawMode.SemiTransparency);
                 return;
+            }
 
             while ((buffer[Pointer] & 0xF000_F000) != 0x5000_5000)
             {
@@ -655,9 +661,12 @@ namespace ScePSX
                 Manger.GPU.DrawLine(v1, v2, color1, color2, isTransparent, DrawMode.SemiTransparency);
             }
 
+            Manger.GPU.DrawLineBatch(isTransparent,isPoly, DrawMode.Dither24BitTo15Bit, DrawMode.SemiTransparency);
+
             Pointer++; // discard 5555_5555 termination (need to rewrite all this from the GP0...)
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void GP0_RenderPolygon(Span<uint> buffer)
         {
             var command = buffer[Pointer];
@@ -687,6 +696,7 @@ namespace ScePSX
                 c[1] = color; //triangle 2 opaque color
             }
 
+            primitive.isDithered = DrawMode.Dither24BitTo15Bit;
             primitive.SemiTransparencyMode = DrawMode.SemiTransparency;
 
             for (var i = 0; i < vertexN; i++)
@@ -704,22 +714,22 @@ namespace ScePSX
                     t[i].Value = (ushort)textureData;
                     if (i == 0)
                     {
-                        var palette = textureData >> 16;
-
-                        primitive.Clut.X = (short)((palette & 0x3f) << 4);
-                        primitive.Clut.Y = (short)((palette >> 6) & 0x1FF);
+                        primitive.clut = (ushort)(textureData >> 16);
+                        primitive.Clut.X = (short)((primitive.clut & 0x3f) << 4);
+                        primitive.Clut.Y = (short)((primitive.clut >> 6) & 0x1FF);
                     } else if (i == 1)
                     {
-                        var texpage = textureData >> 16;
+                        primitive.texpage = (ushort)(textureData >> 16);
 
                         //SET GLOBAL GPU E1
-                        DrawMode.TexturePageXBase = (byte)(texpage & 0xF);
-                        DrawMode.TexturePageYBase = (byte)((texpage >> 4) & 0x1);
-                        DrawMode.SemiTransparency = (byte)((texpage >> 5) & 0x3);
-                        DrawMode.TexturePageColors = (byte)((texpage >> 7) & 0x3);
-                        DrawMode.TextureDisable = IsTextureDisabledAllowed && ((texpage >> 11) & 0x1) != 0;
+                        DrawMode.TexturePageXBase = (byte)(primitive.texpage & 0xF);
+                        DrawMode.TexturePageYBase = (byte)((primitive.texpage >> 4) & 0x1);
+                        DrawMode.SemiTransparency = (byte)((primitive.texpage >> 5) & 0x3);
+                        DrawMode.TexturePageColors = (byte)((primitive.texpage >> 7) & 0x3);
+                        DrawMode.TextureDisable = IsTextureDisabledAllowed && ((primitive.texpage >> 11) & 0x1) != 0;
 
-                        primitive.Depth = DrawMode.TexturePageColors;
+                        primitive.TextureDepth = DrawMode.TexturePageColors;
+                        primitive.texturebase = (ushort)(DrawMode.TexturePageXBase | (((uint)DrawMode.TexturePageYBase) << 4));
                         primitive.TextureBase.X = (short)(DrawMode.TexturePageXBase << 6);
                         primitive.TextureBase.Y = (short)(DrawMode.TexturePageYBase << 8);
                         primitive.SemiTransparencyMode = DrawMode.SemiTransparency;
@@ -732,6 +742,7 @@ namespace ScePSX
                 Manger.GPU.DrawTriangle(v[1], v[2], v[3], t[1], t[2], t[3], c[1], c[2], c[3], primitive);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GP0_RenderRectangle(Span<uint> buffer)
         {
             //1st Color+Command(CcBbGgRrh)
@@ -763,12 +774,13 @@ namespace ScePSX
                 _TextureData.X = (byte)(texture & 0xFF);
                 _TextureData.Y = (byte)((texture >> 8) & 0xFF);
 
-                var palette = (ushort)((texture >> 16) & 0xFFFF);
-                primitive.Clut.X = (short)((palette & 0x3f) << 4);
-                primitive.Clut.Y = (short)((palette >> 6) & 0x1FF);
+                primitive.clut = (ushort)((texture >> 16) & 0xFFFF);
+                primitive.Clut.X = (short)((primitive.clut & 0x3f) << 4);
+                primitive.Clut.Y = (short)((primitive.clut >> 6) & 0x1FF);
             }
 
-            primitive.Depth = DrawMode.TexturePageColors;
+            primitive.TextureDepth = DrawMode.TexturePageColors;
+            primitive.texturebase = (ushort)(DrawMode.TexturePageXBase | (((uint)DrawMode.TexturePageYBase) << 4));
             primitive.TextureBase.X = (short)(DrawMode.TexturePageXBase << 6);
             primitive.TextureBase.Y = (short)(DrawMode.TexturePageYBase << 8);
             primitive.SemiTransparencyMode = DrawMode.SemiTransparency;
@@ -796,6 +808,10 @@ namespace ScePSX
                     height = 16;
                     break;
             }
+
+            primitive.rawcolor = command;
+            primitive.texwidth = width;
+            primitive.texheight = height;
 
             var y = Read11BitShort((uint)(yo + DrawingOffset.Y));
             var x = Read11BitShort((uint)(xo + DrawingOffset.X));
@@ -849,6 +865,8 @@ namespace ScePSX
             _VRAMTransfer.OriginX = x;
             _VRAMTransfer.OriginY = y;
             _VRAMTransfer.HalfWords = w * h;
+            _VRAMTransfer.currentpos = 0;
+            _VRAMTransfer.isRead = false;
 
             Manger.GPU.SetVRAMTransfer(_VRAMTransfer);
 
@@ -874,6 +892,8 @@ namespace ScePSX
             _VRAMTransfer.OriginX = x;
             _VRAMTransfer.OriginY = y;
             _VRAMTransfer.HalfWords = w * h;
+            _VRAMTransfer.currentpos = 0;
+            _VRAMTransfer.isRead = true;
 
             Manger.GPU.SetVRAMTransfer(_VRAMTransfer);
         }

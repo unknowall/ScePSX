@@ -175,7 +175,7 @@ namespace ScePSX
             gpu.host = Host;
 
             gpu.Manger = new GPUManager();
-            gpu.SelectGPU(GPUType.Software);
+            gpu.SelectGPU(GPUType.OpenGL);
             gpu.DeSerialized();
 
             cddata.LoadFileStream();

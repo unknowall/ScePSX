@@ -22,7 +22,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.4";
+        public static string version = "ScePSX Beta 0.1.5";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -63,7 +63,6 @@ namespace ScePSX.UI
         {
             //Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
             AllocConsole();
-            var ggg = new OpenglGPU();
 
             InitializeComponent();
 

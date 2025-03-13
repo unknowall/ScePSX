@@ -165,6 +165,15 @@ namespace ScePSX
             return FrameBuffer;
         }
 
+        public VRAMTransfer GetVRAMTransfer()
+        {
+            return _VRAMTransfer;
+        }
+
+        public void DrawLineBatch(bool isTransparent, bool isPolyLine, bool isDithered, int SemiTransparency)
+        {
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe (int w, int h) GetPixels(bool is24bit, int dy1, int dy2, int rx, int ry, int w, int h, int[] Pixels)
         {
@@ -350,7 +359,7 @@ namespace ScePSX
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DrawPixel(ushort value)
+        public void WriteToVRAM(ushort value)
         {
             if (CheckMaskBeforeDraw)
             {
@@ -502,7 +511,7 @@ namespace ScePSX
                         var texel = GetTexel(
                             MaskTexelAxis(u, TextureWindowPreMaskX, TextureWindowPostMaskX),
                             MaskTexelAxis(v, TextureWindowPreMaskY, TextureWindowPostMaskY),
-                            primitive.Clut, primitive.TextureBase, primitive.Depth);
+                            primitive.Clut, primitive.TextureBase, primitive.TextureDepth);
 
                         if (texel == 0)
                         {
@@ -622,7 +631,7 @@ namespace ScePSX
                             var texelY = Interpolate(w0 - bias0, w1 - bias1, w2 - bias2, t0.Y, t1.Y, t2.Y, area);
                             var texel = GetTexel(MaskTexelAxis(texelX, TextureWindowPreMaskX, TextureWindowPostMaskX),
                                 MaskTexelAxis(texelY, TextureWindowPreMaskY, TextureWindowPostMaskY), primitive.Clut, primitive.TextureBase,
-                                primitive.Depth);
+                                primitive.TextureDepth);
 
                             if (texel == 0)
                             {

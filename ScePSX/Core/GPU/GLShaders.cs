@@ -1,16 +1,23 @@
 ﻿
 using System;
 using System.Text;
-using Microsoft.VisualBasic.Logging;
 using OpenGL;
 
 namespace ScePSX
 {
-    public class OpenGlShader
+    public class GlShader
     {
         public uint Program;
 
-        public OpenGlShader(string[] vert, string[] frag)
+        public GlShader()
+        {
+            Load(
+                ShaderStrings.VertixShader.Split(new string[] { "\r" }, StringSplitOptions.None),
+                ShaderStrings.FragmentShader.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+        }
+
+        public void Load(string[] vert, string[] frag)
         {
             uint vertexShader = Gl.CreateShader(ShaderType.VertexShader);
             Gl.ShaderSource(vertexShader, vert);
@@ -68,11 +75,12 @@ namespace ScePSX
     {
 
         public static string VertixShader = @"
-            #version 330
+            #version 330 
 
             layout(location = 0) in ivec2 vertixInput;
             layout(location = 1) in uvec3 vColors;
             layout(location = 2) in vec2 inUV;
+
 
             out vec3 color_in;
             out vec2 texCoords;
@@ -96,13 +104,20 @@ namespace ScePSX
 
             void main()
             {
+    
+            //Convert x from [0,1023] and y from [0,511] coords to [-1,1]
 
             float xpos = ((float(vertixInput.x) + 0.5) / 512.0) - 1.0;
             float ypos = ((float(vertixInput.y) - 0.5) / 256.0) - 1.0;
 
-            vec4 positions[4];
+            //float xpos = ((float(vertixInput.x) / 1024.0) * 2.0) - 1.0;
+            //float ypos = ((float(vertixInput.y) / 512.0) * 2.0) - 1.0;
+
+	        vec4 positions[4];
             vec2 texcoords[4];
             renderModeFrag = renderMode;
+            
+            //TODO: Clean up 
 
             switch(renderMode){
                  case 0:            
@@ -118,19 +133,19 @@ namespace ScePSX
 
                         return;
 
-                 case 1:
+                 case 1:         //16/24bpp vram -> Screen
                  case 2:         
                         positions = vec4[](
-                        vec4(-1.0 + aspect_ratio_x_offset, 1.0 - aspect_ratio_y_offset, 1.0, 1.0),
-                        vec4(1.0 - aspect_ratio_x_offset, 1.0 - aspect_ratio_y_offset, 1.0, 1.0),
-                        vec4(-1.0 + aspect_ratio_x_offset, -1.0 + aspect_ratio_y_offset, 1.0, 1.0),
-                        vec4(1.0 - aspect_ratio_x_offset, -1.0 + aspect_ratio_y_offset, 1.0, 1.0));
+                        vec4(-1.0 + aspect_ratio_x_offset, 1.0 - aspect_ratio_y_offset, 1.0, 1.0),    // Top-left
+                        vec4(1.0 - aspect_ratio_x_offset, 1.0 - aspect_ratio_y_offset, 1.0, 1.0),     // Top-right
+                        vec4(-1.0 + aspect_ratio_x_offset, -1.0 + aspect_ratio_y_offset, 1.0, 1.0),   // Bottom-left
+                        vec4(1.0 - aspect_ratio_x_offset, -1.0 + aspect_ratio_y_offset, 1.0, 1.0));   // Bottom-right
 
-                        texcoords = vec2[](
-                        vec2(display_area_x_start, display_area_y_start),
-                        vec2(display_area_x_end, display_area_y_start),
-                        vec2(display_area_x_start, display_area_y_end),
-                        vec2(display_area_x_end, display_area_y_end));
+                        texcoords = vec2[](		//Inverted in Y because PS1 Y coords are inverted
+                        vec2(display_area_x_start, display_area_y_start),   			    // Top-left
+                        vec2(display_area_x_end, display_area_y_start),                     // Top-right
+                        vec2(display_area_x_start, display_area_y_end),                     // Bottom-left
+                        vec2(display_area_x_end, display_area_y_end));                      // Bottom-right
 
                         break;
             }
@@ -141,10 +156,11 @@ namespace ScePSX
 
             return;
 
+              
             }";
 
         public static string FragmentShader = @"
-            #version 330
+            #version 330 
 
             in vec3 color_in;
             in vec2 texCoords;
@@ -156,7 +172,7 @@ namespace ScePSX
             uniform int isDithered;
             uniform int transparencyMode;                   //4 = disabled
             uniform int maskBitSetting;
-            uniform int isCopy = 0;
+            uniform int isCopy = 0;                         //Only change when doing copy by render
 
             flat in int renderModeFrag;
 
@@ -164,6 +180,7 @@ namespace ScePSX
 
             uniform sampler2D u_vramTex;
 
+            //out vec4 outputColor;
             layout(location = 0, index = 0) out vec4 outputColor;
             layout(location = 0, index = 1) out vec4 outputBlendColor;
 
@@ -185,6 +202,9 @@ namespace ScePSX
 
                colors = colors * vec3(255.0, 255.0, 255.0);
                colors = colors + vec3(ditherOffset, ditherOffset ,ditherOffset);
+
+               //Clamping to [0,255] (or [0,1]) is automatically done because 
+               //the frame buffer format is of a normalized fixed-point (RGB5A1)
 
               return colors / vec3(255.0, 255.0, 255.0);
 
@@ -247,9 +267,12 @@ namespace ScePSX
 
             vec4 handle24bpp(ivec2 coords){
 
-                 int xx = ((coords.x << 1) + coords.x) >> 1;
+                 //Each 6 bytes (3 shorts) contain two 24bit pixels.
+                 //Step 1.5 short for each x since 1 24bits = 3/2 shorts 
 
-                 if(xx > 1022 || coords.y > 511){ return vec4(0.0f, 0.0f, 0.0f, 0.0f); } 
+                 int xx = ((coords.x << 1) + coords.x) >> 1; //xx = int(coords.x * 1.5)
+
+                 if(xx > 1022 || coords.y > 511){ return vec4(0.0f, 0.0f, 0.0f, 0.0f); }  //Ignore reading out of vram
                     
                  int p0 = sample16(ivec2(xx, coords.y));
                  int p1 = sample16(ivec2(xx + 1, coords.y));
@@ -287,11 +310,13 @@ namespace ScePSX
                             return;
                 }
 
+
+                //Fix up UVs and apply texture window
                   ivec2 UV = ivec2(floor(texCoords + vec2(0.0001, 0.0001))) & ivec2(0xFF);
                   UV = (UV & ~(u_texWindow.xy * 8)) | ((u_texWindow.xy & u_texWindow.zw) * 8); //XY contain Mask, ZW contain Offset  
 
 
-  	            if(TextureMode == -1){
+  	            if(TextureMode == -1){		//No texture, for now i am using my own flag (TextureMode) instead of (inTexpage & 0x8000) 
     		             outputColor.rgb = vec3(color_in.r, color_in.g, color_in.b);
                          outputBlendColor = handleAlphaValues();
                             if((maskBitSetting & 1) == 1){
@@ -323,6 +348,8 @@ namespace ScePSX
 
                         outputColor = texBlend(outputColor, vec4(color_in,1.0));
 
+                        //Check if pixel is transparent depending on bit 15 of the final color value
+
                         bool isTransparent = (((sample16(sampleCoords) >> 15) & 1) == 1);     
 
                         if(isTransparent && transparencyMode != 4){
@@ -330,6 +357,8 @@ namespace ScePSX
                         }else{
                           outputBlendColor = vec4(1.0, 1.0, 1.0, 0.0);
                         }
+
+                        //Handle Mask Bit setting
 
 		                  if((maskBitSetting & 1) == 1){
                                 outputColor.a = 1.0;
@@ -358,6 +387,8 @@ namespace ScePSX
 
                            outputColor = texBlend(outputColor, vec4(color_in,1.0));
 
+                           //Check if pixel is transparent depending on bit 15 of the final color value
+
                             bool isTransparent = (((sample16(sampleCoords) >> 15) & 1) == 1);     
                         
                             if(isTransparent && transparencyMode != 4){
@@ -367,6 +398,8 @@ namespace ScePSX
                                 outputBlendColor = vec4(1.0, 1.0, 1.0, 0.0);
                             }
 
+                        
+                            //Handle Mask Bit setting
                             if((maskBitSetting & 1) == 1){
                                 outputColor.a = 1.0;
                              }
@@ -391,6 +424,8 @@ namespace ScePSX
                                 ((outputColor.rgba == vec4(0.0, 0.0, 0.0, 1.0)) && (transparencyMode != 4))) { discard; }
 
                                 outputColor = texBlend(outputColor, vec4(color_in,1.0));	
+                            
+                                //Check if pixel is transparent depending on bit 15 of the final color value
 
                                  bool isTransparent = (((sample16(texelCoord) >> 15) & 1) == 1);     
 
@@ -406,6 +441,9 @@ namespace ScePSX
                                 outputBlendColor  = vec4(1.0, 1.0, 1.0, 0.0);
                         }
 
+ 		               
+                        //Handle Mask Bit setting (affects both render and copy commands)
+
                         if((maskBitSetting & 1) == 1){
                                 outputColor.a = 1.0;
                         }      
@@ -419,6 +457,7 @@ namespace ScePSX
                                     
 	                }
 
+                    //Dithering is the same for all modes 
                     if(isDithered == 1){    
                          outputColor.rgb = dither(outputColor.rgb, gl_FragCoord.xy - vec2(0.5, 0.5));
                     }

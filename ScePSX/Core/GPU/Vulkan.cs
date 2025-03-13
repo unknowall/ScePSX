@@ -38,6 +38,11 @@
             return null;
         }
 
+        public VRAMTransfer GetVRAMTransfer()
+        {
+            return new VRAMTransfer();
+        }
+
         public (int w, int h) GetPixels(bool is24bit, int dy1, int dy2, int rx, int ry, int w, int h, int[] Pixels)
         {
             if (is24bit)
@@ -47,6 +52,10 @@
             }
 
             return (w, h);
+        }
+
+        public void DrawLineBatch(bool isTransparent, bool isPolyLine, bool isDithered, int SemiTransparency)
+        {
         }
 
         public void SetVRAMTransfer(VRAMTransfer val)
@@ -86,7 +95,7 @@
         {
         }
 
-        public void DrawPixel(ushort value)
+        public void WriteToVRAM(ushort value)
         {
         }
 
