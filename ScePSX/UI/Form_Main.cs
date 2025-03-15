@@ -51,6 +51,8 @@ namespace ScePSX.UI
         private System.Windows.Forms.Timer timer;
 
         public ScaleParam scale;
+        public int IRscale = 1;
+        public bool PGXP, PGXPT, Realcolor, AutoIR;
         private bool cutblackline = false;
         private int[] cutbuff = new int[1024 * 512];
 
@@ -62,7 +64,6 @@ namespace ScePSX.UI
         public FrmMain()
         {
             //Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
-            AllocConsole();
 
             InitializeComponent();
 
@@ -209,6 +210,17 @@ namespace ScePSX.UI
                 UpdateStatus(1, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中, true);
             }
 
+            if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL && AutoIR)
+            {
+                if (this.ClientSize.Width >= 800 && this.ClientSize.Height >= 600)
+                    IRscale = 3;
+                if (this.ClientSize.Width >= 1280 && this.ClientSize.Height >= 800)
+                    IRscale = 4;
+                if (this.ClientSize.Width >= 1920 && this.ClientSize.Height >= 1080)
+                    IRscale = 5;
+                Core.IRScale = IRscale;
+            }
+
             this.Text = $"{version}  -  {gamename}";
 
             int scalew = CoreWidth;
@@ -226,8 +238,8 @@ namespace ScePSX.UI
                 scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
-            UpdateStatus(5, rendername);
-            UpdateStatus(6, $"{(scale.scale > 0 ? scale.mode.ToString() : "")} IR {scalew}*{scaleh}");
+            UpdateStatus(5, $"{Core.PsxBus.gpu.Backend.GPU.type.ToString()} [IRx{IRscale}] -> {rendername}");
+            UpdateStatus(6, $"{(scale.scale > 0 ? scale.mode.ToString() : "")} {scalew}*{scaleh}");
             UpdateStatus(7, $"FPS {_currentFps:F1}");
         }
 
@@ -573,15 +585,31 @@ namespace ScePSX.UI
         private void xBRScaleAdd_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
-                if (scale.scale < 8)
+            {
+                if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+                {
+                    IRscale = IRscale < 9 ? IRscale+1 : 9;
+                    Core.IRScale = IRscale;
+                    AutoIR = false;
+
+                } else if (scale.scale < 8)
                     scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
+            }
         }
 
         private void xBRScaleDec_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
-                if (scale.scale > 0)
+            {
+                if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+                {
+                    IRscale = IRscale > 1 ? IRscale-1 : 1;
+                    Core.IRScale = IRscale;
+                    AutoIR = false;
+
+                } else if (scale.scale > 0)
                     scale.scale /= 2;
+            }
         }
 
         private void MnuPause_Click(object sender, EventArgs e)
@@ -739,16 +767,12 @@ namespace ScePSX.UI
             }
             if (e.KeyCode == Keys.F11)
             {
-                if (Core != null && Core.Running)
-                    if (scale.scale < 8)
-                        scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
+                xBRScaleAdd_Click(null,null);
                 return;
             }
             if (e.KeyCode == Keys.F12)
             {
-                if (Core != null && Core.Running)
-                    if (scale.scale > 0)
-                        scale.scale /= 2;
+                xBRScaleDec_Click(null,null);
                 return;
             }
 
@@ -832,7 +856,19 @@ namespace ScePSX.UI
 
             currbios = ini.Read("main", "bios");
 
-            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, gameid);
+            int gpumode = ini.ReadInt("main", "GpuMode");
+
+            IRscale = ini.ReadInt("main", "GpuModeScale");
+
+            AutoIR = IRscale == 0;
+
+            PGXP = ini.ReadInt("main", "PGXP") == 1;
+
+            PGXPT = ini.ReadInt("main", "PGXPT") == 1;
+
+            Realcolor = ini.ReadInt("main", "RealColor") == 1;
+
+            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, (GPUType)gpumode, gameid);
 
             if (Core.DiskID == "")
             {
@@ -843,6 +879,17 @@ namespace ScePSX.UI
             sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
             SetAudioBuffer();
+
+            if ((GPUType)gpumode == GPUType.OpenGL)
+            {
+                IRscale = IRscale < 1 ? 1 : IRscale;
+                Core.IRScale = IRscale;
+                Core.PGXPT = PGXP;
+                Core.PGXPT = PGXPT;
+            } else
+            {
+                IRscale = 1;
+            }
 
             if (ini.ReadInt("Main", "Console") == 1)
             {
@@ -997,7 +1044,7 @@ namespace ScePSX.UI
                 }
                 Console.WriteLine($"Controller Device 2 : {SDL_JoystickNameForIndex(1)} Connected");
             }
-        } 
+        }
 
         private void QueryControllerState(int conidx)
         {

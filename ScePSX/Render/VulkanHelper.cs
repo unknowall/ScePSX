@@ -224,7 +224,10 @@ namespace ScePSX.Render
         {
             if (_count == _items.Length)
             {
-                Array.Resize(ref _items, (int)(_items.Length * GrowthFactor));
+                if (_items.Length > 0)
+                    Array.Resize(ref _items, (int)(_items.Length * GrowthFactor));
+                else
+                    Array.Resize(ref _items, (int)(1 * GrowthFactor));
             }
 
             _items[_count] = item;
@@ -235,7 +238,10 @@ namespace ScePSX.Render
         {
             if (_count == _items.Length)
             {
-                Array.Resize(ref _items, (int)(_items.Length * GrowthFactor));
+                if (_items.Length > 0)
+                    Array.Resize(ref _items, (int)(_items.Length * GrowthFactor));
+                else
+                    Array.Resize(ref _items, (int)(1 * GrowthFactor));
             }
 
             _items[_count] = item;

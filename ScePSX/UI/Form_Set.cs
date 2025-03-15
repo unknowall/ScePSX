@@ -33,9 +33,23 @@ namespace ScePSX.UI
                 btndel.Visible = true;
                 this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
             }
+            cbgpu.SelectedIndexChanged += Cbgpu_SelectedIndexChanged;
+        }
 
-            cbgpu.SelectedIndex = 0;
-            cbgpures.SelectedIndex = 1;
+        private void Cbgpu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbgpu.SelectedIndex > 0)
+            {
+                cbgpures.Enabled = true;
+                chkpgxp.Enabled = true;
+                chkpgxpt.Enabled = true;
+            } else
+            {
+                cbgpures.Enabled = false;
+                chkpgxp.Enabled = false;
+                chkpgxpt.Enabled = false;
+            }
+
         }
 
         private void edtxt_KeyPress(object sender, KeyPressEventArgs e)
@@ -88,7 +102,14 @@ namespace ScePSX.UI
             chkTTY.Checked = ini.ReadInt("Main", "TTYDebug") == 1;
             cbconsole.Checked = ini.ReadInt("Main", "Console") == 1;
 
+            chkpgxp.Checked = ini.ReadInt("Main", "PGXP") == 1;
+            chkpgxpt.Checked = ini.ReadInt("Main", "PGXPT") == 1;
+            chkrealcolor.Checked = ini.ReadInt("Main", "RealColor") == 1;
+
             cbcpumode.SelectedIndex = ini.ReadInt("Main", "CpuMode");
+
+            cbgpu.SelectedIndex = ini.ReadInt("Main", "GpuMode");
+            cbgpures.SelectedIndex = ini.ReadInt("Main", "GpuModeScale");
 
             var currbios = ini.Read("main", "bios");
 
@@ -107,6 +128,8 @@ namespace ScePSX.UI
                         cbbios.SelectedIndex = cbbios.Items.Count - 1;
                 }
             }
+
+            Cbgpu_SelectedIndexChanged(null,null);
         }
 
         private void saveini(IniFile ini)
@@ -127,7 +150,14 @@ namespace ScePSX.UI
                 ini.WriteInt("Main", "TTYDebug", chkTTY.Checked ? 1 : 0);
                 ini.WriteInt("Main", "Console", cbconsole.Checked ? 1 : 0);
 
+                ini.WriteInt("Main", "PGXP", chkpgxp.Checked ? 1 : 0);
+                ini.WriteInt("Main", "PGXPT", chkpgxpt.Checked ? 1 : 0);
+                ini.WriteInt("Main", "RealColor", chkrealcolor.Checked ? 1 : 0);
+
                 ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
+
+                ini.WriteInt("Main", "GpuMode", cbgpu.SelectedIndex);
+                ini.WriteInt("Main", "GpuModeScale", cbgpures.SelectedIndex);
 
                 ini.WriteInt("Main", "ScaleMode", cbscalemode.SelectedIndex);
 

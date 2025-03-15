@@ -76,7 +76,7 @@ namespace ScePSX
         [NonSerialized]
         private unsafe byte* memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
 
-        public BUS(ICoreHandler Host, string BiosFile, string RomFile, string diskid = "")
+        public BUS(ICoreHandler Host, string BiosFile, string RomFile, GPUType gputype, string diskid = "")
         {
             InitializeJumpTables();
 
@@ -110,7 +110,7 @@ namespace ScePSX
             memoryCard2 = new MemCard("./Save/MemCard2.dat");
             joybus = new JoyBus(controller1, controller2, memoryCard, memoryCard2);
 
-            gpu = new GPU(Host);
+            gpu = new GPU(Host, gputype);
 
             timers = new TIMERS();
             mdec = new MDEC();
@@ -147,7 +147,7 @@ namespace ScePSX
             gpu.ReadySerialized();
         }
 
-        public unsafe void DeSerializable(ICoreHandler Host)
+        public unsafe void DeSerializable(ICoreHandler Host, GPUType gputype)
         {
             ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
             scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
@@ -174,8 +174,8 @@ namespace ScePSX
             spu.host = Host;
             gpu.host = Host;
 
-            gpu.Manger = new GPUManager();
-            gpu.SelectGPU(GPUType.OpenGL);
+            gpu.Backend = new GPUBackend();
+            gpu.SelectGPU(gputype);
             gpu.DeSerialized();
 
             cddata.LoadFileStream();

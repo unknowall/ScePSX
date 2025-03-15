@@ -51,10 +51,14 @@
             {
             }
 
-            return (w, h);
+            return (0, -1);
         }
 
-        public void DrawLineBatch(bool isTransparent, bool isPolyLine, bool isDithered, int SemiTransparency)
+        public void DrawLineBatch(bool isDithered, bool SemiTransparency)
+        {
+        }
+
+        public void WriteDone()
         {
         }
 

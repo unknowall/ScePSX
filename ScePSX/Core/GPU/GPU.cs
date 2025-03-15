@@ -51,7 +51,7 @@ namespace ScePSX
 
         public bool Debugging;
 
-        private ushort DisplayVRAMStartX, DisplayVRAMStartY, DisplayX1, DisplayX2, DisplayY1, DisplayY2;
+        private ushort DisplayVRAMStartX, DisplayVRAMStartY, DisplayHorizontalStart, DisplayHorizontalEnd, DisplayVerticalStart, DisplayVerticalEnd;
 
         private int horizontalRes, verticalRes, OutWidth, OutHeight;
 
@@ -97,7 +97,7 @@ namespace ScePSX
 
         private TDisplayMode DisplayMode;
 
-        private int[] _Pixels = new int[1024 * 512];
+        private int[] _Pixels = new int[4096 * 2160];
 
         //for Serialized
         private uint SetTextureWindow_value;
@@ -110,7 +110,7 @@ namespace ScePSX
         public ICoreHandler host;
 
         [NonSerialized]
-        public GPUManager Manger = new GPUManager();
+        public GPUBackend Backend = new GPUBackend();
 
         private static IReadOnlyList<byte> CommandSizeTable = new byte[]
         {
@@ -134,28 +134,28 @@ namespace ScePSX
         /*0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F */
         };
 
-        public GPU(ICoreHandler Host, GPUType type = GPUType.Software)
+        public GPU(ICoreHandler Host, GPUType type = GPUType.OpenGL)
         {
             this.host = Host;
 
             _Mode = GPMode.COMMAND;
 
-            Manger.SelectMode(type);
+            Backend.SelectMode(type);
 
             GP1_00_ResetGPU();
         }
 
         public void ReadySerialized()
         {
-            Ram = Manger.GPU.GetRam();
-            FrameBuffer = Manger.GPU.GetFrameBuff();
-            _VRAMTransfer = Manger.GPU.GetVRAMTransfer();
+            Ram = Backend.GPU.GetRam();
+            FrameBuffer = Backend.GPU.GetFrameBuff();
+            _VRAMTransfer = Backend.GPU.GetVRAMTransfer();
         }
 
         public void DeSerialized()
         {
-            Manger.GPU.SetRam(Ram);
-            Manger.GPU.SetFrameBuff(FrameBuffer);
+            Backend.GPU.SetRam(Ram);
+            Backend.GPU.SetFrameBuff(FrameBuffer);
 
             Ram = null;
             FrameBuffer = null;
@@ -163,27 +163,27 @@ namespace ScePSX
 
         public void SelectGPU(GPUType type = GPUType.Software)
         {
-            if (Manger.GPU != null)
+            if (Backend.GPU != null)
             {
                 ReadySerialized();
-                Manger.SelectMode(type);
+                Backend.SelectMode(type);
                 DeSerialized();
             } else
             {
-                Manger.SelectMode(type);
+                Backend.SelectMode(type);
             }
 
-            Manger.GPU.SetTextureWindow(SetTextureWindow_value);
+            Backend.GPU.SetTextureWindow(SetTextureWindow_value);
 
-            Manger.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
+            Backend.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
 
-            Manger.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
+            Backend.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
 
-            Manger.GPU.SetDrawingOffset(DrawingOffset);
+            Backend.GPU.SetDrawingOffset(DrawingOffset);
 
-            Manger.GPU.SetMaskBit(SetMaskBit_value);
+            Backend.GPU.SetMaskBit(SetMaskBit_value);
 
-            Manger.GPU.SetVRAMTransfer(_VRAMTransfer);
+            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
         }
 
         public bool tick(int cycles)
@@ -212,10 +212,13 @@ namespace ScePSX
                 IsOddLine = !IsOddLine;
             }
 
-            (OutWidth, OutHeight) = Manger.GPU.GetPixels
+            int[] display = new int[] { DisplayVRAMStartX, DisplayVRAMStartY, DisplayHorizontalStart, DisplayHorizontalEnd, DisplayVerticalStart, DisplayVerticalEnd };
+            Backend.GPU.SetParams(display);
+
+            (OutWidth, OutHeight) = Backend.GPU.GetPixels
                 (
                 DisplayMode.Is24BitDepth,
-                DisplayY1, DisplayY2,
+                DisplayVerticalStart, DisplayVerticalEnd,
                 DisplayVRAMStartX, DisplayVRAMStartY,
                 horizontalRes, verticalRes,
                 _Pixels
@@ -230,8 +233,8 @@ namespace ScePSX
         public (int dot, bool hblank, bool bBlank) GetBlanksAndDot()
         {
             var dot = DotClockDiv[(DisplayMode.HorizontalResolution2 << 2) | DisplayMode.HorizontalResolution1];
-            var hBlank = VideoCycles < DisplayX1 || VideoCycles > DisplayX2;
-            var vBlank = ScanLine < DisplayY1 || ScanLine > DisplayY2;
+            var hBlank = VideoCycles < DisplayHorizontalStart || VideoCycles > DisplayHorizontalEnd;
+            var vBlank = ScanLine < DisplayVerticalStart || ScanLine > DisplayVerticalEnd;
 
             return (dot, hBlank, vBlank);
         }
@@ -361,7 +364,7 @@ namespace ScePSX
 
             if (_VRAMTransfer.HalfWords > 0)
             {
-                value = Manger.GPU.ReadFromVRAM();
+                value = Backend.GPU.ReadFromVRAM();
             } else
             {
                 value = GPUREADData;
@@ -504,20 +507,22 @@ namespace ScePSX
             pixel0 |= (ushort)(MaskWhileDrawing << 15);
             pixel1 |= (ushort)(MaskWhileDrawing << 15);
 
-            Manger.GPU.WriteToVRAM(pixel0);
+            Backend.GPU.WriteToVRAM(pixel0);
 
             // Force exit if we arrived to the end pixel (fixes weird artifacts on textures in Metal Gear Solid)
 
             if (--_VRAMTransfer.HalfWords == 0)
             {
+                Backend.GPU.WriteDone();
                 _Mode = GPMode.COMMAND;
                 return;
             }
 
-            Manger.GPU.WriteToVRAM(pixel1);
+            Backend.GPU.WriteToVRAM(pixel1);
 
             if (--_VRAMTransfer.HalfWords == 0)
             {
+                Backend.GPU.WriteDone();
                 _Mode = GPMode.COMMAND;
             }
         }
@@ -552,7 +557,7 @@ namespace ScePSX
             ushort w = (ushort)(((hw & 0x3FF) + 0xF) & ~0xF);
             ushort h = (ushort)((hw >> 16) & 0x1FF);
 
-            Manger.GPU.FillRectVRAM(x, y, w, h, color);
+            Backend.GPU.FillRectVRAM(x, y, w, h, color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -585,28 +590,28 @@ namespace ScePSX
 
             TextureWindowBits = bits;
 
-            Manger.GPU.SetTextureWindow(value);
+            Backend.GPU.SetTextureWindow(value);
         }
 
         private void GP0_E3_SetDrawingAreaTopLeft(uint value)
         {
             DrawingAreaTopLeft = new TDrawingArea(value);
 
-            Manger.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
+            Backend.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
         }
 
         private void GP0_E4_SetDrawingAreaBottomRight(uint value)
         {
             DrawingAreaBottomRight = new TDrawingArea(value);
 
-            Manger.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
+            Backend.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
         }
 
         private void GP0_E5_SetDrawingOffset(uint value)
         {
             DrawingOffset = new TDrawingOffset(value);
 
-            Manger.GPU.SetDrawingOffset(DrawingOffset);
+            Backend.GPU.SetDrawingOffset(DrawingOffset);
         }
 
         private void GP0_E6_SetMaskBit(uint value)
@@ -616,7 +621,7 @@ namespace ScePSX
             MaskWhileDrawing = (int)(value & 0x1);
             CheckMaskBeforeDraw = (value & 0x2) != 0;
 
-            Manger.GPU.SetMaskBit(value);
+            Backend.GPU.SetMaskBit(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -639,11 +644,11 @@ namespace ScePSX
 
             var v2 = buffer[Pointer++];
 
-            Manger.GPU.DrawLine(v1, v2, color1, color2, isTransparent, DrawMode.SemiTransparency);
+            Backend.GPU.DrawLine(v1, v2, color1, color2, isTransparent, DrawMode.SemiTransparency);
 
             if (!isPoly)
             {
-                Manger.GPU.DrawLineBatch(isTransparent, isPoly, DrawMode.Dither24BitTo15Bit, DrawMode.SemiTransparency);
+                Backend.GPU.DrawLineBatch(DrawMode.Dither24BitTo15Bit, isTransparent);
                 return;
             }
 
@@ -658,10 +663,10 @@ namespace ScePSX
                 v1 = v2;
                 v2 = buffer[Pointer++];
 
-                Manger.GPU.DrawLine(v1, v2, color1, color2, isTransparent, DrawMode.SemiTransparency);
+                Backend.GPU.DrawLine(v1, v2, color1, color2, isTransparent, DrawMode.SemiTransparency);
             }
 
-            Manger.GPU.DrawLineBatch(isTransparent,isPoly, DrawMode.Dither24BitTo15Bit, DrawMode.SemiTransparency);
+            Backend.GPU.DrawLineBatch(DrawMode.Dither24BitTo15Bit, isTransparent);
 
             Pointer++; // discard 5555_5555 termination (need to rewrite all this from the GP0...)
         }
@@ -696,8 +701,10 @@ namespace ScePSX
                 c[1] = color; //triangle 2 opaque color
             }
 
-            primitive.isDithered = DrawMode.Dither24BitTo15Bit;
+            primitive.isDithered = DrawMode.Dither24BitTo15Bit && (isShaded || (isRawTextured && !isTextured));
             primitive.SemiTransparencyMode = DrawMode.SemiTransparency;
+            primitive.texpage = (ushort)(GetTexpageFromGpu() & 0x00001ff);
+            primitive.drawMode = DrawMode;
 
             for (var i = 0; i < vertexN; i++)
             {
@@ -710,16 +717,16 @@ namespace ScePSX
 
                 if (isTextured)
                 {
-                    var textureData = buffer[Pointer++];
-                    t[i].Value = (ushort)textureData;
+                    primitive.rawtexcoord = buffer[Pointer++];
+                    t[i].Value = (ushort)primitive.rawtexcoord;
                     if (i == 0)
                     {
-                        primitive.clut = (ushort)(textureData >> 16);
+                        primitive.clut = (ushort)(primitive.rawtexcoord >> 16);
                         primitive.Clut.X = (short)((primitive.clut & 0x3f) << 4);
                         primitive.Clut.Y = (short)((primitive.clut >> 6) & 0x1FF);
                     } else if (i == 1)
                     {
-                        primitive.texpage = (ushort)(textureData >> 16);
+                        primitive.texpage = (ushort)(primitive.rawtexcoord >> 16);
 
                         //SET GLOBAL GPU E1
                         DrawMode.TexturePageXBase = (byte)(primitive.texpage & 0xF);
@@ -737,9 +744,9 @@ namespace ScePSX
                 }
             }
 
-            Manger.GPU.DrawTriangle(v[0], v[1], v[2], t[0], t[1], t[2], c[0], c[1], c[2], primitive);
+            Backend.GPU.DrawTriangle(v[0], v[1], v[2], t[0], t[1], t[2], c[0], c[1], c[2], primitive);
             if (isQuad)
-                Manger.GPU.DrawTriangle(v[1], v[2], v[3], t[1], t[2], t[3], c[1], c[2], c[3], primitive);
+                Backend.GPU.DrawTriangle(v[1], v[2], v[3], t[1], t[2], t[3], c[1], c[2], c[3], primitive);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -770,11 +777,11 @@ namespace ScePSX
 
             if (isTextured)
             {
-                var texture = buffer[Pointer++];
-                _TextureData.X = (byte)(texture & 0xFF);
-                _TextureData.Y = (byte)((texture >> 8) & 0xFF);
+                primitive.rawtexcoord = buffer[Pointer++];
+                _TextureData.X = (byte)(primitive.rawtexcoord & 0xFF);
+                _TextureData.Y = (byte)((primitive.rawtexcoord >> 8) & 0xFF);
 
-                primitive.clut = (ushort)((texture >> 16) & 0xFFFF);
+                primitive.clut = (ushort)((primitive.rawtexcoord >> 16) & 0xFFFF);
                 primitive.Clut.X = (short)((primitive.clut & 0x3f) << 4);
                 primitive.Clut.Y = (short)((primitive.clut >> 6) & 0x1FF);
             }
@@ -809,7 +816,8 @@ namespace ScePSX
                     break;
             }
 
-            primitive.rawcolor = command;
+            primitive.drawMode = DrawMode;
+            primitive.texpage = (ushort)(GetTexpageFromGpu() & 0x00001ff);
             primitive.texwidth = width;
             primitive.texheight = height;
 
@@ -824,7 +832,7 @@ namespace ScePSX
             size.X = (short)(x + width);
             size.Y = (short)(y + height);
 
-            Manger.GPU.DrawRect(origin, size, _TextureData, color, primitive);
+            Backend.GPU.DrawRect(origin, size, _TextureData, color, primitive);
         }
 
         private void GP0_MemCopyRectVRAMtoVRAM(Span<uint> buffer)
@@ -843,7 +851,7 @@ namespace ScePSX
             var w = (ushort)((((wh & 0xFFFF) - 1) & 0x3FF) + 1);
             var h = (ushort)((((wh >> 16) - 1) & 0x1FF) + 1);
 
-            Manger.GPU.CopyRectVRAMtoVRAM(sx, sy, dx, dy, w, h);
+            Backend.GPU.CopyRectVRAMtoVRAM(sx, sy, dx, dy, w, h);
         }
 
         private void GP0_MemCopyRectCPUtoVRAM(Span<uint> buffer)
@@ -868,7 +876,7 @@ namespace ScePSX
             _VRAMTransfer.currentpos = 0;
             _VRAMTransfer.isRead = false;
 
-            Manger.GPU.SetVRAMTransfer(_VRAMTransfer);
+            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
 
             _Mode = GPMode.VRAM;
         }
@@ -895,7 +903,7 @@ namespace ScePSX
             _VRAMTransfer.currentpos = 0;
             _VRAMTransfer.isRead = true;
 
-            Manger.GPU.SetVRAMTransfer(_VRAMTransfer);
+            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -955,14 +963,14 @@ namespace ScePSX
 
         private void GP1_06_DisplayHorizontalRange(uint value)
         {
-            DisplayX1 = (ushort)(value & 0xFFF);
-            DisplayX2 = (ushort)((value >> 12) & 0xFFF);
+            DisplayHorizontalStart = (ushort)(value & 0xFFF);
+            DisplayHorizontalEnd = (ushort)((value >> 12) & 0xFFF);
         }
 
         private void GP1_07_DisplayVerticalRange(uint value)
         {
-            DisplayY1 = (ushort)(value & 0x3FF);
-            DisplayY2 = (ushort)((value >> 10) & 0x3FF);
+            DisplayVerticalStart = (ushort)(value & 0x3FF);
+            DisplayVerticalEnd = (ushort)((value >> 10) & 0x3FF);
         }
 
         private void GP1_08_DisplayMode(uint value)

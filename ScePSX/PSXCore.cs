@@ -26,11 +26,18 @@ namespace ScePSX
 
         public BUS PsxBus;
 
+        public GPUType GpuBackend;
+
         public string DiskID = "";
         public bool Pauseing, Pauseed, Running, Boost;
 
+        public int IRScale;
+        public bool PGXP, PGXPT, Realcolor;
+
         private IAudioHandler _Audio;
         private IRenderHandler _IRender;
+
+        private bool TChange = false;
 
         public struct AddrItem
         {
@@ -46,16 +53,17 @@ namespace ScePSX
         }
         public List<CheatCode> cheatCodes = new List<CheatCode> { };
 
-        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile, string diskid = "")
+        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile, GPUType gputype, string diskid = "")
         {
             _Audio = audio;
             _IRender = render;
+            GpuBackend = gputype;
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"ScePSX Booting...");
             Console.ResetColor();
 
-            PsxBus = new BUS(this, BiosFile, RomFile, diskid);
+            PsxBus = new BUS(this, BiosFile, RomFile, gputype, diskid);
 
             DiskID = PsxBus.DiskID;
 
@@ -73,6 +81,8 @@ namespace ScePSX
 
         public void Start()
         {
+            TChange = true;
+
             if (DiskID == "")
                 return;
 
@@ -194,11 +204,13 @@ namespace ScePSX
             ;
 
             PsxBus = StateFromFile<BUS>(fn);
-            PsxBus.DeSerializable(this);
+            PsxBus.DeSerializable(this, GpuBackend);
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");
             Console.ResetColor();
+
+            TChange = true;
 
             Pauseing = false;
         }
@@ -308,8 +320,38 @@ namespace ScePSX
             SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES_BUS) + SYNC_CYCLES_FIX;
             int totalTicks = SYNC_LOOPS * SYNC_CPU_TICK;
 
+            int _IRScale = 1;
+            bool _PGXP = false, _PGXPT = false, _Realcolor = false;
+
             while (Running)
             {
+                if (TChange)
+                {
+                    TChange = false;
+                    if (PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+                        (PsxBus.gpu.Backend.GPU as OpenglGPU).THREADCHANGE();
+                }
+
+                if (PsxBus.gpu.Backend.GPU.type != GPUType.Software)
+                {
+                    if (_IRScale != IRScale)
+                    {
+                        _IRScale = IRScale;
+                        (PsxBus.gpu.Backend.GPU as OpenglGPU).SetResolutionScale(IRScale);
+                    }
+                    if (_PGXP != PGXP || _PGXPT != PGXPT)
+                    {
+                        _PGXP = PGXP;
+                        _PGXPT = PGXPT;
+                        (PsxBus.gpu.Backend.GPU as OpenglGPU).SetPGXP(PGXP, PGXPT);
+                    }
+                    if (_Realcolor != Realcolor)
+                    {
+                        _Realcolor = Realcolor;
+                        (PsxBus.gpu.Backend.GPU as OpenglGPU).SetRealColor(Realcolor);
+                    }
+                }
+
                 stopwatch.Restart();
 
                 if (!Pauseing)

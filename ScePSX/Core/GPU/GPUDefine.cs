@@ -32,7 +32,8 @@ namespace ScePSX
         public short texheight;
         public ushort texpage;
         public bool isDithered;
-        public uint rawcolor;
+        public uint rawtexcoord;
+        public TDrawMode drawMode;
     }
 
     [Serializable]

@@ -68,7 +68,7 @@
             // 
             // btnsave
             // 
-            btnsave.Location = new System.Drawing.Point(348, 266);
+            btnsave.Location = new System.Drawing.Point(348, 303);
             btnsave.Name = "btnsave";
             btnsave.Size = new System.Drawing.Size(75, 27);
             btnsave.TabIndex = 0;
@@ -304,7 +304,7 @@
             // 
             // btndel
             // 
-            btndel.Location = new System.Drawing.Point(241, 267);
+            btndel.Location = new System.Drawing.Point(241, 302);
             btndel.Name = "btndel";
             btndel.Size = new System.Drawing.Size(101, 27);
             btndel.TabIndex = 5;
@@ -334,7 +334,7 @@
             // label11
             // 
             label11.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            label11.Location = new System.Drawing.Point(17, 270);
+            label11.Location = new System.Drawing.Point(17, 304);
             label11.Name = "label11";
             label11.Size = new System.Drawing.Size(211, 23);
             label11.TabIndex = 8;
@@ -352,9 +352,8 @@
             // cbgpu
             // 
             cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cbgpu.Enabled = false;
             cbgpu.FormattingEnabled = true;
-            cbgpu.Items.AddRange(new object[] { "software", "OpenGL", "Vulkan" });
+            cbgpu.Items.AddRange(new object[] { "software", "OpenGL" });
             cbgpu.Location = new System.Drawing.Point(74, 227);
             cbgpu.Name = "cbgpu";
             cbgpu.Size = new System.Drawing.Size(141, 25);
@@ -385,11 +384,10 @@
             chkrealcolor.AutoSize = true;
             chkrealcolor.Location = new System.Drawing.Point(15, 266);
             chkrealcolor.Name = "chkrealcolor";
-            chkrealcolor.Size = new System.Drawing.Size(89, 21);
+            chkrealcolor.Size = new System.Drawing.Size(88, 21);
             chkrealcolor.TabIndex = 13;
             chkrealcolor.Text = Properties.Resources.Form_Set_InitializeComponent_真彩色渲染;
             chkrealcolor.UseVisualStyleBackColor = true;
-            chkrealcolor.Visible = false;
             // 
             // chkpgxp
             // 
@@ -400,7 +398,6 @@
             chkpgxp.TabIndex = 14;
             chkpgxp.Text = Properties.Resources.Form_Set_InitializeComponent_PGXP几何校正;
             chkpgxp.UseVisualStyleBackColor = true;
-            chkpgxp.Visible = false;
             // 
             // chkpgxpt
             // 
@@ -411,13 +408,12 @@
             chkpgxpt.TabIndex = 15;
             chkpgxpt.Text = Properties.Resources.Form_Set_InitializeComponent_透视校正;
             chkpgxpt.UseVisualStyleBackColor = true;
-            chkpgxpt.Visible = false;
             // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(435, 311);
+            ClientSize = new System.Drawing.Size(435, 351);
             Controls.Add(chkpgxpt);
             Controls.Add(chkpgxp);
             Controls.Add(chkrealcolor);

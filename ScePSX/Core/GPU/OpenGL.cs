@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Khronos;
 using OpenGL;
-using SDL2;
 
 namespace ScePSX
 {
@@ -18,9 +18,9 @@ namespace ScePSX
 
         private VRAMTransfer _VRAMTransfer;
 
-        private uint TextureWindowXMask, TextureWindowYMask, TextureWindowXOffset, TextureWindowYOffset;
+        private int TextureWindowXMask, TextureWindowYMask, TextureWindowXOffset, TextureWindowYOffset;
 
-        private bool PreserveMaskedPixels, ForceSetMaskBit;
+        private bool CheckMaskBit, ForceSetMaskBit;
 
         INativePBuffer pbuffer;
 
@@ -28,38 +28,31 @@ namespace ScePSX
 
         DeviceContext _DeviceContext;
 
-        GlShader Shader;
-
-        private IntPtr _window;
+        //private IntPtr _window;
 
         public OpenglGPU()
         {
-            //调试用窗口
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            //SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
 
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_RED_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_ALPHA_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1);
+            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_RED_SIZE, 8);
+            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
+            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
+            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_ALPHA_SIZE, 8);
+            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
+            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1);
 
-            _window = SDL.SDL_CreateWindow(
-                "OpenGL Debug Window",
-                SDL.SDL_WINDOWPOS_CENTERED,
-                SDL.SDL_WINDOWPOS_CENTERED,
-                1024, 512,
-                SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE
-            );
+            //_window = SDL.SDL_CreateWindow(
+            //    "OpenGL Debug Window", // 窗口标题
+            //    SDL.SDL_WINDOWPOS_CENTERED, // 窗口初始位置（水平居中）
+            //    SDL.SDL_WINDOWPOS_CENTERED, // 窗口初始位置（垂直居中）
+            //    1024, 512, // 窗口大小（宽度和高度）
+            //    SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE // 启用 OpenGL 支持
+            //);
 
-            SDL.SDL_SysWMinfo info = new SDL.SDL_SysWMinfo();
-            SDL.SDL_GetWindowWMInfo(_window, ref info);
+            //SDL.SDL_SysWMinfo info = new SDL.SDL_SysWMinfo();
+            //SDL.SDL_GetWindowWMInfo(_window, ref info);
+            //_DeviceContext = DeviceContext.Create(info.info.win.hdc, info.info.win.window);
 
-            DeviceContext.DefaultAPI = KhronosVersion.ApiGl;
-            //pbuffer = DeviceContext.CreatePBuffer(pixelFormat, 4096, 2160);
-            //_DeviceContext = DeviceContext.Create(pbuffer);
-            _DeviceContext = DeviceContext.Create(info.info.win.hdc, info.info.win.window);
-            _DeviceContext.IncRef();
             var pixelFormat = new DevicePixelFormat(32)
             {
                 DoubleBuffer = true,
@@ -67,9 +60,14 @@ namespace ScePSX
                 StencilBits = 8,
                 MultisampleBits = 0
             };
-            DevicePixelFormatCollection pixelFormats = _DeviceContext.PixelsFormats;
-            List<DevicePixelFormat> matchingPixelFormats = pixelFormats.Choose(pixelFormat);
-            _DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
+            DeviceContext.DefaultAPI = KhronosVersion.ApiGl;
+            pbuffer = DeviceContext.CreatePBuffer(pixelFormat, 4096, 2160);
+            _DeviceContext = DeviceContext.Create(pbuffer);
+            _DeviceContext.IncRef();
+            //给SDL窗口用
+            //DevicePixelFormatCollection pixelFormats = _DeviceContext.PixelsFormats;
+            //List<DevicePixelFormat> matchingPixelFormats = pixelFormats.Choose(pixelFormat);
+            //_DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
 
             int[] attribs = {
                 Glx.CONTEXT_MAJOR_VERSION_ARB, 4,
@@ -90,135 +88,358 @@ namespace ScePSX
         const int VRAM_WIDTH = 1024;
         const int VRAM_HEIGHT = 512;
 
-        private uint VertexArrayObject;
-        private uint VertexBufferObject;
-        private uint ColorsBuffer;
-        private uint VramTexture;
-        private uint VramFrameBuffer;
-        private uint SampleTexture;
-        private uint TexCoords;
-        private int TexWindow;
-
-        private int IsCopy;
-        private int TexModeLoc;
-        private int MaskBitSettingLoc;
-        private int ClutLoc;
-        private int TexPageLoc;
-
-        private int Display_Area_X_Start_Loc;
-        private int Display_Area_Y_Start_Loc;
-        private int Display_Area_X_End_Loc;
-        private int Display_Area_Y_End_Loc;
-
-        private int Aspect_Ratio_X_Offset_Loc;
-        private int Aspect_Ratio_Y_Offset_Loc;
-
-        private int TransparencyModeLoc;
-        private int IsDitheredLoc;
-        private int RenderModeLoc;
-
         int ScissorBox_X = 0;
         int ScissorBox_Y = 0;
         int ScissorBoxWidth = VRAM_WIDTH;
         int ScissorBoxHeight = VRAM_HEIGHT;
 
-        const int IntersectionBlockLength = 64;
-        private int[,] IntersectionTable = new int[VRAM_HEIGHT / IntersectionBlockLength, VRAM_WIDTH / IntersectionBlockLength];
-
-        ushort[] DataFormRead;
-        ushort[] DataFormWrite;
-
-        short[] Vertices;
-        byte[] Colors;
-        ushort[] UV;
-
-        List<short> _vertices = new List<short>();
-        List<byte> _colors = new List<byte>();
-
         int tid;
 
-        public void Initialize()
+        const float VRamWidthF = VRAM_WIDTH;
+        const float VRamHeightF = VRAM_HEIGHT;
+
+        const int VRamWidthMask = VRAM_WIDTH - 1;
+        const int VRamHeightMask = VRAM_HEIGHT - 1;
+
+        const int TexturePageWidth = 256;
+        const int TexturePageHeight = 256;
+
+        const int TexturePageBaseXMult = 64;
+        const int TexturePageBaseYMult = 256;
+
+        const int ClutWidth = 256;
+        const int ClutHeight = 1;
+
+        const int ClutBaseXMult = 16;
+        const int ClutBaseYMult = 1;
+
+        glVAO BlankVAO, DrawVAO;
+        glBuffer VAOBuff;
+
+        GlShader ClutShader, RamViewShader, Out24Shader, Out16Shader, ResetDepthShader, DisplayShader;
+
+        GLCopyShader vRamCopyShader;
+
+        int m_srcBlendLoc, m_destBlendLoc, m_setMaskBitLoc, m_drawOpaquePixelsLoc, m_drawTransparentPixelsLoc;
+        int m_ditherLoc, m_realColorLoc, m_texWindowMaskLoc, m_texWindowOffsetLoc, resolutionScaleLoc;
+        int m_srcRect24Loc, m_srcRect16Loc;
+
+        glFramebuffer m_vramDrawFramebuffer;
+        glTexture2D m_vramDrawTexture, m_vramDrawDepthTexture;
+
+        glFramebuffer m_vramReadFramebuffer;
+        glTexture2D m_vramReadTexture;
+
+        glFramebuffer m_vramTransferFramebuffer;
+        glTexture2D m_vramTransferTexture;
+
+        glFramebuffer m_displayFramebuffer;
+        glTexture2D m_displayTexture;
+
+        int resolutionScale = 1;
+        uint oldmaskbit;
+        uint oldtexwin;
+        short m_currentDepth;
+
+        bool m_dither = false;
+        bool m_realColor = false;
+
+        bool m_semiTransparencyEnabled = false;
+        byte m_semiTransparencyMode = 0;
+
+        glTexPage m_TexPage;
+        glClutAttribute m_clut;
+
+        glRectangle<int> m_dirtyArea, m_clutArea, m_textureArea;
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct Vertex
         {
-            //Gl.Viewport(0, 0, 1024, 512);
-            //Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            //Gl.Clear(ClearBufferMask.ColorBufferBit);
-            //_DeviceContext.SwapBuffers();
+            public glPosition v_pos;
+            public glColor v_color;
+            public glTexCoord v_texCoord;
+            public glClutAttribute v_clut;
+            public glTexPage v_texPage;
+        }
 
-            Shader = new GlShader();
-            Shader.Use();
+        List<Vertex> Vertexs = new List<Vertex>();
 
-            TexWindow = Gl.GetUniformLocation(Shader.Program, "u_texWindow");
-            TexModeLoc = Gl.GetUniformLocation(Shader.Program, "TextureMode");
-            ClutLoc = Gl.GetUniformLocation(Shader.Program, "inClut");
-            TexPageLoc = Gl.GetUniformLocation(Shader.Program, "inTexpage");
-            IsCopy = Gl.GetUniformLocation(Shader.Program, "isCopy");
+        struct DisplayArea
+        {
+            public int x = 0;
+            public int y = 0;
+            public int width = 0;
+            public int height = 0;
 
-            TransparencyModeLoc = Gl.GetUniformLocation(Shader.Program, "transparencyMode");
-            MaskBitSettingLoc = Gl.GetUniformLocation(Shader.Program, "maskBitSetting");
-            IsDitheredLoc = Gl.GetUniformLocation(Shader.Program, "isDithered");
-            RenderModeLoc = Gl.GetUniformLocation(Shader.Program, "renderMode");
-
-            Display_Area_X_Start_Loc = Gl.GetUniformLocation(Shader.Program, "display_area_x_start");
-            Display_Area_Y_Start_Loc = Gl.GetUniformLocation(Shader.Program, "display_area_y_start");
-            Display_Area_X_End_Loc = Gl.GetUniformLocation(Shader.Program, "display_area_x_end");
-            Display_Area_Y_End_Loc = Gl.GetUniformLocation(Shader.Program, "display_area_y_end");
-
-            Aspect_Ratio_X_Offset_Loc = Gl.GetUniformLocation(Shader.Program, "aspect_ratio_x_offset");
-            Aspect_Ratio_Y_Offset_Loc = Gl.GetUniformLocation(Shader.Program, "aspect_ratio_y_offset");
-
-            VramFrameBuffer = Gl.GenFramebuffer();
-
-            VertexArrayObject = Gl.GenVertexArray();
-
-            VertexBufferObject = Gl.GenBuffer();
-            ColorsBuffer = Gl.GenBuffer();
-            TexCoords = Gl.GenBuffer();
-
-            VramTexture = Gl.GenTexture();
-            SampleTexture = Gl.GenTexture();
-
-            Gl.BindVertexArray(VertexArrayObject);
-
-            Gl.Enable(EnableCap.Texture2d);
-
-            Gl.BindTexture(TextureTarget.Texture2d, VramTexture);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, VRAM_WIDTH, VRAM_HEIGHT, 0, PixelFormat.Bgra, PixelType.UnsignedShort1555Rev, IntPtr.Zero);
-
-            Gl.BindTexture(TextureTarget.Texture2d, SampleTexture);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, VRAM_WIDTH, VRAM_HEIGHT, 0, PixelFormat.Bgra, PixelType.UnsignedShort1555Rev, IntPtr.Zero);
-
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, VramFrameBuffer);
-            Gl.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, VramTexture, 0);
-
-            if (Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferStatus.FramebufferComplete)
+            public DisplayArea()
             {
-                Console.WriteLine("[OpenGL GPU] Uncompleted Frame Buffer!");
-            } else
+            }
+        };
+
+        DisplayArea m_vramDisplayArea;
+        DisplayArea m_targetDisplayArea;
+
+        //float m_aspectRatio = 0.0f;
+        //public bool m_stretchToFit = false;
+        public bool m_viewVRam = false;
+        public bool m_displayEnable = true;
+
+        unsafe ushort* VRAM = (ushort*)Marshal.AllocHGlobal(VRAM_WIDTH * VRAM_HEIGHT);
+
+        public unsafe void Initialize()
+        {
+
+            BlankVAO = new glVAO();
+            DrawVAO = new glVAO();
+
+            ClutShader = new GlShader(
+                GLShaderStrings.ClutVertix.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.ClutFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            RamViewShader = new GlShader(
+                GLShaderStrings.VRamViewVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.VRamViewFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            Out24Shader = new GlShader(
+                GLShaderStrings.Output24bitVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.Output24bitFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            Out16Shader = new GlShader(
+                GLShaderStrings.Output16bitVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.Output16bitFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            ResetDepthShader = new GlShader(
+                GLShaderStrings.ResetDepthVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.ResetDepthFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            DisplayShader = new GlShader(
+                GLShaderStrings.DisplayVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.DisplayFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            vRamCopyShader = new GLCopyShader();
+
+            m_srcBlendLoc = ClutShader.GetUniformLocation("u_srcBlend");
+            m_destBlendLoc = ClutShader.GetUniformLocation("u_destBlend");
+            m_setMaskBitLoc = ClutShader.GetUniformLocation("u_setMaskBit");
+            m_drawOpaquePixelsLoc = ClutShader.GetUniformLocation("u_drawOpaquePixels");
+            m_drawTransparentPixelsLoc = ClutShader.GetUniformLocation("u_drawTransparentPixels");
+            m_ditherLoc = ClutShader.GetUniformLocation("u_dither");
+            m_realColorLoc = ClutShader.GetUniformLocation("u_realColor");
+            m_texWindowMaskLoc = ClutShader.GetUniformLocation("u_texWindowMask");
+            m_texWindowOffsetLoc = ClutShader.GetUniformLocation("u_texWindowOffset");
+            resolutionScaleLoc = ClutShader.GetUniformLocation("u_resolutionScale");
+
+            m_srcRect24Loc = Out24Shader.GetUniformLocation("u_srcRect");
+            m_srcRect16Loc = Out16Shader.GetUniformLocation("u_srcRect");
+
+            ClutShader.Bind();
+
+            DrawVAO.Bind();
+
+            VAOBuff = glBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
+
+            int Stride = sizeof(Vertex);
+
+            int colorOffset = Marshal.OffsetOf(typeof(Vertex), "v_color").ToInt32();
+            int texCoordOffset = Marshal.OffsetOf(typeof(Vertex), "v_texCoord").ToInt32();
+            int clutOffset = Marshal.OffsetOf(typeof(Vertex), "v_clut").ToInt32();
+            int texPageOffset = Marshal.OffsetOf(typeof(Vertex), "v_texPage").ToInt32();
+
+            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos"), 4, VertexAttribPointerType.Short, false, Stride, 0);
+            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_color"), 3, VertexAttribPointerType.UnsignedByte, true, Stride, colorOffset);
+            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_texCoord"), 2, VertexAttribPointerType.Short, false, Stride, texCoordOffset);
+            DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_clut"), 1, VertexAttribIType.UnsignedShort, Stride, clutOffset);
+            DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_texPage"), 1, VertexAttribIType.UnsignedShort, Stride, texPageOffset);
+
+            InitializeVRamFramebuffers();
+
+            m_vramTransferFramebuffer = glFramebuffer.Create();
+            m_vramTransferTexture = glTexture2D.Create();
+            m_vramTransferFramebuffer.AttachTexture(FramebufferAttachment.ColorAttachment0, m_vramTransferTexture);
+            m_vramTransferFramebuffer.Unbind();
+
+            m_displayFramebuffer = glFramebuffer.Create();
+            m_displayTexture = glTexture2D.Create();
+            m_displayTexture.SetLinearFiltering(true);
+            m_displayFramebuffer.AttachTexture(FramebufferAttachment.ColorAttachment0, m_displayTexture);
+            m_displayFramebuffer.Unbind();
+
+            Gl.Disable(EnableCap.ScissorTest);
+            Gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            Gl.ClearDepth(1.0);
+
+            m_vramReadFramebuffer.Bind();
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            m_vramDrawFramebuffer.Bind();
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            ResetDirtyArea();
+
+            RestoreRenderState();
+
+            SetRealColor(true);
+
+            //SetResolutionScale(2);
+
+            //非线程测试时注释这行
+            _DeviceContext.MakeCurrent(0);
+
+            tid = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        public void InitializeVRamFramebuffers()
+        {
+            m_vramDrawFramebuffer = glFramebuffer.Create();
+            m_vramDrawTexture = glTexture2D.Create(
+                InternalFormat.Rgba8,
+                GetVRamTextureWidth(),
+                GetVRamTextureHeight(),
+                PixelFormat.Rgba,
+                PixelType.UnsignedByte
+            );
+            m_vramDrawFramebuffer.AttachTexture(FramebufferAttachment.ColorAttachment0, m_vramDrawTexture);
+
+            m_vramDrawDepthTexture = glTexture2D.Create(
+                InternalFormat.DepthComponent16,
+                GetVRamTextureWidth(),
+                GetVRamTextureHeight(),
+                PixelFormat.DepthComponent,
+                PixelType.Short
+            );
+            m_vramDrawFramebuffer.AttachTexture(FramebufferAttachment.DepthAttachment, m_vramDrawDepthTexture);
+
+            m_vramDrawFramebuffer.Unbind();
+
+            m_vramReadFramebuffer = glFramebuffer.Create();
+            m_vramReadTexture = glTexture2D.Create(
+                InternalFormat.Rgba8,
+                GetVRamTextureWidth(),
+                GetVRamTextureHeight(),
+                PixelFormat.Rgba,
+                PixelType.UnsignedByte
+            );
+            m_vramReadTexture.SetTextureWrap(true);
+            m_vramReadFramebuffer.AttachTexture(FramebufferAttachment.ColorAttachment0, m_vramReadTexture);
+
+            m_vramReadFramebuffer.Unbind();
+        }
+
+        public unsafe void Dispose()
+        {
+            THREADCHANGE();
+
+            DrawVAO.Dispose();
+            BlankVAO.Dispose();
+
+            VAOBuff.Dispose();
+
+            m_displayTexture.Dispose();
+            m_vramTransferTexture.Dispose();
+            m_vramDrawTexture.Dispose();
+            m_vramReadTexture.Dispose();
+            m_vramDrawDepthTexture.Dispose();
+
+            m_displayFramebuffer.Dispose();
+            m_vramDrawFramebuffer.Dispose();
+            m_vramReadFramebuffer.Dispose();
+            m_vramTransferFramebuffer.Dispose();
+
+            vRamCopyShader.Dispose();
+            DisplayShader.Dispose();
+            ResetDepthShader.Dispose();
+            Out16Shader.Dispose();
+            Out24Shader.Dispose();
+            RamViewShader.Dispose();
+            ClutShader.Dispose();
+
+            _DeviceContext.DeleteContext(_GlContext);
+
+            _DeviceContext.Dispose();
+
+            Marshal.FreeHGlobal((IntPtr)VRAM);
+
+            //调试
+            //SDL.SDL_DestroyWindow(_window);
+        }
+
+        public void SetRealColor(bool realColor)
+        {
+            if (m_realColor != realColor)
             {
-                Gl.PixelStore(PixelStoreParameter.UnpackAlignment, 2);
-                Gl.PixelStore(PixelStoreParameter.PackAlignment, 2);
-
-                Gl.Uniform1(Gl.GetUniformLocation(Shader.Program, "u_vramTex"), 0);
-
-                Gl.Uniform1(RenderModeLoc, 0);
-
-                tid = Thread.CurrentThread.ManagedThreadId;
-
-                _DeviceContext.MakeCurrent(0); //解绑
-
-                Console.WriteLine("[OpenGL GPU] Ready!");
+                m_realColor = realColor;
+                Gl.Uniform1(m_realColorLoc, realColor ? 1 : 0);
             }
         }
 
-        public void Dispose()
+        public bool SetResolutionScale(int scale)
+        {
+            if (scale < 1 || scale > 9)
+                return false;
+
+            if (scale == resolutionScale)
+                return true;
+
+            int newWidth = VRAM_WIDTH * scale;
+            int newHeight = VRAM_HEIGHT * scale;
+            int maxTextureSize = glTexture2D.GetMaxTextureSize();
+            if (newWidth > maxTextureSize || newHeight > maxTextureSize)
+                return false;
+
+            int oldWidth = VRAM_WIDTH * resolutionScale;
+            int oldHeight = VRAM_HEIGHT * resolutionScale;
+
+            resolutionScale = scale;
+
+            // 保留旧的 VRAM 对象
+            var oldFramebuffer = m_vramDrawFramebuffer;
+            var oldDrawTexture = m_vramDrawTexture;
+            var oldDepthBuffer = m_vramDrawDepthTexture;
+
+            InitializeVRamFramebuffers();
+
+            // 将旧的 VRAM 数据复制到新的帧缓冲区
+            Gl.Disable(EnableCap.ScissorTest);
+
+            oldFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
+
+            m_vramDrawFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
+            Gl.BlitFramebuffer(
+                0, 0, oldWidth, oldHeight,
+                0, 0, newWidth, newHeight,
+                ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
+                BlitFramebufferFilter.Nearest
+            );
+
+            m_vramReadFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
+            Gl.BlitFramebuffer(
+                0, 0, oldWidth, oldHeight,
+                0, 0, newWidth, newHeight,
+                ClearBufferMask.ColorBufferBit,
+                BlitFramebufferFilter.Nearest
+            );
+
+            RestoreRenderState();
+
+            Console.WriteLine($"[OPENGL GPU] ResolutionScale {scale}");
+            return true;
+        }
+
+        public void SetParams(int[] Params)
+        {
+        }
+
+        public void SetPGXP(bool pgxp, bool pgxpt)
+        {
+        }
+
+        public void THREADCHANGE()
         {
             if (tid != Thread.CurrentThread.ManagedThreadId)
             {
@@ -227,33 +448,6 @@ namespace ScePSX
                 _DeviceContext.MakeCurrent(_GlContext);
                 Gl.BindAPI(new KhronosVersion(4, 6, 0, "gl", "compatibility"), null);
             }
-
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            Gl.BindTexture(TextureTarget.Texture2d, 0);
-            Gl.BindVertexArray(0);
-            Gl.UseProgram(0);
-
-            uint[] fbuffs = new uint[] { VramFrameBuffer };
-            Gl.DeleteFramebuffers(fbuffs);
-
-            uint[] buffs = new uint[] { VertexBufferObject, ColorsBuffer, TexCoords };
-            Gl.DeleteBuffers(buffs);
-
-            uint[] vaos = new uint[] { VertexArrayObject };
-            Gl.DeleteVertexArrays(vaos);
-
-            uint[] tex = new uint[] { VramTexture, SampleTexture };
-            Gl.DeleteTextures(tex);
-
-            Gl.DeleteProgram(Shader.Program);
-
-            _DeviceContext.DeleteContext(_GlContext);
-
-            _DeviceContext.Dispose();
-        }
-
-        public void SetParams(int[] Params)
-        {
         }
 
         public void SetRam(byte[] Ram)
@@ -279,59 +473,148 @@ namespace ScePSX
             return _VRAMTransfer;
         }
 
-        public (int w, int h) GetPixels(bool is24bit, int dy1, int dy2, int rx, int ry, int w, int h, int[] Pixels)
+        public (int w, int h) GetPixels(bool is24bit, int DisplayVerticalStart, int DisplayVerticalEnd, int rx, int ry, int w, int h, int[] Pixels)
         {
-            if (tid != Thread.CurrentThread.ManagedThreadId)
-            {
-                tid = Thread.CurrentThread.ManagedThreadId;
-                Console.WriteLine($"[OpenGL GPU] MakeCurrent TID: {Thread.CurrentThread.ManagedThreadId}");
-                _DeviceContext.MakeCurrent(_GlContext);
-                Gl.BindAPI(new KhronosVersion(4, 6, 0, "gl", "compatibility"), null);
-            }
+            THREADCHANGE();
 
+            int offsetline = ((DisplayVerticalEnd - DisplayVerticalStart)) >> (h == 480 ? 0 : 1);
+
+            m_vramDisplayArea.x = rx;
+            m_vramDisplayArea.y = ry;
+            m_vramDisplayArea.width = w;
+            m_vramDisplayArea.height = offsetline * 2;
+
+            m_targetDisplayArea.x = 0;
+            m_targetDisplayArea.y = 0;
+            m_targetDisplayArea.width = w;
+            m_targetDisplayArea.height = offsetline * 2;
+
+            DrawBatch();
+
+            // 重置渲染状态
+            m_vramDrawFramebuffer.Unbind();
             Gl.Disable(EnableCap.ScissorTest);
-            DisableBlending();
+            Gl.Disable(EnableCap.Blend);
+            Gl.Disable(EnableCap.DepthTest);
 
-            Gl.Enable(EnableCap.Texture2d);
-            Gl.DisableVertexAttribArray(1);
-            Gl.DisableVertexAttribArray(2);
+            BlankVAO.Bind();
 
-            Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, VramFrameBuffer);
+            // 计算源和目标尺寸
+            int targetWidth = 0;
+            int targetHeight = 0;
+            int srcWidth = 0;
+            int srcHeight = 0;
 
-            if (is24bit)
+            if (m_viewVRam)
             {
-                Gl.Uniform1(RenderModeLoc, 2);
+                targetWidth = VRAM_WIDTH * resolutionScale;
+                targetHeight = VRAM_HEIGHT * resolutionScale;
+                srcWidth = VRAM_WIDTH * resolutionScale;
+                srcHeight = VRAM_HEIGHT * resolutionScale;
             } else
             {
-                Gl.Uniform1(RenderModeLoc, 1);
+                targetWidth = m_targetDisplayArea.width * resolutionScale;
+                targetHeight = m_targetDisplayArea.height * resolutionScale;
+                srcWidth = m_vramDisplayArea.width * resolutionScale;
+                srcHeight = m_vramDisplayArea.height * resolutionScale;
             }
 
-            Gl.Viewport(0, 0, 1024, 512);
+            // 更新显示纹理的大小
+            if (targetWidth != m_displayTexture.GetWidth() || targetHeight != m_displayTexture.GetHeight())
+            {
+                m_displayTexture.UpdateImage(
+                    InternalFormat.Rgb,
+                    (int)targetWidth,
+                    (int)targetHeight,
+                    PixelFormat.Rgb,
+                    PixelType.UnsignedByte
+                );
+            }
 
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            Gl.BindTexture(TextureTarget.Texture2d, VramTexture);
+            // 清除显示纹理
+            m_displayFramebuffer.Bind();
+            Gl.Viewport(0, 0, (int)targetWidth, (int)targetHeight);
+            Gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            Gl.Uniform1(Aspect_Ratio_X_Offset_Loc, 0.0f);
-            Gl.Uniform1(Aspect_Ratio_Y_Offset_Loc, 0.0f);
-            Gl.Uniform1(Display_Area_X_Start_Loc, 0.0f);
-            Gl.Uniform1(Display_Area_Y_Start_Loc, 0.0f);
-            Gl.Uniform1(Display_Area_X_End_Loc, 1.0f);
-            Gl.Uniform1(Display_Area_Y_End_Loc, 1.0f);
+            // 渲染到显示纹理
+            m_vramDrawTexture.Bind();
+            if (m_viewVRam)
+            {
+                RamViewShader.Bind();
+                Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
 
+            } else if (m_displayEnable)
+            {
+                void SetDisplayAreaUniform(int uniform)
+                {
+                    Gl.Uniform4(uniform, m_vramDisplayArea.x, m_vramDisplayArea.y, m_vramDisplayArea.width, m_vramDisplayArea.height);
+                }
+
+                if (is24bit)
+                {
+                    Out24Shader.Bind();
+                    SetDisplayAreaUniform(m_srcRect24Loc);
+                } else
+                {
+                    Out16Shader.Bind();
+                    SetDisplayAreaUniform(m_srcRect16Loc);
+                }
+
+                m_vramDrawTexture.Bind();
+                Gl.Viewport(
+                    m_targetDisplayArea.x * resolutionScale,
+                    m_targetDisplayArea.y * resolutionScale,
+                    (int)srcWidth,
+                    (int)srcHeight
+                );
+                Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+            }
+
+            m_displayFramebuffer.Unbind();
+
+            //if (Pixels.Length < targetWidth * targetHeight)
+            //{
+            //    Pixels = new int[targetWidth * targetHeight];
+            //}
+            //渲染到m_displayTexture
+            DisplayShader.Bind();
+            m_displayTexture.Bind();
             Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+            Gl.ReadPixels(0, 0, targetWidth, targetHeight, PixelFormat.Bgra, PixelType.UnsignedByte, Marshal.UnsafeAddrOfPinnedArrayElement(Pixels, 0));
 
-            //Gl.ReadPixels(0, 0, 1024, 512, PixelFormat.Rgba, PixelType.UnsignedByte, Marshal.UnsafeAddrOfPinnedArrayElement(Pixels, 0) );
+            // 渲染到调试窗口，注意 DisplayShader 着色器已上下翻转
+            //int winWidth, winHeight;
+            //SDL.SDL_GetWindowSize(_window, out winWidth, out winHeight);
 
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-            Gl.Enable(EnableCap.ScissorTest);
+            //Gl.Viewport(0, 0, winWidth, winHeight);
+            //Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            //Gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            Gl.BindTexture(TextureTarget.Texture2d, SampleTexture);
-            Gl.Scissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
-            Gl.Uniform1(RenderModeLoc, 0);
+            //DisplayShader.Bind();
+            //m_displayTexture.Bind();
 
-            _DeviceContext.SwapBuffers();
+            //float displayWidth = srcWidth;
+            //float displayHeight = m_viewVRam ? srcHeight : (displayWidth / m_aspectRatio);
 
-            return (1024, -1);
+            //float renderScale = Math.Min(winWidth / displayWidth, winHeight / displayHeight);
+
+            //if (!m_stretchToFit)
+            //    renderScale = Math.Max(1.0f, (float)Math.Floor(renderScale));
+
+            //int renderWidth = (int)(displayWidth * renderScale);
+            //int renderHeight = (int)(displayHeight * renderScale);
+            //int renderX = (winWidth - renderWidth) / 2;
+            //int renderY = (winHeight - renderHeight) / 2;
+
+            //Gl.Viewport(renderX, renderY, renderWidth, renderHeight);
+            //Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+
+            //_DeviceContext.SwapBuffers();
+
+            // 恢复渲染状态
+            RestoreRenderState();
+
+            return (targetWidth, targetHeight);
         }
 
         public void SetVRAMTransfer(VRAMTransfer val)
@@ -340,58 +623,50 @@ namespace ScePSX
 
             if (_VRAMTransfer.isRead)
             {
-                CopyRectVRAMtoCPU();
-            } else
-            {
-                DataFormWrite = new ushort[_VRAMTransfer.HalfWords];
+                //读到VRAM
+                CopyRectVRAMtoCPU(_VRAMTransfer.OriginX, _VRAMTransfer.OriginY, _VRAMTransfer.W, _VRAMTransfer.H);
             }
         }
 
         public void SetMaskBit(uint value)
         {
-            ForceSetMaskBit = ((value & 1) != 0);
-            PreserveMaskedPixels = (((value >> 1) & 1) != 0);
+            if (oldmaskbit != value)
+            {
+                oldmaskbit = value;
 
-            Gl.Uniform1(MaskBitSettingLoc, (int)value);
+                DrawBatch();
+
+                ForceSetMaskBit = ((value & 1) != 0);
+                CheckMaskBit = (((value >> 1) & 1) != 0);
+
+                UpdateMaskBits();
+            }
         }
 
         public void SetDrawingAreaTopLeft(TDrawingArea value)
         {
-            if (tid != Thread.CurrentThread.ManagedThreadId)
+            THREADCHANGE();
+
+            if (DrawingAreaTopLeft != value)
             {
-                tid = Thread.CurrentThread.ManagedThreadId;
-                Console.WriteLine($"[OpenGL GPU] MakeCurrent TID: {Thread.CurrentThread.ManagedThreadId}");
-                _DeviceContext.MakeCurrent(_GlContext);
-                Gl.BindAPI(new KhronosVersion(4, 6, 0, "gl", "compatibility"), null);
+                DrawBatch();
+
+                DrawingAreaTopLeft = value;
+
+                UpdateScissorRect();
             }
-            DrawingAreaTopLeft = value;
-
-            ScissorBox_X = DrawingAreaTopLeft.X;
-            ScissorBox_Y = DrawingAreaTopLeft.Y;
-
-            ScissorBoxWidth = Math.Max(DrawingAreaBottomRight.X - DrawingAreaTopLeft.X + 1, 0);
-            ScissorBoxHeight = Math.Max(DrawingAreaBottomRight.Y - DrawingAreaTopLeft.Y + 1, 0);
-
-            Gl.Viewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-            Gl.Enable(EnableCap.ScissorTest);
-            Gl.Scissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
         }
 
         public void SetDrawingAreaBottomRight(TDrawingArea value)
         {
-            DrawingAreaBottomRight = value;
+            if (DrawingAreaBottomRight != value)
+            {
+                DrawBatch();
 
-            ScissorBox_X = DrawingAreaTopLeft.X;
-            ScissorBox_Y = DrawingAreaTopLeft.Y;
+                DrawingAreaBottomRight = value;
 
-            ScissorBoxWidth = Math.Max(DrawingAreaBottomRight.X - DrawingAreaTopLeft.X + 1, 0);
-            ScissorBoxHeight = Math.Max(DrawingAreaBottomRight.Y - DrawingAreaTopLeft.Y + 1, 0);
-
-            Gl.Viewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-            Gl.Enable(EnableCap.ScissorTest);
-            Gl.Scissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
+                UpdateScissorRect();
+            }
         }
 
         public void SetDrawingOffset(TDrawingOffset value)
@@ -399,632 +674,1010 @@ namespace ScePSX
             DrawingOffset = value;
         }
 
+        private void CheckRenderErrors(int c = 0)
+        {
+            var error = Gl.GetError();
+            if (error != Gl.NO_ERROR)
+                Console.WriteLine($"OpenGL {c} Error: {error}");
+        }
+
         public void SetTextureWindow(uint value)
         {
             value &= 0xfffff;
 
-            TextureWindowXMask = (value & 0x1f);
-            TextureWindowYMask = ((value >> 5) & 0x1f);
-
-            TextureWindowXOffset = ((value >> 10) & 0x1f);
-            TextureWindowYOffset = ((value >> 15) & 0x1f);
-
-            Gl.Uniform4(TexWindow, (ushort)TextureWindowXMask, (ushort)TextureWindowYMask, (ushort)TextureWindowXOffset, (ushort)TextureWindowYOffset);
-        }
-
-        public void FillRectVRAM(ushort x, ushort y, ushort w, ushort h, uint colorval)
-        {
-            float r = (colorval & 0xFF) / 255.0f;
-            float g = ((colorval >> 8) & 0xFF) / 255.0f;
-            float b = ((colorval >> 16) & 0xFF) / 255.0f;
-
-            Gl.Viewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-            Gl.ClearColor(r, g, b, 0.0f);
-            Gl.Scissor(x, y, w, h);
-            Gl.Clear(ClearBufferMask.ColorBufferBit);
-
-            short[] rectangle = new short[] {
-                (short)x, (short)y,
-                (short)(x+w), (short)y,
-                (short)(x+w),(short)(y+h),
-                (short)x, (short)(y+h)
-            };
-
-            UpdateIntersectionTable(ref rectangle);
-
-            Gl.Scissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
-            Gl.ClearColor(0, 0, 0, 1.0f);
-        }
-
-        public void CopyRectVRAMtoVRAM(ushort sx, ushort sy, ushort dx, ushort dy, ushort w, ushort h)
-        {
-            ushort[] src_coords = new ushort[] {
-                (ushort)sx, (ushort)sy,
-                (ushort)(sx + w), (ushort)sy,
-                (ushort)(sx + w), (ushort)(sy + h),
-                (ushort)sx, (ushort)(sy + h)
-            };
-
-            short[] dst_coords = new short[] {
-                (short)dx, (short)dy,
-                (short)(dx + w), (short)dy,
-                (short)(dx + w), (short)(dy + h),
-                (short)dx, (short)(dy + h)
-            };
-
-            if (TextureInvalidate(ref src_coords))
+            if (oldtexwin != value)
             {
-                VramSync();
+                oldtexwin = value;
+
+                DrawBatch();
+
+                TextureWindowXMask = (int)(value & 0x1f);
+                TextureWindowYMask = (int)((value >> 5) & 0x1f);
+
+                TextureWindowXOffset = (int)((value >> 10) & 0x1f);
+                TextureWindowYOffset = (int)((value >> 15) & 0x1f);
+
+                Gl.Uniform2i(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
+                Gl.Uniform2i(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
+            }
+        }
+
+        public void SetDrawMode(ushort vtexPage, ushort vclut, bool dither)
+        {
+            if (m_realColor)
+                dither = false;
+
+            if (m_dither != dither)
+            {
+                DrawBatch();
+
+                m_dither = dither;
+                Gl.Uniform1(m_ditherLoc, dither ? 1 : 0);
             }
 
-            Gl.BindTexture(TextureTarget.Texture2d, SampleTexture);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
+            int[] ColorModeClutWidths = { 16, 256, 0, 0 };
+            int[] ColorModeTexturePageWidths =
+            {
+                TexturePageWidth / 4,
+                TexturePageWidth / 2,
+                TexturePageWidth,
+                TexturePageWidth
+            };
 
-            Gl.CopyImageSubData(
-                SampleTexture, CopyImageSubDataTarget.Texture2d, 0, sx, sy, 0,
-                VramTexture, CopyImageSubDataTarget.Texture2d, 0, dx, dy, 0,
-                w, h, 1);
+            void UpdateClut()
+            {
+                m_clut.Value = vclut;
 
-            UpdateIntersectionTable(ref dst_coords);
+                int clutBaseX = m_clut.X * ClutBaseXMult;
+                int clutBaseY = m_clut.Y * ClutBaseYMult;
+                int clutWidth = ColorModeClutWidths[m_TexPage.TexturePageColors];
+                int clutHeight = 1;
+                m_clutArea = glRectangle<int>.FromExtents(clutBaseX, clutBaseY, clutWidth, clutHeight);
+            }
+
+            if (m_TexPage.Value != vtexPage)
+            {
+                DrawBatch();
+
+                m_TexPage.Value = vtexPage;
+
+                SetSemiTransparencyMode(m_TexPage.SemiTransparencymode);
+
+                if (UsingTexture())
+                {
+                    int texBaseX = m_TexPage.TexturePageBaseX * TexturePageBaseXMult;
+                    int texBaseY = m_TexPage.TexturePageBaseY * TexturePageBaseYMult;
+                    int texSize = ColorModeTexturePageWidths[m_TexPage.TexturePageColors];
+                    m_textureArea = glRectangle<int>.FromExtents(texBaseX, texBaseY, texSize, texSize);
+
+                    if (UsingClut())
+                        UpdateClut();
+                }
+            }
+            // 如果仅 CLUT 发生变化且使用纹理和 CLUT，则更新 CLUT
+            else if (m_clut.Value != vclut && UsingTexture() && UsingClut())
+            {
+                DrawBatch();
+
+                UpdateClut();
+            }
+
+            // 如果纹理页或 CLUT 区域是脏区域，则更新读取纹理
+            if (IntersectsTextureData(m_dirtyArea))
+                UpdateReadTexture();
         }
 
-        private void CopyRectVRAMtoCPU()
+        public void FillRectVRAM(ushort left, ushort top, ushort width, ushort height, uint colorval)
         {
-            DataFormRead = new ushort[_VRAMTransfer.HalfWords];
+            GrowDirtyArea(GetWrappedBounds(left, top, width, height));
 
-            Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, VramFrameBuffer);
+            byte r = (byte)(colorval);
+            byte g = (byte)(colorval >> 8);
+            byte b = (byte)(colorval >> 16);
 
-            Gl.ReadPixels(_VRAMTransfer.X, _VRAMTransfer.Y, _VRAMTransfer.W, _VRAMTransfer.H, PixelFormat.Rgba, PixelType.UnsignedShort1555Rev,
-                Marshal.UnsafeAddrOfPinnedArrayElement(DataFormRead, 0)
+            float rF, gF, bF;
+            if (m_realColor)
+            {
+                rF = r / 255.0f;
+                gF = g / 255.0f;
+                bF = b / 255.0f;
+            } else
+            {
+                rF = (r >> 3) / 31.0f;
+                gF = (g >> 3) / 31.0f;
+                bF = (b >> 3) / 31.0f;
+            }
+
+            const float MaskBitAlpha = 0.0f;
+            const double MaskBitDepth = 1.0;
+
+            Gl.ClearColor(rF, gF, bF, MaskBitAlpha);
+            Gl.ClearDepth(MaskBitDepth);
+
+            bool wrapX = left + width > VRAM_WIDTH;
+            bool wrapY = top + height > VRAM_HEIGHT;
+
+            int width2 = wrapX ? (left + width - VRAM_WIDTH) : 0;
+            int height2 = wrapY ? (top + height - VRAM_HEIGHT) : 0;
+            int width1 = width - width2;
+            int height1 = height - height2;
+
+            // 清除第一部分（右下角）
+            SetScissor(left, top, width1, height1);
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            // 如果需要水平环绕
+            if (wrapX)
+            {
+                SetScissor(0, top, width2, height1);
+                Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            // 如果需要垂直环绕
+            if (wrapY)
+            {
+                SetScissor(left, 0, width1, height2);
+                Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            // 如果同时需要水平和垂直环绕
+            if (wrapX && wrapY)
+            {
+                SetScissor(0, 0, width2, height2);
+                Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            // 恢复剪裁区域
+            UpdateScissorRect();
+        }
+
+        public void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
+        {
+            // 计算源和目标区域
+            var srcBounds = glRectangle<int>.FromExtents(srcX, srcY, width, height);
+            var destBounds = glRectangle<int>.FromExtents(destX, destY, width, height);
+
+            // 检查是否需要更新读取纹理
+            if (m_dirtyArea.Intersects(srcBounds))
+            {
+                // 如果源区域是脏区域，则更新读取纹理
+                UpdateReadTexture();
+                m_dirtyArea.Grow(destBounds);
+            } else
+            {
+                // 否则仅扩展脏区域
+                GrowDirtyArea(destBounds);
+            }
+
+            // 更新深度缓冲区
+            UpdateCurrentDepth();
+
+            // 绑定 VAO 和着色器
+            BlankVAO.Bind();
+            vRamCopyShader.Use(
+                srcX / VRamWidthF,
+                srcY / VRamHeightF,
+                width / VRamWidthF,
+                height / VRamHeightF,
+                GetNormalizedDepth(),
+                ForceSetMaskBit
+            );
+
+            // 禁用混合和剪裁测试
+            Gl.Disable(EnableCap.Blend);
+            Gl.Disable(EnableCap.ScissorTest);
+
+            // 设置视口并绘制
+            SetViewport((int)destX, (int)destY, (int)width, (int)height);
+            Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+
+            // 恢复渲染状态
+            RestoreRenderState();
+        }
+
+        private unsafe void CopyRectVRAMtoCPU(int left, int top, int width, int height)
+        {
+            // 获取包裹后的边界
+            var readBounds = GetWrappedBounds(left, top, width, height);
+
+            // 如果脏区域与读取区域相交，则绘制批次
+            if (m_dirtyArea.Intersects(readBounds))
+                DrawBatch();
+
+            int readWidth = readBounds.GetWidth();
+            int readHeight = readBounds.GetHeight();
+
+            // 更新临时纹理的尺寸
+            if (m_vramTransferTexture.GetWidth() != readWidth || m_vramTransferTexture.GetHeight() != readHeight)
+            {
+                m_vramTransferTexture.UpdateImage(
+                    InternalFormat.Rgba,
+                    readWidth,
+                    readHeight,
+                    PixelFormat.Rgba,
+                    PixelType.UnsignedShort1555Rev
                 );
+            }
+
+            // 确保帧缓冲区完整
+            if (!m_vramTransferFramebuffer.IsComplete())
+                Console.WriteLine("[OPENGL GPU] Error: VRAMtoCPU Framebuffer is incomplete.");
+
+            // 绑定帧缓冲区并复制数据
+            m_vramTransferFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
+            m_vramDrawFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
+            Gl.Disable(EnableCap.ScissorTest);
+
+            var srcArea = readBounds.Scale(resolutionScale);
+            Gl.BlitFramebuffer(
+                srcArea.Left, srcArea.Top,
+                srcArea.Right, srcArea.Bottom,
+                0, 0,
+                readWidth, readHeight,
+                ClearBufferMask.ColorBufferBit,
+                BlitFramebufferFilter.Linear
+            );
+
+            // 解包像素数据到 vram 数组
+            m_vramTransferFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
+            Gl.PixelStore(PixelStoreParameter.PackAlignment, GetPixelStoreAlignment(left, width));
+            Gl.PixelStore(PixelStoreParameter.PackRowLength, VRAM_WIDTH);
+
+            Gl.ReadPixels(
+                0, 0,
+                readWidth, readHeight,
+                PixelFormat.Rgba,
+                PixelType.UnsignedShort1555Rev,
+                (IntPtr)(VRAM + readBounds.Left + readBounds.Top * VRAM_WIDTH)
+            );
+
+            // 恢复渲染状态
+            m_vramDrawFramebuffer.Bind();
+            Gl.Enable(EnableCap.ScissorTest);
+            Gl.PixelStore(PixelStoreParameter.PackAlignment, 4);
+            Gl.PixelStore(PixelStoreParameter.PackRowLength, 0);
         }
 
-        public uint ReadFromVRAM()
+        public unsafe uint ReadFromVRAM()
         {
-            ushort Data0 = DataFormRead[_VRAMTransfer.currentpos];
-            ushort Data1 = DataFormRead[_VRAMTransfer.currentpos + 1];
+            ushort Data0 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
+            _VRAMTransfer.X++;
+            ushort Data1 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
+            _VRAMTransfer.X++;
 
-            _VRAMTransfer.currentpos += 2;
-
-            _VRAMTransfer.HalfWords -= 2;
+            if (_VRAMTransfer.X == _VRAMTransfer.OriginX + _VRAMTransfer.W)
+            {
+                _VRAMTransfer.X -= _VRAMTransfer.W;
+                _VRAMTransfer.Y++;
+            }
 
             return (uint)((Data1 << 16) | Data0);
         }
 
-        private void CopyRectCPUtoVRAM()
+        private unsafe void CopyRectCPUtoVRAM(int left, int top, int width, int height)
         {
-            int x_dst = _VRAMTransfer.OriginX;
-            int y_dst = _VRAMTransfer.OriginY;
-            int width = _VRAMTransfer.W;
-            int height = _VRAMTransfer.H;
+            // 获取包裹后的边界
+            var updateBounds = GetWrappedBounds(left, top, width, height);
+            GrowDirtyArea(updateBounds);
 
-            Gl.Disable(EnableCap.ScissorTest);
+            // 设置像素存储对齐方式
+            Gl.PixelStore(PixelStoreParameter.UnpackAlignment, GetPixelStoreAlignment(left, width));
 
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            Gl.BindTexture(TextureTarget.Texture2d, VramTexture);
-            Gl.TexSubImage2D(TextureTarget.Texture2d, 0, x_dst, y_dst, width, height,
-                PixelFormat.Rgba, PixelType.UnsignedShort1555Rev,
-                Marshal.UnsafeAddrOfPinnedArrayElement(DataFormWrite, 0)
+            bool wrapX = (left + width) > VRAM_WIDTH;
+            bool wrapY = (top + height) > VRAM_HEIGHT;
+
+            if (!wrapX && !wrapY && !CheckMaskBit && !ForceSetMaskBit && resolutionScale == 1)
+            {
+                m_vramDrawTexture.SubImage(
+                    (int)left,
+                    (int)top,
+                    (int)width,
+                    (int)height,
+                    PixelFormat.Rgba,
+                    PixelType.UnsignedShort1555Rev,
+                    (IntPtr)(VRAM + _VRAMTransfer.OriginX + _VRAMTransfer.OriginY * _VRAMTransfer.W)
                 );
-
-            short[] rectangle = new short[] {
-                (short)x_dst, (short)y_dst,
-                (short)(x_dst+width), (short)y_dst,
-                (short)(x_dst+width),(short)(y_dst+height),
-                (short)x_dst, (short)(y_dst+height)
-            };
-
-            UpdateIntersectionTable(ref rectangle);
-
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-            Gl.Enable(EnableCap.ScissorTest);
-            Gl.Scissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
-        }
-
-        public void WriteToVRAM(ushort value)
-        {
-            DataFormWrite[_VRAMTransfer.currentpos++] = value;
-
-            if (_VRAMTransfer.currentpos == DataFormWrite.Length)
-            {
-                CopyRectCPUtoVRAM();
-
-                DataFormWrite = null;
-            }
-        }
-
-        public void DrawLine(uint v1, uint v2, uint color1, uint color2, bool isTransparent, int SemiTransparency)
-        {
-            _vertices.Add((short)v1);
-            _vertices.Add((short)(v1 >> 16));
-
-            _vertices.Add((short)v2);
-            _vertices.Add((short)(v2 >> 16));
-
-            _colors.Add((byte)color1);
-            _colors.Add((byte)(color1 >> 8));
-            _colors.Add((byte)(color1 >> 16));
-
-            _colors.Add((byte)color2);
-            _colors.Add((byte)(color2 >> 8));
-            _colors.Add((byte)(color2 >> 16));
-        }
-
-        public void DrawLineBatch(bool isTransparent, bool isPolyLine, bool isDithered, int SemiTransparency)
-        {
-            if (isTransparent)
-            {
-                SetBlendingFunction(SemiTransparency);
+                ResetDepthBuffer();
             } else
             {
-                DisableBlending();
+                UpdateCurrentDepth();
+
+                m_vramTransferTexture.UpdateImage(
+                    InternalFormat.Rgba,
+                    (int)width,
+                    (int)height,
+                    PixelFormat.Rgba,
+                    PixelType.UnsignedShort1555Rev,
+                    (IntPtr)(VRAM + _VRAMTransfer.OriginX + _VRAMTransfer.OriginY * _VRAMTransfer.W)
+                );
+
+                // 计算宽度和高度的分段
+                int width2 = wrapX ? (left + width) % VRAM_WIDTH : 0;
+                int height2 = wrapY ? (top + height) % VRAM_HEIGHT : 0;
+                int width1 = width - width2;
+                int height1 = height - height2;
+
+                float width1f = (float)width1 / width;
+                float height1f = (float)height1 / height;
+                float width2f = (float)width2 / width;
+                float height2f = (float)height2 / height;
+
+                Gl.Disable(EnableCap.Blend);
+                Gl.Disable(EnableCap.ScissorTest);
+
+                BlankVAO.Bind();
+                vRamCopyShader.Use(0, 0, width1f, height1f, GetNormalizedDepth(), ForceSetMaskBit);
+                m_vramTransferTexture.Bind();
+
+                // 右下角
+                SetViewport((int)left, (int)top, (int)width1, (int)height1);
+                Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+
+                // 左下角
+                if (wrapX)
+                {
+                    vRamCopyShader.SetSourceArea(width1f, 0, width2f, height1f);
+                    SetViewport(0, (int)top, (int)width2, (int)height1);
+                    Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+                }
+
+                // 右上角
+                if (wrapY)
+                {
+                    vRamCopyShader.SetSourceArea(0, height1f, width1f, height2f);
+                    SetViewport((int)left, 0, (int)width1, (int)height2);
+                    Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+                }
+
+                // 左上角
+                if (wrapX && wrapY)
+                {
+                    vRamCopyShader.SetSourceArea(width1f, height1f, width2f, height2f);
+                    SetViewport(0, 0, (int)width2, (int)height2);
+                    Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+                }
+
+                RestoreRenderState();
             }
 
-            short[] vertices = _vertices.ToArray();
-            byte[] colors = _colors.ToArray();
-            _vertices.Clear();
-            _colors.Clear();
+            // 恢复默认像素存储对齐方式
+            Gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+        }
 
-            Gl.Viewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.Uniform1(TexModeLoc, -1);
+        public unsafe void WriteToVRAM(ushort value)
+        {
+            if (_VRAMTransfer.HalfWords > 0)
+                *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W) = value;
 
-            if (!ApplyDrawingOffset(ref vertices))
-            {
+            _VRAMTransfer.X++;
+
+            if (_VRAMTransfer.X != _VRAMTransfer.OriginX + _VRAMTransfer.W)
                 return;
+
+            _VRAMTransfer.X -= _VRAMTransfer.W;
+            _VRAMTransfer.Y++;
+        }
+
+        public void WriteDone()
+        {
+            //从VRAM写入
+            CopyRectCPUtoVRAM(_VRAMTransfer.OriginX, _VRAMTransfer.OriginY, _VRAMTransfer.W, _VRAMTransfer.H);
+        }
+
+        public void DrawBatch()
+        {
+            if (Vertexs.Count == 0)
+                return;
+
+            VAOBuff.SubData<Vertex>(Vertexs.Count, Vertexs.ToArray());
+
+            if (m_semiTransparencyEnabled && (m_semiTransparencyMode == 2) && !m_TexPage.TextureDisable)
+            {
+                // 必须对带有纹理的背景和前景进行两次渲染，因为透明度可以逐像素禁用
+
+                // 仅绘制不透明像素
+                Gl.Disable(EnableCap.Blend);
+                Gl.Uniform1(m_drawTransparentPixelsLoc, 0);
+                Gl.DrawArrays(PrimitiveType.Triangles, 0, Vertexs.Count);
+
+                // 仅绘制透明像素
+                Gl.Enable(EnableCap.Blend);
+                Gl.Uniform1(m_drawOpaquePixelsLoc, 0);
+                Gl.Uniform1(m_drawTransparentPixelsLoc, 1);
+                Gl.DrawArrays(PrimitiveType.Triangles, 0, Vertexs.Count);
+
+                Gl.Uniform1(m_drawOpaquePixelsLoc, 1);
+            } else
+            {
+                Gl.DrawArrays(PrimitiveType.Triangles, 0, Vertexs.Count);
             }
 
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)vertices.Length * sizeof(short), vertices, BufferUsage.StreamDraw);
-            Gl.VertexAttribIPointer(0, 2, VertexAttribIType.Short, 0, IntPtr.Zero);
-            Gl.EnableVertexAttribArray(0);
+            Vertexs.Clear();
+        }
 
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, ColorsBuffer);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)colors.Length * sizeof(byte), colors, BufferUsage.StreamDraw);
-            Gl.VertexAttribIPointer(1, 3, VertexAttribIType.UnsignedByte, 0, IntPtr.Zero);
-            Gl.EnableVertexAttribArray(1);
+        public void DrawLine(uint v1, uint v2, uint c1, uint c2, bool isTransparent, int SemiTransparency)
+        {
+            if (!IsDrawAreaValid())
+                return;
 
-            Gl.Uniform1(IsDitheredLoc, isDithered ? 1 : 0);
+            Vertex[] vertices = new Vertex[4];
 
-            Gl.DrawArrays(isPolyLine ? PrimitiveType.LineStrip : PrimitiveType.Lines, 0, vertices.Length / 2);
+            glPosition p1 = new glPosition();
+            p1.x = (short)v1;
+            p1.y = (short)(v1 >> 16);
 
-            UpdateIntersectionTable(ref vertices);
+            glPosition p2 = new glPosition();
+            p2.x = (short)v2;
+            p2.y = (short)(v2 >> 16);
+
+            int dx = p2.x - p1.x;
+            int dy = p2.y - p1.y;
+
+            int absDx = Math.Abs(dx);
+            int absDy = Math.Abs(dy);
+
+            // 剔除过长的线段
+            if (absDx > 1023 || absDy > 511)
+                return;
+
+            p1.x += DrawingOffset.X;
+            p1.y += DrawingOffset.Y;
+            p2.x += DrawingOffset.X;
+            p2.y += DrawingOffset.Y;
+
+            if (dx == 0 && dy == 0)
+            {
+                // 渲染一个点，使用第一个颜色
+                vertices[0].v_pos = p1;
+                vertices[1].v_pos = new glPosition((short)(p1.x + 1), p1.y);
+                vertices[2].v_pos = new glPosition(p1.x, (short)(p1.y + 1));
+                vertices[3].v_pos = new glPosition((short)(p1.x + 1), (short)(p1.y + 1));
+
+                vertices[0].v_color.Value = c1;
+                vertices[1].v_color.Value = c1;
+                vertices[2].v_color.Value = c1;
+                vertices[3].v_color.Value = c1;
+            } else
+            {
+                short padX1 = 0;
+                short padY1 = 0;
+                short padX2 = 0;
+                short padY2 = 0;
+
+                short fillDx = 0;
+                short fillDy = 0;
+
+                // 根据线段的方向调整两端
+                if (absDx > absDy)
+                {
+                    fillDx = 0;
+                    fillDy = 1;
+
+                    if (dx > 0)
+                    {
+                        // 从左到右
+                        padX2 = 1;
+                    } else
+                    {
+                        // 从右到左
+                        padX1 = 1;
+                    }
+                } else
+                {
+                    fillDx = 1;
+                    fillDy = 0;
+
+                    if (dy > 0)
+                    {
+                        // 从上到下
+                        padY2 = 1;
+                    } else
+                    {
+                        // 从下到上
+                        padY1 = 1;
+                    }
+                }
+
+                short x1 = (short)(p1.x + padX1);
+                short y1 = (short)(p1.y + padY1);
+                short x2 = (short)(p2.x + padX2);
+                short y2 = (short)(p2.y + padY2);
+
+                vertices[0].v_pos = new glPosition(x1, y1);
+                vertices[1].v_pos = new glPosition((short)(x1 + fillDx), (short)(y1 + fillDy));
+                vertices[2].v_pos = new glPosition(x2, y2);
+                vertices[3].v_pos = new glPosition((short)(x2 + fillDx), (short)(y2 + fillDy));
+
+                vertices[0].v_color.Value = c1;
+                vertices[1].v_color.Value = c1;
+                vertices[2].v_color.Value = c2;
+                vertices[3].v_color.Value = c2;
+            }
+
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                m_dirtyArea.Grow(vertices[i].v_pos.x, vertices[i].v_pos.y);
+
+                vertices[i].v_clut.Value = 0;
+                vertices[i].v_texPage.TextureDisable = true;
+                vertices[i].v_pos.z = m_currentDepth;
+            }
+
+            if (Vertexs.Count + 6 > 1024)
+                DrawBatch();
+
+            Vertexs.Add(vertices[0]);
+            Vertexs.Add(vertices[1]);
+            Vertexs.Add(vertices[2]);
+
+            Vertexs.Add(vertices[1]);
+            Vertexs.Add(vertices[2]);
+            Vertexs.Add(vertices[3]);
+        }
+
+        public void DrawLineBatch(bool isDithered, bool SemiTransparency)
+        {
+            glTexPage tp = new glTexPage();
+            tp.TextureDisable = true;
+            SetDrawMode(tp.Value, 0, isDithered);
+
+            EnableSemiTransparency(SemiTransparency);
+
+            UpdateCurrentDepth();
         }
 
         public void DrawRect(Point2D origin, Point2D size, TextureData texture, uint bgrColor, Primitive primitive)
         {
-            byte R, G, B;
-
             if (primitive.IsTextured && primitive.IsRawTextured)
             {
-                R = G = B = 0x80;            //No blend color
-            } else
+                bgrColor = 0x808080;
+            }
+            if (!primitive.IsTextured)
             {
-                R = (byte)primitive.rawcolor;
-                G = (byte)(primitive.rawcolor >> 8);
-                B = (byte)(primitive.rawcolor >> 16);
+                primitive.texpage = (ushort)(primitive.texpage | (1 << 11));
             }
 
-            //Upper left 
-            short x1 = origin.X;
-            short y1 = origin.Y;
-            //Lower right
-            short x2 = size.X;
-            short y2 = size.Y;
+            SetDrawMode(primitive.texpage, primitive.clut, false);
 
-            ushort tx1 = 0;
-            ushort ty1 = 0;
-            ushort tx2 = 0;
-            ushort ty2 = 0;
+            if (!IsDrawAreaValid())
+                return;
+
+            // 组装顶点数据（两个三角形：v0-v1-v2 和 v1-v2-v3）
+            Vertex[] vertices = new Vertex[4];
+
+            vertices[0].v_pos.x = origin.X;
+            vertices[0].v_pos.y = origin.Y;
+
+            vertices[1].v_pos.x = size.X;
+            vertices[1].v_pos.y = origin.Y;
+
+            vertices[2].v_pos.x = origin.X;
+            vertices[2].v_pos.y = size.Y;
+
+            vertices[3].v_pos.x = size.X;
+            vertices[3].v_pos.y = size.Y;
+
+            vertices[0].v_color.Value = bgrColor;
+            vertices[1].v_color.Value = bgrColor;
+            vertices[2].v_color.Value = bgrColor;
+            vertices[3].v_color.Value = bgrColor;
 
             if (primitive.IsTextured)
             {
-                //Texture Upper left 
-                tx1 = texture.X;
-                ty1 = texture.Y;
+                short u1, u2, v1, v2;
 
-                //Texture Lower right
-                tx2 = (ushort)(tx1 + primitive.texwidth);
-                ty2 = (ushort)(ty1 + primitive.texheight);
-            }
-
-            Vertices = new short[]{
-                x1,  y1,  // 左上角
-                x2,  y1,  // 右上角
-                x2,  y2,  // 右下角
-                x1,  y2   // 左下角
-            };
-            Colors = new byte[]{
-             R,  G,  B,
-             R,  G,  B,
-             R,  G,  B,
-             R,  G,  B,
-            };
-            UV = new ushort[] {
-             tx1, ty1,
-             tx2, ty1,
-             tx2, ty2,
-             tx1, ty2
-            };
-
-            //if (!ApplyDrawingOffset(ref Vertices))
-            //{
-            //    return;
-            //}
-
-            if (primitive.IsSemiTransparent)
-            {
-                SetBlendingFunction(primitive.SemiTransparencyMode);
-            } else
-            {
-                DisableBlending();
-            }
-
-            Gl.Viewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)Vertices.Length * sizeof(short), Vertices, BufferUsage.StreamDraw);
-            Gl.VertexAttribIPointer(0, 2, VertexAttribIType.Short, 0, IntPtr.Zero);  //size: 2 for x,y only!
-            Gl.EnableVertexAttribArray(0);
-
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, ColorsBuffer);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)Colors.Length * sizeof(byte), Colors, BufferUsage.StreamDraw);
-            Gl.VertexAttribIPointer(1, 3, VertexAttribIType.UnsignedByte, 0, IntPtr.Zero);
-            Gl.EnableVertexAttribArray(1);
-
-            if (primitive.IsTextured)
-            {
-                Gl.Uniform1(ClutLoc, primitive.clut);
-                Gl.Uniform1(TexPageLoc, primitive.texturebase);
-                Gl.Uniform1(TexModeLoc, primitive.TextureDepth);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, TexCoords);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)UV.Length * sizeof(ushort), UV, BufferUsage.StreamDraw);
-                Gl.VertexAttribPointer(2, 2, VertexAttribPointerType.UnsignedShort, false, 0, IntPtr.Zero);
-                Gl.EnableVertexAttribArray(2);
-                if (TextureInvalidatePrimitive(ref UV, primitive.texturebase, primitive.clut))
+                if (primitive.drawMode.TexturedRectangleXFlip)
                 {
-                    VramSync();
+                    u1 = texture.X;
+                    u2 = (short)(u1 - primitive.texwidth);
+                } else
+                {
+                    u1 = texture.X;
+                    u2 = (short)(u1 + primitive.texwidth);
                 }
-            } else
-            {
-                Gl.Uniform1(TexModeLoc, -1);
-                Gl.Uniform1(ClutLoc, 0);
-                Gl.Uniform1(TexPageLoc, 0);
-                Gl.DisableVertexAttribArray(2);
+
+                if (primitive.drawMode.TexturedRectangleYFlip)
+                {
+                    v1 = texture.Y;
+                    v2 = (short)(v1 - primitive.texheight);
+                } else
+                {
+                    v1 = texture.Y;
+                    v2 = (short)(v1 + primitive.texheight);
+                }
+
+                vertices[0].v_texCoord.u = u1;
+                vertices[0].v_texCoord.v = v1;
+
+                vertices[1].v_texCoord.u = u2;
+                vertices[1].v_texCoord.v = v1;
+
+                vertices[2].v_texCoord.u = u1;
+                vertices[2].v_texCoord.v = v2;
+
+                vertices[3].v_texCoord.u = u2;
+                vertices[3].v_texCoord.v = v2;
             }
 
-            Gl.Uniform1(IsDitheredLoc, 0);  //RECTs are NOT dithered
+            if (Vertexs.Count + 6 > 1024)
+                DrawBatch();
 
-            Gl.DrawArrays(PrimitiveType.TriangleFan, 0, 4);
+            EnableSemiTransparency(primitive.IsSemiTransparent);
 
-            UpdateIntersectionTable(ref Vertices);
+            UpdateCurrentDepth();
+
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                m_dirtyArea.Grow(vertices[i].v_pos.x, vertices[i].v_pos.y);
+
+                vertices[i].v_clut.Value = primitive.clut;
+                vertices[i].v_texPage.Value = primitive.texpage;
+                vertices[i].v_pos.z = m_currentDepth;
+            }
+
+            Vertexs.Add(vertices[0]);
+            Vertexs.Add(vertices[1]);
+            Vertexs.Add(vertices[2]);
+
+            Vertexs.Add(vertices[1]);
+            Vertexs.Add(vertices[2]);
+            Vertexs.Add(vertices[3]);
+
         }
 
         public void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
 
+            if (!primitive.IsTextured)
+            {
+                primitive.texpage = (ushort)(primitive.texpage | (1 << 11));
+            }
+
+            SetDrawMode(primitive.texpage, primitive.clut, primitive.isDithered);
+
+            if (!IsDrawAreaValid())
+                return;
+
             if (primitive.IsRawTextured)
             {
                 c0 = c1 = c2 = 0x808080;
-            } else
-            if (!primitive.IsShaded)
+            } else if (!primitive.IsShaded)
             {
                 c1 = c2 = c0;
             }
 
-            Vertices = new short[]{
-             v0.X,  v0.Y,
-             v1.X,  v1.Y,
-             v2.X,  v2.Y,
-            };
-            Colors = new byte[]{
-                (byte)c0, (byte)(c0 >> 8), (byte)(c0 >> 16),
-                (byte)c1, (byte)(c1 >> 8), (byte)(c1 >> 16),
-                (byte)c2, (byte)(c2 >> 8), (byte)(c2 >> 16),
-            };
-            UV = new ushort[] {
-             t0.X, t0.Y,
-             t1.X, t1.Y,
-             t2.X, t2.Y,
-            };
+            Vertex[] vertices = new Vertex[3];
 
-            //if (!ApplyDrawingOffset(ref Vertices))
+            vertices[0].v_pos.x = v0.X;
+            vertices[0].v_pos.y = v0.Y;
+
+            vertices[1].v_pos.x = v1.X;
+            vertices[1].v_pos.y = v1.Y;
+
+            vertices[2].v_pos.x = v2.X;
+            vertices[2].v_pos.y = v2.Y;
+
+            vertices[0].v_texCoord.u = t0.X;
+            vertices[0].v_texCoord.v = t0.Y;
+
+            vertices[1].v_texCoord.u = t1.X;
+            vertices[1].v_texCoord.v = t1.Y;
+
+            vertices[2].v_texCoord.u = t2.X;
+            vertices[2].v_texCoord.v = t2.Y;
+
+            vertices[0].v_color.Value = c0;
+            vertices[1].v_color.Value = c1;
+            vertices[2].v_color.Value = c2;
+
+            //if (primitive.IsShaded)
             //{
-            //    return;
+            //    vertices[0].v_color.Value = c0;
+            //    vertices[1].v_color.Value = c1;
+            //    vertices[2].v_color.Value = c2;
+            //} else
+            //{
+            //    if (primitive.IsRawTextured && primitive.IsTextured)
+            //    {
+            //        vertices[0].v_color.Value = 0x808080;
+            //        vertices[1].v_color.Value = 0x808080;
+            //        vertices[2].v_color.Value = 0x808080;
+            //    } else
+            //    {
+            //        vertices[0].v_color.Value = c0;
+            //        vertices[1].v_color.Value = c0;
+            //        vertices[2].v_color.Value = c0;
+            //    }
             //}
 
-            if (primitive.IsSemiTransparent)
+            if (Vertexs.Count + 3 > 1024)
+                DrawBatch();
+
+            EnableSemiTransparency(primitive.IsSemiTransparent);
+
+            UpdateCurrentDepth();
+
+            for (var i = 0; i < vertices.Length; i++)
             {
-                SetBlendingFunction(primitive.SemiTransparencyMode);
-            } else
-            {
-                DisableBlending();
+                m_dirtyArea.Grow(vertices[i].v_pos.x, vertices[i].v_pos.y);
+
+                vertices[i].v_clut.Value = primitive.clut;
+                vertices[i].v_texPage.Value = primitive.texpage;
+                vertices[i].v_pos.z = m_currentDepth;
             }
 
-            Gl.Viewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
-
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)Vertices.Length * sizeof(short), Vertices, BufferUsage.StreamDraw);
-            Gl.VertexAttribIPointer(0, 2, VertexAttribIType.Short, 0, IntPtr.Zero);  //size: 2 for x,y only!
-            Gl.EnableVertexAttribArray(0);
-
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, ColorsBuffer);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)Colors.Length * sizeof(byte), Colors, BufferUsage.StreamDraw);
-            Gl.VertexAttribIPointer(1, 3, VertexAttribIType.UnsignedByte, 0, IntPtr.Zero);
-            Gl.EnableVertexAttribArray(1);
-
-            if (primitive.IsTextured)
-            {
-                Gl.Uniform1(ClutLoc, primitive.clut);
-                Gl.Uniform1(TexPageLoc, primitive.texpage);
-                Gl.Uniform1(TexModeLoc, (primitive.texpage >> 7) & 3);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, TexCoords);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)UV.Length * sizeof(ushort), UV, BufferUsage.StreamDraw);
-                Gl.VertexAttribPointer(2, 2, VertexAttribPointerType.UnsignedShort, false, 0, IntPtr.Zero);
-                Gl.EnableVertexAttribArray(2);
-
-                if (TextureInvalidatePrimitive(ref UV, primitive.texpage, primitive.clut))
-                {
-                    VramSync();
-                }
-
-            } else
-            {
-                Gl.Uniform1(TexModeLoc, -1);
-                Gl.Uniform1(ClutLoc, 0);
-                Gl.Uniform1(TexPageLoc, 0);
-                Gl.DisableVertexAttribArray(2);
-            }
-
-            Gl.Uniform1(IsDitheredLoc, primitive.isDithered ? 1 : 0);
-
-            Gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
-
-            UpdateIntersectionTable(ref Vertices);
+            Vertexs.AddRange(vertices);
         }
 
         #region Helper Functions
 
-        private void VramSync()
+        public void RestoreRenderState()
         {
-            Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, VramFrameBuffer);
-            Gl.BindTexture(TextureTarget.Texture2d, SampleTexture);
-            Gl.CopyTexSubImage2D(TextureTarget.Texture2d, 0, 0, 0, 0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, VramFrameBuffer);
+            DrawVAO.Bind();
+            m_vramDrawFramebuffer.Bind();
+            m_vramReadTexture.Bind();
+            ClutShader.Bind();
 
-            for (int i = 0; i < VRAM_WIDTH / IntersectionBlockLength; i++)
+            Gl.Disable(EnableCap.CullFace);
+            Gl.Enable(EnableCap.ScissorTest);
+            Gl.Enable(EnableCap.DepthTest);
+
+            UpdateScissorRect();
+            UpdateBlendMode();
+            UpdateMaskBits();
+
+            Gl.Uniform1(m_drawOpaquePixelsLoc, 1);
+            Gl.Uniform1(m_drawTransparentPixelsLoc, 1);
+            Gl.Uniform1(m_ditherLoc, m_dither ? 1 : 0);
+            Gl.Uniform1(m_realColorLoc, m_realColor ? 1 : 0);
+            Gl.Uniform2(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
+            Gl.Uniform2(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
+            Gl.Uniform1(resolutionScaleLoc, (float)resolutionScale);
+
+            SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
+        }
+
+        public int GetPixelStoreAlignment(int x, int w)
+        {
+            bool odd = (x % 2 != 0) || (w % 2 != 0);
+            return odd ? 2 : 4;
+        }
+
+        public int GetVRamTextureWidth()
+        {
+            return (VRAM_WIDTH * resolutionScale);
+        }
+
+        public int GetVRamTextureHeight()
+        {
+            return (VRAM_HEIGHT * resolutionScale);
+        }
+
+        public void UpdateScissorRect()
+        {
+            ScissorBox_X = DrawingAreaTopLeft.X;
+            ScissorBox_Y = DrawingAreaTopLeft.Y;
+
+            ScissorBoxWidth = Math.Max(DrawingAreaBottomRight.X - DrawingAreaTopLeft.X + 1, 0);
+            ScissorBoxHeight = Math.Max(DrawingAreaBottomRight.Y - DrawingAreaTopLeft.Y + 1, 0);
+
+            SetScissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
+        }
+
+        public void SetViewport(int left, int top, int width, int height)
+        {
+            Gl.Viewport(
+                (left * resolutionScale),
+                (top * resolutionScale),
+                (width * resolutionScale),
+                (height * resolutionScale)
+            );
+        }
+
+        public void SetScissor(int left, int top, int width, int height)
+        {
+            Gl.Scissor(
+                (left * resolutionScale),
+                (top * resolutionScale),
+                (width * resolutionScale),
+                (height * resolutionScale)
+            );
+        }
+
+        public void UpdateBlendMode()
+        {
+            if (m_semiTransparencyEnabled)
             {
-                for (int j = 0; j < VRAM_HEIGHT / IntersectionBlockLength; j++)
+                Gl.Enable(EnableCap.Blend);
+
+                BlendEquationMode rgbEquation = BlendEquationMode.FuncAdd;
+                float srcBlend = 1.0f;
+                float destBlend = 1.0f;
+
+                switch (m_semiTransparencyMode)
                 {
-                    IntersectionTable[j, i] = 0;
+                    case 0:
+                        srcBlend = 0.5f;
+                        destBlend = 0.5f;
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        rgbEquation = BlendEquationMode.FuncReverseSubtract;
+                        break;
+                    case 3:
+                        srcBlend = 0.25f;
+                        break;
                 }
+
+                Gl.BlendEquationSeparate(rgbEquation, BlendEquationMode.FuncAdd);
+                Gl.BlendFuncSeparate(BlendingFactor.Source1Alpha, BlendingFactor.Src1Color, BlendingFactor.One, BlendingFactor.Zero);
+
+                Gl.Uniform1(m_srcBlendLoc, srcBlend);
+                Gl.Uniform1(m_destBlendLoc, destBlend);
+            } else
+            {
+                Gl.Disable(EnableCap.Blend);
             }
         }
 
-        private void SetBlendingFunction(int function)
+        public void UpdateMaskBits()
         {
-            Gl.Uniform1(TransparencyModeLoc, function);
-
-            Gl.Enable(EnableCap.Blend);
-            //B = Destination
-            //F = Source
-            Gl.BlendFunc(BlendingFactor.Src1Color, BlendingFactor.Source1Alpha);        //Alpha values are handled in GLSL
-            Gl.BlendEquation(function == 2 ? BlendEquationMode.FuncReverseSubtract : BlendEquationMode.FuncAdd);
+            Gl.Uniform1(m_setMaskBitLoc, ForceSetMaskBit ? 1 : 0);
+            Gl.DepthFunc(CheckMaskBit ? DepthFunction.Lequal : DepthFunction.Always);
         }
 
-        public void DisableBlending()
+        public void UpdateReadTexture()
         {
-            ///Gl.Disable(EnableCap.Blend);
-            Gl.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
-            Gl.BlendEquation(BlendEquationMode.FuncAdd);
-            Gl.Uniform1(TransparencyModeLoc, 4);    //0-3 for the functions, 4 = disabled
+            if (m_dirtyArea.Empty())
+                return;
+
+            DrawBatch();
+
+            // 绑定读取帧缓冲区
+            m_vramReadFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
+            Gl.Disable(EnableCap.ScissorTest);
+
+            // 计算缩放后的脏区域
+            var blitArea = m_dirtyArea.Scale(resolutionScale);
+
+            // 将脏区域的内容从绘制帧缓冲区复制到读取帧缓冲区
+            Gl.BlitFramebuffer(
+                blitArea.Left, blitArea.Top, blitArea.Right, blitArea.Bottom,
+                blitArea.Left, blitArea.Top, blitArea.Right, blitArea.Bottom,
+                ClearBufferMask.ColorBufferBit,
+                BlitFramebufferFilter.Nearest
+            );
+
+            // 恢复绘制帧缓冲区绑定，并重新启用剪裁测试
+            m_vramDrawFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
+
+            Gl.Enable(EnableCap.ScissorTest);
+
+            ResetDirtyArea();
         }
 
-        private void UpdateIntersectionTable(ref short[] vertices)
+        public void ResetDepthBuffer()
         {
-            //Mark any affected blocks as dirty
-            int smallestX = 1023;
-            int smallestY = 511;
-            int largestX = -1024;
-            int largestY = -512;
+            DrawBatch();
 
-            for (int i = 0; i < vertices.Length; i += 2)
+            m_currentDepth = 1;
+
+            Gl.Disable(EnableCap.ScissorTest);
+            Gl.Disable(EnableCap.Blend);
+            Gl.ColorMask(false, false, false, false);
+            Gl.DepthFunc(DepthFunction.Always);
+
+            m_vramDrawTexture.Bind();
+            ResetDepthShader.Bind();
+            BlankVAO.Bind();
+
+            Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+
+            Gl.ColorMask(true, true, true, true);
+
+            RestoreRenderState();
+        }
+
+        public void UpdateCurrentDepth()
+        {
+            if (CheckMaskBit)
             {
-                largestX = Math.Max(largestX, vertices[i]);
-                smallestX = Math.Min(smallestX, vertices[i]);
-            }
+                ++m_currentDepth;
 
-            for (int i = 1; i < vertices.Length; i += 2)
-            {
-                largestY = Math.Max(largestY, vertices[i]);
-                smallestY = Math.Min(smallestY, vertices[i]);
-            }
-
-            smallestX = Math.Clamp(smallestX, 0, 1023);
-            smallestY = Math.Clamp(smallestY, 0, 511);
-            largestX = Math.Clamp(largestX, 0, 1023);
-            largestY = Math.Clamp(largestY, 0, 511);
-
-            int left = smallestX / IntersectionBlockLength;
-            int right = largestX / IntersectionBlockLength;
-            int up = smallestY / IntersectionBlockLength;
-            int down = largestY / IntersectionBlockLength;
-
-            //No access wrap for drawing, anything out of bounds is clamped 
-            for (int y = up; y <= down; y++)
-            {
-                for (int x = left; x <= right; x++)
-                {
-                    IntersectionTable[y, x] = 1;
-                }
+                if (m_currentDepth == short.MaxValue)
+                    ResetDepthBuffer();
             }
         }
 
-        private bool ApplyDrawingOffset(ref short[] vertices)
+        public void SetSemiTransparencyMode(byte semiTransparencyMode)
         {
-            short maxX = -1024;
-            short maxY = -1024;
-            short minX = 1023;
-            short minY = 1023;
-
-            for (int i = 0; i < vertices.Length; i += 2)
+            if (m_semiTransparencyMode != semiTransparencyMode)
             {
-                //vertices[i] = Signed11Bits((ushort)(Signed11Bits((ushort)vertices[i]) + DrawOffsetX));
-                vertices[i] = (short)(Signed11Bits((ushort)vertices[i]) + DrawingOffset.X);
+                if (m_semiTransparencyEnabled)
+                    DrawBatch();
 
-                maxX = Math.Max(maxX, vertices[i]);
-                minX = Math.Min(minX, vertices[i]);
+                m_semiTransparencyMode = semiTransparencyMode;
+
+                if (m_semiTransparencyEnabled)
+                    UpdateBlendMode();
             }
-
-            for (int i = 1; i < vertices.Length; i += 2)
-            {
-                //vertices[i] = Signed11Bits((ushort)(Signed11Bits((ushort)vertices[i]) + DrawOffsetY));
-                vertices[i] = (short)(Signed11Bits((ushort)vertices[i]) + DrawingOffset.Y);
-
-                maxY = Math.Max(maxY, vertices[i]);
-                minY = Math.Min(minY, vertices[i]);
-            }
-
-            return !((Math.Abs(maxX - minX) > 1024) || (Math.Abs(maxY - minY) > 512));
         }
 
-        private short Signed11Bits(ushort input)
+        public void EnableSemiTransparency(bool enabled)
         {
-            return (short)(((short)(input << 5)) >> 5);
+            if (m_semiTransparencyEnabled != enabled)
+            {
+                DrawBatch();
+
+                m_semiTransparencyEnabled = enabled;
+
+                UpdateBlendMode();
+            }
         }
 
-        private bool TextureInvalidatePrimitive(ref ushort[] uv, uint texPage, uint clut)
+        public bool IsDrawAreaValid()
         {
-            //Experimental 
-            //Checks whether the textured primitive is reading from a dirty block
-
-            //Hack: Always sync if preserve_masked_pixels is true
-            //This is kind of slow but fixes Silent Hills 
-            if (PreserveMaskedPixels)
-            {
-                return true;
-            }
-
-            int mode = (int)((texPage >> 7) & 3);
-            uint divider = (uint)(4 >> mode);
-
-            uint smallestX = 1023;
-            uint smallestY = 511;
-            uint largestX = 0;
-            uint largestY = 0;
-
-            for (int i = 0; i < uv.Length; i += 2)
-            {
-                largestX = Math.Max(largestX, uv[i]);
-                smallestX = Math.Min(smallestX, uv[i]);
-            }
-
-            for (int i = 1; i < uv.Length; i += 2)
-            {
-                largestY = Math.Max(largestY, uv[i]);
-                smallestY = Math.Min(smallestY, uv[i]);
-            }
-
-            smallestX = Math.Min(smallestX, 1023);
-            smallestY = Math.Min(smallestY, 511);
-            largestX = Math.Min(largestX, 1023);
-            largestY = Math.Min(largestY, 511);
-
-            uint texBaseX = (texPage & 0xF) * 64;
-            uint texBaseY = ((texPage >> 4) & 1) * 256;
-
-            uint width = (largestX - smallestX) / divider;
-            uint height = (largestY - smallestY) / divider;
-
-            uint left = texBaseX / IntersectionBlockLength;
-            uint right = ((texBaseX + width) & 0x3FF) / IntersectionBlockLength;
-            uint up = texBaseY / IntersectionBlockLength;
-            uint down = ((texBaseY + height) & 0x1FF) / IntersectionBlockLength;
-
-            //ANDing with 7,15 take cares of vram access wrap when reading textures (same effect as mod 8,16)  
-            for (uint y = up; y != ((down + 1) & 0x7); y = (y + 1) & 0x7)
-            {
-                for (uint x = left; x != ((right + 1) & 0xF); x = (x + 1) & 0xF)
-                {
-                    if (IntersectionTable[y, x] == 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            //For 4/8 bpp modes we need to check the clut table 
-            if (mode == 0 || mode == 1)
-            {
-                uint clutX = (clut & 0x3F) * 16;
-                uint clutY = ((clut >> 6) & 0x1FF);
-                left = clutX / IntersectionBlockLength;
-                up = clutY / IntersectionBlockLength;             //One line 
-                for (uint x = left; x < VRAM_WIDTH / IntersectionBlockLength; x++)
-                {
-                    if (IntersectionTable[up, x] == 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return DrawingAreaTopLeft.X <= DrawingAreaBottomRight.X && DrawingAreaTopLeft.Y <= DrawingAreaBottomRight.Y;
         }
 
-        private bool TextureInvalidate(ref ushort[] coords)
+        public float GetNormalizedDepth()
         {
-            //Hack: Always sync if preserve_masked_pixels is true
-            //This is kind of slow but fixes Silent Hills 
-            if (PreserveMaskedPixels)
+            return (float)m_currentDepth / (float)short.MaxValue;
+        }
+
+        public bool UsingTexture()
+        {
+            return !m_TexPage.TextureDisable;
+        }
+
+        public bool UsingClut()
+        {
+            return m_TexPage.TexturePageColors < 2;
+        }
+
+        public bool IntersectsTextureData(glRectangle<int> bounds)
+        {
+            return UsingTexture() &&
+                   (m_textureArea.Intersects(bounds) || (UsingClut() && m_clutArea.Intersects(bounds)));
+        }
+
+        public glRectangle<int> GetWrappedBounds(int left, int top, int width, int height)
+        {
+            if (left + width > VRAM_WIDTH)
             {
-                return true;
+                left = 0;
+                width = VRAM_WIDTH;
             }
 
-            uint smallestX = 1023;
-            uint smallestY = 511;
-            uint largestX = 0;
-            uint largestY = 0;
-
-            for (int i = 0; i < coords.Length; i += 2)
+            if (top + height > VRAM_HEIGHT)
             {
-                largestX = Math.Max(largestX, coords[i]);
-                smallestX = Math.Min(smallestX, coords[i]);
+                top = 0;
+                height = VRAM_HEIGHT;
             }
 
-            for (int i = 1; i < coords.Length; i += 2)
-            {
-                largestY = Math.Max(largestY, coords[i]);
-                smallestY = Math.Min(smallestY, coords[i]);
-            }
+            return glRectangle<int>.FromExtents(left, top, width, height);
+        }
 
-            smallestX = Math.Min(smallestX, 1023);
-            smallestY = Math.Min(smallestY, 511);
-            largestX = Math.Min(largestX, 1023);
-            largestY = Math.Min(largestY, 511);
+        public void ResetDirtyArea()
+        {
+            m_dirtyArea.Left = VRAM_WIDTH;
+            m_dirtyArea.Top = VRAM_HEIGHT;
+            m_dirtyArea.Right = 0;
+            m_dirtyArea.Bottom = 0;
+        }
 
-            uint width = (largestX - smallestX);
-            uint height = (largestY - smallestY);
+        public void GrowDirtyArea(glRectangle<int> bounds)
+        {
+            // 检查 bounds 是否需要覆盖待处理的批处理多边形
+            if (m_dirtyArea.Intersects(bounds))
+                DrawBatch();
 
-            uint left = smallestX / IntersectionBlockLength;
-            uint right = ((smallestX + width) & 0x3FF) / IntersectionBlockLength;
-            uint up = smallestY / IntersectionBlockLength;
-            uint down = ((smallestY + height) & 0x1FF) / IntersectionBlockLength;
+            m_dirtyArea.Grow(bounds);
 
-            //ANDing with 7,15 take cares of vram access wrap when reading textures (same effect as mod 8,16)  
-            for (uint y = up; y != ((down + 1) & 0x7); y = (y + 1) & 0x7)
-            {
-                for (uint x = left; x != ((right + 1) & 0xF); x = (x + 1) & 0xF)
-                {
-                    if (IntersectionTable[y, x] == 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            // 检查 bounds 是否会覆盖当前的纹理数据
+            if (IntersectsTextureData(bounds))
+                DrawBatch();
         }
 
         #endregion
