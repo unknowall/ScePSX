@@ -6,6 +6,7 @@ using OpenGL;
 
 namespace ScePSX
 {
+
     public class GlShader : IDisposable
     {
         public uint Program;
@@ -37,7 +38,7 @@ namespace ScePSX
             Gl.GetProgram(Program, ProgramProperty.LinkStatus, out var code);
             if (code != 1)
             {
-                throw new Exception($"Error occurred whilst linking Program({Program})");
+                Console.WriteLine($"[OpenGL GPU] Error occurred linking Program({Program})");
             }
 
             Gl.DetachShader(Program, vertexShader);
@@ -45,7 +46,7 @@ namespace ScePSX
             Gl.DeleteShader(fragmentShader);
             Gl.DeleteShader(vertexShader);
 
-            Console.WriteLine($"[OPENGL GPU] LinkProgram Done!");
+            Console.WriteLine($"[OpenGL GPU] LinkProgram Done!");
         }
 
         private void CompileShader(uint shader)
@@ -63,7 +64,7 @@ namespace ScePSX
                 Gl.GetShaderInfoLog(shader, logLength, out int actualLength, infoLog);
 
                 string log = infoLog.ToString();
-                Console.WriteLine($"[OPENGL GPU] Shader compile error:\r\n{log}\r\n");
+                Console.WriteLine($"[OpenGL GPU] Compile error:\r\n{log}\r\n");
             }
         }
 
@@ -352,14 +353,14 @@ namespace ScePSX
             GC.SuppressFinalize(this);
         }
 
-        public static glTexture2D Create(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels = default, int mipmapLevel = 0)
+        public static glTexture2D Create(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels, int mipmapLevel = 0)
         {
             var texture = Create();
             texture.UpdateImage(internalColorFormat, width, height, pixelFormat, pixelType, pixels, mipmapLevel);
             return texture;
         }
 
-        public void UpdateImage(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels = default, int mipmapLevel = 0)
+        public void UpdateImage(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels, int mipmapLevel = 0)
         {
             Bind();
             Gl.TexImage2D(TextureTarget.Texture2d, mipmapLevel, internalColorFormat, width, height, 0, pixelFormat, pixelType, pixels);

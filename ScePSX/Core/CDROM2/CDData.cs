@@ -264,7 +264,6 @@ namespace ScePSX.CdRom2
             return crcValue ^ 0xFFFFFFFF;
         }
 
-
         public static List<CDTrack> FromBin(string file)
         {
             var tracks = new List<CDTrack>();

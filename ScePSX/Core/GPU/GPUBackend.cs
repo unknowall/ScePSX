@@ -37,6 +37,8 @@ namespace ScePSX
 
         void WriteToVRAM(ushort value);
 
+        void WriteDone();
+
         void SetMaskBit(uint val);
 
         void SetVRAMTransfer(VRAMTransfer val);
@@ -60,8 +62,6 @@ namespace ScePSX
         void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive);
 
         void DrawLineBatch(bool isDithered, bool SemiTransparency);
-
-        void WriteDone();
 
     }
 

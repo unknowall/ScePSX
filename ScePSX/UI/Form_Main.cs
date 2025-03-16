@@ -210,7 +210,7 @@ namespace ScePSX.UI
                 UpdateStatus(1, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中, true);
             }
 
-            if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL && AutoIR)
+            if (Core.GPU.type == GPUType.OpenGL && AutoIR)
             {
                 if (this.ClientSize.Width >= 800 && this.ClientSize.Height >= 600)
                     IRscale = 3;
@@ -218,7 +218,7 @@ namespace ScePSX.UI
                     IRscale = 4;
                 if (this.ClientSize.Width >= 1920 && this.ClientSize.Height >= 1080)
                     IRscale = 5;
-                Core.IRScale = IRscale;
+                (Core.GPU as OpenglGPU).IRScale = IRscale;
             }
 
             this.Text = $"{version}  -  {gamename}";
@@ -238,12 +238,12 @@ namespace ScePSX.UI
                 scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
-            if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+            if (Core.GPU.type == GPUType.OpenGL)
             {
-                UpdateStatus(5, $"OpenGL {Render.oglMSAA} MSAA, {IRscale} IR");
+                UpdateStatus(5, $"OpenGL MSAA[{Render.oglMSAA}] IR[{IRscale}]");
             } else
             {
-                UpdateStatus(5, $"{Core.PsxBus.gpu.Backend.GPU.type.ToString()} {rendername}");
+                UpdateStatus(5, $"{Core.GPU.type.ToString()} {rendername}");
             }
             UpdateStatus(6, $"{(scale.scale > 0 ? scale.mode.ToString() : "")} {scalew}*{scaleh}");
             UpdateStatus(7, $"FPS {_currentFps:F1}");
@@ -477,6 +477,7 @@ namespace ScePSX.UI
             if (Core != null)
             {
                 Core.Stop();
+                Core.Dispose();
                 Core = null;
             }
 
@@ -595,7 +596,7 @@ namespace ScePSX.UI
                 if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
                 {
                     IRscale = IRscale < 9 ? IRscale + 1 : 9;
-                    Core.IRScale = IRscale;
+                    (Core.GPU as OpenglGPU).IRScale = IRscale;
                     AutoIR = false;
 
                 } else if (scale.scale < 8)
@@ -610,7 +611,7 @@ namespace ScePSX.UI
                 if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
                 {
                     IRscale = IRscale > 1 ? IRscale - 1 : 1;
-                    Core.IRScale = IRscale;
+                    (Core.GPU as OpenglGPU).IRScale = IRscale;
                     AutoIR = false;
 
                 } else if (scale.scale > 0)
@@ -899,9 +900,9 @@ namespace ScePSX.UI
             if ((GPUType)gpumode == GPUType.OpenGL)
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
-                Core.IRScale = IRscale;
-                Core.PGXPT = PGXP;
-                Core.PGXPT = PGXPT;
+                (Core.GPU as OpenglGPU).IRScale = IRscale;
+                (Core.GPU as OpenglGPU).PGXPT = PGXP;
+                (Core.GPU as OpenglGPU).PGXPT = PGXPT;
             } else
             {
                 IRscale = 1;
@@ -1164,7 +1165,6 @@ namespace ScePSX.UI
         }
 
         #endregion
-
 
     }
 

@@ -3,7 +3,7 @@
 namespace ScePSX
 {
     [Serializable]
-    public abstract class Channel
+    public abstract class DMAChannel
     {
         public abstract void write(uint register, uint value);
         public abstract uint read(uint regiter);
@@ -13,18 +13,18 @@ namespace ScePSX
     public class DMA
     {
 
-        Channel[] channels = new Channel[8];
+        DMAChannel[] channels = new DMAChannel[8];
 
         public DMA(BUS bus)
         {
             var interrupt = new InterruptChannel();
-            channels[0] = new DmaChannel(0, interrupt, bus);
-            channels[1] = new DmaChannel(1, interrupt, bus);
-            channels[2] = new DmaChannel(2, interrupt, bus);
-            channels[3] = new DmaChannel(3, interrupt, bus);
-            channels[4] = new DmaChannel(4, interrupt, bus);
-            channels[5] = new DmaChannel(5, interrupt, bus);
-            channels[6] = new DmaChannel(6, interrupt, bus);
+            channels[0] = new DmaChannels(0, interrupt, bus);
+            channels[1] = new DmaChannels(1, interrupt, bus);
+            channels[2] = new DmaChannels(2, interrupt, bus);
+            channels[3] = new DmaChannels(3, interrupt, bus);
+            channels[4] = new DmaChannels(4, interrupt, bus);
+            channels[5] = new DmaChannels(5, interrupt, bus);
+            channels[6] = new DmaChannels(6, interrupt, bus);
             channels[7] = interrupt;
         }
 
@@ -49,14 +49,14 @@ namespace ScePSX
         {
             for (var i = 0; i < 7; i++)
             {
-                ((DmaChannel)channels[i]).transferBlockIfPending();
+                ((DmaChannels)channels[i]).transferBlockIfPending();
             }
             return ((InterruptChannel)channels[7]).tick();
         }
     }
 
     [Serializable]
-    public sealed class DmaChannel : Channel
+    public sealed class DmaChannels : DMAChannel
     {
 
         private uint baseAddress;
@@ -81,7 +81,7 @@ namespace ScePSX
 
         private uint pendingBlocks;
 
-        public DmaChannel(int channelNumber, InterruptChannel interrupt, BUS bus)
+        public DmaChannels(int channelNumber, InterruptChannel interrupt, BUS bus)
         {
             this.channelNumber = channelNumber;
             this.interrupt = interrupt;
@@ -310,7 +310,7 @@ namespace ScePSX
     }
 
     [Serializable]
-    public sealed class InterruptChannel : Channel
+    public sealed class InterruptChannel : DMAChannel
     {
         // 1F8010F0h DPCR - DMA Control register
         private uint control;
