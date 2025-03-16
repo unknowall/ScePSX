@@ -10,7 +10,8 @@ namespace ScePSX.Render
         Directx2D,
         Directx3D,
         OpenGL,
-        Vulkan
+        Vulkan,
+        Null
     }
     
     public interface IRenderer : IDisposable
@@ -43,7 +44,8 @@ namespace ScePSX.Render
             { RenderMode.OpenGL, () => new OpenGLRenderer() },
             { RenderMode.Directx3D, () => new SDL2Renderer() },
             { RenderMode.Directx2D, () => new D2DRenderer() },
-            { RenderMode.Vulkan, () => new VulkanRenderer() }
+            { RenderMode.Vulkan, () => new VulkanRenderer() },
+            { RenderMode.Null, () => new NullRenderer() }
         };
         }
 
@@ -66,6 +68,11 @@ namespace ScePSX.Render
                         glRenderer.LoadShaders(oglShaderPath);
 
                     glRenderer.MultisampleBits = (uint)oglMSAA;
+                }
+
+                if (_currentRenderer is NullRenderer nullRenderer)
+                {
+                    nullRenderer.SetParam(oglMSAA);
                 }
             }
         }

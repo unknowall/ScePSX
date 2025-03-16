@@ -1328,7 +1328,7 @@ namespace ScePSX
 	        gl_FragDepth = 1.0 - color.a;
         }";
 
-        public static string DisplayVertex = @"
+        public static string GetPixelsVertex = @"
         #version 330
 
         //正常输出
@@ -1338,6 +1338,34 @@ namespace ScePSX
         //上下翻转
         const vec2 positions[4] = vec2[]( vec2(-1.0, -1.0),vec2(1.0, -1.0),vec2(-1.0, 1.0),vec2(1.0, 1.0) );
         const vec2 texCoords[4] = vec2[]( vec2(0.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 0.0), vec2(1.0, 0.0) );
+
+        out vec2 TexCoord;
+
+        void main()
+        {
+	        TexCoord = texCoords[ gl_VertexID ];
+	        gl_Position = vec4( positions[ gl_VertexID ], 0.0, 1.0 );
+        }";
+
+        public static string GetPixelsFragment = @"
+        #version 330
+
+        in vec2 TexCoord;
+
+        out vec4 FragColor;
+
+        uniform sampler2D tex;
+
+        void main()
+        {
+	        FragColor = texture( tex, TexCoord );
+        }";
+
+        public static string DisplayVertex = @"
+        #version 330
+
+        const vec2 positions[4] = vec2[]( vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0) );
+        const vec2 texCoords[4] = vec2[]( vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 1.0) );
 
         out vec2 TexCoord;
 

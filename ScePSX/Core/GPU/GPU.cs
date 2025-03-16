@@ -97,7 +97,7 @@ namespace ScePSX
 
         private TDisplayMode DisplayMode;
 
-        private int[] _Pixels = new int[4096 * 2160];
+        private int[] _Pixels = new int[1024 * 512];
 
         //for Serialized
         private uint SetTextureWindow_value;

@@ -238,7 +238,13 @@ namespace ScePSX.UI
                 scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
-            UpdateStatus(5, $"{Core.PsxBus.gpu.Backend.GPU.type.ToString()} [IRx{IRscale}] -> {rendername}");
+            if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+            {
+                UpdateStatus(5, $"OpenGL {Render.oglMSAA} MSAA, {IRscale} IR");
+            } else
+            {
+                UpdateStatus(5, $"{Core.PsxBus.gpu.Backend.GPU.type.ToString()} {rendername}");
+            }
             UpdateStatus(6, $"{(scale.scale > 0 ? scale.mode.ToString() : "")} {scalew}*{scaleh}");
             UpdateStatus(7, $"FPS {_currentFps:F1}");
         }
@@ -588,7 +594,7 @@ namespace ScePSX.UI
             {
                 if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
                 {
-                    IRscale = IRscale < 9 ? IRscale+1 : 9;
+                    IRscale = IRscale < 9 ? IRscale + 1 : 9;
                     Core.IRScale = IRscale;
                     AutoIR = false;
 
@@ -603,7 +609,7 @@ namespace ScePSX.UI
             {
                 if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
                 {
-                    IRscale = IRscale > 1 ? IRscale-1 : 1;
+                    IRscale = IRscale > 1 ? IRscale - 1 : 1;
                     Core.IRScale = IRscale;
                     AutoIR = false;
 
@@ -767,12 +773,12 @@ namespace ScePSX.UI
             }
             if (e.KeyCode == Keys.F11)
             {
-                xBRScaleAdd_Click(null,null);
+                xBRScaleAdd_Click(null, null);
                 return;
             }
             if (e.KeyCode == Keys.F12)
             {
-                xBRScaleDec_Click(null,null);
+                xBRScaleDec_Click(null, null);
                 return;
             }
 
@@ -868,6 +874,16 @@ namespace ScePSX.UI
 
             Realcolor = ini.ReadInt("main", "RealColor") == 1;
 
+            romList.Dispose();
+
+            if ((GPUType)gpumode == GPUType.OpenGL)
+            {
+                Render.SelectRenderer(RenderMode.Null, this);
+                while (NullRenderer.hwnd == 0)
+                    Thread.Sleep(100);
+            } else
+                Render.SelectRenderer(Rendermode, this);
+
             Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, (GPUType)gpumode, gameid);
 
             if (Core.DiskID == "")
@@ -903,12 +919,8 @@ namespace ScePSX.UI
             Core.SYNC_CYCLES_BUS = ini.ReadInt("CPU", "BusCycles");
             Core.SYNC_CYCLES_FIX = ini.ReadInt("CPU", "CyclesFix");
 
-            romList.Dispose();
-
             scale.scale = 0;
             scale.mode = (ScaleMode)ini.ReadInt("Main", "ScaleMode");
-
-            Render.SelectRenderer(Rendermode, this);
 
             CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
 

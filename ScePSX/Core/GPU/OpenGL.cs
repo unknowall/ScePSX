@@ -6,6 +6,8 @@ using System.Threading;
 using Khronos;
 using OpenGL;
 
+using ScePSX.Render;
+
 namespace ScePSX
 {
     public class OpenglGPU : IGPU
@@ -22,61 +24,43 @@ namespace ScePSX
 
         private bool CheckMaskBit, ForceSetMaskBit;
 
-        INativePBuffer pbuffer;
+        //INativePBuffer pbuffer;
 
         nint _GlContext;
 
         DeviceContext _DeviceContext;
 
-        //private IntPtr _window;
-
         public OpenglGPU()
         {
-            //SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
-
-            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_RED_SIZE, 8);
-            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
-            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
-            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_ALPHA_SIZE, 8);
-            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
-            //SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1);
-
-            //_window = SDL.SDL_CreateWindow(
-            //    "OpenGL Debug Window", // 窗口标题
-            //    SDL.SDL_WINDOWPOS_CENTERED, // 窗口初始位置（水平居中）
-            //    SDL.SDL_WINDOWPOS_CENTERED, // 窗口初始位置（垂直居中）
-            //    1024, 512, // 窗口大小（宽度和高度）
-            //    SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE // 启用 OpenGL 支持
-            //);
-
-            //SDL.SDL_SysWMinfo info = new SDL.SDL_SysWMinfo();
-            //SDL.SDL_GetWindowWMInfo(_window, ref info);
-            //_DeviceContext = DeviceContext.Create(info.info.win.hdc, info.info.win.window);
-
             var pixelFormat = new DevicePixelFormat(32)
             {
                 DoubleBuffer = true,
                 DepthBits = 24,
                 StencilBits = 8,
-                MultisampleBits = 0
+                MultisampleBits = NullRenderer.MSAA
             };
             DeviceContext.DefaultAPI = KhronosVersion.ApiGl;
-            pbuffer = DeviceContext.CreatePBuffer(pixelFormat, 4096, 2160);
-            _DeviceContext = DeviceContext.Create(pbuffer);
+
+            //pbuffer = DeviceContext.CreatePBuffer(pixelFormat, 4096, 2160);
+            //_DeviceContext = DeviceContext.Create(pbuffer);
+            //_DeviceContext.IncRef();
+
+            _DeviceContext = DeviceContext.Create(NullRenderer.hdc, NullRenderer.hwnd);
             _DeviceContext.IncRef();
-            //给SDL窗口用
-            //DevicePixelFormatCollection pixelFormats = _DeviceContext.PixelsFormats;
-            //List<DevicePixelFormat> matchingPixelFormats = pixelFormats.Choose(pixelFormat);
-            //_DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
+
+            //给窗口用
+            DevicePixelFormatCollection pixelFormats = _DeviceContext.PixelsFormats;
+            List<DevicePixelFormat> matchingPixelFormats = pixelFormats.Choose(pixelFormat);
+            _DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
 
             int[] attribs = {
-                Glx.CONTEXT_MAJOR_VERSION_ARB, 4,
-                Glx.CONTEXT_MINOR_VERSION_ARB, 6,
+                Glx.CONTEXT_MAJOR_VERSION_ARB, 3,
+                Glx.CONTEXT_MINOR_VERSION_ARB, 3,
                 Glx.CONTEXT_FLAGS_ARB, (int)Glx.CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
                 Glx.CONTEXT_PROFILE_MASK_ARB, (int)Glx.CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
                 0
             };
-            _GlContext = _DeviceContext.CreateContextAttrib(IntPtr.Zero, attribs, new KhronosVersion(4, 6, 0, "gl", "compatibility"));
+            _GlContext = _DeviceContext.CreateContextAttrib(IntPtr.Zero, attribs, new KhronosVersion(3, 3, 0, "gl", "compatibility"));
             _DeviceContext.MakeCurrent(_GlContext);
 
             Gl.BindAPI();
@@ -117,7 +101,7 @@ namespace ScePSX
         glBuffer VAOBuff;
 
         GlShader ClutShader, RamViewShader, Out24Shader, Out16Shader, ResetDepthShader, DisplayShader;
-
+        GlShader GetPixelsShader;
         GLCopyShader vRamCopyShader;
 
         int m_srcBlendLoc, m_destBlendLoc, m_setMaskBitLoc, m_drawOpaquePixelsLoc, m_drawTransparentPixelsLoc;
@@ -179,12 +163,12 @@ namespace ScePSX
         DisplayArea m_vramDisplayArea;
         DisplayArea m_targetDisplayArea;
 
-        //float m_aspectRatio = 0.0f;
-        //public bool m_stretchToFit = false;
+        float m_aspectRatio = 0.0f;
+        public bool m_stretchToFit = true;
         public bool m_viewVRam = false;
         public bool m_displayEnable = true;
 
-        unsafe ushort* VRAM = (ushort*)Marshal.AllocHGlobal(VRAM_WIDTH * VRAM_HEIGHT);
+        unsafe ushort* VRAM;
 
         public unsafe void Initialize()
         {
@@ -220,6 +204,11 @@ namespace ScePSX
             DisplayShader = new GlShader(
                 GLShaderStrings.DisplayVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
                 GLShaderStrings.DisplayFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
+
+            GetPixelsShader = new GlShader(
+                GLShaderStrings.GetPixelsVertex.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.GetPixelsFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
                 );
 
             vRamCopyShader = new GLCopyShader();
@@ -288,6 +277,8 @@ namespace ScePSX
 
             //SetResolutionScale(2);
 
+            VRAM = (ushort*)Marshal.AllocHGlobal(VRAM_WIDTH * VRAM_HEIGHT);
+
             //非线程测试时注释这行
             _DeviceContext.MakeCurrent(0);
 
@@ -335,11 +326,6 @@ namespace ScePSX
         {
             THREADCHANGE();
 
-            DrawVAO.Dispose();
-            BlankVAO.Dispose();
-
-            VAOBuff.Dispose();
-
             m_displayTexture.Dispose();
             m_vramTransferTexture.Dispose();
             m_vramDrawTexture.Dispose();
@@ -351,6 +337,11 @@ namespace ScePSX
             m_vramReadFramebuffer.Dispose();
             m_vramTransferFramebuffer.Dispose();
 
+            DrawVAO.Dispose();
+            BlankVAO.Dispose();
+
+            VAOBuff.Dispose();
+
             vRamCopyShader.Dispose();
             DisplayShader.Dispose();
             ResetDepthShader.Dispose();
@@ -358,15 +349,13 @@ namespace ScePSX
             Out24Shader.Dispose();
             RamViewShader.Dispose();
             ClutShader.Dispose();
+            GetPixelsShader.Dispose();
 
             _DeviceContext.DeleteContext(_GlContext);
 
             _DeviceContext.Dispose();
 
             Marshal.FreeHGlobal((IntPtr)VRAM);
-
-            //调试
-            //SDL.SDL_DestroyWindow(_window);
         }
 
         public void SetRealColor(bool realColor)
@@ -572,44 +561,45 @@ namespace ScePSX
 
             m_displayFramebuffer.Unbind();
 
-            //if (Pixels.Length < targetWidth * targetHeight)
-            //{
-            //    Pixels = new int[targetWidth * targetHeight];
-            //}
-            //渲染到m_displayTexture
+            //渲染到像素组
+            //GetPixelsShader.Bind();
+            //m_displayTexture.Bind();
+            //Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+            //Gl.ReadPixels(0, 0, targetWidth, targetHeight, PixelFormat.Bgra, PixelType.UnsignedByte, Marshal.UnsafeAddrOfPinnedArrayElement(Pixels, 0));
+
+            // 渲染到窗口
+            int winWidth, winHeight;
+
+            winWidth = NullRenderer.ClientWidth;
+            winHeight = NullRenderer.ClientHeight;
+
+            if (winWidth == 0 || winHeight == 0)
+                return(0,-1);
+
+            Gl.Viewport(0, 0, winWidth, winHeight);
+            Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            Gl.Clear(ClearBufferMask.ColorBufferBit);
+
             DisplayShader.Bind();
             m_displayTexture.Bind();
+
+            float displayWidth = srcWidth;
+            float displayHeight = m_viewVRam ? srcHeight : (displayWidth / m_aspectRatio);
+
+            float renderScale = Math.Min(winWidth / displayWidth, winHeight / displayHeight);
+
+            if (!m_stretchToFit)
+                renderScale = Math.Max(1.0f, (float)Math.Floor(renderScale));
+
+            int renderWidth = (int)(displayWidth * renderScale);
+            int renderHeight = (int)(displayHeight * renderScale);
+            int renderX = (winWidth - renderWidth) / 2;
+            int renderY = (winHeight - renderHeight) / 2;
+
+            Gl.Viewport(renderX, renderY, renderWidth, renderHeight);
             Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
-            Gl.ReadPixels(0, 0, targetWidth, targetHeight, PixelFormat.Bgra, PixelType.UnsignedByte, Marshal.UnsafeAddrOfPinnedArrayElement(Pixels, 0));
 
-            // 渲染到调试窗口，注意 DisplayShader 着色器已上下翻转
-            //int winWidth, winHeight;
-            //SDL.SDL_GetWindowSize(_window, out winWidth, out winHeight);
-
-            //Gl.Viewport(0, 0, winWidth, winHeight);
-            //Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            //Gl.Clear(ClearBufferMask.ColorBufferBit);
-
-            //DisplayShader.Bind();
-            //m_displayTexture.Bind();
-
-            //float displayWidth = srcWidth;
-            //float displayHeight = m_viewVRam ? srcHeight : (displayWidth / m_aspectRatio);
-
-            //float renderScale = Math.Min(winWidth / displayWidth, winHeight / displayHeight);
-
-            //if (!m_stretchToFit)
-            //    renderScale = Math.Max(1.0f, (float)Math.Floor(renderScale));
-
-            //int renderWidth = (int)(displayWidth * renderScale);
-            //int renderHeight = (int)(displayHeight * renderScale);
-            //int renderX = (winWidth - renderWidth) / 2;
-            //int renderY = (winHeight - renderHeight) / 2;
-
-            //Gl.Viewport(renderX, renderY, renderWidth, renderHeight);
-            //Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
-
-            //_DeviceContext.SwapBuffers();
+            _DeviceContext.SwapBuffers();
 
             // 恢复渲染状态
             RestoreRenderState();
@@ -938,22 +928,6 @@ namespace ScePSX
             Gl.PixelStore(PixelStoreParameter.PackRowLength, 0);
         }
 
-        public unsafe uint ReadFromVRAM()
-        {
-            ushort Data0 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
-            _VRAMTransfer.X++;
-            ushort Data1 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
-            _VRAMTransfer.X++;
-
-            if (_VRAMTransfer.X == _VRAMTransfer.OriginX + _VRAMTransfer.W)
-            {
-                _VRAMTransfer.X -= _VRAMTransfer.W;
-                _VRAMTransfer.Y++;
-            }
-
-            return (uint)((Data1 << 16) | Data0);
-        }
-
         private unsafe void CopyRectCPUtoVRAM(int left, int top, int width, int height)
         {
             // 获取包裹后的边界
@@ -1046,8 +1020,7 @@ namespace ScePSX
 
         public unsafe void WriteToVRAM(ushort value)
         {
-            if (_VRAMTransfer.HalfWords > 0)
-                *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W) = value;
+            *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W) = value;
 
             _VRAMTransfer.X++;
 
@@ -1056,6 +1029,22 @@ namespace ScePSX
 
             _VRAMTransfer.X -= _VRAMTransfer.W;
             _VRAMTransfer.Y++;
+        }
+
+        public unsafe uint ReadFromVRAM()
+        {
+            ushort Data0 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
+            _VRAMTransfer.X++;
+            ushort Data1 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
+            _VRAMTransfer.X++;
+
+            if (_VRAMTransfer.X == _VRAMTransfer.OriginX + _VRAMTransfer.W)
+            {
+                _VRAMTransfer.X -= _VRAMTransfer.W;
+                _VRAMTransfer.Y++;
+            }
+
+            return (uint)((Data1 << 16) | Data0);
         }
 
         public void WriteDone()
