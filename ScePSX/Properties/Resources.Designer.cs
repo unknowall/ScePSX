@@ -529,6 +529,15 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Keep 4:3 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_Keep43 {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_Keep43", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Frame limit 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_limit {
@@ -619,7 +628,7 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Perspective Fix 的本地化字符串。
+        ///   查找类似 PerFix 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_透视校正 {
             get {

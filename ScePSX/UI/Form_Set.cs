@@ -43,11 +43,13 @@ namespace ScePSX.UI
                 cbgpures.Enabled = true;
                 chkpgxp.Enabled = true;
                 chkpgxpt.Enabled = true;
+                chkkeepar.Enabled = true;
             } else
             {
                 cbgpures.Enabled = false;
                 chkpgxp.Enabled = false;
                 chkpgxpt.Enabled = false;
+                chkkeepar.Enabled = false;
             }
 
         }
@@ -105,6 +107,7 @@ namespace ScePSX.UI
             chkpgxp.Checked = ini.ReadInt("Main", "PGXP") == 1;
             chkpgxpt.Checked = ini.ReadInt("Main", "PGXPT") == 1;
             chkrealcolor.Checked = ini.ReadInt("Main", "RealColor") == 1;
+            chkkeepar.Checked = ini.ReadInt("Main", "KeepAR") == 1;
 
             cbcpumode.SelectedIndex = ini.ReadInt("Main", "CpuMode");
 
@@ -153,6 +156,7 @@ namespace ScePSX.UI
                 ini.WriteInt("Main", "PGXP", chkpgxp.Checked ? 1 : 0);
                 ini.WriteInt("Main", "PGXPT", chkpgxpt.Checked ? 1 : 0);
                 ini.WriteInt("Main", "RealColor", chkrealcolor.Checked ? 1 : 0);
+                ini.WriteInt("Main", "KeepAR", chkkeepar.Checked ? 1 : 0);
 
                 ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
 

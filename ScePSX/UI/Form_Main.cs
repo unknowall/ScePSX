@@ -240,7 +240,7 @@ namespace ScePSX.UI
             UpdateStatus(0, Core.DiskID);
             if (Core.GPU.type == GPUType.OpenGL)
             {
-                UpdateStatus(5, $"OpenGL MSAA[{Render.oglMSAA}] IR[{IRscale}]");
+                UpdateStatus(5, $"OpenGL {Render.oglMSAA}xMSAA {IRscale}xIR");
             } else
             {
                 UpdateStatus(5, $"{Core.GPU.type.ToString()} {rendername}");
@@ -901,7 +901,7 @@ namespace ScePSX.UI
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
-                (Core.GPU as OpenglGPU).PGXPT = PGXP;
+                (Core.GPU as OpenglGPU).PGXP = PGXP;
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
             } else
             {

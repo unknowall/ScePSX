@@ -117,14 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="SwapDisc" xml:space="preserve">
-    <value>更换光盘</value>
-  </data>
   <data name="File" xml:space="preserve">
     <value>文件(&amp;F)</value>
   </data>
   <data name="LoadDIsk" xml:space="preserve">
     <value>加载光盘</value>
+  </data>
+  <data name="SwapDisc" xml:space="preserve">
+    <value>更换光盘</value>
   </data>
   <data name="BackToMain" xml:space="preserve">
     <value>返回列表</value>
@@ -199,7 +199,7 @@
     <value>音频缓冲(ms)</value>
   </data>
   <data name="Form_Set_InitializeComponent_fsk" xml:space="preserve">
-    <value>D2D1,D3D 跳帧</value>
+    <value>D2D,D3D 跳帧</value>
   </data>
   <data name="Form_Set_InitializeComponent_CPUt" xml:space="preserve">
     <value>CPU执行</value>
@@ -446,5 +446,8 @@
   </data>
   <data name="Form_Set_InitializeComponent_自适应" xml:space="preserve">
     <value>自适应</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_Keep43" xml:space="preserve">
+    <value>保持 4:3</value>
   </data>
 </root>

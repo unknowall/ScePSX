@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Khronos;
@@ -84,6 +86,15 @@ namespace ScePSX
         const int ClutBaseXMult = 16;
         const int ClutBaseYMult = 1;
 
+        static readonly int[] ColorModeClutWidths = { 16, 256, 0, 0 };
+        static readonly int[] ColorModeTexturePageWidths =
+        {
+            TexturePageWidth / 4,
+            TexturePageWidth / 2,
+            TexturePageWidth,
+            TexturePageWidth
+        };
+
         int ScissorBox_X = 0;
         int ScissorBox_Y = 0;
         int ScissorBoxWidth = VRAM_WIDTH;
@@ -101,12 +112,12 @@ namespace ScePSX
         glBuffer VAOBuff;
 
         GlShader ClutShader, RamViewShader, Out24Shader, Out16Shader, ResetDepthShader, DisplayShader;
-        GlShader GetPixelsShader;
+        GlShader GetPixelsShader, UserShader;
         GLCopyShader vRamCopyShader;
 
         int m_srcBlendLoc, m_destBlendLoc, m_setMaskBitLoc, m_drawOpaquePixelsLoc, m_drawTransparentPixelsLoc;
         int m_ditherLoc, m_realColorLoc, m_texWindowMaskLoc, m_texWindowOffsetLoc, resolutionScaleLoc;
-        int m_srcRect24Loc, m_srcRect16Loc;
+        int m_srcRect24Loc, m_srcRect16Loc, pgxpLoc;
 
         glFramebuffer m_vramDrawFramebuffer;
         glTexture2D m_vramDrawTexture, m_vramDrawDepthTexture;
@@ -127,6 +138,7 @@ namespace ScePSX
 
         bool m_dither = false;
         bool m_realColor = false;
+        bool m_pgxp = false;
 
         bool m_semiTransparencyEnabled = false;
         byte m_semiTransparencyMode = 0;
@@ -144,6 +156,7 @@ namespace ScePSX
             public glTexCoord v_texCoord;
             public glClutAttribute v_clut;
             public glTexPage v_texPage;
+            public Vector3 v_pos_pgxp;
         }
 
         List<Vertex> Vertexs = new List<Vertex>();
@@ -173,8 +186,8 @@ namespace ScePSX
         public bool ViewVRam = false;
         public bool DisplayEnable = true;
         public int IRScale;
-        public bool RealColor, PGXP, PGXPT;
-        public float AspectRatio = 0.0f;        
+        public bool RealColor, PGXP, PGXPT, KEEPAR;
+        const float AspectRatio = 4.0f / 3.0f;
 
         public unsafe void Initialize()
         {
@@ -228,6 +241,7 @@ namespace ScePSX
             m_texWindowMaskLoc = ClutShader.GetUniformLocation("u_texWindowMask");
             m_texWindowOffsetLoc = ClutShader.GetUniformLocation("u_texWindowOffset");
             resolutionScaleLoc = ClutShader.GetUniformLocation("u_resolutionScale");
+            pgxpLoc = ClutShader.GetUniformLocation("u_pgxp");
 
             m_srcRect24Loc = Out24Shader.GetUniformLocation("u_srcRect");
             m_srcRect16Loc = Out16Shader.GetUniformLocation("u_srcRect");
@@ -244,14 +258,16 @@ namespace ScePSX
             int texCoordOffset = Marshal.OffsetOf(typeof(Vertex), "v_texCoord").ToInt32();
             int clutOffset = Marshal.OffsetOf(typeof(Vertex), "v_clut").ToInt32();
             int texPageOffset = Marshal.OffsetOf(typeof(Vertex), "v_texPage").ToInt32();
+            int pgxpOffset = Marshal.OffsetOf(typeof(Vertex), "v_pos_pgxp").ToInt32();
 
             DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos"), 4, VertexAttribPointerType.Short, false, Stride, 0);
             DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_color"), 3, VertexAttribPointerType.UnsignedByte, true, Stride, colorOffset);
             DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_texCoord"), 2, VertexAttribPointerType.Short, false, Stride, texCoordOffset);
             DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_clut"), 1, VertexAttribIType.UnsignedShort, Stride, clutOffset);
             DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_texPage"), 1, VertexAttribIType.UnsignedShort, Stride, texPageOffset);
+            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos_pgxp"), 3, VertexAttribPointerType.Short, false, Stride, pgxpOffset);
 
-            InitializeVRamFramebuffers();
+            CreateVRamFramebuffers();
 
             m_vramTransferFramebuffer = glFramebuffer.Create();
             m_vramTransferTexture = glTexture2D.Create();
@@ -290,7 +306,7 @@ namespace ScePSX
             _ThreadID = Thread.CurrentThread.ManagedThreadId;
         }
 
-        private void InitializeVRamFramebuffers()
+        private void CreateVRamFramebuffers()
         {
             m_vramDrawFramebuffer = glFramebuffer.Create();
             m_vramDrawTexture = glTexture2D.Create(
@@ -382,6 +398,15 @@ namespace ScePSX
             }
         }
 
+        private void SetPGXP(bool pgxp)
+        {
+            if (m_pgxp != pgxp)
+            {
+                m_pgxp = pgxp;
+                Gl.Uniform1(pgxpLoc, m_pgxp ? 1 : 0);
+            }
+        }
+
         private bool SetResolutionScale(int scale)
         {
             if (scale < 1 || scale > 9)
@@ -406,7 +431,7 @@ namespace ScePSX
             var oldDrawTexture = m_vramDrawTexture;
             var oldDepthBuffer = m_vramDrawDepthTexture;
 
-            InitializeVRamFramebuffers();
+            CreateVRamFramebuffers();
 
             // 将旧的 VRAM 数据复制到新的帧缓冲区
             Gl.Disable(EnableCap.ScissorTest);
@@ -437,6 +462,38 @@ namespace ScePSX
 
         public void SetParams(int[] Params)
         {
+        }
+
+        public void LoadShader(string ShaderDir)
+        {
+            DirectoryInfo dir = new DirectoryInfo(ShaderDir);
+
+            if (!dir.Exists)
+            {
+                Console.WriteLine($"[OPENGL] Shader directory not found: {ShaderDir}");
+                return;
+            }
+
+            string vertexShaderSource = null;
+            string fragmentShaderSource = null;
+
+            foreach (FileInfo f in dir.GetFiles("*.VS", SearchOption.TopDirectoryOnly))
+            {
+                vertexShaderSource = File.ReadAllText(f.FullName);
+                //Console.WriteLine($"vertexShaderSource load: {f.FullName}\n");
+                break;
+            }
+
+            foreach (FileInfo f in dir.GetFiles("*.FS", SearchOption.TopDirectoryOnly))
+            {
+                fragmentShaderSource = File.ReadAllText(f.FullName);
+                //Console.WriteLine($"fragmentShaderSource load: {f.FullName}\n");
+                break;
+            }
+            UserShader = new GlShader(
+                vertexShaderSource.Split(new string[] { "\r" }, StringSplitOptions.None),
+                fragmentShaderSource.Split(new string[] { "\r" }, StringSplitOptions.None)
+                );
         }
 
         private void SetPGXP(bool pgxp, bool pgxpt)
@@ -482,6 +539,9 @@ namespace ScePSX
             THREADCHANGE();
 
             int offsetline = ((DisplayVerticalEnd - DisplayVerticalStart)) >> (h == 480 ? 0 : 1);
+
+            if (offsetline < 0)
+                return (0, -1);
 
             m_vramDisplayArea.x = rx;
             m_vramDisplayArea.y = ry;
@@ -593,26 +653,37 @@ namespace ScePSX
             Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             Gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            DisplayShader.Bind();
+            if (UserShader != null && UserShader.isAlive())
+                UserShader.Bind();
+            else
+                DisplayShader.Bind();
+
             m_displayTexture.Bind();
 
-            float displayWidth = srcWidth;
-            float displayHeight = ViewVRam ? srcHeight : (displayWidth / AspectRatio);
+            if (KEEPAR)
+            {
+                float displayWidth = srcWidth;
+                float displayHeight = ViewVRam ? srcHeight : (displayWidth / AspectRatio);
 
-            float renderScale = Math.Min(winWidth / displayWidth, winHeight / displayHeight);
+                float renderScale = Math.Min(winWidth / displayWidth, winHeight / displayHeight);
 
-            if (!StretchToFit)
-                renderScale = Math.Max(1.0f, (float)Math.Floor(renderScale));
+                if (!StretchToFit)
+                    renderScale = Math.Max(1.0f, (float)Math.Floor(renderScale));
 
-            int renderWidth = (int)(displayWidth * renderScale);
-            int renderHeight = (int)(displayHeight * renderScale);
-            int renderX = (winWidth - renderWidth) / 2;
-            int renderY = (winHeight - renderHeight) / 2;
+                int renderWidth = (int)(displayWidth * renderScale);
+                int renderHeight = (int)(displayHeight * renderScale);
+                int renderX = (winWidth - renderWidth) / 2;
+                int renderY = (winHeight - renderHeight) / 2;
 
-            Gl.Viewport(renderX, renderY, renderWidth, renderHeight);
+                Gl.Viewport(renderX, renderY, renderWidth, renderHeight);
+            }
+
             Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
 
             _DeviceContext.SwapBuffers();
+
+            // 恢复渲染状态
+            RestoreRenderState();
 
             //参数变动
             if (RealColor != m_realColor)
@@ -623,9 +694,10 @@ namespace ScePSX
             {
                 SetResolutionScale(IRScale);
             }
-
-            // 恢复渲染状态
-            RestoreRenderState();
+            if (PGXP != m_pgxp)
+            {
+                SetPGXP(PGXP);
+            }
 
             return (targetWidth, targetHeight);
         }
@@ -703,8 +775,8 @@ namespace ScePSX
                 TextureWindowXOffset = (int)((value >> 10) & 0x1f);
                 TextureWindowYOffset = (int)((value >> 15) & 0x1f);
 
-                Gl.Uniform2i(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
-                Gl.Uniform2i(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
+                Gl.Uniform2(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
+                Gl.Uniform2(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
             }
         }
 
@@ -721,26 +793,6 @@ namespace ScePSX
                 Gl.Uniform1(m_ditherLoc, dither ? 1 : 0);
             }
 
-            int[] ColorModeClutWidths = { 16, 256, 0, 0 };
-            int[] ColorModeTexturePageWidths =
-            {
-                TexturePageWidth / 4,
-                TexturePageWidth / 2,
-                TexturePageWidth,
-                TexturePageWidth
-            };
-
-            void UpdateClut()
-            {
-                m_clut.Value = vclut;
-
-                int clutBaseX = m_clut.X * ClutBaseXMult;
-                int clutBaseY = m_clut.Y * ClutBaseYMult;
-                int clutWidth = ColorModeClutWidths[m_TexPage.TexturePageColors];
-                int clutHeight = 1;
-                m_clutArea = glRectangle<int>.FromExtents(clutBaseX, clutBaseY, clutWidth, clutHeight);
-            }
-
             if (m_TexPage.Value != vtexPage)
             {
                 DrawBatch();
@@ -749,23 +801,23 @@ namespace ScePSX
 
                 SetSemiTransparencyMode(m_TexPage.SemiTransparencymode);
 
-                if (UsingTexture())
+                if (!m_TexPage.TextureDisable)
                 {
                     int texBaseX = m_TexPage.TexturePageBaseX * TexturePageBaseXMult;
                     int texBaseY = m_TexPage.TexturePageBaseY * TexturePageBaseYMult;
                     int texSize = ColorModeTexturePageWidths[m_TexPage.TexturePageColors];
                     m_textureArea = glRectangle<int>.FromExtents(texBaseX, texBaseY, texSize, texSize);
 
-                    if (UsingClut())
-                        UpdateClut();
+                    if (m_TexPage.TexturePageColors < 2)
+                        UpdateClut(vclut);
                 }
             }
             // 如果仅 CLUT 发生变化且使用纹理和 CLUT，则更新 CLUT
-            else if (m_clut.Value != vclut && UsingTexture() && UsingClut())
+            else if (m_clut.Value != vclut && !m_TexPage.TextureDisable && m_TexPage.TexturePageColors < 2)
             {
                 DrawBatch();
 
-                UpdateClut();
+                UpdateClut(vclut);
             }
 
             // 如果纹理页或 CLUT 区域是脏区域，则更新读取纹理
@@ -1237,6 +1289,7 @@ namespace ScePSX
 
         public void DrawRect(Point2D origin, Point2D size, TextureData texture, uint bgrColor, Primitive primitive)
         {
+
             if (primitive.IsTextured && primitive.IsRawTextured)
             {
                 bgrColor = 0x808080;
@@ -1322,6 +1375,17 @@ namespace ScePSX
                 vertices[i].v_clut.Value = primitive.clut;
                 vertices[i].v_texPage.Value = primitive.texpage;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                if (PGXP)
+                {
+                    // 计算高精度坐标
+                    float highX = (float)vertices[i].v_pos.x / 512.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
+                    float highY = (float)vertices[i].v_pos.y / 256.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
+                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;             // 映射到 [0, 1]
+
+                    // 设置高精度坐标
+                    vertices[i].v_pos_pgxp = new Vector3(highX, highY, highZ);
+                }
             }
 
             Vertexs.Add(vertices[0]);
@@ -1337,6 +1401,17 @@ namespace ScePSX
         public void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
 
+            if (PGXPT)
+            {
+                int minX = Math.Min(v0.X, Math.Min(v1.X, v2.X));
+                int minY = Math.Min(v0.Y, Math.Min(v1.Y, v2.Y));
+                int maxX = Math.Max(v0.X, Math.Max(v1.X, v2.X));
+                int maxY = Math.Max(v0.Y, Math.Max(v1.Y, v2.Y));
+
+                if (maxX - minX > 1024 || maxY - minY > 512)
+                    return;
+            }
+
             if (!primitive.IsTextured)
             {
                 primitive.texpage = (ushort)(primitive.texpage | (1 << 11));
@@ -1347,7 +1422,7 @@ namespace ScePSX
             if (!IsDrawAreaValid())
                 return;
 
-            if (primitive.IsRawTextured)
+            if (primitive.IsTextured && primitive.IsRawTextured)
             {
                 c0 = c1 = c2 = 0x808080;
             } else if (!primitive.IsShaded)
@@ -1393,6 +1468,17 @@ namespace ScePSX
                 vertices[i].v_clut.Value = primitive.clut;
                 vertices[i].v_texPage.Value = primitive.texpage;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                if (PGXP)
+                {
+                    // 计算高精度坐标
+                    float highX = (float)vertices[i].v_pos.x / 512.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
+                    float highY = (float)vertices[i].v_pos.y / 256.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
+                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;             // 映射到 [0, 1]
+
+                    // 设置高精度坐标
+                    vertices[i].v_pos_pgxp = new Vector3(highX, highY, highZ);
+                }
             }
 
             Vertexs.AddRange(vertices);
@@ -1456,7 +1542,6 @@ namespace ScePSX
 
             ScissorBoxWidth = Math.Max(DrawingAreaBottomRight.X - DrawingAreaTopLeft.X + 1, 0);
             ScissorBoxHeight = Math.Max(DrawingAreaBottomRight.Y - DrawingAreaTopLeft.Y + 1, 0);
-
             SetScissor(ScissorBox_X, ScissorBox_Y, ScissorBoxWidth, ScissorBoxHeight);
         }
 
@@ -1622,20 +1707,21 @@ namespace ScePSX
             return (float)m_currentDepth / (float)short.MaxValue;
         }
 
-        private bool UsingTexture()
+        private void UpdateClut(ushort vclut)
         {
-            return !m_TexPage.TextureDisable;
-        }
+            m_clut.Value = vclut;
 
-        private bool UsingClut()
-        {
-            return m_TexPage.TexturePageColors < 2;
+            int clutBaseX = m_clut.X * ClutBaseXMult;
+            int clutBaseY = m_clut.Y * ClutBaseYMult;
+            int clutWidth = ColorModeClutWidths[m_TexPage.TexturePageColors];
+            int clutHeight = 1;
+            m_clutArea = glRectangle<int>.FromExtents(clutBaseX, clutBaseY, clutWidth, clutHeight);
         }
 
         private bool IntersectsTextureData(glRectangle<int> bounds)
         {
-            return UsingTexture() &&
-                   (m_textureArea.Intersects(bounds) || (UsingClut() && m_clutArea.Intersects(bounds)));
+            return !m_TexPage.TextureDisable &&
+                   (m_textureArea.Intersects(bounds) || (m_TexPage.TexturePageColors < 2 && m_clutArea.Intersects(bounds)));
         }
 
         private glRectangle<int> GetWrappedBounds(int left, int top, int width, int height)
@@ -1674,6 +1760,12 @@ namespace ScePSX
             // 检查 bounds 是否会覆盖当前的纹理数据
             if (IntersectsTextureData(bounds))
                 DrawBatch();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int Orient2d(Point2D a, Point2D b, Point2D c)
+        {
+            return (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
         }
 
         #endregion

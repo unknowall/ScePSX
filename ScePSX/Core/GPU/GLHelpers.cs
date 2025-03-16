@@ -3,10 +3,10 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenGL;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScePSX
 {
-
     public class GlShader : IDisposable
     {
         public uint Program;
@@ -18,6 +18,11 @@ namespace ScePSX
         public GlShader(string[] vert, string[] frag)
         {
             LoadShader(vert, frag);
+        }
+
+        public bool isAlive()
+        {
+            return Program > 0;
         }
 
         private void LoadShader(string[] vert, string[] frag)
@@ -72,7 +77,8 @@ namespace ScePSX
         {
             Unbind();
 
-            Gl.DeleteProgram(Program);
+            if (Program > 0)
+                Gl.DeleteProgram(Program);
 
             GC.SuppressFinalize(this);
         }
@@ -148,7 +154,6 @@ namespace ScePSX
     {
         private uint m_vao = 0;
         private static uint s_bound = 0;
-
 
         public glVAO()
         {
@@ -314,8 +319,7 @@ namespace ScePSX
         {
             var error = Gl.GetError();
             if (error != Gl.NO_ERROR)
-                Console.WriteLine($"OpenGL SubData Error: {error}");
-            //throw new Exception($"OpenGL Error: {error}");
+                Console.WriteLine($"OpenGL glBuffer Error: {error}");
         }
     }
 
@@ -338,7 +342,7 @@ namespace ScePSX
             texture.Bind();
             texture.SetLinearFiltering(false);
             texture.SetTextureWrap(false);
-            //DbCheckRenderErrors();
+            //CheckRenderErrors();
             return texture;
         }
 
@@ -353,28 +357,28 @@ namespace ScePSX
             GC.SuppressFinalize(this);
         }
 
-        public static glTexture2D Create(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels, int mipmapLevel = 0)
+        public static glTexture2D Create(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, nint pixels, int mipmapLevel = 0)
         {
             var texture = Create();
             texture.UpdateImage(internalColorFormat, width, height, pixelFormat, pixelType, pixels, mipmapLevel);
             return texture;
         }
 
-        public void UpdateImage(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels, int mipmapLevel = 0)
+        public void UpdateImage(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, nint pixels, int mipmapLevel = 0)
         {
             Bind();
             Gl.TexImage2D(TextureTarget.Texture2d, mipmapLevel, internalColorFormat, width, height, 0, pixelFormat, pixelType, pixels);
-            //DbCheckRenderErrors();
+            //CheckRenderErrors();
             m_width = width;
             m_height = height;
         }
 
-        public void SubImage(int x, int y, int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels, int mipmapLevel = 0)
+        public void SubImage(int x, int y, int width, int height, PixelFormat pixelFormat, PixelType pixelType, nint pixels, int mipmapLevel = 0)
         {
             Bind();
             //Console.WriteLine($"OpenGL glTexture2D SubImage: {x}, {y} - {width} x {height}");
             Gl.TexSubImage2D(TextureTarget.Texture2d, mipmapLevel, x, y, width, height, pixelFormat, pixelType, pixels);
-            //DbCheckRenderErrors();
+            //CheckRenderErrors();
         }
 
         protected static void Bind(uint texture)
@@ -429,12 +433,11 @@ namespace ScePSX
 
         public int GetHeight() => m_height;
 
-        private static void DbCheckRenderErrors()
+        private static void CheckRenderErrors()
         {
             ErrorCode error = Gl.GetError();
             if (error != ErrorCode.NoError)
-                Console.WriteLine($"[OpenGL GPU] Error: {error}");
-            //throw new Exception($"OpenGL glTexture2DError: {error}");
+                Console.WriteLine($"[OpenGL GPU] glTexture2D Error: {error}");
         }
 
         public static int GetMaxTextureSize()
@@ -475,7 +478,7 @@ namespace ScePSX
         public static glFramebuffer Create()
         {
             uint frameBuffer = Gl.GenFramebuffer();
-            //DbCheckRenderErrors();
+            //CheckRenderErrors();
             return new glFramebuffer(frameBuffer);
         }
 
@@ -483,7 +486,7 @@ namespace ScePSX
         {
             Bind();
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, type, TextureTarget.Texture2d, texture.TextureID(), mipmapLevel);
-            //DbCheckRenderErrors();
+            //CheckRenderErrors();
             return Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
         }
 
@@ -567,12 +570,12 @@ namespace ScePSX
             }
         }
 
-        private static void DbCheckRenderErrors()
+        private static void CheckRenderErrors()
         {
             var error = Gl.GetError();
             if (error != Gl.NO_ERROR)
             {
-                throw new Exception($"OpenGL Error: {error}");
+                Console.WriteLine($"[OpenGL GPU] glFramebuffer Error: {error}");
             }
         }
     }
@@ -909,6 +912,7 @@ namespace ScePSX
         #version 330
 
         in vec4 v_pos;
+        in vec3 v_pos_high;
         in vec2 v_texCoord;
         in vec3 v_color;
         in int v_clut;
@@ -922,6 +926,7 @@ namespace ScePSX
         flat out int TexPage;
 
         uniform float u_resolutionScale;
+        uniform bool u_pgxp;
 
         void main()
         {
@@ -934,6 +939,14 @@ namespace ScePSX
 	        Position = vec3( v_pos.xy, z );
 
 	        gl_Position = vec4( x, y, 0.0, 1.0 );
+
+            if ( u_pgxp )
+            {
+                // 使用高精度坐标计算屏幕空间位置
+                vec3 highPos = v_pos_high / vec3(512.0, 256.0, 32767.0);
+                vec2 screenPos = highPos.xy * 2.0 - 1.0; // 转换到 NDC 空间
+                gl_Position = vec4(screenPos, highPos.z, 1.0);
+            }
 
 	        TexPageBase = ivec2( ( v_texPage & 0xf ) * 64, ( ( v_texPage >> 4 ) & 0x1 ) * 256 );
 

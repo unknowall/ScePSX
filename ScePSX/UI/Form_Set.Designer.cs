@@ -63,6 +63,7 @@
             chkrealcolor = new System.Windows.Forms.CheckBox();
             chkpgxp = new System.Windows.Forms.CheckBox();
             chkpgxpt = new System.Windows.Forms.CheckBox();
+            chkkeepar = new System.Windows.Forms.CheckBox();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
@@ -402,18 +403,29 @@
             // chkpgxpt
             // 
             chkpgxpt.AutoSize = true;
-            chkpgxpt.Location = new System.Drawing.Point(250, 266);
+            chkpgxpt.Location = new System.Drawing.Point(260, 266);
             chkpgxpt.Name = "chkpgxpt";
             chkpgxpt.Size = new System.Drawing.Size(112, 21);
             chkpgxpt.TabIndex = 15;
             chkpgxpt.Text = Properties.Resources.Form_Set_InitializeComponent_透视校正;
             chkpgxpt.UseVisualStyleBackColor = true;
             // 
+            // chkkeepar
+            // 
+            chkkeepar.AutoSize = true;
+            chkkeepar.Location = new System.Drawing.Point(350, 266);
+            chkkeepar.Name = "chkkeepar";
+            chkkeepar.Size = new System.Drawing.Size(112, 21);
+            chkkeepar.TabIndex = 15;
+            chkkeepar.Text = Properties.Resources.Form_Set_InitializeComponent_Keep43;
+            chkkeepar.UseVisualStyleBackColor = true;
+            // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(435, 351);
+            Controls.Add(chkkeepar);
             Controls.Add(chkpgxpt);
             Controls.Add(chkpgxp);
             Controls.Add(chkrealcolor);
@@ -477,5 +489,6 @@
         private System.Windows.Forms.CheckBox chkrealcolor;
         private System.Windows.Forms.CheckBox chkpgxp;
         private System.Windows.Forms.CheckBox chkpgxpt;
+        private System.Windows.Forms.CheckBox chkkeepar;
     }
 }
