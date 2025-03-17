@@ -17,17 +17,20 @@
 
 ## 性能表现 🚀
 
-| 渲染模式 | 内存占用 | 推荐硬件 |
-|----------|----------|----------|
-| D2D      | ~32MB    | 老机器   |
-| D3D      | ~52MB    | 较老设备 |
-| OpenGL   | ~86MB    | 现代设备 |
-| Vulkan   | ~120MB   | 现代设备 |
+| 渲染模式 | 内存占用 | 推荐硬件 | 后端模式  |
+|----------|----------|----------|-----------|
+| D2D      | ~32MB    | 老机器   | software  |
+| D3D      | ~52MB    | 较老设备 | software  |
+| OpenGL   | ~86MB   | 现代设备 | software  |
+| Vulkan   | ~120MB   | 现代设备 | software  |
+| OpenGL   | ~130MB   | 现代设备 | OpenGL    |
 
-> **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。
-*不使用gamedb, 不使用reshade
+> **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, 不使用reshade
 
-![捕获1](https://github.com/user-attachments/assets/27f7ac35-f296-4bdc-9164-498ea4342314)
+> **硬件后端**: 更好的原生画质，更低的CPU使用率，但需支持OpenGL 3.3以上的显卡 (不支持的已经很难找的到了)
+
+![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
+
 ![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
 ### 如何使用 🛠️
@@ -79,6 +82,9 @@ A: 绝大部分常见的游戏都已支持。
 ### Q: CPU 占用较高怎么办？
 A: 如果 CPU 占用过高，建议使用 D2D 渲染器或降低内部分辨率。
 
+### Q: 我的显示器是4K的，需要更好的原生画质
+A: 多按几下F11，建议配合home键选择ReShade增强画质
+
 ### Q: 是否支持跨平台？
 A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
 
@@ -96,8 +102,8 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 # 下载 📥
 
-- **轻量版 (1.42 MB)**: 仅包含核心功能，适合快速体验。
-- **完整版 (7.81 MB)**: 包含所有功能（如 ReShade 集成）。
+- **轻量版 (1.50 MB)**: 仅包含核心功能，适合快速体验。
+- **完整版 (7.99 MB)**: 包含所有功能（如 ReShade 集成）。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - > **注意**: 由于法律限制，模拟器不附带 BIOS 文件，请自行获取合法 BIOS。
 
