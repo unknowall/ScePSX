@@ -3,7 +3,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenGL;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScePSX
 {

@@ -62,6 +62,10 @@
         {
         }
 
+        public void SetSemiTransparencyMode(byte semiTransparencyMode)
+        {
+        }
+
         public void SetVRAMTransfer(VRAMTransfer val)
         {
         }

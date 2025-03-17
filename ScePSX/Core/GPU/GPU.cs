@@ -157,8 +157,8 @@ namespace ScePSX
             Backend.GPU.SetRam(Ram);
             Backend.GPU.SetFrameBuff(FrameBuffer);
 
-            Ram = null;
-            FrameBuffer = null;
+            //Ram = null;
+            //FrameBuffer = null;
         }
 
         public void SelectGPU(GPUType type = GPUType.Software)
@@ -173,17 +173,20 @@ namespace ScePSX
                 Backend.SelectMode(type);
             }
 
+            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
+
+            Backend.GPU.SetMaskBit(SetMaskBit_value);
+
+            Backend.GPU.SetDrawingOffset(DrawingOffset);
+
             Backend.GPU.SetTextureWindow(SetTextureWindow_value);
 
             Backend.GPU.SetDrawingAreaTopLeft(DrawingAreaTopLeft);
 
             Backend.GPU.SetDrawingAreaBottomRight(DrawingAreaBottomRight);
 
-            Backend.GPU.SetDrawingOffset(DrawingOffset);
+            Backend.GPU.SetSemiTransparencyMode(DrawMode.SemiTransparency);
 
-            Backend.GPU.SetMaskBit(SetMaskBit_value);
-
-            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
         }
 
         public bool tick(int cycles)

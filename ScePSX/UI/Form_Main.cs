@@ -435,6 +435,7 @@ namespace ScePSX.UI
                     if ((int)item.Tag == 40 + StateSlot)
                     {
                         item.Text = statename;
+                        item.Enabled = true;
                         break;
                     }
                 }

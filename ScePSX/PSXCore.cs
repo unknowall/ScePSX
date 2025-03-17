@@ -195,11 +195,13 @@ namespace ScePSX
             {
                 Thread.Sleep(10);
                 Pauseing = true;
-            }
-            ;
+            };
 
+            PsxBus.gpu.Backend.Dispose();
             PsxBus = StateFromFile<BUS>(fn);
             PsxBus.DeSerializable(this, GpuBackend);
+
+            GPU = PsxBus.gpu.Backend.GPU;
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");
@@ -315,6 +317,7 @@ namespace ScePSX
 
             while (Running)
             {
+
                 stopwatch.Restart();
 
                 if (!Pauseing)

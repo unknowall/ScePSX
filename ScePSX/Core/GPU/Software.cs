@@ -152,17 +152,31 @@ namespace ScePSX
 
         public unsafe void SetFrameBuff(byte[] FrameBuffer)
         {
-            Marshal.Copy(FrameBuffer,0, (IntPtr)FrameData.Pixels, FrameBuffer.Length);
+            _VRAMTransfer.OriginX = 0;
+            _VRAMTransfer.OriginY = 0;
+            _VRAMTransfer.X = 0;
+            _VRAMTransfer.Y = 0;
+            _VRAMTransfer.W = 1024;
+            _VRAMTransfer.H = 512;
+            _VRAMTransfer.HalfWords = 1024 * 512;
+
+            CheckMaskBeforeDraw = false;
+
+            for (int i = 0; i < _VRAMTransfer.HalfWords; i++)
+                WriteToVRAM(*(ushort*)(RamData.Pixels+i));
+
+            _VRAMTransfer.HalfWords = 0;
+            //Marshal.Copy(FrameBuffer,0, (IntPtr)FrameData.Pixels, FrameBuffer.Length);
         }
 
         public unsafe byte[] GetFrameBuff()
         {
 
-            byte[] FrameBuffer = new byte[FrameData.size];
+            //byte[] FrameBuffer = new byte[FrameData.size];
 
-            Marshal.Copy((IntPtr)FrameData.Pixels, FrameBuffer, 0, FrameData.size);
+            //Marshal.Copy((IntPtr)FrameData.Pixels, FrameBuffer, 0, FrameData.size);
 
-            return FrameBuffer;
+            return null;
         }
 
         public VRAMTransfer GetVRAMTransfer()
@@ -175,6 +189,10 @@ namespace ScePSX
         }
 
         public void WriteDone()
+        {
+        }
+
+        public void SetSemiTransparencyMode(byte semiTransparencyMode)
         {
         }
 

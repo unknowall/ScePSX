@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Khronos;
@@ -20,7 +19,7 @@ namespace ScePSX
 
         int _ThreadID;
 
-        nint _GlContext;
+        nint _GlContext, ShareGlContext;
 
         DeviceContext _DeviceContext;
 
@@ -48,13 +47,17 @@ namespace ScePSX
             _DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
 
             int[] attribs = {
-                Glx.CONTEXT_MAJOR_VERSION_ARB, 4,
-                Glx.CONTEXT_MINOR_VERSION_ARB, 6,
-                Glx.CONTEXT_FLAGS_ARB, (int)Glx.CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+                Glx.CONTEXT_MAJOR_VERSION_ARB, 3,
+                Glx.CONTEXT_MINOR_VERSION_ARB, 3,
+                Glx.CONTEXT_FLAGS_ARB, (int)(Glx.CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | Glx.CONTEXT_ROBUST_ACCESS_BIT_ARB),
                 Glx.CONTEXT_PROFILE_MASK_ARB, (int)Glx.CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
                 0
             };
-            _GlContext = _DeviceContext.CreateContextAttrib(IntPtr.Zero, attribs, new KhronosVersion(4, 6, 0, "gl", "compatibility"));
+
+            _GlContext = _DeviceContext.CreateContextAttrib(IntPtr.Zero, attribs, new KhronosVersion(3, 3, 0, "gl", "compatibility"));
+
+            ShareGlContext = _DeviceContext.CreateContext(_GlContext);
+
             _DeviceContext.MakeCurrent(_GlContext);
 
             Gl.BindAPI();
@@ -246,11 +249,11 @@ namespace ScePSX
             m_srcRect24Loc = Out24Shader.GetUniformLocation("u_srcRect");
             m_srcRect16Loc = Out16Shader.GetUniformLocation("u_srcRect");
 
+            VAOBuff = glBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
+
             ClutShader.Bind();
 
             DrawVAO.Bind();
-
-            VAOBuff = glBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
 
             int Stride = sizeof(Vertex);
 
@@ -300,8 +303,7 @@ namespace ScePSX
 
             VRAM = (ushort*)Marshal.AllocHGlobal((VRAM_WIDTH * VRAM_HEIGHT) * 2);
 
-            //非线程测试时注释这行
-            _DeviceContext.MakeCurrent(0);
+            _DeviceContext.MakeCurrent(ShareGlContext);
 
             _ThreadID = Thread.CurrentThread.ManagedThreadId;
         }
@@ -351,8 +353,6 @@ namespace ScePSX
             if (isDisposed)
                 return;
 
-            THREADCHANGE();
-
             m_displayTexture.Dispose();
             m_vramTransferTexture.Dispose();
             m_vramDrawTexture.Dispose();
@@ -377,6 +377,8 @@ namespace ScePSX
             RamViewShader.Dispose();
             ClutShader.Dispose();
             GetPixelsShader.Dispose();
+
+            _DeviceContext.DeleteContext(ShareGlContext);
 
             _DeviceContext.DeleteContext(_GlContext);
 
@@ -506,18 +508,55 @@ namespace ScePSX
             {
                 _ThreadID = Thread.CurrentThread.ManagedThreadId;
                 Console.WriteLine($"[OpenGL GPU] MakeCurrent TID: {Thread.CurrentThread.ManagedThreadId}");
+
                 _DeviceContext.MakeCurrent(_GlContext);
-                Gl.BindAPI(new KhronosVersion(4, 6, 0, "gl", "compatibility"), null);
+
+                Gl.BindAPI(new KhronosVersion(3, 3, 0, "gl", "compatibility"), null);
             }
         }
 
-        public void SetRam(byte[] Ram)
+        public unsafe void SetRam(byte[] Ram)
         {
+            _DeviceContext.MakeCurrent(_GlContext);
+
+            var oldvramtrans = _VRAMTransfer;
+
+            Marshal.Copy(Ram, 0, (IntPtr)VRAM, Ram.Length);
+
+            _VRAMTransfer.OriginX = 0;
+            _VRAMTransfer.OriginY = 0;
+            _VRAMTransfer.X = 0;
+            _VRAMTransfer.Y = 0;
+            _VRAMTransfer.W = 1024;
+            _VRAMTransfer.H = 512;
+
+            CopyRectCPUtoVRAM(0, 0, 1024, 512);
+
+            _VRAMTransfer = oldvramtrans;
+
+            _DeviceContext.MakeCurrent(ShareGlContext);
         }
 
-        public byte[] GetRam()
+        public unsafe byte[] GetRam()
         {
-            return null;
+
+            var oldvramtrans = _VRAMTransfer;
+
+            _VRAMTransfer.OriginX = 0;
+            _VRAMTransfer.OriginY = 0;
+            _VRAMTransfer.X = 0;
+            _VRAMTransfer.Y = 0;
+            _VRAMTransfer.W = 1024;
+            _VRAMTransfer.H = 512;
+
+            CopyRectVRAMtoCPU(0, 0, 1024, 512);
+
+            _VRAMTransfer = oldvramtrans;
+
+            byte[] data = new byte[(1024 * 512) * 2];
+            Marshal.Copy((IntPtr)VRAM, data, 0, data.Length);
+
+            return data;
         }
 
         public void SetFrameBuff(byte[] FrameBuffer)
@@ -1038,7 +1077,6 @@ namespace ScePSX
             var updateBounds = GetWrappedBounds(left, top, width, height);
             GrowDirtyArea(updateBounds);
 
-            // 设置像素存储对齐方式
             Gl.PixelStore(PixelStoreParameter.UnpackAlignment, GetPixelStoreAlignment(left, width));
 
             bool wrapX = (left + width) > VRAM_WIDTH;
@@ -1058,6 +1096,7 @@ namespace ScePSX
                 );
 
                 ResetDepthBuffer();
+
             } else
             {
                 //Console.WriteLine($"[OpenGL GPU] CPUtoVRAM 2 {left} {top} [ {width} x {height} ]");
@@ -1121,7 +1160,6 @@ namespace ScePSX
                 RestoreRenderState();
             }
 
-            // 恢复默认像素存储对齐方式
             Gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
         }
 
@@ -1762,10 +1800,42 @@ namespace ScePSX
                 DrawBatch();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Orient2d(Point2D a, Point2D b, Point2D c)
+        private void Reset()
         {
-            return (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
+            Gl.Disable(EnableCap.ScissorTest);
+            Gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            Gl.ClearDepth(1.0);
+
+            m_vramReadFramebuffer.Bind();
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            m_vramDrawFramebuffer.Bind();
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            m_semiTransparencyMode = 0;
+            m_semiTransparencyEnabled = false;
+            CheckMaskBit = false;
+            ForceSetMaskBit = false;
+            m_dither = false;
+
+            m_TexPage.Value = 0;
+            m_TexPage.TextureDisable = true;
+            m_clut.Value = 0;
+
+            TextureWindowXMask = TextureWindowYMask = 0;
+            TextureWindowXOffset = TextureWindowYOffset = 0;
+
+            Vertexs.Clear();
+
+            ResetDirtyArea();
+
+            m_textureArea = new glRectangle<int>();
+
+            m_clutArea = new glRectangle<int>();
+
+            m_currentDepth = 1;
+
+            RestoreRenderState();
         }
 
         #endregion

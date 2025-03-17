@@ -51,6 +51,8 @@ namespace ScePSX
 
         void SetTextureWindow(uint value);
 
+        void SetSemiTransparencyMode(byte semiTransparencyMode);
+
         void FillRectVRAM(ushort x, ushort y, ushort w, ushort h, uint colorval);
 
         void CopyRectVRAMtoVRAM(ushort sx, ushort sy, ushort dx, ushort dy, ushort w, ushort h);
