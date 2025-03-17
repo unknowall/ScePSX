@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -118,9 +119,13 @@ namespace ScePSX
         GlShader GetPixelsShader, UserShader;
         GLCopyShader vRamCopyShader;
 
+        //GLComputeShader m_computeShader;
+        //glBuffer m_computeDataBuffer;
+
         int m_srcBlendLoc, m_destBlendLoc, m_setMaskBitLoc, m_drawOpaquePixelsLoc, m_drawTransparentPixelsLoc;
         int m_ditherLoc, m_realColorLoc, m_texWindowMaskLoc, m_texWindowOffsetLoc, resolutionScaleLoc;
-        int m_srcRect24Loc, m_srcRect16Loc, pgxpLoc;
+        int m_srcRect24Loc, m_srcRect16Loc, pgxpLoc, mvpLoc;
+        //int m_autoCropLoc, m_textureHeightLoc, m_thresholdLoc, m_maxBlackBarRatioLoc;
 
         glFramebuffer m_vramDrawFramebuffer;
         glTexture2D m_vramDrawTexture, m_vramDrawDepthTexture;
@@ -134,7 +139,7 @@ namespace ScePSX
         glFramebuffer m_displayFramebuffer;
         glTexture2D m_displayTexture;
 
-        int resolutionScale = 1;
+        public int resolutionScale = 1;
         uint oldmaskbit;
         uint oldtexwin;
         short m_currentDepth;
@@ -159,10 +164,12 @@ namespace ScePSX
             public glTexCoord v_texCoord;
             public glClutAttribute v_clut;
             public glTexPage v_texPage;
-            public Vector3 v_pos_pgxp;
+            public Vector3 v_pos_high;
         }
 
         List<Vertex> Vertexs = new List<Vertex>();
+
+        Matrix4x4 m_mvpMatrix;
 
         struct DisplayArea
         {
@@ -185,6 +192,7 @@ namespace ScePSX
 
         #endregion
 
+        public bool CropEnabled = true;
         public bool StretchToFit = true;
         public bool ViewVRam = false;
         public bool DisplayEnable = true;
@@ -245,9 +253,15 @@ namespace ScePSX
             m_texWindowOffsetLoc = ClutShader.GetUniformLocation("u_texWindowOffset");
             resolutionScaleLoc = ClutShader.GetUniformLocation("u_resolutionScale");
             pgxpLoc = ClutShader.GetUniformLocation("u_pgxp");
+            mvpLoc = ClutShader.GetUniformLocation("u_mvp");
 
             m_srcRect24Loc = Out24Shader.GetUniformLocation("u_srcRect");
             m_srcRect16Loc = Out16Shader.GetUniformLocation("u_srcRect");
+
+            //m_autoCropLoc = DisplayShader.GetUniformLocation("u_autoCrop");
+            //m_textureHeightLoc = DisplayShader.GetUniformLocation("u_textureHeight");
+            //m_thresholdLoc = DisplayShader.GetUniformLocation("u_threshold");
+            //m_maxBlackBarRatioLoc = DisplayShader.GetUniformLocation("u_maxBlackBarRatio");
 
             VAOBuff = glBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
 
@@ -261,14 +275,14 @@ namespace ScePSX
             int texCoordOffset = Marshal.OffsetOf(typeof(Vertex), "v_texCoord").ToInt32();
             int clutOffset = Marshal.OffsetOf(typeof(Vertex), "v_clut").ToInt32();
             int texPageOffset = Marshal.OffsetOf(typeof(Vertex), "v_texPage").ToInt32();
-            int pgxpOffset = Marshal.OffsetOf(typeof(Vertex), "v_pos_pgxp").ToInt32();
+            int pgxpOffset = Marshal.OffsetOf(typeof(Vertex), "v_pos_high").ToInt32();
 
             DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos"), 4, VertexAttribPointerType.Short, false, Stride, 0);
             DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_color"), 3, VertexAttribPointerType.UnsignedByte, true, Stride, colorOffset);
             DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_texCoord"), 2, VertexAttribPointerType.Short, false, Stride, texCoordOffset);
             DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_clut"), 1, VertexAttribIType.UnsignedShort, Stride, clutOffset);
             DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_texPage"), 1, VertexAttribIType.UnsignedShort, Stride, texPageOffset);
-            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos_pgxp"), 3, VertexAttribPointerType.Short, false, Stride, pgxpOffset);
+            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos_high"), 3, VertexAttribPointerType.Float, false, Stride, pgxpOffset);
 
             CreateVRamFramebuffers();
 
@@ -296,6 +310,29 @@ namespace ScePSX
             ResetDirtyArea();
 
             RestoreRenderState();
+
+            Matrix4x4 viewMatrix = Matrix4x4.CreateLookAt(
+                new Vector3(0, 0, 5),
+                new Vector3(0, 0, 0),
+                Vector3.UnitY
+            );
+
+            Matrix4x4 projMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
+                (float)Math.PI / 4,
+                AspectRatio,
+                0.1f,
+                100.0f
+            );
+
+            m_mvpMatrix = viewMatrix * projMatrix;
+
+            //m_computeShader = new GLComputeShader();
+
+            //m_computeDataBuffer = glBuffer.Create(BufferTarget.ShaderStorageBuffer);
+            //int[] initialData = { 0, 0 }; // [topCrop, bottomCrop]
+            //m_computeDataBuffer.SetData(BufferUsage.DynamicCopy, initialData.Length * sizeof(int), initialData);
+
+            //Gl.BindBufferBase(BufferTarget.ShaderStorageBuffer, 0, m_computeDataBuffer.m_buffer);
 
             RealColor = true;
 
@@ -378,6 +415,9 @@ namespace ScePSX
             ClutShader.Dispose();
             GetPixelsShader.Dispose();
 
+            //m_computeShader.Dispose();
+            //m_computeDataBuffer.Dispose();
+
             _DeviceContext.DeleteContext(ShareGlContext);
 
             _DeviceContext.DeleteContext(_GlContext);
@@ -455,6 +495,10 @@ namespace ScePSX
                 ClearBufferMask.ColorBufferBit,
                 BlitFramebufferFilter.Nearest
             );
+
+            oldFramebuffer.Dispose();
+            oldDrawTexture.Dispose();
+            oldDepthBuffer.Dispose();
 
             RestoreRenderState();
 
@@ -573,6 +617,30 @@ namespace ScePSX
             return _VRAMTransfer;
         }
 
+        //public void AutoCropFrame(int m_textureHeight)
+        //{
+        //    m_computeShader.Bind();
+        //    m_computeShader.SetParameters(
+        //        m_textureHeight,
+        //        0.1f,    // 阈值
+        //        0.2f     // 最大黑边比例
+        //    );
+
+        //    // 调度计算任务（按纹理宽度分块）
+        //    uint groupsX = (uint)(m_textureHeight + 15) / 16;
+        //    m_computeShader.Dispatch(groupsX, 2, 1);   // 2行：上黑边+下黑边检测
+        //}
+
+        //public (int top, int bottom) GetCropData()
+        //{
+        //    int[] data = new int[2];
+        //    Gl.BindBuffer(BufferTarget.ShaderStorageBuffer, m_computeDataBuffer.m_buffer);
+        //    IntPtr ptr = Gl.MapBuffer(BufferTarget.ShaderStorageBuffer, BufferAccess.ReadOnly);
+        //    Marshal.Copy(ptr, data, 0, 2);
+        //    Gl.UnmapBuffer(BufferTarget.ShaderStorageBuffer);
+        //    return (data[0], data[1]);
+        //}
+
         public (int w, int h) GetPixels(bool is24bit, int DisplayVerticalStart, int DisplayVerticalEnd, int rx, int ry, int w, int h, int[] Pixels)
         {
             THREADCHANGE();
@@ -581,6 +649,9 @@ namespace ScePSX
 
             if (offsetline < 0)
                 return (0, -1);
+
+            //AutoCropFrame(h);
+            //var (top, bottom) = GetCropData();
 
             m_vramDisplayArea.x = rx;
             m_vramDisplayArea.y = ry;
@@ -698,6 +769,11 @@ namespace ScePSX
                 DisplayShader.Bind();
 
             m_displayTexture.Bind();
+
+            //Gl.Uniform1(m_autoCropLoc, CropEnabled ? 1 : 0);
+            //Gl.Uniform1(m_textureHeightLoc, m_displayTexture.GetHeight());
+            //Gl.Uniform1(m_thresholdLoc, 0.1f);
+            //Gl.Uniform1(m_maxBlackBarRatioLoc, 0.2f);
 
             if (KEEPAR)
             {
@@ -1170,6 +1246,15 @@ namespace ScePSX
 
             VAOBuff.SubData<Vertex>(Vertexs.Count, Vertexs.ToArray());
 
+            if (PGXP)
+            {
+                Gl.Enable(EnableCap.DepthTest);
+                Gl.DepthFunc(DepthFunction.Lequal);
+
+                float[] mvp = new float[] { m_mvpMatrix.M11 };
+                Gl.UniformMatrix4(mvpLoc, false, mvp);
+            }
+
             if (m_semiTransparencyEnabled && (m_semiTransparencyMode == 2) && !m_TexPage.TextureDisable)
             {
                 // 必须对带有纹理的背景和前景进行两次渲染，因为透明度可以逐像素禁用
@@ -1417,12 +1502,13 @@ namespace ScePSX
                 if (PGXP)
                 {
                     // 计算高精度坐标
-                    float highX = (float)vertices[i].v_pos.x / 512.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
-                    float highY = (float)vertices[i].v_pos.y / 256.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
-                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;             // 映射到 [0, 1]
+                    float vertexOffset = 0.5f / resolutionScale;
+                    float highX = (vertices[i].v_pos.x + vertexOffset) / 512.0f * 2.0f - 1.0f;
+                    float highY = (vertices[i].v_pos.y + vertexOffset) / 256.0f * 2.0f - 1.0f;
+                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;
 
                     // 设置高精度坐标
-                    vertices[i].v_pos_pgxp = new Vector3(highX, highY, highZ);
+                    vertices[i].v_pos_high = new Vector3(highX, highY, highZ);
                 }
             }
 
@@ -1510,12 +1596,13 @@ namespace ScePSX
                 if (PGXP)
                 {
                     // 计算高精度坐标
-                    float highX = (float)vertices[i].v_pos.x / 512.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
-                    float highY = (float)vertices[i].v_pos.y / 256.0f * 2.0f - 1.0f; // 映射到 [-1, 1]
-                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;             // 映射到 [0, 1]
+                    float vertexOffset = 0.5f / resolutionScale;
+                    float highX = (vertices[i].v_pos.x + vertexOffset) / 512.0f * 2.0f - 1.0f;
+                    float highY = (vertices[i].v_pos.y + vertexOffset) / 256.0f * 2.0f - 1.0f;
+                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;
 
                     // 设置高精度坐标
-                    vertices[i].v_pos_pgxp = new Vector3(highX, highY, highZ);
+                    vertices[i].v_pos_high = new Vector3(highX, highY, highZ);
                 }
             }
 

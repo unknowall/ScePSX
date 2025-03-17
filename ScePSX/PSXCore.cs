@@ -94,6 +94,16 @@ namespace ScePSX
             Pauseing = !Pauseing;
         }
 
+        public void WaitPaused()
+        {
+            Pauseing = true;
+            while (!Pauseed)
+            {
+                Thread.Sleep(20);
+                Pauseing = true;
+            }
+        }
+
         public void Stop()
         {
             if (Running)
@@ -193,15 +203,31 @@ namespace ScePSX
             Pauseing = true;
             while (!Pauseed)
             {
-                Thread.Sleep(10);
+                Thread.Sleep(20);
                 Pauseing = true;
-            };
+            }
+
+            int ir = 1;
+            if (GpuBackend == GPUType.OpenGL)
+            {
+                ir = (GPU as OpenglGPU).IRScale;
+            }
 
             PsxBus.gpu.Backend.Dispose();
+            PsxBus.Dispose();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             PsxBus = StateFromFile<BUS>(fn);
             PsxBus.DeSerializable(this, GpuBackend);
 
             GPU = PsxBus.gpu.Backend.GPU;
+
+            if (GpuBackend == GPUType.OpenGL)
+            {
+                (GPU as OpenglGPU).IRScale = ir;
+            }
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");
@@ -215,18 +241,33 @@ namespace ScePSX
             if (!Running)
                 return;
 
+            int ir = 1;
+            if (GpuBackend == GPUType.OpenGL)
+            {
+                ir = (GPU as OpenglGPU).IRScale;
+                (GPU as OpenglGPU).IRScale = 1;
+                while ((GPU as OpenglGPU).resolutionScale != 1)
+                {
+                    Thread.Sleep(20);
+                }
+            }
+
             Pauseing = true;
             while (!Pauseed)
             {
-                Thread.Sleep(10);
+                Thread.Sleep(20);
                 Pauseing = true;
             }
-            ;
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
             PsxBus.ReadySerializable();
             StateToFile(PsxBus, fn);
+
+            if (GpuBackend == GPUType.OpenGL)
+            {
+                (GPU as OpenglGPU).IRScale = ir;
+            }
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State SAVEED.");

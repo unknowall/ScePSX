@@ -26,17 +26,27 @@ namespace ScePSX
 
         private void LoadShader(string[] vert, string[] frag)
         {
-            uint vertexShader = Gl.CreateShader(ShaderType.VertexShader);
+            uint vertexShader = 0;
+            uint fragmentShader = 0;
+            ShaderType type = ShaderType.VertexShader;
+
+            if (frag.Length == 0)
+                type = ShaderType.ComputeShader;
+
+            vertexShader = Gl.CreateShader(type);
             Gl.ShaderSource(vertexShader, vert);
             CompileShader(vertexShader);
 
-            uint fragmentShader = Gl.CreateShader(ShaderType.FragmentShader);
-            Gl.ShaderSource(fragmentShader, frag);
-            CompileShader(fragmentShader);
-
             Program = Gl.CreateProgram();
             Gl.AttachShader(Program, vertexShader);
-            Gl.AttachShader(Program, fragmentShader);
+
+            if (frag.Length > 0)
+            {
+                fragmentShader = Gl.CreateShader(ShaderType.FragmentShader);
+                Gl.ShaderSource(fragmentShader, frag);
+                CompileShader(fragmentShader);
+                Gl.AttachShader(Program, fragmentShader);
+            }
 
             Gl.LinkProgram(Program);
             Gl.GetProgram(Program, ProgramProperty.LinkStatus, out var code);
@@ -46,8 +56,12 @@ namespace ScePSX
             }
 
             Gl.DetachShader(Program, vertexShader);
-            Gl.DetachShader(Program, fragmentShader);
-            Gl.DeleteShader(fragmentShader);
+
+            if (frag.Length > 0)
+            {
+                Gl.DetachShader(Program, fragmentShader);
+                Gl.DeleteShader(fragmentShader);
+            }
             Gl.DeleteShader(vertexShader);
 
             Console.WriteLine($"[OpenGL GPU] LinkProgram Done!");
@@ -149,6 +163,47 @@ namespace ScePSX
         }
     }
 
+    public class GLComputeShader : IDisposable
+    {
+        private GlShader m_program;
+        private int m_topCropLoc;
+        private int m_bottomCropLoc;
+
+        public GLComputeShader()
+        {
+            m_program = new GlShader(
+                GLShaderStrings.ComputeCropShader.Split(new string[] { "\r" }, StringSplitOptions.None),
+                new string[0]
+            );
+
+            m_topCropLoc = m_program.GetUniformLocation("u_topCrop");
+            m_bottomCropLoc = m_program.GetUniformLocation("u_bottomCrop");
+        }
+
+        public void Bind()
+        {
+            m_program.Bind();
+        }
+
+        public void SetParameters(int textureHeight, float threshold, float maxBlackBarRatio)
+        {
+            Gl.Uniform1(m_program.GetUniformLocation("u_textureHeight"), textureHeight);
+            Gl.Uniform1(m_program.GetUniformLocation("u_threshold"), threshold);
+            Gl.Uniform1(m_program.GetUniformLocation("u_maxBlackBarRatio"), maxBlackBarRatio);
+        }
+
+        public void Dispatch(uint groupsX, uint groupsY, uint groupsZ)
+        {
+            Gl.DispatchCompute(groupsX, groupsY, groupsZ);
+            Gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
+        }
+
+        public void Dispose()
+        {
+            m_program.Dispose();
+        }
+    }
+
     public class glVAO : IDisposable
     {
         private uint m_vao = 0;
@@ -180,8 +235,7 @@ namespace ScePSX
             if (m_vao != 0)
             {
                 Unbind();
-                uint[] r = new uint[] { m_vao };
-                Gl.DeleteVertexArrays(r);
+                Gl.DeleteVertexArrays(m_vao);
                 m_vao = 0;
             }
         }
@@ -232,7 +286,7 @@ namespace ScePSX
 
     public class glBuffer : IDisposable
     {
-        private uint m_buffer = 0;
+        public uint m_buffer = 0;
         private static uint s_bound = 0;
         private readonly OpenGL.BufferTarget m_target;
 
@@ -268,8 +322,7 @@ namespace ScePSX
                 if (m_buffer == s_bound)
                     Bind(0);
 
-                uint[] del = new uint[] { m_buffer };
-                Gl.DeleteBuffers(del);
+                Gl.DeleteBuffers(m_buffer);
                 m_buffer = 0;
             }
         }
@@ -405,8 +458,7 @@ namespace ScePSX
                 if (m_texture == s_bound)
                     Bind(0);
 
-                uint[] d = new uint[] { m_texture };
-                Gl.DeleteTextures(d);
+                Gl.DeleteTextures(m_texture);
                 m_texture = 0;
             }
 
@@ -502,8 +554,7 @@ namespace ScePSX
             if (m_frameBuffer != 0)
             {
                 Unbind();
-                uint[] d = new uint[] { m_frameBuffer };
-                Gl.DeleteFramebuffers(d);
+                Gl.DeleteFramebuffers(m_frameBuffer);
                 m_frameBuffer = 0;
             }
         }
@@ -926,25 +977,26 @@ namespace ScePSX
 
         uniform float u_resolutionScale;
         uniform bool u_pgxp;
+        uniform mat4 u_mvp;  // 模型视图投影矩阵
 
         void main()
         {
-	        float vertexOffset = 0.5 / u_resolutionScale;
-
-	        float x = ( v_pos.x + vertexOffset ) / 512.0 - 1.0;
-	        float y = ( v_pos.y + vertexOffset ) / 256.0 - 1.0;
-	        float z = ( v_pos.z / 32767.0 );
-
-	        Position = vec3( v_pos.xy, z );
-
-	        gl_Position = vec4( x, y, 0.0, 1.0 );
-
-            if ( u_pgxp )
+            if (u_pgxp)
             {
-                // 使用高精度坐标计算屏幕空间位置
-                vec3 highPos = v_pos_high / vec3(512.0, 256.0, 32767.0);
-                vec2 screenPos = highPos.xy * 2.0 - 1.0; // 转换到 NDC 空间
-                gl_Position = vec4(screenPos, highPos.z, 1.0);
+                // 应用MVP矩阵
+                gl_Position = u_mvp * vec4(v_pos_high, 1.0);
+            }
+            else
+            {
+	            float vertexOffset = 0.5 / u_resolutionScale;
+
+	            float x = ( v_pos.x + vertexOffset ) / 512.0 - 1.0;
+	            float y = ( v_pos.y + vertexOffset ) / 256.0 - 1.0;
+	            float z = ( v_pos.z / 32767.0 );
+
+	            Position = vec3( v_pos.xy, z );
+
+	            gl_Position = vec4( x, y, 0.0, 1.0 );
             }
 
 	        TexPageBase = ivec2( ( v_texPage & 0xf ) * 64, ( ( v_texPage >> 4 ) & 0x1 ) * 256 );
@@ -1384,8 +1436,8 @@ namespace ScePSX
 
         void main()
         {
-	        TexCoord = texCoords[ gl_VertexID ];
-	        gl_Position = vec4( positions[ gl_VertexID ], 0.0, 1.0 );
+            gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
+            TexCoord = texCoords[gl_VertexID];
         }";
 
         public static string DisplayFragment = @"
@@ -1446,6 +1498,49 @@ namespace ScePSX
             else
                 gl_FragDepth = u_maskedDepth;
         }";
+
+        public static string ComputeCropShader = @"
+#version 430 core
+
+layout(local_size_x = 16, local_size_y = 1) in; // 每个工作组处理一列像素
+
+uniform sampler2D u_inputTexture;
+uniform int u_textureHeight;
+uniform float u_threshold;
+uniform float u_maxBlackBarRatio;
+
+layout(std430, binding = 0) buffer CropData {
+    int topCrop;
+    int bottomCrop;
+};
+
+void main() {
+    ivec2 texSize = textureSize(u_inputTexture, 0);
+    int maxBlackLines = int(u_maxBlackBarRatio * u_textureHeight);
+
+    // 获取当前处理的列索引
+    int x = int(gl_GlobalInvocationID.x);
+    
+    // --- 检测上黑边 ---
+    int top = 0;
+    for (int y = 0; y < maxBlackLines; y++) {
+        vec4 pixel = texelFetch(u_inputTexture, ivec2(x, y), 0);
+        if (length(pixel.rgb) > u_threshold) {
+            atomicMax(topCrop, y + 1); // 记录最大非黑边行
+            break;
+        }
+    }
+    
+    // --- 检测下黑边 ---
+    int bottom = 0;
+    for (int y = texSize.y - 1; y >= texSize.y - maxBlackLines; y--) {
+        vec4 pixel = texelFetch(u_inputTexture, ivec2(x, y), 0);
+        if (length(pixel.rgb) > u_threshold) {
+            atomicMin(bottomCrop, texSize.y - y - 1); // 记录最小非黑边行
+            break;
+        }
+    }
+}";
 
     }
 

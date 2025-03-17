@@ -454,7 +454,7 @@ namespace ScePSX
             NCS(2);
         }
 
-        private void NCS(int r)
+        private void NCS2(int r)
         {
             // 使用 SIMD 向量化计算 LLM * V[r]
             Vector<int> vVec = new Vector<int>(new int[] { V[r].x, V[r].y, V[r].z });
@@ -511,6 +511,44 @@ namespace ScePSX
             RGB[2].r = setRGB(1, rgbFinal[0]);
             RGB[2].g = setRGB(2, rgbFinal[1]);
             RGB[2].b = setRGB(3, rgbFinal[2]);
+            RGB[2].c = RGBC.c;
+
+            IR[1] = setIR(1, MAC1, lm);
+            IR[2] = setIR(2, MAC2, lm);
+            IR[3] = setIR(3, MAC3, lm);
+        }
+
+        private void NCS(int r)
+        {
+            //In: V0 = Normal vector(for triple variants repeated with V1 and V2),
+            //BK = Background color, RGBC = Primary color / code, LLM = Light matrix, LCM = Color matrix, IR0 = Interpolation value.
+
+            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (LLM * V0) SAR(sf * 12)
+            MAC1 = (int)(setMAC(1, (long)LM.v1.x * V[r].x + LM.v1.y * V[r].y + LM.v1.z * V[r].z) >> sf);
+            MAC2 = (int)(setMAC(2, (long)LM.v2.x * V[r].x + LM.v2.y * V[r].y + LM.v2.z * V[r].z) >> sf);
+            MAC3 = (int)(setMAC(3, (long)LM.v3.x * V[r].x + LM.v3.y * V[r].y + LM.v3.z * V[r].z) >> sf);
+
+            IR[1] = setIR(1, MAC1, lm);
+            IR[2] = setIR(2, MAC2, lm);
+            IR[3] = setIR(3, MAC3, lm);
+
+            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (BK * 1000h + LCM * IR) SAR(sf * 12)
+            // WARNING each multiplication can trigger mac flags so the check is needed on each op! Somehow this only affects the color matrix and not the light one
+            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)RBK * 0x1000 + LRGB.v1.x * IR[1]) + (long)LRGB.v1.y * IR[2]) + (long)LRGB.v1.z * IR[3]) >> sf);
+            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)GBK * 0x1000 + LRGB.v2.x * IR[1]) + (long)LRGB.v2.y * IR[2]) + (long)LRGB.v2.z * IR[3]) >> sf);
+            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, (long)BBK * 0x1000 + LRGB.v3.x * IR[1]) + (long)LRGB.v3.y * IR[2]) + (long)LRGB.v3.z * IR[3]) >> sf);
+
+            IR[1] = setIR(1, MAC1, lm);
+            IR[2] = setIR(2, MAC2, lm);
+            IR[3] = setIR(3, MAC3, lm);
+
+            // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE], [IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
+            RGB[0] = RGB[1];
+            RGB[1] = RGB[2];
+
+            RGB[2].r = setRGB(1, MAC1 >> 4);
+            RGB[2].g = setRGB(2, MAC2 >> 4);
+            RGB[2].b = setRGB(3, MAC3 >> 4);
             RGB[2].c = RGBC.c;
 
             IR[1] = setIR(1, MAC1, lm);

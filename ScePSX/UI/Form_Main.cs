@@ -52,13 +52,18 @@ namespace ScePSX.UI
 
         public ScaleParam scale;
         public int IRscale = 1;
-        public bool PGXP, PGXPT, Realcolor, AutoIR;
+        public bool PGXP, PGXPT, Realcolor, AutoIR, KeepAR;
         private bool cutblackline = false;
         private int[] cutbuff = new int[1024 * 512];
 
         private RomList romList;
 
         RenderMode Rendermode = RenderMode.OpenGL;
+
+        GPUType gputype = GPUType.Software;
+
+        ToolStripMenuItem gpumnu;
+
         RendererManager Render = new RendererManager();
 
         public FrmMain()
@@ -94,6 +99,7 @@ namespace ScePSX.UI
 
             shaderpath = ini.Read("main", "shader");
             Rendermode = (RenderMode)ini.ReadInt("Main", "Render");
+            gputype = (GPUType)ini.ReadInt("Main", "GpuMode");
 
             openGLRender.Checked = Rendermode == RenderMode.OpenGL;
             directx2DRender.Checked = Rendermode == RenderMode.Directx2D;
@@ -150,6 +156,9 @@ namespace ScePSX.UI
             StatusBar.BackColor = Color.White;
             this.Load += MainForm_Load;
             this.FormClosing += MainForm_Closing;
+
+            gpumnu = AddMenu("gpumode",$"GPU: {gputype.ToString()}",88, RenderToolStripMenuItem);
+            gpumnu.Enabled = false;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -375,7 +384,7 @@ namespace ScePSX.UI
             }
         }
 
-        private void AddMenu(string name, string Text, object tag, ToolStripMenuItem Parent, bool chk = false, bool ch = true)
+        private ToolStripMenuItem AddMenu(string name, string Text, object tag, ToolStripMenuItem Parent, bool chk = false, bool ch = true)
         {
             ToolStripMenuItem mnu = new ToolStripMenuItem();
             mnu.Text = Text;
@@ -389,6 +398,8 @@ namespace ScePSX.UI
                 mnu.CheckedChanged += Mnu_CheckedChanged;
             }
             Parent.DropDownItems.Add(mnu);
+
+            return mnu;
         }
 
         private void Mnu_CheckedChanged(object sender, EventArgs e)
@@ -496,17 +507,69 @@ namespace ScePSX.UI
             UpdateStatus(0, "", true);
         }
 
+        private void SeleRender(RenderMode mode)
+        {
+            Rendermode = mode;
+            ini.WriteInt("Main", "Render", (int)Rendermode);
+            GPUType gpumode = (GPUType)ini.ReadInt("main", "GpuMode");
+
+            if (Core != null && Core.Running)
+            {
+                Core.WaitPaused();
+
+                if (mode == RenderMode.OpenGL && gpumode == GPUType.OpenGL)
+                {
+                    Render.SelectRenderer(RenderMode.Null, this);
+
+                    while (NullRenderer.hwnd == 0) Thread.Sleep(100);
+
+                    Core.PsxBus.gpu.SelectGPU(GPUType.OpenGL);
+
+                    Core.GPU = Core.PsxBus.gpu.Backend.GPU;
+
+                    IRscale = IRscale < 1 ? 1 : IRscale;
+                    (Core.GPU as OpenglGPU).IRScale = IRscale;
+                    (Core.GPU as OpenglGPU).PGXP = PGXP;
+                    (Core.GPU as OpenglGPU).PGXPT = PGXPT;
+                    (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
+                    (Core.GPU as OpenglGPU).RealColor = Realcolor;
+
+                    Core.GpuBackend = GPUType.OpenGL;
+                }
+                if (mode != RenderMode.OpenGL && gpumode == GPUType.OpenGL)
+                {
+                    Render.SelectRenderer(Rendermode, this);
+
+                    if(Core.GpuBackend != GPUType.Software)
+                        Core.PsxBus.gpu.SelectGPU(GPUType.Software);
+
+                    Core.GpuBackend = GPUType.Software;
+                }
+                if (gpumode == GPUType.Software)
+                {
+                    Render.SelectRenderer(Rendermode, this);
+
+                    if (Core.GpuBackend != GPUType.Software)
+                        Core.PsxBus.gpu.SelectGPU(GPUType.Software);
+
+                    Core.GpuBackend = GPUType.Software;
+                }
+
+                Core.GPU = Core.PsxBus.gpu.Backend.GPU;
+
+                gpumnu.Text = $"GPU: {Core.GpuBackend.ToString()}";
+
+                Core.Pauseing = false;
+            }
+        }
+
         private void directx2DRender_Click(object sender, EventArgs e)
         {
             directx3DRender.Checked = false;
             openGLRender.Checked = false;
             VulkanRenderMnu.Checked = false;
 
-            Rendermode = RenderMode.Directx2D;
-            ini.WriteInt("Main", "Render", (int)Rendermode);
-
-            if (Core != null && Core.Running)
-                Render.SelectRenderer(Rendermode, this);
+            SeleRender(RenderMode.Directx2D);
         }
 
         private void directx3DToolStripMenuItem_Click(object sender, EventArgs e)
@@ -515,11 +578,7 @@ namespace ScePSX.UI
             directx2DRender.Checked = false;
             VulkanRenderMnu.Checked = false;
 
-            Rendermode = RenderMode.Directx3D;
-            ini.WriteInt("Main", "Render", (int)Rendermode);
-
-            if (Core != null && Core.Running)
-                Render.SelectRenderer(Rendermode, this);
+            SeleRender(RenderMode.Directx3D);
         }
 
         private void openGLToolStripMenuItem_Click(object sender, EventArgs e)
@@ -531,11 +590,7 @@ namespace ScePSX.UI
 
             Render.oglShaderPath = "./Shaders/" + shaderpath;
 
-            Rendermode = RenderMode.OpenGL;
-            ini.WriteInt("Main", "Render", (int)Rendermode);
-
-            if (Core != null && Core.Running)
-                Render.SelectRenderer(Rendermode, this);
+            SeleRender(RenderMode.OpenGL);
         }
 
         private void VulkanRenderMnu_Click(object sender, EventArgs e)
@@ -544,11 +599,7 @@ namespace ScePSX.UI
             directx2DRender.Checked = false;
             directx3DRender.Checked = false;
 
-            Rendermode = RenderMode.Vulkan;
-            ini.WriteInt("Main", "Render", (int)Rendermode);
-
-            if (Core != null && Core.Running)
-                Render.SelectRenderer(Rendermode, this);
+            SeleRender(RenderMode.Vulkan);
         }
 
         private void frameskipmnu_CheckedChanged(object sender, EventArgs e)
@@ -864,7 +915,7 @@ namespace ScePSX.UI
 
             currbios = ini.Read("main", "bios");
 
-            int gpumode = ini.ReadInt("main", "GpuMode");
+            GPUType gpumode = (GPUType)ini.ReadInt("main", "GpuMode");
 
             IRscale = ini.ReadInt("main", "GpuModeScale");
 
@@ -876,17 +927,22 @@ namespace ScePSX.UI
 
             Realcolor = ini.ReadInt("main", "RealColor") == 1;
 
+            KeepAR = ini.ReadInt("main", "KeepAR") == 1;
+
             romList.Dispose();
 
-            if ((GPUType)gpumode == GPUType.OpenGL)
+            if ((GPUType)gpumode == GPUType.OpenGL && Rendermode == RenderMode.OpenGL)
             {
                 Render.SelectRenderer(RenderMode.Null, this);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);
             } else
+            {
+                gpumode = GPUType.Software;
                 Render.SelectRenderer(Rendermode, this);
+            }
 
-            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, (GPUType)gpumode, gameid);
+            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, gpumode, gameid);
 
             if (Core.DiskID == "")
             {
@@ -898,12 +954,14 @@ namespace ScePSX.UI
 
             SetAudioBuffer();
 
-            if ((GPUType)gpumode == GPUType.OpenGL)
+            if (Core.GpuBackend == GPUType.OpenGL && Rendermode == RenderMode.OpenGL)
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
                 (Core.GPU as OpenglGPU).PGXP = PGXP;
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
+                (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
+                (Core.GPU as OpenglGPU).RealColor = Realcolor;
             } else
             {
                 IRscale = 1;
@@ -978,7 +1036,7 @@ namespace ScePSX.UI
             CoreWidth = width;
             CoreHeight = height;
 
-            if (cutblackline)
+            if (cutblackline && Core.GPU.type == GPUType.Software)
             {
                 CoreHeight = PixelsScaler.CutBlackLine(pixels, cutbuff, width, height);
                 if (CoreHeight == 0)

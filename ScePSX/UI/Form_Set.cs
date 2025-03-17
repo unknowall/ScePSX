@@ -33,6 +33,7 @@ namespace ScePSX.UI
                 btndel.Visible = true;
                 this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
             }
+            chkpgxp.Enabled = false;
             cbgpu.SelectedIndexChanged += Cbgpu_SelectedIndexChanged;
         }
 
@@ -41,7 +42,7 @@ namespace ScePSX.UI
             if (cbgpu.SelectedIndex > 0)
             {
                 cbgpures.Enabled = true;
-                chkpgxp.Enabled = true;
+                chkpgxp.Enabled = false;
                 chkpgxpt.Enabled = true;
                 chkkeepar.Enabled = true;
             } else
