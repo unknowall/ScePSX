@@ -13,6 +13,7 @@ namespace ScePSX.Render
 
         public static IntPtr hwnd;
         public static IntPtr hdc;
+        public static IntPtr hinstance;
 
         public static int MSAA;
 
@@ -24,6 +25,12 @@ namespace ScePSX.Render
 
         [DllImport("user32.dll")]
         private static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
+        private static extern IntPtr GetWindowLong32(IntPtr hWnd, int nIndex);
 
         public NullRenderer()
         {
@@ -67,6 +74,14 @@ namespace ScePSX.Render
 
             hwnd = this.Handle;
             hdc = GetDC(this.Handle);
+
+            if (IntPtr.Size == 8)
+            {
+                hinstance = GetWindowLongPtr(hwnd, -6);
+            } else
+            {
+                hinstance = GetWindowLong32(hwnd, -6);
+            }
 
             ClientWidth = this.ClientSize.Width;
             ClientHeight = this.ClientSize.Height;

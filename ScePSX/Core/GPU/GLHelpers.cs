@@ -1500,47 +1500,47 @@ namespace ScePSX
         }";
 
         public static string ComputeCropShader = @"
-#version 430 core
+        #version 430 core
 
-layout(local_size_x = 16, local_size_y = 1) in; // 每个工作组处理一列像素
+        layout(local_size_x = 16, local_size_y = 1) in; // 每个工作组处理一列像素
 
-uniform sampler2D u_inputTexture;
-uniform int u_textureHeight;
-uniform float u_threshold;
-uniform float u_maxBlackBarRatio;
+        uniform sampler2D u_inputTexture;
+        uniform int u_textureHeight;
+        uniform float u_threshold;
+        uniform float u_maxBlackBarRatio;
 
-layout(std430, binding = 0) buffer CropData {
-    int topCrop;
-    int bottomCrop;
-};
+        layout(std430, binding = 0) buffer CropData {
+            int topCrop;
+            int bottomCrop;
+        };
 
-void main() {
-    ivec2 texSize = textureSize(u_inputTexture, 0);
-    int maxBlackLines = int(u_maxBlackBarRatio * u_textureHeight);
+        void main() {
+            ivec2 texSize = textureSize(u_inputTexture, 0);
+            int maxBlackLines = int(u_maxBlackBarRatio * u_textureHeight);
 
-    // 获取当前处理的列索引
-    int x = int(gl_GlobalInvocationID.x);
+            // 获取当前处理的列索引
+            int x = int(gl_GlobalInvocationID.x);
     
-    // --- 检测上黑边 ---
-    int top = 0;
-    for (int y = 0; y < maxBlackLines; y++) {
-        vec4 pixel = texelFetch(u_inputTexture, ivec2(x, y), 0);
-        if (length(pixel.rgb) > u_threshold) {
-            atomicMax(topCrop, y + 1); // 记录最大非黑边行
-            break;
-        }
-    }
+            // --- 检测上黑边 ---
+            int top = 0;
+            for (int y = 0; y < maxBlackLines; y++) {
+                vec4 pixel = texelFetch(u_inputTexture, ivec2(x, y), 0);
+                if (length(pixel.rgb) > u_threshold) {
+                    atomicMax(topCrop, y + 1); // 记录最大非黑边行
+                    break;
+                }
+            }
     
-    // --- 检测下黑边 ---
-    int bottom = 0;
-    for (int y = texSize.y - 1; y >= texSize.y - maxBlackLines; y--) {
-        vec4 pixel = texelFetch(u_inputTexture, ivec2(x, y), 0);
-        if (length(pixel.rgb) > u_threshold) {
-            atomicMin(bottomCrop, texSize.y - y - 1); // 记录最小非黑边行
-            break;
-        }
-    }
-}";
+            // --- 检测下黑边 ---
+            int bottom = 0;
+            for (int y = texSize.y - 1; y >= texSize.y - maxBlackLines; y--) {
+                vec4 pixel = texelFetch(u_inputTexture, ivec2(x, y), 0);
+                if (length(pixel.rgb) > u_threshold) {
+                    atomicMin(bottomCrop, texSize.y - y - 1); // 记录最小非黑边行
+                    break;
+                }
+            }
+        }";
 
     }
 
