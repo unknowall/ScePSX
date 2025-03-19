@@ -11,6 +11,7 @@ using static Vulkan.VulkanNative;
 
 using ScePSX.Render;
 using static ScePSX.VulkanDevice;
+using System.Drawing;
 
 namespace ScePSX
 {
@@ -107,27 +108,72 @@ namespace ScePSX
 
         #endregion
 
-        VulkanDevice device;
+        VulkanDevice Device;
 
         VkRenderPass renderPass;
 
-        vkSwapchain chain, displayswapchain;
-        vkBuffer stagingBuffer;
+        vkSwapchain drawChain;
+        vkBuffer stagingBuffer, vertexUBO, fragmentUBO, out24UBO , vaoUBO;
         vkTexture vramTexture, depthTexture, drawTexture, displayTexture;
-        vkCMDS tempcmd;
+        VkFramebuffer drawFramebuff, displayFrameBuff;
+        VkImageView drawimageview2, displayimageview2;
+        vkCMDS tempCmd;
 
         vkGraphicsPipeline currentPipeline;
-        vkGraphicsPipeline fillpipeline, ramViewPipeline, out24Pipeline, out16Pipeline, displayPipeline;
+        vkGraphicsPipeline ramViewPipeline, out24Pipeline, out16Pipeline, displayPipeline;
         vkGraphicsPipeline drawPipelineWithAddBlend, drawPipelineWithSubtractBlend, drawPipelineWithoutBlending;
 
-        VkDescriptorPool descriptorPool;
-        VkDescriptorSet displayDescriptorSet;
+        VkDescriptorPool descriptorPool, drawdescriptorPool, blankdescriptorPool;
+        VkDescriptorSet displayDescriptorSet, drawDescriptorSet, blankDescriptorSet;
+        VkDescriptorSetLayout out214DescriptorLayout, out16DescriptorLayout, drawDescriptorLayout, blankDescriptorLayout;
 
         VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
 
         List<VkFramebuffer> framebuffers = new List<VkFramebuffer>();
         VkViewport viewport;
         VkRect2D scissor;
+
+        Dictionary<VkFramebuffer, VkImageView> framebufferAttachments = new Dictionary<VkFramebuffer, VkImageView>();
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct drawvertUBO
+        {
+            public float u_resolutionScale;
+            public int u_pgxp; // Vulkan 不支持 bool，用 int 代替
+            public Matrix4x4 u_mvp; // 模型视图投影矩阵
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        public struct drawfragUBO
+        {
+            public float u_srcBlend;
+            public float u_destBlend;
+            public int u_setMaskBit; // Vulkan 不支持 bool，用 int 代替
+            public int u_drawOpaquePixels;
+            public int u_drawTransparentPixels;
+            public int u_dither;
+            public int u_realColor;
+            public Vector2 u_texWindowMask;
+            public Vector2 u_texWindowOffset;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct outUBO
+        {
+            public ivec4 u_srcRect; // 源矩形区域 (x, y, width, height)
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct ivec4
+        {
+            public int x, y, z, w;
+            public ivec4(int x, int y, int z, int w)
+            {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.w = w;
+            }
+        }
 
         public bool ViewVRam = false;
         public bool DisplayEnable = true;
@@ -137,232 +183,472 @@ namespace ScePSX
 
         public VulkanGPU()
         {
-            device = new VulkanDevice();
+            Device = new VulkanDevice();
         }
 
         public unsafe void Initialize()
         {
             VRAM = (ushort*)Marshal.AllocHGlobal((VRAM_WIDTH * VRAM_HEIGHT) * 2);
 
-            device.VulkanInit(NullRenderer.hinstance, NullRenderer.hwnd);
+            Device.VulkanInit(NullRenderer.hwnd, NullRenderer.hinstance);
 
-            chain = device.CreateSwapChain(1024, 512);
+            drawChain = Device.CreateSwapChain(NullRenderer.ClientWidth, NullRenderer.ClientHeight);
+            renderPass = Device.CreateRenderPass(drawChain.ImageFormat);
 
-            renderPass = device.CreateRenderPass(VkFormat.R8g8b8a8Unorm, VkSampleCountFlags.Count1);
+            stagingBuffer = Device.CreateBuffer(1024 * 512 * 2);
 
-            stagingBuffer = device.CreateBuffer(1024, 512, 2);
+            vaoUBO = Device.CreateBuffer((ulong)(1024 * sizeof(drawvertUBO)), VkBufferUsageFlags.VertexBuffer);
 
-            vramTexture = device.CreateTexture(1024, 512, VkFormat.R5g5b5a1UnormPack16);
+            vramTexture = Device.CreateTexture(
+                1024, 512, 
+                VkFormat.R5g5b5a1UnormPack16,
+                VkImageAspectFlags.Color,
+                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled
+                );
+            drawTexture = Device.CreateTexture(
+                1024, 512, 
+                VkFormat.R8g8b8a8Unorm,
+                VkImageAspectFlags.Color,
+                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment
+                );
+            displayTexture = Device.CreateTexture(
+                1024, 512, 
+                VkFormat.R8g8b8a8Unorm,
+                VkImageAspectFlags.Color,
+                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment
+                );
 
-            drawTexture = device.CreateTexture(1024, 512, VkFormat.R8g8b8a8Unorm);
+            CreateDepthResources(1024, 512);
 
-            displayTexture = device.CreateTexture(1024, 512, VkFormat.R8g8b8a8Unorm);
+            drawimageview2 = Device.CreateImageView(drawTexture.image, VkFormat.R8g8b8a8Unorm);
 
-            imageAvailableSemaphore = device.CreateSemaphore();
-            renderFinishedSemaphore = device.CreateSemaphore();
+            drawFramebuff = Device.CreateFramebuffer(renderPass, drawTexture.imageview, drawimageview2, 1024, 512);
 
-            byte[] vertShaderBytes = device.LoadShaderFile("fill.vert.spv");
-            byte[] fragShaderBytes = device.LoadShaderFile("fill.frag.spv");
+            displayimageview2 = Device.CreateImageView(displayTexture.image, VkFormat.R8g8b8a8Unorm);
 
-            fillpipeline = device.CreateGraphicsPipeline(
-                renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
-                VkSampleCountFlags.Count1
-            );
+            displayFrameBuff = Device.CreateFramebuffer(renderPass, displayTexture.imageview, displayimageview2, 1024, 512);
 
-            VkVertexInputAttributeDescription* attributeDescriptions = stackalloc VkVertexInputAttributeDescription[]
+            var vertexType = typeof(Vertex);
+            VkVertexInputAttributeDescription[] drawAttributes = new VkVertexInputAttributeDescription[6]
             {
-                // v_pos: 顶点位置 (vec3)
-                new VkVertexInputAttributeDescription
-                {
-                    location = 0,                     // 对应顶点着色器中的 layout(location = 0)
-                    binding = 0,                      // 绑定点索引
-                    format = VkFormat.R32g32b32a32Sfloat, // 格式：3 个浮点数 (x, y, z)
-                    offset = (uint)Marshal.OffsetOf(typeof(Vertex), "v_pos").ToInt32()
+                new() { // v_pos (location=0)
+                    location = 0,
+                    binding = 0,
+                    format = VkFormat.R32g32b32Sfloat,
+                    offset = (uint)Marshal.OffsetOf(vertexType, "v_pos")
                 },
-
-                // v_color: 顶点颜色 (vec4)
-                new VkVertexInputAttributeDescription
-                {
-                    location = 1,                     // 对应顶点着色器中的 layout(location = 1)
-                    binding = 0,                      // 绑定点索引
-                    format = VkFormat.R8g8b8a8Unorm,  // 格式：4 个无符号字节 (R, G, B, A)
-                    offset = (uint)Marshal.OffsetOf(typeof(Vertex), "v_color").ToInt32()
+                new() { // v_pos_high (location=1)
+                    location = 1,
+                    binding = 0,
+                    format = VkFormat.R32g32b32Sfloat,
+                    offset = (uint)Marshal.OffsetOf(vertexType, "v_pos_high")
                 },
-
-                // v_texCoord: 纹理坐标 (vec2)
-                new VkVertexInputAttributeDescription
-                {
-                    location = 2,                     // 对应顶点着色器中的 layout(location = 2)
-                    binding = 0,                      // 绑定点索引
-                    format = VkFormat.R16g16Snorm,    // 格式：2 个短整型 (u, v)
-                    offset = (uint)Marshal.OffsetOf(typeof(Vertex), "v_texCoord").ToInt32()
+                new() { // v_texCoord (location=2)
+                    location = 2,
+                    binding = 0,
+                    format = VkFormat.R32g32b32Sfloat,
+                    offset = (uint)Marshal.OffsetOf(vertexType, "v_texCoord")
                 },
-
-                // v_clut: CLUT 属性 (ivec2)
-                new VkVertexInputAttributeDescription
-                {
-                    location = 3,                     // 对应顶点着色器中的 layout(location = 3)
-                    binding = 0,                      // 绑定点索引
-                    format = VkFormat.R16g16Sint,     // 格式：2 个短整型 (X, Y)
-                    offset = (uint)Marshal.OffsetOf(typeof(Vertex), "v_clut").ToInt32()
+                new() { // v_color (location=3)
+                    location = 3,
+                    binding = 0,
+                    format = VkFormat.R32g32b32Sfloat,
+                    offset = (uint)Marshal.OffsetOf(vertexType, "v_color")
                 },
-
-                // v_texPage: 纹理页属性 (ivec2)
-                new VkVertexInputAttributeDescription
-                {
-                    location = 4,                     // 对应顶点着色器中的 layout(location = 4)
-                    binding = 0,                      // 绑定点索引
-                    format = VkFormat.R16g16Sint,     // 格式：2 个短整型 (X, Y)
-                    offset = (uint)Marshal.OffsetOf(typeof(Vertex), "v_texPage").ToInt32()
+                new() { // v_clut (location=4)
+                    location = 4,
+                    binding = 0,
+                    format = VkFormat.R32Sint,
+                    offset = (uint)Marshal.OffsetOf(vertexType, "v_clut")
                 },
-
-                // v_pos_high: 高精度顶点位置 (vec3)
-                new VkVertexInputAttributeDescription
-                {
-                    location = 5,                     // 对应顶点着色器中的 layout(location = 5)
-                    binding = 0,                      // 绑定点索引
-                    format = VkFormat.R32g32b32Sfloat, // 格式：3 个浮点数 (x, y, z)
-                    offset = (uint)Marshal.OffsetOf(typeof(Vertex), "v_pos_high").ToInt32()
+                new() { // v_texPage (location=5)
+                    location = 5,
+                    binding = 0,
+                    format = VkFormat.R32Sint,
+                    offset = (uint)Marshal.OffsetOf(vertexType, "v_texPage")
                 }
             };
 
-            var bindingDescription = new VkVertexInputBindingDescription
+            VkVertexInputBindingDescription drawBinding = new()
             {
                 binding = 0,
-                stride = (uint)sizeof(Vertex),
+                stride = (uint)Marshal.SizeOf<Vertex>(),
                 inputRate = VkVertexInputRate.Vertex
             };
 
-            vertShaderBytes = device.LoadShaderFile("draw.vert.spv");
-            fragShaderBytes = device.LoadShaderFile("draw.frag.spv");
+            drawdescriptorPool = Device.CreateDescriptorPool(
+                maxSets: 2,
+                new[]
+                {
+                    new VkDescriptorPoolSize
+                    {
+                        type = VkDescriptorType.CombinedImageSampler,
+                        descriptorCount = 1
+                    },
+                    new VkDescriptorPoolSize
+                    {
+                        type = VkDescriptorType.UniformBuffer,
+                        descriptorCount = 2
+                    }
+                }
+            );
 
-            drawPipelineWithoutBlending = device.CreateGraphicsPipeline(
+            drawDescriptorLayout = Device.CreateDescriptorSetLayout(new[]
+            {
+                // 顶点着色器的 UniformBuffer (binding=0)
+                new VkDescriptorSetLayoutBinding {
+                    binding = 0,
+                    descriptorType = VkDescriptorType.UniformBuffer,
+                    descriptorCount = 1,
+                    stageFlags = VkShaderStageFlags.Vertex
+                },
+                // 片段着色器的 UniformBuffer (binding=1)
+                new VkDescriptorSetLayoutBinding {
+                    binding = 1,
+                    descriptorType = VkDescriptorType.UniformBuffer,
+                    descriptorCount = 1,
+                    stageFlags = VkShaderStageFlags.Fragment
+                },
+                // 片段着色器的 CombinedImageSampler (binding=2)
+                new VkDescriptorSetLayoutBinding {
+                    binding = 2,
+                    descriptorType = VkDescriptorType.CombinedImageSampler,
+                    descriptorCount = 1,
+                    stageFlags = VkShaderStageFlags.Fragment
+                }
+            });
+
+            drawDescriptorSet = Device.CreateDescriptorSet(drawDescriptorLayout, drawdescriptorPool);
+
+            vertexUBO = Device.CreateBuffer((ulong)sizeof(drawvertUBO),VkBufferUsageFlags.UniformBuffer);
+
+            fragmentUBO = Device.CreateBuffer((ulong)sizeof(drawfragUBO), VkBufferUsageFlags.UniformBuffer);
+
+            // 顶点着色器的 UniformBuffer (binding=0)
+            var vertBufferInfo = new VkDescriptorBufferInfo
+            {
+                buffer = vertexUBO.stagingBuffer,
+                offset = 0,
+                range = (ulong)Marshal.SizeOf<drawvertUBO>()
+            };
+
+            // 片段着色器的 CombinedImageSampler (binding=1)
+            var imageInfo = new VkDescriptorImageInfo
+            {
+                sampler = drawTexture.sampler,
+                imageView = drawTexture.imageview,
+                imageLayout = VkImageLayout.ShaderReadOnlyOptimal
+            };
+
+            // 片段着色器的 UniformBuffer (binding=2)
+            var fragBufferInfo = new VkDescriptorBufferInfo
+            {
+                buffer = fragmentUBO.stagingBuffer,
+                offset = 0,
+                range = (ulong)Marshal.SizeOf<drawfragUBO>()
+            };
+
+            Device.UpdateDescriptorSets(
+                 new[]{
+                    // 更新顶点着色器的 UniformBuffer (binding=0)
+                    new VkWriteDescriptorSet
+                    {
+                        sType = VkStructureType.WriteDescriptorSet,
+                        dstSet = drawDescriptorSet,
+                        dstBinding = 0,
+                        dstArrayElement = 0,
+                        descriptorCount = 1,
+                        descriptorType = VkDescriptorType.UniformBuffer,
+                        pBufferInfo = &vertBufferInfo
+                    },
+                    // 更新片段着色器的 UniformBuffer (binding=1)
+                    new VkWriteDescriptorSet
+                    {
+                        sType = VkStructureType.WriteDescriptorSet,
+                        dstSet = drawDescriptorSet,
+                        dstBinding = 1,
+                        dstArrayElement = 0,
+                        descriptorCount = 1,
+                        descriptorType = VkDescriptorType.UniformBuffer,
+                        pBufferInfo =  &fragBufferInfo
+                    },
+                    // 更新片段着色器的 CombinedImageSampler (binding=2)
+                    new VkWriteDescriptorSet
+                    {
+                        sType = VkStructureType.WriteDescriptorSet,
+                        dstSet = drawDescriptorSet,
+                        dstBinding = 2,
+                        dstArrayElement = 0,
+                        descriptorCount = 1,
+                        descriptorType = VkDescriptorType.CombinedImageSampler,
+                        pImageInfo =&imageInfo
+                    }
+                 },
+                 drawDescriptorSet
+            );
+
+            var drawVert = Device.LoadShaderFile("./Shaders/draw.vert.spv");
+            var drawFrag = Device.LoadShaderFile("./Shaders/draw.frag.spv");
+
+            // 创建主绘制管线（无混合）
+            drawPipelineWithoutBlending = Device.CreateGraphicsPipeline(
                 renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
+                new VkExtent2D(1024, 512),
+                drawDescriptorLayout,
+                drawVert,
+                drawFrag,
+                1024, 512,
                 VkSampleCountFlags.Count1,
-                bindingDescription,
-                attributeDescriptions,
+                drawBinding,
+                drawAttributes,
                 6
             );
 
-            drawPipelineWithAddBlend = device.CreateGraphicsPipeline(
+            // 创建加法混合管线
+            drawPipelineWithAddBlend = Device.CreateGraphicsPipeline(
                 renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
+                new VkExtent2D(1024, 512),
+                drawDescriptorLayout,
+                drawVert,
+                drawFrag,
+                1024, 512,
                 VkSampleCountFlags.Count1,
-                bindingDescription,
-                attributeDescriptions,
+                drawBinding,
+                drawAttributes,
                 6,
                 true,
                 VkBlendOp.Add
             );
 
-            drawPipelineWithSubtractBlend = device.CreateGraphicsPipeline(
+            // 创建减法混合管线
+            drawPipelineWithSubtractBlend = Device.CreateGraphicsPipeline(
                 renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
+                new VkExtent2D(1024, 512),
+                drawDescriptorLayout,
+                drawVert,
+                drawFrag,
+                1024, 512,
                 VkSampleCountFlags.Count1,
-                bindingDescription,
-                attributeDescriptions,
+                drawBinding,
+                drawAttributes,
                 6,
                 true,
                 VkBlendOp.Subtract
             );
 
-            vertShaderBytes = device.LoadShaderFile("out24.vert.spv");
-            fragShaderBytes = device.LoadShaderFile("out24.frag.spv");
+            VkVertexInputBindingDescription postBinding = new()
+            {
+                binding = 0,
+                stride = (uint)Marshal.SizeOf<Vector2>(),
+                inputRate = VkVertexInputRate.Vertex
+            };
 
-            out24Pipeline = device.CreateGraphicsPipeline(
+            VkVertexInputAttributeDescription[] postAttributes = new VkVertexInputAttributeDescription[1]
+            {
+                new() { location = 0, binding = 0, format = VkFormat.R32g32Sfloat, offset = 0 }
+            };
+
+            descriptorPool = Device.CreateDescriptorPool(
+                maxSets: 2,
+                new[]
+                {
+                    new VkDescriptorPoolSize
+                    {
+                        type = VkDescriptorType.CombinedImageSampler,
+                        descriptorCount = 1
+                    },
+                    new VkDescriptorPoolSize
+                    {
+                        type = VkDescriptorType.UniformBuffer,
+                        descriptorCount = 1
+                    }
+                }
+            );
+
+            out214DescriptorLayout = Device.CreateDescriptorSetLayout(new[]
+            {
+                new VkDescriptorSetLayoutBinding { // CombinedImageSampler (binding=0)
+                    binding = 0,
+                    descriptorCount = 1,
+                    descriptorType = VkDescriptorType.CombinedImageSampler,
+                    stageFlags = VkShaderStageFlags.Fragment
+                },
+                new VkDescriptorSetLayoutBinding { // UniformBuffer (binding=2)
+                    binding = 2,
+                    descriptorCount = 1,
+                    descriptorType = VkDescriptorType.UniformBuffer,
+                    stageFlags = VkShaderStageFlags.Fragment
+                }
+            });
+
+            displayDescriptorSet = Device.CreateDescriptorSet(out214DescriptorLayout, descriptorPool);
+
+
+            out24UBO = Device.CreateBuffer((ulong)sizeof(outUBO), VkBufferUsageFlags.UniformBuffer);
+
+            var outfragBufferInfo = new VkDescriptorBufferInfo
+            {
+                buffer = out24UBO.stagingBuffer,
+                offset = 0,
+                range = (ulong)Marshal.SizeOf<outUBO>()
+            };
+
+            Device.UpdateDescriptorSets(
+                 new[]{
+                    new VkWriteDescriptorSet
+                    {
+                        sType = VkStructureType.WriteDescriptorSet,
+                        dstSet = displayDescriptorSet,
+                        dstBinding = 0,
+                        dstArrayElement = 0,
+                        descriptorCount = 1,
+                        descriptorType = VkDescriptorType.CombinedImageSampler,
+                        pImageInfo =&imageInfo
+                    },
+                    new VkWriteDescriptorSet
+                    {
+                        sType = VkStructureType.WriteDescriptorSet,
+                        dstSet = displayDescriptorSet,
+                        dstBinding = 2,
+                        dstArrayElement = 0,
+                        descriptorCount = 1,
+                        descriptorType = VkDescriptorType.UniformBuffer,
+                        pBufferInfo =  &outfragBufferInfo
+                    }
+                 },
+                 displayDescriptorSet
+            );
+
+            // 创建24位色输出管线
+            var out24Vert = Device.LoadShaderFile("./Shaders/out24.vert.spv");
+            var out24Frag = Device.LoadShaderFile("./Shaders/out24.frag.spv");
+            out24Pipeline = Device.CreateGraphicsPipeline(
                 renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
+                new VkExtent2D(1024, 512),
+                out214DescriptorLayout,
+                out24Vert,
+                out24Frag,
+                1024, 512,
+                VkSampleCountFlags.Count1,
+                postBinding,
+                postAttributes,
+                1,
+                false,
+                VkBlendOp.Add
+            );
+
+            var out16Vert = Device.LoadShaderFile("./Shaders/out16.vert.spv");
+            var out16Frag = Device.LoadShaderFile("./Shaders/out16.frag.spv");
+
+            out16Pipeline = Device.CreateGraphicsPipeline(
+                renderPass,
+                new VkExtent2D(1024, 512),
+                out214DescriptorLayout,
+                out16Vert,
+                out16Frag,
+                1024, 512,
+                VkSampleCountFlags.Count1,
+                postBinding,
+                postAttributes,
+                1,
+                enableBlending: false,
+                rgbEquation: VkBlendOp.Add
+            );
+
+            out16DescriptorLayout = Device.CreateDescriptorSetLayout(new[]
+{
+                new VkDescriptorSetLayoutBinding {
+                    binding = 0,
+                    descriptorType = VkDescriptorType.CombinedImageSampler,
+                    stageFlags = VkShaderStageFlags.Fragment
+                }
+            });
+
+            blankdescriptorPool = Device.CreateDescriptorPool(
+                maxSets: 1,
+                new[]
+                {
+                    new VkDescriptorPoolSize
+                    {
+                        type = VkDescriptorType.CombinedImageSampler,
+                        descriptorCount = 1
+                    },
+                }
+            );
+
+            blankDescriptorLayout = Device.CreateDescriptorSetLayout(new[]
+            {
+                new VkDescriptorSetLayoutBinding { // CombinedImageSampler (binding=0)
+                    binding = 0,
+                    descriptorCount = 1,
+                    descriptorType = VkDescriptorType.CombinedImageSampler,
+                    stageFlags = VkShaderStageFlags.Fragment
+                }
+            });
+
+            blankDescriptorSet = Device.CreateDescriptorSet(blankDescriptorLayout, blankdescriptorPool);
+
+            var displayInfo = new VkDescriptorImageInfo
+            {
+                sampler = drawTexture.sampler,
+                imageView = drawTexture.imageview,
+                imageLayout = VkImageLayout.ShaderReadOnlyOptimal
+            };
+
+            Device.UpdateDescriptorSets(
+                 new[]{
+                    new VkWriteDescriptorSet
+                    {
+                        sType = VkStructureType.WriteDescriptorSet,
+                        dstSet = blankDescriptorSet,
+                        dstBinding = 0,
+                        dstArrayElement = 0,
+                        descriptorCount = 1,
+                        descriptorType = VkDescriptorType.CombinedImageSampler,
+                        pImageInfo =&displayInfo
+                    }
+                 },
+                 blankDescriptorSet
+            );
+
+            var ramViewVert = Device.LoadShaderFile("./Shaders/display.vert.spv");
+            var ramViewFrag = Device.LoadShaderFile("./Shaders/display.frag.spv");
+
+            ramViewPipeline = Device.CreateGraphicsPipeline(
+                renderPass,
+                new VkExtent2D(1024, 512),
+                blankDescriptorLayout,
+                ramViewVert,
+                ramViewFrag,
+                1024, 512,
                 VkSampleCountFlags.Count1
             );
 
-            vertShaderBytes = device.LoadShaderFile("out16.vert.spv");
-            fragShaderBytes = device.LoadShaderFile("out16.frag.spv");
+            var displayVert = Device.LoadShaderFile("./Shaders/display.vert.spv");
+            var displayFrag = Device.LoadShaderFile("./Shaders/display.frag.spv");
 
-            out16Pipeline = device.CreateGraphicsPipeline(
+            displayPipeline = Device.CreateGraphicsPipeline(
                 renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
+                new VkExtent2D(1024, 512),
+                blankDescriptorLayout,
+                displayVert,
+                displayFrag,
+                1024, 512,
                 VkSampleCountFlags.Count1
             );
 
-            vertShaderBytes = device.LoadShaderFile("display.vert.spv");
-            fragShaderBytes = device.LoadShaderFile("display.frag.spv");
+            // 初始化同步对象
+            imageAvailableSemaphore = Device.CreateSemaphore();
+            renderFinishedSemaphore = Device.CreateSemaphore();
+            tempCmd = Device.CreateCommandBuffers(3);
 
-            displayPipeline = device.CreateGraphicsPipeline(
-                renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
-                VkSampleCountFlags.Count1
-            );
+            // 配置视口和裁剪区域
+            viewport = new VkViewport { width = 1024, height = 512, maxDepth = 1.0f };
+            scissor = new VkRect2D { extent = new VkExtent2D(1024, 512) };
 
-            vertShaderBytes = device.LoadShaderFile("ramview.vert.spv");
-            fragShaderBytes = device.LoadShaderFile("ramview.frag.spv");
+            RestoreRenderState();
 
-            ramViewPipeline = device.CreateGraphicsPipeline(
-                renderPass,
-                new VkExtent2D { width = 1024, height = 512 },
-                VkDescriptorSetLayout.Null,
-                vertShaderBytes,
-                fragShaderBytes,
-                width: 1024,
-                height: 512,
-                VkSampleCountFlags.Count1
-            );
-
-            descriptorPool = device.CreateDescriptorPool(1);
-
-            displayTexture = device.CreateTexture(
-                GetVRamTextureWidth(),
-                GetVRamTextureHeight(),
-                VkFormat.R8g8b8a8Unorm
-            );
-
-            VkDescriptorSetLayout descriptorSetLayout = device.CreateDescriptorSetLayout();
-
-            displayDescriptorSet = device.CreateDescriptorSet(descriptorSetLayout, descriptorPool);
-
-            device.UpdateDescriptorSets(displayTexture.image, displayDescriptorSet);
-
-            tempcmd = device.CreateCommandBuffers(1);
-
-            Console.WriteLine("[VULKAN GPU] Initialization Complete.");
-
-            m_realColor = true;
+            Console.WriteLine("[Vulkan GPU] Initialization Complete.");
         }
 
         public unsafe void Dispose()
@@ -371,9 +657,9 @@ namespace ScePSX
             if (isDisposed)
                 return;
 
-            device.DestoryBuffer(stagingBuffer);
+            Device.DestoryBuffer(stagingBuffer);
 
-            device.VulkanDispose();
+            Device.VulkanDispose();
 
             Marshal.FreeHGlobal((IntPtr)VRAM);
 
@@ -386,13 +672,13 @@ namespace ScePSX
         {
             foreach (var framebuffer in framebuffers)
             {
-                device.DestroyFramebuffer(framebuffer);
+                Device.DestroyFramebuffer(framebuffer);
             }
             framebuffers.Clear();
 
             foreach (var imageView in swapchain.ImageViews)
             {
-                var framebuffer = device.CreateFramebuffer(
+                var framebuffer = Device.CreateFramebuffer(
                     renderPass,
                     imageView,
                     depthTexture.imageview,
@@ -405,9 +691,9 @@ namespace ScePSX
 
         private unsafe void CreateDepthResources(int width, int height)
         {
-            VkFormat depthFormat = device.FindDepthFormat();
+            VkFormat depthFormat = Device.FindDepthFormat();
 
-            depthTexture = device.CreateTexture(width, height, depthFormat);
+            depthTexture = Device.CreateTexture(width, height, depthFormat, VkImageAspectFlags.Depth);
         }
 
         private void UpdateViewportAndScissor()
@@ -433,17 +719,17 @@ namespace ScePSX
         {
             foreach (var framebuffer in framebuffers)
             {
-                vkDestroyFramebuffer(device.device, framebuffer, null);
+                vkDestroyFramebuffer(Device.device, framebuffer, null);
             }
             framebuffers.Clear();
 
             if (depthTexture.image != VkImage.Null)
             {
-                device.DestroyTexture(depthTexture);
+                Device.DestroyTexture(depthTexture);
                 depthTexture.image = VkImage.Null;
             }
 
-            device.CleanupSwapChain(chain);
+            Device.CleanupSwapChain(drawChain);
         }
 
         public unsafe void SetResolutionScale(int scale)
@@ -462,7 +748,7 @@ namespace ScePSX
             int newHeight = VRAM_HEIGHT * scale;
 
             VkPhysicalDeviceProperties deviceProperties = new VkPhysicalDeviceProperties();
-            vkGetPhysicalDeviceProperties(device.physicalDevice, out deviceProperties);
+            vkGetPhysicalDeviceProperties(Device.physicalDevice, out deviceProperties);
             uint maxTextureSize = deviceProperties.limits.maxImageDimension2D;
             if (newWidth > maxTextureSize || newHeight > maxTextureSize)
             {
@@ -473,8 +759,8 @@ namespace ScePSX
             int oldWidth = VRAM_WIDTH * resolutionScale;
             int oldHeight = VRAM_HEIGHT * resolutionScale;
 
-            var newDrawTexture = device.CreateTexture(newWidth, newHeight, VkFormat.R8g8b8a8Unorm);
-            var newDisplayTexture = device.CreateTexture(newWidth, newHeight, VkFormat.R8g8b8a8Unorm);
+            var newDrawTexture = Device.CreateTexture(newWidth, newHeight, VkFormat.R8g8b8a8Unorm);
+            var newDisplayTexture = Device.CreateTexture(newWidth, newHeight, VkFormat.R8g8b8a8Unorm);
 
             if (drawTexture.image != VkImage.Null && displayTexture.image != VkImage.Null)
             {
@@ -489,12 +775,12 @@ namespace ScePSX
             drawTexture = newDrawTexture;
             displayTexture = newDisplayTexture;
 
-            chain = device.CreateSwapChain(newWidth, newHeight);
+            drawChain = Device.CreateSwapChain(newWidth, newHeight);
             CreateDepthResources(newWidth, newHeight);
-            CreateFramebuffers(chain, renderPass, depthTexture);
+            CreateFramebuffers(drawChain, renderPass, depthTexture);
 
-            imageAvailableSemaphore = device.CreateSemaphore();
-            renderFinishedSemaphore = device.CreateSemaphore();
+            imageAvailableSemaphore = Device.CreateSemaphore();
+            renderFinishedSemaphore = Device.CreateSemaphore();
 
             UpdateViewportAndScissor();
 
@@ -530,61 +816,70 @@ namespace ScePSX
 
         public unsafe (int w, int h) GetPixels(bool is24bit, int DisplayVerticalStart, int DisplayVerticalEnd, int rx, int ry, int w, int h, int[] Pixels)
         {
-            int offsetline = ((DisplayVerticalEnd - DisplayVerticalStart)) >> (h == 480 ? 0 : 1);
 
+            int offsetline = ((DisplayVerticalEnd - DisplayVerticalStart)) >> (h == 480 ? 0 : 1);
             if (offsetline < 0)
                 return (0, -1);
 
-            m_vramDisplayArea.x = rx;
-            m_vramDisplayArea.y = ry;
-            m_vramDisplayArea.width = w;
-            m_vramDisplayArea.height = offsetline * 2;
+            m_vramDisplayArea = new DisplayArea
+            {
+                x = rx,
+                y = ry,
+                width = w,
+                height = offsetline * 2
+            };
 
-            m_targetDisplayArea.x = 0;
-            m_targetDisplayArea.y = 0;
-            m_targetDisplayArea.width = w;
-            m_targetDisplayArea.height = offsetline * 2;
+            m_targetDisplayArea = new DisplayArea
+            {
+                x = 0,
+                y = 0,
+                width = w,
+                height = offsetline * 2
+            };
 
             DrawBatch();
 
             RestoreRenderState();
 
-            int targetWidth = 0;
-            int targetHeight = 0;
-            int srcWidth = 0;
-            int srcHeight = 0;
+            int targetWidth = ViewVRam ?
+                VRAM_WIDTH * resolutionScale :
+                m_targetDisplayArea.width * resolutionScale;
 
-            if (ViewVRam)
-            {
-                targetWidth = VRAM_WIDTH * resolutionScale;
-                targetHeight = VRAM_HEIGHT * resolutionScale;
-                srcWidth = VRAM_WIDTH * resolutionScale;
-                srcHeight = VRAM_HEIGHT * resolutionScale;
-            } else
-            {
-                targetWidth = m_targetDisplayArea.width * resolutionScale;
-                targetHeight = m_targetDisplayArea.height * resolutionScale;
-                srcWidth = m_vramDisplayArea.width * resolutionScale;
-                srcHeight = m_vramDisplayArea.height * resolutionScale;
-            }
+            int targetHeight = ViewVRam ?
+                VRAM_HEIGHT * resolutionScale :
+                m_targetDisplayArea.height * resolutionScale;
 
             if (targetWidth != displayTexture.width || targetHeight != displayTexture.height)
             {
-                device.DestroyTexture(displayTexture);
-                displayTexture = device.CreateTexture(
+                Device.DestroyTexture(displayTexture);
+
+                vkDestroyImageView(Device.device, displayimageview2, null);
+
+                vkDestroyFramebuffer(Device.device, displayFrameBuff, null);
+
+                displayTexture = Device.CreateTexture(
                     targetWidth,
                     targetHeight,
                     VkFormat.R8g8b8a8Unorm
                 );
+
+                displayimageview2 = Device.CreateImageView(displayTexture.image, VkFormat.R8g8b8a8Unorm);
+
+                displayFrameBuff = Device.CreateFramebuffer(renderPass, displayTexture.imageview, displayimageview2, (uint)targetWidth, (uint)targetHeight);
             }
 
-            ClearTexture(displayTexture, 0, 0, 0, 1);
+            BeginRenderPass();
 
-            RenderToDisplayTexture(is24bit, srcWidth, srcHeight);
+            currentPipeline = is24bit ? out24Pipeline : out16Pipeline;
+            vkCmdBindPipeline(tempCmd.CMD[0], VkPipelineBindPoint.Graphics, currentPipeline.pipeline);
 
-            RenderToWindow(targetWidth, targetHeight);
+            UpdateViewportAndScissor(targetWidth, targetHeight);
 
-            RestoreRenderState();
+            vkCmdDraw(tempCmd.CMD[0], 4, 1, 0, 0);
+
+            EndRenderPass();
+
+            PresentToSwapchain();
 
             if (RealColor != m_realColor)
             {
@@ -593,180 +888,160 @@ namespace ScePSX
             if (IRScale != resolutionScale)
             {
                 SetResolutionScale(IRScale);
+                resolutionScale = IRScale;
             }
 
             return (targetWidth, targetHeight);
         }
 
-        private unsafe void ClearTexture(vkTexture texture, float r, float g, float b, float a)
+        private unsafe void BeginRenderPass()
         {
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkClearValue clearValue = new VkClearValue { color = new VkClearColorValue(0.0f, 0.0f, 0.0f, 1.0f) };
 
-            VkClearColorValue clearColor = new VkClearColorValue(r, g, b, a);
+            vkFixedArray2<VkClearValue> clears;
+            clears.First = clearValue;
+            clears.Second = clearValue;
 
-            device.TransitionImageLayout(
-                commandBuffer,
-                texture.image,
-                VkImageLayout.Undefined,
-                VkImageLayout.TransferDstOptimal
-            );
-
-            device.CmdClearColorImage(
-                commandBuffer,
-                texture.image,
-                clearColor
-            );
-
-            device.TransitionImageLayout(
-                commandBuffer,
-                texture.image,
-                VkImageLayout.TransferDstOptimal,
-                VkImageLayout.ShaderReadOnlyOptimal
-            );
-
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
-        }
-
-        private unsafe void RenderToDisplayTexture(bool is24bit, int srcWidth, int srcHeight)
-        {
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
-
-            if (is24bit)
-            {
-                device.BindGraphicsPipeline(commandBuffer, out24Pipeline);
-            } else
-            {
-                device.BindGraphicsPipeline(commandBuffer, out16Pipeline);
-            }
-
-            VkViewport viewport = new VkViewport
-            {
-                x = 0,
-                y = 0,
-                width = srcWidth,
-                height = srcHeight,
-                minDepth = 0,
-                maxDepth = 1
-            };
-
-            VkRect2D scissor = new VkRect2D
-            {
-                offset = new VkOffset2D { x = 0, y = 0 },
-                extent = new VkExtent2D { width = (uint)srcWidth, height = (uint)srcHeight }
-            };
-
-            vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-            vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-            device.UpdateDescriptorSets(displayTexture.image, displayDescriptorSet);
-
-            vkCmdDraw(commandBuffer, 4, 1, 0, 0);
-
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
-        }
-
-        int oldwinwidth, oldwinheight;
-
-        private unsafe void RenderToWindow(int width, int height)
-        {
-            uint imageIndex;
-
-            if (oldwinwidth != width || oldwinheight != height)
-            {
-                oldwinwidth = width;
-                oldwinheight = height;
-
-                displayswapchain = device.CreateSwapChain(width, height);
-
-                CreateFramebuffers(displayswapchain, renderPass, depthTexture);
-            }
-
-            vkAcquireNextImageKHR(device.device, chain.Chain, ulong.MaxValue, imageAvailableSemaphore, VkFence.Null, &imageIndex);
-
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
-
-            var clr = stackalloc VkClearValue[] { new VkClearValue { color = new VkClearColorValue(0, 0, 0, 1) } };
-
-            var renderPassInfo = new VkRenderPassBeginInfo
+            var beginInfo = new VkRenderPassBeginInfo
             {
                 sType = VkStructureType.RenderPassBeginInfo,
                 renderPass = renderPass,
-                framebuffer = framebuffers[(int)imageIndex],
+                framebuffer = displayFrameBuff,
                 renderArea = new VkRect2D
                 {
-                    offset = new VkOffset2D { x = 0, y = 0 },
-                    extent = new VkExtent2D { width = (uint)width, height = (uint)height }
+                    offset = new VkOffset2D(0, 0),
+                    extent = new VkExtent2D((uint)displayTexture.width, (uint)displayTexture.height)
                 },
-                clearValueCount = 1,
-                pClearValues = clr
+                clearValueCount = 2,
+                pClearValues = &clears.First
             };
 
-            vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VkSubpassContents.Inline);
+            Device.BeginCommandBuffer(tempCmd.CMD[0]);
 
+            vkCmdBeginRenderPass(tempCmd.CMD[0], &beginInfo, VkSubpassContents.Inline);
+        }
+
+        private unsafe void EndRenderPass()
+        {
+            vkCmdEndRenderPass(tempCmd.CMD[0]);
+
+            Device.EndCommandBuffer(tempCmd.CMD[0]);
+
+            VkCommandBuffer cmd = tempCmd.CMD[0];
+            var submitInfo = new VkSubmitInfo
+            {
+                sType = VkStructureType.SubmitInfo,
+                commandBufferCount = 1,
+                pCommandBuffers = &cmd
+            };
+
+            VkResult result = vkQueueSubmit(Device.graphicsQueue, 1, &submitInfo, VkFence.Null);
+            if (result != VkResult.Success)
+            {
+                throw new Exception($"Failed to submit command buffer: {result}");
+            }
+        }
+
+        private unsafe void PresentToSwapchain()
+        {
+            uint imageIndex;
+            VkResult result = vkAcquireNextImageKHR(
+                Device.device,
+                drawChain.Chain,
+                ulong.MaxValue,
+                imageAvailableSemaphore,
+                VkFence.Null,
+                &imageIndex
+            );
+
+            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.SuboptimalKHR)
+            {
+                RecreateSwapChain();
+                return;
+            } else if (result != VkResult.Success)
+            {
+                throw new Exception($"Failed to acquire swap chain image: {result}");
+            }
+
+            var rfs = renderFinishedSemaphore;
+            VkSwapchainKHR chain = drawChain.Chain;
+            var presentInfo = new VkPresentInfoKHR
+            {
+                sType = VkStructureType.PresentInfoKHR,
+                waitSemaphoreCount = 1,
+                pWaitSemaphores = &rfs,
+                swapchainCount = 1,
+                pSwapchains = &chain,
+                pImageIndices = &imageIndex
+            };
+
+            result = vkQueuePresentKHR(Device.presentQueue, &presentInfo);
+            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.SuboptimalKHR)
+            {
+                RecreateSwapChain();
+            } else if (result != VkResult.Success)
+            {
+                throw new Exception($"Failed to present swap chain image: {result}");
+            }
+        }
+
+        private unsafe void RecreateSwapChain()
+        {
+            vkDeviceWaitIdle(Device.device);
+
+            Device.CleanupSwapChain(drawChain);
+            drawChain = Device.CreateSwapChain(NullRenderer.ClientWidth, NullRenderer.ClientHeight);
+        }
+
+        private unsafe void UpdateViewportAndScissor(int width, int height)
+        {
             VkViewport viewport = new VkViewport
             {
                 x = 0,
                 y = 0,
                 width = width,
                 height = height,
-                minDepth = 0,
-                maxDepth = 1
+                minDepth = 0.0f,
+                maxDepth = 1.0f
             };
 
             VkRect2D scissor = new VkRect2D
             {
-                offset = new VkOffset2D { x = 0, y = 0 },
-                extent = new VkExtent2D { width = (uint)width, height = (uint)height }
+                offset = new VkOffset2D(0, 0),
+                extent = new VkExtent2D((uint)width, (uint)height)
             };
 
-            vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-            vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+            vkCmdSetViewport(tempCmd.CMD[0], 0, 1, ref viewport);
+            vkCmdSetScissor(tempCmd.CMD[0], 0, 1, ref scissor);
+        }
 
-            device.BindGraphicsPipeline(commandBuffer, displayPipeline);
+        private unsafe void ClearTexture(vkTexture texture, float r, float g, float b, float a)
+        {
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            device.UpdateDescriptorSets(displayTexture.image, displayDescriptorSet);
+            VkClearColorValue clearColor = new VkClearColorValue(r, g, b, a);
 
-            vkCmdDraw(commandBuffer, 4, 1, 0, 0);
+            Device.TransitionImageLayout(
+                commandBuffer,
+                texture.image,
+                VkImageLayout.Undefined,
+                VkImageLayout.TransferDstOptimal
+            );
 
-            vkCmdEndRenderPass(commandBuffer);
+            Device.CmdClearColorImage(
+                commandBuffer,
+                texture.image,
+                clearColor
+            );
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.TransitionImageLayout(
+                commandBuffer,
+                texture.image,
+                VkImageLayout.TransferDstOptimal,
+                VkImageLayout.ShaderReadOnlyOptimal
+            );
 
-            var ia = imageAvailableSemaphore;
-            var rf = renderFinishedSemaphore;
-            var ws = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.ColorAttachmentOutput };
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &ia,
-                pWaitDstStageMask = ws,
-                commandBufferCount = 1,
-                pCommandBuffers = &commandBuffer,
-                signalSemaphoreCount = 1,
-                pSignalSemaphores = &rf
-            };
-
-            if (vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, VkFence.Null) != VkResult.Success)
-            {
-                throw new Exception("Failed to submit draw command buffer!");
-            }
-
-            var dc = chain.Chain;
-            var presentInfo = new VkPresentInfoKHR
-            {
-                sType = VkStructureType.PresentInfoKHR,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &rf,
-                swapchainCount = 1,
-                pSwapchains = &dc,
-                pImageIndices = &imageIndex
-            };
-
-            if (vkQueuePresentKHR(device.presentQueue, &presentInfo) != VkResult.Success)
-            {
-                throw new Exception("Failed to present image!");
-            }
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
 
         public void SetVRAMTransfer(VRAMTransfer val)
@@ -839,71 +1114,50 @@ namespace ScePSX
             var bounds = GetWrappedBounds(left, top, width, height);
             GrowDirtyArea(bounds);
 
-            byte r = (byte)(colorval);
-            byte g = (byte)(colorval >> 8);
-            byte b = (byte)(colorval >> 16);
-            float rF, gF, bF;
+            Vertex[] vertices = new Vertex[4];
 
-            if (m_realColor)
+            vertices[0].v_pos.x = (short)left;
+            vertices[0].v_pos.y = (short)top;
+
+            vertices[1].v_pos.x = (short)width;
+            vertices[1].v_pos.y = (short)top;
+
+            vertices[2].v_pos.x = (short)left;
+            vertices[2].v_pos.y = (short)height;
+
+            vertices[3].v_pos.x = (short)width;
+            vertices[3].v_pos.y = (short)height;
+
+            vertices[0].v_color.Value = colorval;
+            vertices[1].v_color.Value = colorval;
+            vertices[2].v_color.Value = colorval;
+            vertices[3].v_color.Value = colorval;
+
+            if (Vertexs.Count + 6 > 1024)
+                DrawBatch();
+
+            ushort texpage = (ushort)(0 | (1 << 11));
+
+            SetDrawMode(texpage, 0, false);
+
+            EnableSemiTransparency(false);
+
+            for (var i = 0; i < vertices.Length; i++)
             {
-                rF = r / 255.0f;
-                gF = g / 255.0f;
-                bF = b / 255.0f;
-            } else
-            {
-                rF = (r >> 3) / 31.0f;
-                gF = (g >> 3) / 31.0f;
-                bF = (b >> 3) / 31.0f;
+                vertices[i].v_clut.Value = 0;
+                vertices[i].v_texPage.Value = texpage;
+                vertices[i].v_pos.z = m_currentDepth;
             }
 
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            Vertexs.Add(vertices[0]);
+            Vertexs.Add(vertices[1]);
+            Vertexs.Add(vertices[2]);
 
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferDstOptimal);
+            Vertexs.Add(vertices[1]);
+            Vertexs.Add(vertices[2]);
+            Vertexs.Add(vertices[3]);
 
-            int scaledLeft = left * resolutionScale;
-            int scaledTop = top * resolutionScale;
-            int scaledWidth = width * resolutionScale;
-            int scaledHeight = height * resolutionScale;
-
-            VkViewport viewport = new VkViewport
-            {
-                x = scaledLeft,
-                y = scaledTop,
-                width = scaledWidth,
-                height = scaledHeight,
-                minDepth = 0,
-                maxDepth = 1
-            };
-
-            VkRect2D scissor = new VkRect2D
-            {
-                offset = new VkOffset2D { x = scaledLeft, y = scaledTop },
-                extent = new VkExtent2D { width = (uint)scaledWidth, height = (uint)scaledHeight }
-            };
-
-            vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-            vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-            device.BindGraphicsPipeline(commandBuffer, fillpipeline);
-
-            float[] colorData = { rF, gF, bF, 1.0f };
-            fixed (float* pColorData = colorData)
-            {
-                vkCmdPushConstants(
-                    commandBuffer,
-                    fillpipeline.layout,
-                    VkShaderStageFlags.Fragment,
-                    0,
-                    sizeof(float) * 4,
-                    pColorData
-                );
-            }
-
-            vkCmdDraw(commandBuffer, 4, 1, 0, 0);
-
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
-
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            DrawBatch();
         }
 
         public unsafe void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
@@ -920,9 +1174,9 @@ namespace ScePSX
                 GrowDirtyArea(destBounds);
             }
 
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
+            Device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
 
             var copyRegion = new VkImageBlit
             {
@@ -958,9 +1212,9 @@ namespace ScePSX
                 VkFilter.Nearest
             );
 
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
+            Device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
 
         public unsafe void CopyRectVRAMtoCPU(int left, int top, int width, int height)
@@ -982,9 +1236,9 @@ namespace ScePSX
 
             VkImage sourceTexture = resolutionScale == 1 ? drawTexture.image : vramTexture.image;
 
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferSrcOptimal);
+            Device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferSrcOptimal);
 
             var copyRegion = new VkBufferImageCopy
             {
@@ -1011,9 +1265,9 @@ namespace ScePSX
                 &copyRegion
             );
 
-            device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.TransferSrcOptimal, VkImageLayout.ShaderReadOnlyOptimal);
+            Device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.TransferSrcOptimal, VkImageLayout.ShaderReadOnlyOptimal);
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
 
             Buffer.MemoryCopy(stagingBuffer.mappedData, VRAM + (readBounds.Left + readBounds.Top * VRAM_WIDTH) * 2, 0, readWidth * readHeight * 2);
         }
@@ -1023,9 +1277,9 @@ namespace ScePSX
             var updateBounds = GetWrappedBounds(left, top, width, height);
             GrowDirtyArea(updateBounds);
 
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferDstOptimal);
+            Device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferDstOptimal);
 
             int scaledLeft = left * resolutionScale;
             int scaledTop = top * resolutionScale;
@@ -1067,9 +1321,9 @@ namespace ScePSX
                 &copyRegion
             );
 
-            device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
+            Device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
 
         public unsafe uint ReadFromVRAM()
@@ -1152,9 +1406,9 @@ namespace ScePSX
             if (Vertexs.Count == 0)
                 return;
 
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferDstOptimal);
+            Device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferDstOptimal);
 
             int vertexBufferSize = Vertexs.Count * sizeof(Vertex);
 
@@ -1168,7 +1422,7 @@ namespace ScePSX
                 );
             }
 
-            device.BindGraphicsPipeline(commandBuffer, currentPipeline);
+            Device.BindGraphicsPipeline(commandBuffer, currentPipeline);
 
             VkViewport viewport = new VkViewport
             {
@@ -1243,9 +1497,9 @@ namespace ScePSX
                 vkCmdDraw(commandBuffer, (uint)Vertexs.Count, 1, 0, 0);
             }
 
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
+            Device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
 
             Vertexs.Clear();
 
@@ -1555,11 +1809,11 @@ namespace ScePSX
 
         private unsafe void RestoreRenderState()
         {
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            if (currentPipeline.pipeline != VkPipeline.Null)
+            if (drawPipelineWithoutBlending.pipeline != VkPipeline.Null)
             {
-                vkCmdBindPipeline(commandBuffer, VkPipelineBindPoint.Graphics, currentPipeline.pipeline);
+                vkCmdBindPipeline(commandBuffer, VkPipelineBindPoint.Graphics, drawPipelineWithoutBlending.pipeline);
             }
 
             VkViewport viewport = new VkViewport
@@ -1581,7 +1835,7 @@ namespace ScePSX
             vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
             vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-            VkBuffer vertexBuffer = stagingBuffer.stagingBuffer;
+            VkBuffer vertexBuffer = vaoUBO.stagingBuffer;
             ulong offset = 0;
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
 
@@ -1590,7 +1844,7 @@ namespace ScePSX
                 vkCmdSetBlendConstants(commandBuffer, 1.0f);
             }
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
 
         private void ResetDepthBuffer()
@@ -1657,11 +1911,11 @@ namespace ScePSX
 
             if (!m_semiTransparencyEnabled)
             {
-                commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+                commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
                 vkCmdSetBlendConstants(commandBuffer, 0.0f);
 
-                device.EndSingleCommands(commandBuffer, tempcmd.pool);
+                Device.EndSingleCommands(commandBuffer, tempCmd.pool);
 
                 currentPipeline = drawPipelineWithoutBlending;
 
@@ -1702,11 +1956,11 @@ namespace ScePSX
                     break;
             }
 
-            commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
             vkCmdSetBlendConstants(commandBuffer, srcBlend);
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
 
         private void EnableSemiTransparency(bool enabled)
@@ -1788,11 +2042,11 @@ namespace ScePSX
 
         private unsafe void WriteBackDrawTextureToVRAM()
         {
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
-            device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferSrcOptimal);
+            Device.TransitionImageLayout(commandBuffer, drawTexture.image, VkImageLayout.ShaderReadOnlyOptimal, VkImageLayout.TransferSrcOptimal);
 
-            device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
+            Device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
 
             var blitRegion = new VkImageBlit
             {
@@ -1828,14 +2082,14 @@ namespace ScePSX
                 VkFilter.Linear
             );
 
-            device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
+            Device.TransitionImageLayout(commandBuffer, vramTexture.image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
 
         private unsafe void CopyTexture(vkTexture srcTexture, vkTexture dstTexture, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
         {
-            VkCommandBuffer commandBuffer = device.BeginSingleCommands(tempcmd.pool);
+            VkCommandBuffer commandBuffer = Device.BeginSingleCommands(tempCmd.pool);
 
             var blitRegion = new VkImageBlit
             {
@@ -1871,9 +2125,8 @@ namespace ScePSX
                 VkFilter.Linear
             );
 
-            device.EndSingleCommands(commandBuffer, tempcmd.pool);
+            Device.EndSingleCommands(commandBuffer, tempCmd.pool);
         }
-
 
     }
 }

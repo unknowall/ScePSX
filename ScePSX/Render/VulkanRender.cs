@@ -21,6 +21,7 @@ namespace ScePSX.Render
         public static FixedUtf8String VK_KHR_WIN32_SURFACE_EXTENSION_NAME { get; } = "VK_KHR_win32_surface";
         public static FixedUtf8String VK_KHR_SWAPCHAIN_EXTENSION_NAME { get; } = "VK_KHR_swapchain";
         public static FixedUtf8String VK_EXT_DEBUG_REPORT_EXTENSION_NAME { get; } = "VK_EXT_debug_report";
+        public static FixedUtf8String VK_LAYER_KHRONOS_validation { get; } = "VK_LAYER_KHRONOS_validation";
         public static FixedUtf8String StandardValidationLayerName { get; } = "VK_LAYER_LUNARG_standard_validation";
         public static FixedUtf8String main { get; } = "main";
     }
@@ -542,7 +543,8 @@ namespace ScePSX.Render
             {
                 pipelineBindPoint = VkPipelineBindPoint.Graphics,
                 colorAttachmentCount = 1,
-                pColorAttachments = &colorAttachmentRef
+                pColorAttachments = &colorAttachmentRef,
+                pResolveAttachments = null
             };
 
             var dependency = new VkSubpassDependency
@@ -564,6 +566,7 @@ namespace ScePSX.Render
                 pSubpasses = &subpass,
                 dependencyCount = 1,
                 pDependencies = &dependency
+
             };
 
             if (vkCreateRenderPass(device, &renderPassInfo, null, out renderPass) != VkResult.Success)

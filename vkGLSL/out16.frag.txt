@@ -1,0 +1,25 @@
+#version 450
+
+// 输入纹理坐标，从顶点着色器传递过来
+layout(location = 0) in vec2 TexCoord;
+
+// 输出颜色
+layout(location = 0) out vec4 FragColor;
+
+// 均匀变量
+layout(binding = 0) uniform sampler2D u_vram; // 纹理采样器
+layout(binding = 2) uniform UBO {
+    ivec4 u_srcRect; // 源矩形区域
+};
+
+void main()
+{
+    // 计算纹理坐标
+    vec2 texCoord = vec2(u_srcRect.xy) + TexCoord * vec2(u_srcRect.zw);
+
+    // 采样纹理
+    vec4 texel = texture(u_vram, texCoord / vec2(1024.0, 512.0));
+
+    // 输出颜色
+    FragColor = texel;
+}

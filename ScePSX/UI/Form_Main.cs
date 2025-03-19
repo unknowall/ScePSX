@@ -72,6 +72,8 @@ namespace ScePSX.UI
 
             InitializeComponent();
 
+            AllocConsole();
+
             if (ini.ReadInt("Main", "Console") == 1)
             {
                 AllocConsole();
@@ -196,6 +198,19 @@ namespace ScePSX.UI
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
+            //if (NullRenderer.hwnd != 0)
+            //    return;
+            //var nud = new NullRenderer();
+            //nud.Initialize(this);
+            //while (NullRenderer.hwnd == 0)
+            //    Thread.Sleep(100);
+
+            //var ddd = new VulkanGPU();
+
+            //ddd.Initialize();
+
+            //ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+
             CheckController();
 
             if (Core == null)

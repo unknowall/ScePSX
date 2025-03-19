@@ -1,0 +1,67 @@
+#version 450
+
+// 输入属性
+layout(location = 0) in vec4 v_pos;          // 顶点位置
+layout(location = 1) in vec3 v_pos_high;     // 高精度坐标 (PGXP)
+layout(location = 2) in vec2 v_texCoord;     // 纹理坐标
+layout(location = 3) in vec3 v_color;        // 顶点颜色
+layout(location = 4) in int v_clut;          // CLUT 属性
+layout(location = 5) in int v_texPage;        // 纹理页属性
+
+// 输出到片段着色器
+layout(location = 0) out vec3 BlendColor;    // 混合颜色
+layout(location = 1) out vec2 TexCoord;      // 纹理坐标
+layout(location = 2) out vec3 Position;      // 顶点位置
+layout(location = 3) flat out ivec2 TexPageBase; // 纹理页基地址
+layout(location = 4) flat out ivec2 ClutBase;    // CLUT 基地址
+layout(location = 5) flat out int TexPage;       // 纹理页原始值
+
+// Uniform 参数
+layout(set = 0, binding = 0) uniform UBO {
+    float u_resolutionScale;  // 分辨率缩放因子
+    bool u_pgxp;              // 是否启用 PGXP
+    mat4 u_mvp;               // 模型视图投影矩阵
+} ubo;
+
+void main()
+{
+    if (ubo.u_pgxp)
+    {
+        // 应用 MVP 矩阵
+        gl_Position = ubo.u_mvp * vec4(v_pos_high, 1.0);
+    }
+    else
+    {
+        // 计算顶点位置
+        float vertexOffset = 0.5 / ubo.u_resolutionScale;
+
+        float x = (v_pos.x + vertexOffset) / 512.0 - 1.0;
+        float y = (v_pos.y + vertexOffset) / 256.0 - 1.0;
+        float z = v_pos.z / 32767.0;
+
+        Position = vec3(v_pos.xy, z);
+
+        gl_Position = vec4(x, y, z, 1.0);
+    }
+
+    // 计算纹理页基地址
+    TexPageBase = ivec2(
+        (v_texPage & 0xf) * 64,         // TexturePageBaseX: 提取低 4 位并乘以 64
+        ((v_texPage >> 4) & 0x1) * 256  // TexturePageBaseY: 提取第 4-5 位并乘以 256
+    );
+
+    // 计算 CLUT 基地址
+    ClutBase = ivec2(
+        (v_clut & 0x3f) * 16,          // CLUT X 坐标：提取低 6 位并乘以 16
+        v_clut >> 6                    // CLUT Y 坐标：提取高 8 位
+    );
+
+    // 混合颜色
+    BlendColor = v_color;
+
+    // 纹理坐标
+    TexCoord = v_texCoord;
+
+    // 纹理页属性
+    TexPage = v_texPage;
+}
