@@ -198,6 +198,7 @@ namespace ScePSX.UI
 
         private void Timer_Elapsed(object sender, EventArgs e)
         {
+            //romList.Dispose();
             //if (NullRenderer.hwnd != 0)
             //    return;
             //var nud = new NullRenderer();
@@ -209,8 +210,30 @@ namespace ScePSX.UI
 
             //ddd.Initialize();
 
-            //ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+            //Point2D origin = new Point2D();
+            //origin.X = 50;
+            //origin.Y = 50;
 
+            //Point2D size = new Point2D();
+
+            //size.X = 200;
+            //size.Y = 200;
+            //TextureData texture = new TextureData();
+
+            //uint blueColor = 0xFF0000;
+
+            //Primitive primitive = new Primitive();
+
+            //primitive.isDithered = false;
+            //primitive.IsRawTextured = false;
+            //primitive.IsTextured = false;
+            //primitive.IsSemiTransparent = false;
+            //primitive.SemiTransparencyMode = 0;
+
+            //ddd.DrawRect(origin, size, texture, blueColor, primitive);
+            //ddd.DrawBatch();
+            ////ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+            //return;
             CheckController();
 
             if (Core == null)

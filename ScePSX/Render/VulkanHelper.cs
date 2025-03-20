@@ -178,7 +178,7 @@ namespace ScePSX.Render
         private T[] _items;
         private uint _count;
 
-        public const uint DefaultCapacity = 4;
+        public const uint DefaultCapacity = 0;
         private const float GrowthFactor = 2f;
 
         public vkRawList() : this(DefaultCapacity) { }
@@ -186,6 +186,7 @@ namespace ScePSX.Render
         public vkRawList(uint capacity)
         {
             _items = capacity == 0 ? Array.Empty<T>() : new T[capacity];
+            _count = (uint)_items.Length;
         }
 
         public uint Count
