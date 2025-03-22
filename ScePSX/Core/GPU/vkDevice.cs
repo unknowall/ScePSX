@@ -5,7 +5,6 @@ using ScePSX.Render;
 
 using Vulkan;
 using Vulkan.Win32;
-using static ScePSX.VulkanDevice;
 using static Vulkan.VulkanNative;
 
 namespace ScePSX
@@ -1794,7 +1793,7 @@ namespace ScePSX
             VkFence fence = CreateFence(false);
 
             vkQueueSubmit(graphicsQueue, 1, ref submitInfo, fence);
-            
+
             //这个vulkan后端，性能最大的消耗就在这里，不解决这里其他地方无需优化，没有意义
             vkWaitForFences(device, 1, ref fence, VkBool32.True, ulong.MaxValue);
             vkDestroyFence(device, fence, null);

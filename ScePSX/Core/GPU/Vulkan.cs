@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ScePSX.Render;
 
 using Vulkan;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static ScePSX.VulkanDevice;
 using static Vulkan.VulkanNative;
 
