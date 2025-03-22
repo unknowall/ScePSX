@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using ScePSX.Render;
 
 using Vulkan;
@@ -179,6 +180,8 @@ namespace ScePSX
             }
         }
 
+        private static readonly byte[] LookupTable1555to8888 = new byte[32];
+
         #endregion
 
         public bool ViewVRam = false;
@@ -190,6 +193,11 @@ namespace ScePSX
         public VulkanGPU()
         {
             Device = new VulkanDevice();
+
+            for (int i = 0; i < 32; i++)
+            {
+                LookupTable1555to8888[i] = (byte)((i * 255 + 15) / 31);
+            }
         }
 
         public unsafe void Initialize()
@@ -586,6 +594,10 @@ namespace ScePSX
             drawFrag.u_srcBlend = 1.0f;
             drawFrag.u_destBlend = 0.0f;
             drawFrag.u_realColor = 1;
+            drawFrag.u_dither = 0;
+            drawFrag.u_setMaskBit = 0;
+            drawFrag.u_drawOpaquePixels = 1;
+            drawFrag.u_drawTransparentPixels = 1;
 
             UpdateFrag();
 
@@ -769,13 +781,13 @@ namespace ScePSX
                 height = offsetline * 2
             };
 
-            int targetWidth = ViewVRam ?
+            m_vramDisplayArea.width = ViewVRam ?
                 VRAM_WIDTH * resolutionScale :
-                m_targetDisplayArea.width * resolutionScale;
+                m_vramDisplayArea.width * resolutionScale;
 
-            int targetHeight = ViewVRam ?
+            m_vramDisplayArea.height = ViewVRam ?
                 VRAM_HEIGHT * resolutionScale :
-                m_targetDisplayArea.height * resolutionScale;
+                m_vramDisplayArea.height * resolutionScale;
 
             DrawBatch();
 
@@ -784,12 +796,14 @@ namespace ScePSX
             if (IRScale != resolutionScale)
                 SetResolutionScale(IRScale);
 
-            return (targetWidth, targetHeight);
+            return (m_vramDisplayArea.width, m_vramDisplayArea.height);
         }
 
         private unsafe void RenderToSwapchain(VkCommandBuffer cmd, uint chainidx, bool is24bit)
         {
             Device.BeginCommandBuffer(cmd);
+
+            //Device.UpdateDescriptorImage(outDescriptorSet, samplerTexture, 0);
 
             Device.BeginRenderPass(cmd, renderPass, drawChain.framebuffes[(int)chainidx], (int)drawChain.Extent.width, (int)drawChain.Extent.height, true, 0, 0, 0, 1);
 
@@ -1126,150 +1140,150 @@ namespace ScePSX
             {
                 GrowDirtyArea(destBounds);
             }
-            return;
-            VkCommandBuffer cmd = OpCMD.CMD[0];
 
-            Device.BeginCommandBuffer(cmd);
+            //VkCommandBuffer cmd = OpCMD.CMD[0];
 
-            samplerTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                samplerTexture.image,
-                samplerTexture.layout,
-                VkImageLayout.TransferSrcOptimal
-            );
+            //Device.BeginCommandBuffer(cmd);
 
-            copyTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                copyTexture,
-                copyTexture.layout,
-                VkImageLayout.TransferDstOptimal
-            );
+            //samplerTexture.layout = Device.TransitionImageLayout(
+            //    cmd,
+            //    samplerTexture.image,
+            //    samplerTexture.layout,
+            //    VkImageLayout.TransferSrcOptimal
+            //);
 
-            var srcBlitRegion = new VkImageBlit
-            {
-                srcSubresource = new VkImageSubresourceLayers
-                {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                srcOffsets_0 = new VkOffset3D
-                {
-                    x = srcX * resolutionScale,
-                    y = srcY * resolutionScale,
-                    z = 0
-                },
-                srcOffsets_1 = new VkOffset3D
-                {
-                    x = (srcX + width) * resolutionScale,
-                    y = (srcY + height) * resolutionScale,
-                    z = 1
-                },
-                dstSubresource = new VkImageSubresourceLayers
-                {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                dstOffsets_0 = new VkOffset3D { x = 0, y = 0, z = 0 },
-                dstOffsets_1 = new VkOffset3D
-                {
-                    x = width * resolutionScale,
-                    y = height * resolutionScale,
-                    z = 1
-                }
-            };
+            //copyTexture.layout = Device.TransitionImageLayout(
+            //    cmd,
+            //    copyTexture,
+            //    copyTexture.layout,
+            //    VkImageLayout.TransferDstOptimal
+            //);
 
-            vkCmdBlitImage(
-                cmd,
-                samplerTexture.image,
-                VkImageLayout.TransferSrcOptimal,
-                copyTexture.image,
-                VkImageLayout.TransferDstOptimal,
-                1,
-                &srcBlitRegion,
-                VkFilter.Nearest
-            );
+            //var srcBlitRegion = new VkImageBlit
+            //{
+            //    srcSubresource = new VkImageSubresourceLayers
+            //    {
+            //        aspectMask = VkImageAspectFlags.Color,
+            //        mipLevel = 0,
+            //        baseArrayLayer = 0,
+            //        layerCount = 1
+            //    },
+            //    srcOffsets_0 = new VkOffset3D
+            //    {
+            //        x = srcX * resolutionScale,
+            //        y = srcY * resolutionScale,
+            //        z = 0
+            //    },
+            //    srcOffsets_1 = new VkOffset3D
+            //    {
+            //        x = (srcX + width) * resolutionScale,
+            //        y = (srcY + height) * resolutionScale,
+            //        z = 1
+            //    },
+            //    dstSubresource = new VkImageSubresourceLayers
+            //    {
+            //        aspectMask = VkImageAspectFlags.Color,
+            //        mipLevel = 0,
+            //        baseArrayLayer = 0,
+            //        layerCount = 1
+            //    },
+            //    dstOffsets_0 = new VkOffset3D { x = 0, y = 0, z = 0 },
+            //    dstOffsets_1 = new VkOffset3D
+            //    {
+            //        x = width * resolutionScale,
+            //        y = height * resolutionScale,
+            //        z = 1
+            //    }
+            //};
 
-            copyTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                copyTexture,
-                VkImageLayout.TransferDstOptimal,
-                VkImageLayout.TransferSrcOptimal
-            );
+            //vkCmdBlitImage(
+            //    cmd,
+            //    samplerTexture.image,
+            //    VkImageLayout.TransferSrcOptimal,
+            //    copyTexture.image,
+            //    VkImageLayout.TransferDstOptimal,
+            //    1,
+            //    &srcBlitRegion,
+            //    VkFilter.Nearest
+            //);
 
-            samplerTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                samplerTexture.image,
-                samplerTexture.layout,
-                VkImageLayout.TransferDstOptimal
-            );
+            //copyTexture.layout = Device.TransitionImageLayout(
+            //    cmd,
+            //    copyTexture,
+            //    VkImageLayout.TransferDstOptimal,
+            //    VkImageLayout.TransferSrcOptimal
+            //);
 
-            var destBlitRegion = new VkImageBlit
-            {
-                srcSubresource = new VkImageSubresourceLayers
-                {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                srcOffsets_0 = new VkOffset3D { x = 0, y = 0, z = 0 }, // 临时图像起点
-                srcOffsets_1 = new VkOffset3D
-                {
-                    x = width * resolutionScale,
-                    y = height * resolutionScale,
-                    z = 1
-                },
-                dstSubresource = new VkImageSubresourceLayers
-                {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                dstOffsets_0 = new VkOffset3D
-                {
-                    x = destX * resolutionScale,
-                    y = destY * resolutionScale,
-                    z = 0
-                },
-                dstOffsets_1 = new VkOffset3D
-                {
-                    x = (destX + width) * resolutionScale,
-                    y = (destY + height) * resolutionScale,
-                    z = 1
-                }
-            };
+            //samplerTexture.layout = Device.TransitionImageLayout(
+            //    cmd,
+            //    samplerTexture.image,
+            //    samplerTexture.layout,
+            //    VkImageLayout.TransferDstOptimal
+            //);
 
-            vkCmdBlitImage(
-                cmd,
-                copyTexture.image,
-                VkImageLayout.TransferSrcOptimal,
-                samplerTexture.image,
-                VkImageLayout.TransferDstOptimal,
-                1,
-                &destBlitRegion,
-                VkFilter.Nearest
-            );
+            //var destBlitRegion = new VkImageBlit
+            //{
+            //    srcSubresource = new VkImageSubresourceLayers
+            //    {
+            //        aspectMask = VkImageAspectFlags.Color,
+            //        mipLevel = 0,
+            //        baseArrayLayer = 0,
+            //        layerCount = 1
+            //    },
+            //    srcOffsets_0 = new VkOffset3D { x = 0, y = 0, z = 0 }, // 临时图像起点
+            //    srcOffsets_1 = new VkOffset3D
+            //    {
+            //        x = width * resolutionScale,
+            //        y = height * resolutionScale,
+            //        z = 1
+            //    },
+            //    dstSubresource = new VkImageSubresourceLayers
+            //    {
+            //        aspectMask = VkImageAspectFlags.Color,
+            //        mipLevel = 0,
+            //        baseArrayLayer = 0,
+            //        layerCount = 1
+            //    },
+            //    dstOffsets_0 = new VkOffset3D
+            //    {
+            //        x = destX * resolutionScale,
+            //        y = destY * resolutionScale,
+            //        z = 0
+            //    },
+            //    dstOffsets_1 = new VkOffset3D
+            //    {
+            //        x = (destX + width) * resolutionScale,
+            //        y = (destY + height) * resolutionScale,
+            //        z = 1
+            //    }
+            //};
 
-            samplerTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                samplerTexture.image,
-                VkImageLayout.TransferDstOptimal,
-                VkImageLayout.ShaderReadOnlyOptimal
-            );
+            //vkCmdBlitImage(
+            //    cmd,
+            //    copyTexture.image,
+            //    VkImageLayout.TransferSrcOptimal,
+            //    samplerTexture.image,
+            //    VkImageLayout.TransferDstOptimal,
+            //    1,
+            //    &destBlitRegion,
+            //    VkFilter.Nearest
+            //);
 
-            copyTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                copyTexture,
-                VkImageLayout.TransferSrcOptimal,
-                VkImageLayout.Undefined
-            );
+            //samplerTexture.layout = Device.TransitionImageLayout(
+            //    cmd,
+            //    samplerTexture.image,
+            //    VkImageLayout.TransferDstOptimal,
+            //    VkImageLayout.ShaderReadOnlyOptimal
+            //);
 
-            Device.EndAndWaitCommandBuffer(cmd);
+            //copyTexture.layout = Device.TransitionImageLayout(
+            //    cmd,
+            //    copyTexture,
+            //    VkImageLayout.TransferSrcOptimal,
+            //    VkImageLayout.Undefined
+            //);
+
+            //Device.EndAndWaitCommandBuffer(cmd);
         }
 
         public unsafe void CopyRectVRAMtoCPU(int left, int top, int width, int height)
@@ -1329,142 +1343,82 @@ namespace ScePSX
             Buffer.MemoryCopy(stagingBuffer.mappedData, VRAM + (readBounds.Left + readBounds.Top * VRAM_WIDTH) * 2, 0, readWidth * readHeight * 2);
         }
 
-        public unsafe void CopyRectCPUtoVRAM(int left, int top, int width, int height)
+        public unsafe void CopyRectCPUtoVRAM(int originX, int originY, int width, int height)
         {
-
             if (width <= 0 || height <= 0 || VRAM == null)
                 return;
 
-            var updateBounds = GetWrappedBounds(left, top, width, height);
-            GrowDirtyArea(updateBounds);
-
             VkCommandBuffer cmd = OpCMD.CMD[0];
-
             Device.BeginCommandBuffer(cmd);
 
-            vramTexture.layout = Device.TransitionImageLayout(
+            int pixelCount = width * height;
+            int* convertedData = stackalloc int[pixelCount];
+            ushort* src = VRAM + originX + originY * width;
+
+            int rgb1555To8888(ushort color)
+            {
+                var m = (byte)(color >> 15);
+                var r = LookupTable1555to8888[color & 0x1F];
+                var g = LookupTable1555to8888[(color >> 5) & 0x1F];
+                var b = LookupTable1555to8888[(color >> 10) & 0x1F];
+
+                return (m << 24) | (b << 16) | (g << 8) | r;
+            }
+
+            for (int i = 0; i < pixelCount; i++)
+            {
+                convertedData[i] = rgb1555To8888(src[i]);
+            }
+
+
+            ulong bufferSize = (ulong)(pixelCount * sizeof(uint));
+
+            void* mappedData;
+            vkMapMemory(Device.device, stagingBuffer.stagingMemory, 0, (ulong)bufferSize, 0, &mappedData);
+            Buffer.MemoryCopy(
+                convertedData,
+                mappedData,
+                bufferSize,
+                bufferSize
+            );
+            vkUnmapMemory(Device.device, stagingBuffer.stagingMemory);
+
+            samplerTexture.layout = Device.TransitionImageLayout(
                 cmd,
-                vramTexture.image,
-                vramTexture.layout,
+                samplerTexture.image,
+                samplerTexture.layout,
                 VkImageLayout.TransferDstOptimal
             );
 
-            const int bytesPerPixel = 2;
-            int totalBytes = width * height * bytesPerPixel;
-
-            byte* srcStart = (byte*)VRAM + (updateBounds.Left + updateBounds.Top * VRAM_WIDTH) * bytesPerPixel;
-
-            void* mappedData;
-            vkMapMemory(Device.device, stagingBuffer.stagingMemory, 0, WholeSize, 0, &mappedData);
-
-            Buffer.MemoryCopy(
-                srcStart,
-                mappedData,
-                totalBytes,
-                totalBytes
-            );
-
-            vkUnmapMemory(Device.device, stagingBuffer.stagingMemory);
-
-            var bufferCopy = new VkBufferImageCopy
+            var region = new VkBufferImageCopy
             {
+                bufferOffset = 0,
                 bufferRowLength = (uint)width,
                 bufferImageHeight = (uint)height,
                 imageSubresource = new VkImageSubresourceLayers
                 {
                     aspectMask = VkImageAspectFlags.Color,
                     mipLevel = 0,
+                    baseArrayLayer = 0,
                     layerCount = 1
                 },
-                imageExtent = new VkExtent3D { width = (uint)width, height = (uint)height, depth = 1 }
+                imageOffset = new VkOffset3D { x = originX * resolutionScale, y = originY * resolutionScale, z = 0 },
+                imageExtent = new VkExtent3D { width = (uint)(width * resolutionScale), height = (uint)(height * resolutionScale), depth = 1 }
             };
 
             vkCmdCopyBufferToImage(
                 cmd,
                 stagingBuffer.stagingBuffer,
-                vramTexture.image,
+                samplerTexture.image,
                 VkImageLayout.TransferDstOptimal,
-                1,
-                &bufferCopy
-            );
+                        1,
+                        &region
 
-            vramTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                vramTexture,
-                VkImageLayout.TransferDstOptimal,
-                VkImageLayout.TransferSrcOptimal
             );
 
             samplerTexture.layout = Device.TransitionImageLayout(
                 cmd,
-                samplerTexture,
-                samplerTexture.layout,
-                VkImageLayout.TransferDstOptimal
-            );
-
-            int scaledLeft = left * resolutionScale;
-            int scaledTop = top * resolutionScale;
-            int scaledWidth = width * resolutionScale;
-            int scaledHeight = height * resolutionScale;
-
-            var blitRegion = new VkImageBlit
-            {
-                srcSubresource = new VkImageSubresourceLayers
-                {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                srcOffsets_0 = new VkOffset3D { x = 0, y = 0, z = 0 }, // 临时图像起点
-                srcOffsets_1 = new VkOffset3D
-                {
-                    x = width,
-                    y = height,
-                    z = 1
-                },
-                dstSubresource = new VkImageSubresourceLayers
-                {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                dstOffsets_0 = new VkOffset3D
-                {
-                    x = scaledLeft,
-                    y = scaledTop,
-                    z = 0
-                },
-                dstOffsets_1 = new VkOffset3D
-                {
-                    x = scaledLeft + scaledWidth,
-                    y = scaledTop + scaledHeight,
-                    z = 1
-                }
-            };
-
-            vkCmdBlitImage(
-                    cmd,
-                    vramTexture.image,
-                    VkImageLayout.TransferSrcOptimal,
-                    samplerTexture.image,
-                    VkImageLayout.TransferDstOptimal,
-                    1,
-                    &blitRegion,
-                    VkFilter.Linear
-                );
-
-            vramTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                vramTexture,
-                VkImageLayout.TransferSrcOptimal,
-                VkImageLayout.General
-            );
-
-            samplerTexture.layout = Device.TransitionImageLayout(
-                cmd,
-                samplerTexture,
+                samplerTexture.image,
                 VkImageLayout.TransferDstOptimal,
                 VkImageLayout.ShaderReadOnlyOptimal
             );
@@ -1852,13 +1806,16 @@ namespace ScePSX
         public void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
 
-            int minX = Math.Min(v0.X, Math.Min(v1.X, v2.X));
-            int minY = Math.Min(v0.Y, Math.Min(v1.Y, v2.Y));
-            int maxX = Math.Max(v0.X, Math.Max(v1.X, v2.X));
-            int maxY = Math.Max(v0.Y, Math.Max(v1.Y, v2.Y));
+            if (PGXPT)
+            {
+                int minX = Math.Min(v0.X, Math.Min(v1.X, v2.X));
+                int minY = Math.Min(v0.Y, Math.Min(v1.Y, v2.Y));
+                int maxX = Math.Max(v0.X, Math.Max(v1.X, v2.X));
+                int maxY = Math.Max(v0.Y, Math.Max(v1.Y, v2.Y));
 
-            if (maxX - minX > 1024 || maxY - minY > 512)
-                return;
+                if (maxX - minX > 1024 || maxY - minY > 512)
+                    return;
+            }
 
             if (!primitive.IsTextured)
             {
@@ -2011,39 +1968,40 @@ namespace ScePSX
 
         private unsafe void UpdateBlendMode()
         {
-            int blendMode = m_semiTransparencyEnabled ? m_semiTransparencyMode : 0;
-
-            switch (blendMode)
+            if (m_semiTransparencyEnabled)
             {
-                case 0: // 不混合
-                    currentPipeline = drawNoBlend;
-                    drawFrag.u_srcBlend = 1.0f;
-                    drawFrag.u_destBlend = 0.0f;
-                    break;
+                switch (m_semiTransparencyMode)
+                {
 
-                case 1: // 平均混合
-                    currentPipeline = drawAvgBlend;
-                    drawFrag.u_srcBlend = 0.5f;
-                    drawFrag.u_destBlend = 0.5f;
-                    break;
+                    case 0: // 平均混合
+                        currentPipeline = drawAddBlend;//drawAvgBlend;
+                        drawFrag.u_srcBlend = 0.5f;
+                        drawFrag.u_destBlend = 0.5f;
+                        break;
 
-                case 2: // 加法混合
-                    currentPipeline = drawAddBlend;
-                    drawFrag.u_srcBlend = 1.0f;
-                    drawFrag.u_destBlend = 1.0f;
-                    break;
+                    case 1: // 加法混合
+                        currentPipeline = drawAddBlend;
+                        drawFrag.u_srcBlend = 1.0f;
+                        drawFrag.u_destBlend = 1.0f;
+                        break;
 
-                case 3: // 减法混合
-                    currentPipeline = drawSubtractBlend;
-                    drawFrag.u_srcBlend = 1.0f;
-                    drawFrag.u_destBlend = 1.0f;
-                    break;
+                    case 2: // 减法混合
+                        currentPipeline = drawSubtractBlend;
+                        drawFrag.u_srcBlend = 1.0f;
+                        drawFrag.u_destBlend = 1.0f;
+                        break;
 
-                case 4: // 四分之一混合
-                    currentPipeline = drawConstantBlend;
-                    drawFrag.u_srcBlend = 0.25f;
-                    drawFrag.u_destBlend = 1.0f;
-                    break;
+                    case 3: // 四分之一混合
+                        currentPipeline = drawAddBlend;//drawConstantBlend;
+                        drawFrag.u_srcBlend = 0.25f;
+                        drawFrag.u_destBlend = 1.0f;
+                        break;
+                }
+            } else
+            {
+                currentPipeline = drawNoBlend;
+                drawFrag.u_srcBlend = 1.0f;
+                drawFrag.u_destBlend = 0.0f;
             }
 
             UpdateFrag();

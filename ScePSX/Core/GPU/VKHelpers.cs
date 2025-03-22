@@ -291,9 +291,9 @@ namespace ScePSX
         public static vkColor FromUInt32(uint color)
         {
             return new vkColor(
-                (byte)((color >> 16) & 0xFF), // R
+                (byte)((color >> 0) & 0xFF), // R
                 (byte)((color >> 8) & 0xFF),  // G
-                (byte)(color & 0xFF)          // B
+                (byte)((color >> 16) & 0xFF)          // B
             );
         }
     }

@@ -213,7 +213,7 @@ namespace ScePSX.UI
             //ddd.FillRectVRAM(0, 0, 222, 222, 0xFFFF00);
 
             //ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
-            
+
             //return;
             CheckController();
 
