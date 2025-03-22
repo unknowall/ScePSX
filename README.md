@@ -28,7 +28,7 @@
 
 > **硬件后端**: 更好的原生画质，更低的CPU使用率，但需支持OpenGL 3.3以上的显卡 (不支持的已经很难找的到了)
 
-_图1：使用 OpenGL 渲染器运行游戏的画面效果_<br>
+_图1：使用硬件后端运行游戏的画面效果_<br>
 ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
 
 _图2：ScePSX 主界面展示_<br>
