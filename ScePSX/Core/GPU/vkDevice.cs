@@ -130,7 +130,7 @@ namespace ScePSX
 
             Console.WriteLine($"[VULKAN GPU] VulkanDevice Initialization....");
 
-            CreateDebugInstance();
+            CreateInstance();
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
             CreateLogicalDevice();
