@@ -129,7 +129,7 @@ namespace ScePSX
 
             Console.WriteLine($"[VULKAN GPU] VulkanDevice Initialization....");
 
-            CreateDebugInstance();
+            CreateInstance();
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
             CreateLogicalDevice();
@@ -2012,7 +2012,7 @@ namespace ScePSX
         public unsafe vkBuffer CreateBuffer(ulong size, VkBufferUsageFlags usage = VkBufferUsageFlags.TransferSrc)
         {
             vkBuffer buffer = new vkBuffer();
-            
+
             buffer.size = size;
 
             var bufferInfo = new VkBufferCreateInfo
