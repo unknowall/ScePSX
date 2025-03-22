@@ -59,8 +59,6 @@ _图2：ScePSX 主界面展示_<br>
 #### 4. 控制设置 ⌨️🎮
 - 键盘设置在文件菜单中完成。
 - 手柄无需额外设置，即插即用。
-
-
   
 ## 常见问题 ❓
 
@@ -92,6 +90,21 @@ A: 尝试调整音频缓冲区大小，或更换音频输出设备。
 ### Q: 是否支持 PS1 的所有区域版本？
 A: 是的，支持 NTSC-J、NTSC-U 和 PAL 格式的游戏。
 
+### Q: 为什么 Vulkan 的内存占用最高？
+A: 因为它需要额外内存来存储：  
+- 3个时间线错乱的命令缓冲
+- 5份未签署的同步协议
+- 11个验证层冷笑话
+- 开发者珍贵的头发样本
+
+### Q: 听说 Vulkan 性能更好？
+A: 在理想情况下是的，但根据墨菲定律：  
+`实际性能 = 理论性能 × (1 - 验证层报错次数/100)`
+
+### Q: 我不想用 Vulkan
+A: 当然可以！只需：  
+ - 删除 vk.dll 文件， 对正常功能无影响
+
 ### Q: 是否支持跨平台？
 A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
 
@@ -108,6 +121,7 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 - **提交 Issue**: 在 [Issues](https://github.com/unknowall/ScePSX/issues) 页面报告问题或提出建议。
 - **提交 PR**: Fork 本项目并提交 Pull Request。
 - **翻译支持**: 如果你熟悉其他语言，欢迎帮助翻译 README 或 UI 文本。
+- **谨记** ![Vulkan 哲学](https://img.shields.io/badge/Vulkan_真理-同步即地狱-8A2BE2)
 
 # 下载 📥
 
