@@ -354,7 +354,7 @@
             // 
             cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbgpu.FormattingEnabled = true;
-            cbgpu.Items.AddRange(new object[] { "software", "OpenGL" });
+            cbgpu.Items.AddRange(new object[] { "Software", "OpenGL","VulKan" });
             cbgpu.Location = new System.Drawing.Point(74, 227);
             cbgpu.Name = "cbgpu";
             cbgpu.Size = new System.Drawing.Size(141, 25);

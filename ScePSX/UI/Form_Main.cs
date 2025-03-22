@@ -22,7 +22,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.5";
+        public static string version = "ScePSX Beta 0.1.6";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -210,29 +210,10 @@ namespace ScePSX.UI
 
             //ddd.Initialize();
 
-            //Point2D origin = new Point2D();
-            //origin.X = 50;
-            //origin.Y = 50;
+            //ddd.FillRectVRAM(0, 0, 222, 222, 0xFFFF00);
 
-            //Point2D size = new Point2D();
-
-            //size.X = 200;
-            //size.Y = 200;
-            //TextureData texture = new TextureData();
-
-            //uint blueColor = 0xFF0000;
-
-            //Primitive primitive = new Primitive();
-
-            //primitive.isDithered = false;
-            //primitive.IsRawTextured = false;
-            //primitive.IsTextured = false;
-            //primitive.IsSemiTransparent = false;
-            //primitive.SemiTransparencyMode = 0;
-
-            //ddd.DrawRect(origin, size, texture, blueColor, primitive);
-            //ddd.DrawBatch();
-            ////ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+            //ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+            
             //return;
             CheckController();
 
@@ -574,11 +555,40 @@ namespace ScePSX.UI
 
                     Core.GpuBackend = GPUType.OpenGL;
                 }
+                if (mode == RenderMode.Vulkan && gpumode == GPUType.Vulkan)
+                {
+                    Render.SelectRenderer(RenderMode.Null, this);
+
+                    while (NullRenderer.hwnd == 0)
+                        Thread.Sleep(100);
+
+                    Core.PsxBus.gpu.SelectGPU(GPUType.Vulkan);
+
+                    Core.GPU = Core.PsxBus.gpu.Backend.GPU;
+
+                    IRscale = IRscale < 1 ? 1 : IRscale;
+                    (Core.GPU as VulkanGPU).IRScale = IRscale;
+                    (Core.GPU as VulkanGPU).PGXP = PGXP;
+                    (Core.GPU as VulkanGPU).PGXPT = PGXPT;
+                    (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
+                    (Core.GPU as VulkanGPU).RealColor = Realcolor;
+
+                    Core.GpuBackend = GPUType.Vulkan;
+                }
                 if (mode != RenderMode.OpenGL && gpumode == GPUType.OpenGL)
                 {
                     Render.SelectRenderer(Rendermode, this);
 
                     if(Core.GpuBackend != GPUType.Software)
+                        Core.PsxBus.gpu.SelectGPU(GPUType.Software);
+
+                    Core.GpuBackend = GPUType.Software;
+                }
+                if (mode != RenderMode.Vulkan && gpumode == GPUType.Vulkan)
+                {
+                    Render.SelectRenderer(Rendermode, this);
+
+                    if (Core.GpuBackend != GPUType.Software)
                         Core.PsxBus.gpu.SelectGPU(GPUType.Software);
 
                     Core.GpuBackend = GPUType.Software;
@@ -969,7 +979,12 @@ namespace ScePSX.UI
 
             romList.Dispose();
 
-            if ((GPUType)gpumode == GPUType.OpenGL && Rendermode == RenderMode.OpenGL)
+            if (gpumode == GPUType.OpenGL && Rendermode == RenderMode.OpenGL)
+            {
+                Render.SelectRenderer(RenderMode.Null, this);
+                while (NullRenderer.hwnd == 0)
+                    Thread.Sleep(100);
+            } else if (gpumode == GPUType.Vulkan && Rendermode == RenderMode.Vulkan)
             {
                 Render.SelectRenderer(RenderMode.Null, this);
                 while (NullRenderer.hwnd == 0)
@@ -1000,6 +1015,14 @@ namespace ScePSX.UI
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                 (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                 (Core.GPU as OpenglGPU).RealColor = Realcolor;
+            } else if (Core.GpuBackend == GPUType.Vulkan && Rendermode == RenderMode.Vulkan)
+            {
+                IRscale = IRscale < 1 ? 1 : IRscale;
+                (Core.GPU as VulkanGPU).IRScale = IRscale;
+                (Core.GPU as VulkanGPU).PGXP = PGXP;
+                (Core.GPU as VulkanGPU).PGXPT = PGXPT;
+                (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
+                (Core.GPU as VulkanGPU).RealColor = Realcolor;
             } else
             {
                 IRscale = 1;
