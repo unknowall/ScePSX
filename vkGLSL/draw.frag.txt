@@ -30,24 +30,18 @@ layout(set = 0, binding = 2) uniform sampler2D u_vram;
 
 const int DitherTable[16] = int[16](4, 0, -3, 1, 2, -2, 3, -1, -3, 1, -4, 0, 3, -1, 2, -2);
 
-vec3 FloorVec3(vec3 v) {
-    return floor(v);
-}
+vec3 FloorVec3(vec3 v) { return floor(v); }
 
-vec3 RoundVec3(vec3 v) {
-    return floor(v + vec3(0.5));
-}
+vec3 RoundVec3(vec3 v) { return floor(v + vec3(0.5)); }
 
-uint mod_uint(uint x, uint y) {
-    return x - y * (x / y);
-}
+uint mod_uint(uint x, uint y) { return x - y * (x / y); }
 
 vec3 Dither24bitTo15Bit(ivec2 pos, vec3 color) {
     uint index = mod_uint(uint(pos.x), 4u) + mod_uint(uint(pos.y), 4u) * 4u;
     float offset = float(DitherTable[index]);
     color = FloorVec3(color) + vec3(offset);
-    color = clamp(color, 0.0, 255.0);
-    return FloorVec3(color / 8.0);
+    color = clamp(color, 0.0, 255.0); 
+    return FloorVec3(color / 8); 
 }
 
 vec3 ConvertColorTo15bit(vec3 color) {
@@ -70,11 +64,12 @@ vec4 SampleTexture(ivec2 pos) {
 
 int SampleUShort(ivec2 pos) {
     vec4 c = SampleTexture(pos);
-    int red = FloatToInt5(c.r);
+    // BGR1555 格式转换：c.r=Blue, c.g=Green, c.b=Red
+    int blue  = FloatToInt5(c.b);
     int green = FloatToInt5(c.g);
-    int blue = FloatToInt5(c.b);
+    int red   = FloatToInt5(c.r); 
     int maskBit = int(ceil(c.a));
-    return (maskBit << 15) | (blue << 10) | (green << 5) | red;
+    return (maskBit << 15) | (blue << 10) | (green << 5) | red; 
 }
 
 vec4 SampleColor(ivec2 pos) {
@@ -101,7 +96,6 @@ int SampleIndex8(ivec2 texCoord) {
 
 vec4 LookupTexel() {
     ivec2 texCoord = ivec2(floor(TexCoord + vec2(0.0001))) & ivec2(0xff);
-    // 应用纹理窗口
     texCoord.x = (texCoord.x & ~(uniforms.u_texWindowMask.x * 8)) | ((uniforms.u_texWindowOffset.x & uniforms.u_texWindowMask.x) * 8);
     texCoord.y = (texCoord.y & ~(uniforms.u_texWindowMask.y * 8)) | ((uniforms.u_texWindowOffset.y & uniforms.u_texWindowMask.y) * 8);
     int colorMode = (TexPage >> 7) & 0x3;
@@ -118,7 +112,7 @@ void main() {
     vec4 color;
     float srcBlend = uniforms.u_srcBlend;
     float destBlend = uniforms.u_destBlend;
-    vec3 blendColor = ConvertColorTo24Bit(BlendColor);
+    vec3 blendColor = ConvertColorTo24Bit(BlendColor.bgr);  // 输入BGR转RGB
 
     if ((TexPage & (1 << 11)) != 0) {
         color = vec4(blendColor, 0.0);
@@ -142,16 +136,14 @@ void main() {
         ivec2 pos = ivec2(floor(Position.xy + vec2(0.0001)));
         color.rgb = Dither24bitTo15Bit(pos, color.rgb) / 31.0;
     } else {
-        color.rgb = FloorVec3(color.rgb / 8.0) / 31.0;
+        color.rgb = FloorVec3(color.rgb/ 8) / 31.0;
     }
 
     if (uniforms.u_setMaskBit) {
         color.a = 1.0;
     }
 
-    // 根据混合模式计算最终颜色
-    vec4 finalColor = vec4(color.rgb * srcBlend + blendColor.rgb * destBlend, color.a);
-    FragColor = finalColor;
+    FragColor = vec4(color.rgb * srcBlend + blendColor.rgb * destBlend, color.a);
 
     gl_FragDepth = (color.a == 0.0) ? 1.0 : Position.z;
 }

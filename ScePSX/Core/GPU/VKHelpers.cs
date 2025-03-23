@@ -291,18 +291,15 @@ namespace ScePSX
         public static vkColor FromUInt32(uint color)
         {
             return new vkColor(
-                (byte)((color >> 0) & 0xFF), // R
-                (byte)((color >> 8) & 0xFF),  // G
-                (byte)((color >> 16) & 0xFF)          // B
+                (byte)((color >> 16) & 0xFF),
+                (byte)((color >> 8) & 0xFF),
+                (byte)((color >> 0) & 0xFF)
             );
         }
     }
 
     public static class vkShaders
     {
-        public readonly static byte[] fillvert = new byte[] { };
-        public readonly static byte[] fillfrag = new byte[] { };
-
         public readonly static byte[] drawvert = new byte[] { };
         public readonly static byte[] drawfrag = new byte[] { };
 
@@ -312,11 +309,7 @@ namespace ScePSX
         public readonly static byte[] out16vert = new byte[] { };
         public readonly static byte[] out16frag = new byte[] { };
 
-        public readonly static byte[] displayvert = new byte[] { };
-        public readonly static byte[] displayfrag = new byte[] { };
 
-        public readonly static byte[] ramviewvert = new byte[] { };
-        public readonly static byte[] ramviewfrag = new byte[] { };
     }
 
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -9,7 +10,9 @@ using System.Threading;
 using System.Windows.Forms;
 
 using ScePSX.Render;
+using Vulkan;
 using static ScePSX.Controller;
+using static ScePSX.VulkanDevice;
 using static SDL2.SDL;
 
 namespace ScePSX.UI
@@ -71,8 +74,6 @@ namespace ScePSX.UI
             //Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
             InitializeComponent();
-
-            AllocConsole();
 
             if (ini.ReadInt("Main", "Console") == 1)
             {
@@ -159,7 +160,7 @@ namespace ScePSX.UI
             this.Load += MainForm_Load;
             this.FormClosing += MainForm_Closing;
 
-            gpumnu = AddMenu("gpumode",$"GPU: {gputype.ToString()}",88, RenderToolStripMenuItem);
+            gpumnu = AddMenu("gpumode", $"GPU: {gputype.ToString()}", 88, RenderToolStripMenuItem);
             gpumnu.Enabled = false;
         }
 
@@ -196,7 +197,7 @@ namespace ScePSX.UI
             StatusBar.Items[index].Text = text;
         }
 
-        private void Timer_Elapsed(object sender, EventArgs e)
+        private unsafe void Timer_Elapsed(object sender, EventArgs e)
         {
             //romList.Dispose();
             //if (NullRenderer.hwnd != 0)
@@ -206,13 +207,12 @@ namespace ScePSX.UI
             //while (NullRenderer.hwnd == 0)
             //    Thread.Sleep(100);
 
-            //var ddd = new VulkanGPU();
-
-            //ddd.Initialize();
-
-            //ddd.FillRectVRAM(0, 0, 222, 222, 0xFFFF00);
-
-            //ddd.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+            //var vkGpu = new VulkanGPU();
+            //vkGpu.Initialize();
+            //vkGpu.FillRectVRAM(0, 0, 1024, 512, 0xFF0000); // 全屏蓝色背景（BGR: 0xFF0000）
+            //vkGpu.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
+            //Console.WriteLine("蓝色背景");
+            //Console.ReadKey();
 
             //return;
             CheckController();
@@ -540,7 +540,8 @@ namespace ScePSX.UI
                 {
                     Render.SelectRenderer(RenderMode.Null, this);
 
-                    while (NullRenderer.hwnd == 0) Thread.Sleep(100);
+                    while (NullRenderer.hwnd == 0)
+                        Thread.Sleep(100);
 
                     Core.PsxBus.gpu.SelectGPU(GPUType.OpenGL);
 
@@ -579,7 +580,7 @@ namespace ScePSX.UI
                 {
                     Render.SelectRenderer(Rendermode, this);
 
-                    if(Core.GpuBackend != GPUType.Software)
+                    if (Core.GpuBackend != GPUType.Software)
                         Core.PsxBus.gpu.SelectGPU(GPUType.Software);
 
                     Core.GpuBackend = GPUType.Software;
