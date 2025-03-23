@@ -145,7 +145,7 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan Device] VulkanDevice Initialization....");
 
-            CreateDebugInstance();
+            CreateInstance();
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
             vkGetPhysicalDeviceProperties(physicalDevice, out deviceProperties);
