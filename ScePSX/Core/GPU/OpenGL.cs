@@ -1040,7 +1040,9 @@ namespace ScePSX
 
         public void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
         {
-            // 计算源和目标区域
+            if (srcX == destX && srcY == destY && width == 2 && height == 1)
+                return;
+
             var srcBounds = glRectangle<int>.FromExtents(srcX, srcY, width, height);
             var destBounds = glRectangle<int>.FromExtents(destX, destY, width, height);
 
@@ -1084,17 +1086,14 @@ namespace ScePSX
 
         public unsafe void CopyRectVRAMtoCPU(int left, int top, int width, int height)
         {
-            // 获取包裹后的边界
             var readBounds = GetWrappedBounds(left, top, width, height);
 
-            // 如果脏区域与读取区域相交，则绘制批次
             if (m_dirtyArea.Intersects(readBounds))
                 DrawBatch();
 
             int readWidth = readBounds.GetWidth();
             int readHeight = readBounds.GetHeight();
 
-            // 更新临时纹理的尺寸
             if (m_vramTransferTexture.GetWidth() != readWidth || m_vramTransferTexture.GetHeight() != readHeight)
             {
                 m_vramTransferTexture.UpdateImage(
@@ -1107,11 +1106,9 @@ namespace ScePSX
                 );
             }
 
-            // 确保帧缓冲区完整
             if (!m_vramTransferFramebuffer.IsComplete())
                 Console.WriteLine("[OPENGL GPU] Error: VRAMtoCPU Framebuffer is incomplete.");
 
-            // 绑定帧缓冲区并复制数据
             m_vramTransferFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
             m_vramDrawFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
             Gl.Disable(EnableCap.ScissorTest);

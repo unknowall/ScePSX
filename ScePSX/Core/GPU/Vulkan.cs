@@ -241,6 +241,7 @@ namespace ScePSX
 
         public unsafe void Initialize()
         {
+
             VRAM = (ushort*)Marshal.AllocHGlobal((1024 * 512) * 2);
 
             Device.VulkanInit(NullRenderer.hwnd, NullRenderer.hinstance);
@@ -307,7 +308,12 @@ namespace ScePSX
                 1024, 512,
                 VkFormat.R8g8b8a8Unorm,
                 VkImageAspectFlags.Color,
-                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferSrc
+                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferSrc,
+                VkFilter.Linear,
+                VkSamplerAddressMode.ClampToEdge,
+                VkSamplerMipmapMode.Linear,
+                VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent,
+                VkImageTiling.Linear
                 );
 
             Console.WriteLine($"[Vulkan GPU] drawTexture 0x{drawTexture.image.Handle:X}");
@@ -1306,6 +1312,8 @@ namespace ScePSX
 
         public unsafe void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
         {
+            if (srcX == destX && srcY == destY)
+                return;
 
             var srcBounds = vkRectangle<int>.FromExtents(srcX, srcY, width, height);
             var destBounds = vkRectangle<int>.FromExtents(destX, destY, width, height);
@@ -1333,70 +1341,42 @@ namespace ScePSX
                 destRawOffset + (ulong)(width * 4) * height
             );
 
-            // 对齐映射范围
             ulong alignedStart = startOffset / minAlignment * minAlignment;
             ulong alignedSize = (endOffset - alignedStart + minAlignment - 1) / minAlignment * minAlignment;
 
-            // 单次映射整个区域
-            void* mappedPtr;
+            ulong aligneddstStart = destRawOffset / minAlignment * minAlignment;
+            ulong aligneddstSize = (endOffset - aligneddstStart + minAlignment - 1) / minAlignment * minAlignment;
+
+            void* srcPtr;
             vkMapMemory(
                 Device.device,
                 samplerTexture.imagememory,
                 alignedStart,
                 alignedSize,
                 0,
-                &mappedPtr
+                &srcPtr
             );
 
-            try
+            void* dstPtr;
+            vkMapMemory(
+                Device.device,
+                drawTexture.imagememory,
+                aligneddstStart,
+                aligneddstSize,
+                0,
+                &dstPtr
+            );
+
+            byte* srcStart = (byte*)srcPtr + (srcRawOffset - alignedStart);
+            byte* destStart = (byte*)dstPtr + (destRawOffset - aligneddstStart);
+            int rowPitch = (width * 4 + (int)minAlignment - 1) & ~((int)minAlignment - 1);
+            for (int row = 0; row < height; row++)
             {
-                byte* basePtr = (byte*)mappedPtr;
-
-                byte* srcStart = basePtr + (srcRawOffset - alignedStart);
-                byte* destStart = basePtr + (destRawOffset - alignedStart);
-                int rowPitch = (width * 4 + (int)minAlignment - 1) & ~((int)minAlignment - 1);
-                bool isOverlap = (srcY == destY && Math.Abs(srcX - destX) < width) ||
-                                (Math.Abs(srcY - destY) < height);
-
-                if (isOverlap)
-                {
-                    byte* tempBuffer = stackalloc byte[rowPitch * height];
-
-                    for (int row = 0; row < height; row++)
-                    {
-                        Buffer.MemoryCopy(
-                            srcStart + row * VRAM_WIDTH * 4,
-                            tempBuffer + row * rowPitch,
-                            rowPitch,
-                            width * 4
-                        );
-                    }
-
-                    for (int row = 0; row < height; row++)
-                    {
-                        Buffer.MemoryCopy(
-                            tempBuffer + row * rowPitch,
-                            destStart + row * VRAM_WIDTH * 4,
-                            width * 4,
-                            width * 4
-                        );
-                    }
-                } else
-                {
-                    for (int row = 0; row < height; row++)
-                    {
-                        Buffer.MemoryCopy(
-                            srcStart + row * VRAM_WIDTH * 4,
-                            destStart + row * VRAM_WIDTH * 4,
-                            width * 4,
-                            width * 4
-                        );
-                    }
-                }
-            } finally
-            {
-                vkUnmapMemory(Device.device, samplerTexture.imagememory);
+                Buffer.MemoryCopy(srcStart + row * VRAM_WIDTH * 4, destStart + row * VRAM_WIDTH * 4, width * 4, width * 4);
             }
+
+            vkUnmapMemory(Device.device, samplerTexture.imagememory);
+            vkUnmapMemory(Device.device, drawTexture.imagememory);
         }
 
         public unsafe void CopyRectVRAMtoCPU(int left, int top, int width, int height)
@@ -1413,71 +1393,48 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan GPU] CopyRectVRAMtoCPU {left},{top} [{width},{height}]");
 
-            VkCommandBuffer cmd = OpCMD.CMD[0];
+            vkGetImageMemoryRequirements(Device.device, samplerTexture.image, out var memRequirements);
+            uint minAlignment = (uint)memRequirements.alignment;
 
-            Device.BeginCommandBuffer(cmd);
+            void* textureMappedPtr;
+            vkMapMemory(Device.device, samplerTexture.imagememory, 0, WholeSize, 0, &textureMappedPtr);
 
-            if (resolutionScale > 1)
+            int srcBytesPerPixel = 4;
+            uint srcRowPitch = (uint)((readWidth * srcBytesPerPixel + minAlignment - 1) & ~((int)minAlignment - 1));
+
+            int destBytesPerPixel = 2;
+            byte* destBasePtr = (byte*)VRAM + (readBounds.Left + readBounds.Top * VRAM_WIDTH) * destBytesPerPixel;
+
+            for (int row = 0; row < readHeight; row++)
             {
-                WriteBackDrawTextureToVRAM(cmd);
-            }
+                byte* srcRowStart = (byte*)textureMappedPtr + row * srcRowPitch;
+                byte* destRowStart = destBasePtr + row * VRAM_WIDTH * destBytesPerPixel;
 
-            vkTexture sourceTexture = resolutionScale == 1 ? drawTexture : vramTexture;
-
-            sourceTexture.layout = Device.TransitionImageLayout(cmd, sourceTexture.image, sourceTexture.layout, VkImageLayout.TransferSrcOptimal);
-
-            var copyRegion = new VkBufferImageCopy
-            {
-                bufferOffset = 0,
-                bufferRowLength = 0,
-                bufferImageHeight = 0,
-                imageSubresource = new VkImageSubresourceLayers
+                for (int col = 0; col < readWidth; col++)
                 {
-                    aspectMask = VkImageAspectFlags.Color,
-                    mipLevel = 0,
-                    baseArrayLayer = 0,
-                    layerCount = 1
-                },
-                imageOffset = new VkOffset3D { x = readBounds.Left, y = readBounds.Top, z = 0 },
-                imageExtent = new VkExtent3D { width = (uint)readWidth, height = (uint)readHeight, depth = 1 }
-            };
+                    uint* srcPixel = (uint*)(srcRowStart + col * srcBytesPerPixel);
+                    uint color = *srcPixel;
 
-            vkCmdCopyImageToBuffer(
-                cmd,
-                sourceTexture.image,
-                VkImageLayout.TransferSrcOptimal,
-                stagingBuffer.stagingBuffer,
-                1,
-                &copyRegion
-            );
+                    uint a = (color >> 24) & 0xFFU;
+                    uint r = (color >> 16) & 0xFFU;
+                    uint g = (color >> 8) & 0xFFU;
+                    uint b = color & 0xFFU;
 
-            VkImageLayout layout = resolutionScale == 1 ? VkImageLayout.ColorAttachmentOptimal : VkImageLayout.ShaderReadOnlyOptimal;
-            sourceTexture.layout = Device.TransitionImageLayout(cmd, sourceTexture.image, sourceTexture.layout, layout);
+                    ushort pixel = (ushort)(
+                        ((a > 0x80U ? 1U : 0U) << 15) |
+                        ((r >> 3) << 10) |
+                        ((g >> 3) << 5) |
+                        (b >> 3)
+                    );
 
-            Device.EndAndWaitCommandBuffer(cmd);
-
-            void* mappedData;
-            vkMapMemory(Device.device, stagingBuffer.stagingMemory, 0, WholeSize, 0, &mappedData);
-
-            int pixelCount = width * height;
-            ushort* convertedData = stackalloc ushort[pixelCount];
-            int* src = (int*)mappedData;
-
-            for (int i = 0; i < pixelCount; i++)
-            {
-                var color = src[i];
-
-                byte m = (byte)((color & 0xFF000000) >> 24);
-                byte r = (byte)((color & 0x00FF0000) >> 16 + 3);
-                byte g = (byte)((color & 0x0000FF00) >> 8 + 3);
-                byte b = (byte)((color & 0x000000FF) >> 3);
-
-                convertedData[i] = (ushort)(m << 15 | b << 10 | g << 5 | r);
+                    byte* destPixel = destRowStart + col * destBytesPerPixel;
+                    //destPixel[0] = (byte)(pixel & 0xFF);
+                    //destPixel[1] = (byte)(pixel >> 8);
+                    *(ushort*)destPixel = pixel;
+                }
             }
 
-            Buffer.MemoryCopy(convertedData, (byte*)VRAM + (readBounds.Left + readBounds.Top * VRAM_WIDTH) * 2, readWidth * readHeight * 2, readWidth * readHeight * 2);
-
-            vkUnmapMemory(Device.device, stagingBuffer.stagingMemory);
+            vkUnmapMemory(Device.device, samplerTexture.imagememory);
         }
 
         public unsafe void CopyRectCPUtoVRAM(int originX, int originY, int width, int height)
