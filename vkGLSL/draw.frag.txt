@@ -143,7 +143,9 @@ void main() {
         color.a = 1.0;
     }
 
-    FragColor = vec4(color.rgb * srcBlend + blendColor.rgb * destBlend, color.a);
+    //FragColor = vec4(color.rgb * srcBlend + blendColor.rgb * destBlend, color.a);
+
+    FragColor = vec4(color.rgb, color.a); 
 
     gl_FragDepth = (color.a == 0.0) ? 1.0 : Position.z;
 }

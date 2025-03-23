@@ -53,6 +53,7 @@ namespace ScePSX
         public VkInstance instance;
         public VkPhysicalDevice physicalDevice;
         public VkDevice device;
+        public VkPhysicalDeviceProperties deviceProperties;
 
         public VkQueue graphicsQueue;
         public VkQueue presentQueue;
@@ -144,9 +145,10 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan Device] VulkanDevice Initialization....");
 
-            CreateInstance();
+            CreateDebugInstance();
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
+            vkGetPhysicalDeviceProperties(physicalDevice, out deviceProperties);
             CreateLogicalDevice();
 
             IntPtr funcPtr = vkGetInstanceProcAddr(instance, "vkCmdSetBlendConstants");
@@ -790,7 +792,8 @@ namespace ScePSX
             VkVertexInputAttributeDescription[] VertexInput = default,
             VkPipelineColorBlendAttachmentState blendstate = default,
             VkPushConstantRange[] PushConstant = default,
-            VkPrimitiveTopology topology = VkPrimitiveTopology.TriangleList
+            VkPrimitiveTopology topology = VkPrimitiveTopology.TriangleList,
+            float[] blendConstants = default
             )
         {
             vkGraphicsPipeline pipeline = new vkGraphicsPipeline();
@@ -899,6 +902,14 @@ namespace ScePSX
                 blendConstants_2 = 0,
                 blendConstants_3 = 0
             };
+
+            if (blendConstants != null && blendConstants.Length == 4)
+            {
+                colorBlending.blendConstants_0 = blendConstants[0];
+                colorBlending.blendConstants_1 = blendConstants[1];
+                colorBlending.blendConstants_2 = blendConstants[2];
+                colorBlending.blendConstants_3 = blendConstants[3];
+            }
 
             vkFixedArray2<VkPushConstantRange> push;
 
@@ -1511,7 +1522,9 @@ namespace ScePSX
             VkImageUsageFlags usage = VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.ColorAttachment,
             VkFilter Filter = VkFilter.Linear,
             VkSamplerAddressMode addressMode = VkSamplerAddressMode.Repeat,
-            VkSamplerMipmapMode MinmapFilter = VkSamplerMipmapMode.Linear
+            VkSamplerMipmapMode MinmapFilter = VkSamplerMipmapMode.Linear,
+            VkMemoryPropertyFlags memoryPropertyFlags = VkMemoryPropertyFlags.DeviceLocal,
+            VkImageTiling tiling = VkImageTiling.Optimal
             )
         {
             vkTexture texture = new vkTexture();
@@ -1529,7 +1542,7 @@ namespace ScePSX
                 mipLevels = 1,
                 arrayLayers = 1,
                 samples = VkSampleCountFlags.Count1,
-                tiling = VkImageTiling.Optimal,
+                tiling = tiling,
                 usage = usage,
                 sharingMode = VkSharingMode.Exclusive,
                 initialLayout = VkImageLayout.Undefined
@@ -1544,7 +1557,7 @@ namespace ScePSX
             {
                 sType = VkStructureType.MemoryAllocateInfo,
                 allocationSize = memReqs.size,
-                memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VkMemoryPropertyFlags.DeviceLocal)
+                memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags)
             };
 
             if (vkAllocateMemory(device, &allocInfo, null, out texture.imagememory) != VkResult.Success)
@@ -2247,8 +2260,6 @@ namespace ScePSX
 
         public uint GetMinUniformBufferAlignment()
         {
-            VkPhysicalDeviceProperties deviceProperties;
-            vkGetPhysicalDeviceProperties(physicalDevice, out deviceProperties);
             return (uint)deviceProperties.limits.minUniformBufferOffsetAlignment;
         }
 
