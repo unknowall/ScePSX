@@ -122,6 +122,8 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 - **提交 PR**: Fork 本项目并提交 Pull Request。
 - **翻译支持**: 如果你熟悉其他语言，欢迎帮助翻译 README 或 UI 文本。
 - **谨记** ![Vulkan 哲学](https://img.shields.io/badge/Vulkan_真理-同步即地狱-8A2BE2)
+- 国内的朋友可以在下面这里提出汉化ROM兼容性问题(感谢miku233转载)
+- ![老男人](https://img.shields.io/badge/Oldman-Emu-老男人)[讨论贴 https://bbs.oldmantvg.net/thread-77207.htm](htps://bbs.oldmantvg.net/thread-77207.htm)
 
 # 下载 📥
 
