@@ -7,7 +7,8 @@ namespace ScePSX
     {
         Software,
         OpenGL,
-        Vulkan
+        Vulkan,
+        Metal
     }
 
     public interface IGPU : IDisposable
@@ -79,7 +80,8 @@ namespace ScePSX
             {
                 { GPUType.Software, () => new SoftwareGPU() },
                 { GPUType.OpenGL, () => new OpenglGPU() },
-                { GPUType.Vulkan, () => new VulkanGPU() }
+                { GPUType.Vulkan, () => new VulkanGPU() },
+                { GPUType.Metal, () => new MetalGPU() }
             };
         }
 

@@ -607,7 +607,7 @@ namespace ScePSX
             }
         }
 
-        public unsafe VkRenderPass CreateRenderPass(VkFormat format, 
+        public unsafe VkRenderPass CreateRenderPass(VkFormat format,
             VkAttachmentLoadOp loadop = VkAttachmentLoadOp.DontCare,
             VkImageLayout initialLayout = VkImageLayout.Undefined,
             VkImageLayout finalLayout = VkImageLayout.ShaderReadOnlyOptimal
@@ -1011,7 +1011,7 @@ namespace ScePSX
             return pipeline;
         }
 
-        public unsafe void BindGraphicsPipeline(VkCommandBuffer commandBuffer, vkGraphicsPipeline pipeline, int x = 0, int y = 0)
+        public unsafe void BindGraphicsPipeline(VkCommandBuffer commandBuffer, vkGraphicsPipeline pipeline, bool SetScissor = true, int x = 0, int y = 0)
         {
             if (commandBuffer == VkCommandBuffer.Null || pipeline.pipeline == VkPipeline.Null)
             {
@@ -1020,24 +1020,27 @@ namespace ScePSX
 
             vkCmdBindPipeline(commandBuffer, VkPipelineBindPoint.Graphics, pipeline.pipeline);
 
-            var viewport = new VkViewport
+            if (SetScissor)
             {
-                x = (float)x,
-                y = (float)y,
-                width = (float)pipeline.width,
-                height = (float)pipeline.height,
-                minDepth = 0,
-                maxDepth = 1
-            };
+                var viewport = new VkViewport
+                {
+                    x = (float)x,
+                    y = (float)y,
+                    width = (float)pipeline.width,
+                    height = (float)pipeline.height,
+                    minDepth = 0,
+                    maxDepth = 1
+                };
 
-            var scissor = new VkRect2D
-            {
-                offset = new VkOffset2D { x = x, y = y },
-                extent = new VkExtent2D { width = (uint)pipeline.width, height = (uint)pipeline.height }
-            };
+                var scissor = new VkRect2D
+                {
+                    offset = new VkOffset2D { x = x, y = y },
+                    extent = new VkExtent2D { width = (uint)pipeline.width, height = (uint)pipeline.height }
+                };
 
-            vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-            vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+                vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+                vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+            }
         }
 
         public unsafe void BeginRenderPass(VkCommandBuffer cmd,
@@ -1843,7 +1846,7 @@ namespace ScePSX
             //Console.WriteLine($"[EndAndWaitCommandBuffer] 0x{commandBuffer.Handle:X}");
         }
 
-        public unsafe void SubmitCommandBuffer(VkCommandBuffer commandBuffer, VkFence fence)
+        public unsafe void SubmitAndWaitCommandBuffer(VkCommandBuffer commandBuffer)
         {
             var submitInfo = new VkSubmitInfo
             {
@@ -1852,9 +1855,27 @@ namespace ScePSX
                 pCommandBuffers = &commandBuffer
             };
 
-
+            VkFence fence = CreateFence(false);
 
             if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence) != VkResult.Success)
+                throw new Exception("Failed to submit command buffer!");
+
+            vkWaitForFences(device, 1, ref fence, VkBool32.True, ulong.MaxValue);
+            vkDestroyFence(device, fence, null);
+
+            vkResetCommandBuffer(commandBuffer, VkCommandBufferResetFlags.None);
+        }
+
+        public unsafe void SubmitCommandBuffer(VkCommandBuffer commandBuffer)
+        {
+            var submitInfo = new VkSubmitInfo
+            {
+                sType = VkStructureType.SubmitInfo,
+                commandBufferCount = 1,
+                pCommandBuffers = &commandBuffer
+            };
+
+            if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VkFence.Null) != VkResult.Success)
                 throw new Exception("Failed to submit command buffer!");
         }
 
@@ -2072,7 +2093,7 @@ namespace ScePSX
             {
                 sType = VkStructureType.MemoryAllocateInfo,
                 allocationSize = memReqs.size,
-                memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent )
+                memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent)
             };
             vkAllocateMemory(device, &allocInfo, null, out buffer.stagingMemory);
             vkBindBufferMemory(device, buffer.stagingBuffer, buffer.stagingMemory, 0);

@@ -1,4 +1,13 @@
-﻿using System;
+﻿/*
+ * ScePSX OpenGL Backend
+ * 
+ * github: http://github.com/unknowall/ScePSX
+ * 
+ * unknowall - sgfree@hotmail.com
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
@@ -1040,7 +1049,7 @@ namespace ScePSX
 
         public void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
         {
-            if (srcX == destX && srcY == destY && width == 2 && height == 1)
+            if (srcX == destX && srcY == destY)
                 return;
 
             var srcBounds = glRectangle<int>.FromExtents(srcX, srcY, width, height);
