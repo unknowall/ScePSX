@@ -22,11 +22,13 @@
 | D2D      | ~32MB    | 老机器   | software          |
 | D3D      | ~52MB    | 较老设备 | software          |
 | OpenGL   | ~86MB / ~138MB   | 现代设备 | software / OpenGL |
-| Vulkan   | ~120MB   | 现代设备 | software          |
+| Vulkan   | ~120MB / ~139MB  | 现代设备 | software / Vulkan          |
 
 > **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, 不使用reshade
 
-> **硬件后端**: 更好的原生画质，更低的CPU使用率，但需支持OpenGL 3.3以上的显卡 (不支持的已经很难找的到了)
+> **硬件后端**: 更好的原生画质，更低的CPU使用率<br>
+> OpenGL 需支持OpenGL 3.3以上的显卡<br>
+> Vulkan 需支持Vulkan 1.1以上的显卡<br>
 
 _图1：使用硬件后端运行游戏的画面效果_<br>
 ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
@@ -96,14 +98,6 @@ A: 因为它需要额外内存来存储：
 - 5份未签署的同步协议
 - 11个验证层冷笑话
 - 开发者珍贵的头发样本
-
-### Q: 听说 Vulkan 性能更好？
-A: 在理想情况下是的，但根据墨菲定律：  
-`实际性能 = 理论性能 × (1 - 验证层报错次数/100)`
-
-### Q: 我不想用 Vulkan
-A: 当然可以！只需：  
- - 删除 vk.dll 文件， 对正常功能无影响
 
 ### Q: 是否支持跨平台？
 A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
