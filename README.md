@@ -22,11 +22,13 @@
 | D2D      | ~32MB    | 老机器   | software          |
 | D3D      | ~52MB    | 较老设备 | software          |
 | OpenGL   | ~86MB / ~138MB   | 现代设备 | software / OpenGL |
-| Vulkan   | ~120MB   | 现代设备 | software          |
+| Vulkan   | ~120MB / ~139MB  | 现代设备 | software / Vulkan          |
 
 > **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, 不使用reshade
 
-> **硬件后端**: 更好的原生画质，更低的CPU使用率，但需支持OpenGL 3.3以上的显卡 (不支持的已经很难找的到了)
+> **硬件后端**: 更好的原生画质，更低的CPU使用率<br>
+> OpenGL 需支持OpenGL 3.3以上的显卡<br>
+> Vulkan 需支持Vulkan 1.1以上的显卡<br>
 
 _图1：使用硬件后端运行游戏的画面效果_<br>
 ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
@@ -97,14 +99,6 @@ A: 因为它需要额外内存来存储：
 - 11个验证层冷笑话
 - 开发者珍贵的头发样本
 
-### Q: 听说 Vulkan 性能更好？
-A: 在理想情况下是的，但根据墨菲定律：  
-`实际性能 = 理论性能 × (1 - 验证层报错次数/100)`
-
-### Q: 我不想用 Vulkan
-A: 当然可以！只需：  
- - 删除 vk.dll 文件， 对正常功能无影响
-
 ### Q: 是否支持跨平台？
 A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
 
@@ -121,7 +115,12 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 - **提交 Issue**: 在 [Issues](https://github.com/unknowall/ScePSX/issues) 页面报告问题或提出建议。
 - **提交 PR**: Fork 本项目并提交 Pull Request。
 - **翻译支持**: 如果你熟悉其他语言，欢迎帮助翻译 README 或 UI 文本。
-- **谨记** ![Vulkan 哲学](https://img.shields.io/badge/Vulkan_真理-同步即地狱-8A2BE2)
+
+- 国内的朋友可以在下面这里提出汉化ROM兼容性问题(感谢miku233, lzsgodmax转载)
+
+- ![老男人](https://img.shields.io/badge/Oldman-Emu-老男人) [讨论贴 https://bbs.oldmantvg.net/thread-77207.htm](htps://bbs.oldmantvg.net/thread-77207.htm)
+- ![chinaemu](https://img.shields.io/badge/China-Emu-org) [讨论贴 http://bbs.chinaemu.org/read-htm-tid-129832.html]([htps://bbs.oldmantvg.net/thread-77207.htm](http://bbs.chinaemu.org/read-htm-tid-129832.html))
+  >>我暂时还没有这两个BBS的账号，无法回复，见谅
 
 # 下载 📥
 
