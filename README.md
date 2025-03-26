@@ -109,7 +109,7 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
    或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
 5. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
 6. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-7. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+7. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
 
 ## 如何贡献 🤝
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
