@@ -12,9 +12,12 @@ layout(push_constant) uniform PushConstants {
 
 void main()
 {
+
+    ivec2 textureSize = textureSize(u_vram, 0);
+
     vec2 texCoord = vec2(pc.u_srcRect.xy) + TexCoord * vec2(pc.u_srcRect.zw);
 
-    vec4 texel = texture(u_vram, texCoord / vec2(1024.0, 512.0));
+    vec4 texel = texture(u_vram, texCoord / vec2(textureSize));
 
     FragColor = texel;
 }

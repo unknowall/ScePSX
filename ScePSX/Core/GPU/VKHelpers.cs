@@ -1,9 +1,44 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace ScePSX
 {
+    public class ThreadSafeQueue<T>
+    {
+        private readonly Queue<T> queue = new Queue<T>();
+        private readonly object lockObj = new object();
+
+        public void Enqueue(T item)
+        {
+            lock (lockObj)
+            {
+                queue.Enqueue(item);
+            }
+        }
+
+        public T Dequeue()
+        {
+            lock (lockObj)
+            {
+                return queue.Dequeue();
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                lock (lockObj)
+                {
+                    return queue.Count;
+                }
+            }
+        }
+    }
+
     public struct vkRectangle<T> where T : struct, IComparable<T>
     {
         public T Left

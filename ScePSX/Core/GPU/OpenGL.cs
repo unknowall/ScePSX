@@ -459,7 +459,7 @@ namespace ScePSX
 
         private bool SetResolutionScale(int scale)
         {
-            if (scale < 1 || scale > 9)
+            if (scale < 1 || scale > 12)
                 return false;
 
             if (scale == resolutionScale)

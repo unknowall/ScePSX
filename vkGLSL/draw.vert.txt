@@ -30,10 +30,11 @@ void main()
     else
     {
         // 计算顶点位置
-        float vertexOffset = 0.5 / uniforms.u_resolutionScale;
+float vertexOffset = 0.5; // 不再除以 u_resolutionScale
 
-        float x = (v_pos.x + vertexOffset) / 512.0 - 1.0;
-        float y = (v_pos.y + vertexOffset) / 256.0 - 1.0;
+float x = (v_pos.x + vertexOffset) / 512.0 - 1.0;
+float y = (v_pos.y + vertexOffset) / 256.0 - 1.0;
+
         float z = v_pos.z / 32767.0;
 
         Position = vec3(v_pos.xy, z);

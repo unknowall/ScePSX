@@ -199,22 +199,6 @@ namespace ScePSX.UI
 
         private unsafe void Timer_Elapsed(object sender, EventArgs e)
         {
-            //romList.Dispose();
-            //if (NullRenderer.hwnd != 0)
-            //    return;
-            //var nud = new NullRenderer();
-            //nud.Initialize(this);
-            //while (NullRenderer.hwnd == 0)
-            //    Thread.Sleep(100);
-
-            //var vkGpu = new VulkanGPU();
-            //vkGpu.Initialize();
-            //vkGpu.FillRectVRAM(0, 0, 1024, 512, 0xFF0000); // 全屏蓝色背景（BGR: 0xFF0000）
-            //vkGpu.GetPixels(false, 0, 512, 0, 0, 1024, 512, null);
-            //Console.WriteLine("蓝色背景");
-            //Console.ReadKey();
-
-            //return;
             CheckController();
 
             if (Core == null)
@@ -238,7 +222,7 @@ namespace ScePSX.UI
                 UpdateStatus(1, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中, true);
             }
 
-            if (Core.GPU.type == GPUType.OpenGL && AutoIR)
+            if (AutoIR)
             {
                 if (this.ClientSize.Width >= 800 && this.ClientSize.Height >= 600)
                     IRscale = 3;
@@ -246,7 +230,15 @@ namespace ScePSX.UI
                     IRscale = 4;
                 if (this.ClientSize.Width >= 1920 && this.ClientSize.Height >= 1080)
                     IRscale = 5;
+            }
+
+            if (Core.GPU.type == GPUType.OpenGL && AutoIR)
+            {
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
+            }
+            if (Core.GPU.type == GPUType.Vulkan && AutoIR)
+            {
+                (Core.GPU as VulkanGPU).IRScale = IRscale;
             }
 
             this.Text = $"{version}  -  {gamename}";
@@ -269,6 +261,9 @@ namespace ScePSX.UI
             if (Core.GPU.type == GPUType.OpenGL)
             {
                 UpdateStatus(5, $"OpenGL {Render.oglMSAA}xMSAA {IRscale}xIR");
+            } else if (Core.GPU.type == GPUType.Vulkan)
+            {
+                UpdateStatus(5, $"Vulkan {IRscale}xIR");
             } else
             {
                 UpdateStatus(5, $"{Core.GPU.type.ToString()} {rendername}");
@@ -694,14 +689,17 @@ namespace ScePSX.UI
         {
             if (Core != null && Core.Running)
             {
-                if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+                IRscale = IRscale < 9 ? IRscale + 1 : 9;
+                AutoIR = false;
+                switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
-                    IRscale = IRscale < 9 ? IRscale + 1 : 9;
-                    (Core.GPU as OpenglGPU).IRScale = IRscale;
-                    AutoIR = false;
-
-                } else if (scale.scale < 8)
-                    scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
+                    case GPUType.OpenGL: (Core.GPU as OpenglGPU).IRScale = IRscale; break;
+                    case GPUType.Vulkan: (Core.GPU as VulkanGPU).IRScale = IRscale; break;
+                    default:
+                        if (scale.scale < 8)
+                            scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
+                        break;
+                }
             }
         }
 
@@ -709,14 +707,21 @@ namespace ScePSX.UI
         {
             if (Core != null && Core.Running)
             {
-                if (Core.PsxBus.gpu.Backend.GPU.type == GPUType.OpenGL)
+                IRscale = IRscale > 1 ? IRscale - 1 : 1;
+                AutoIR = false;
+                switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
-                    IRscale = IRscale > 1 ? IRscale - 1 : 1;
-                    (Core.GPU as OpenglGPU).IRScale = IRscale;
-                    AutoIR = false;
-
-                } else if (scale.scale > 0)
-                    scale.scale /= 2;
+                    case GPUType.OpenGL:
+                        (Core.GPU as OpenglGPU).IRScale = IRscale;
+                        break;
+                    case GPUType.Vulkan:
+                        (Core.GPU as VulkanGPU).IRScale = IRscale;
+                        break;
+                    default:
+                        if (scale.scale > 0)
+                            scale.scale /= 2;
+                        break;
+                }
             }
         }
 

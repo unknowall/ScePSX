@@ -145,7 +145,7 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan Device] VulkanDevice Initialization....");
 
-            CreateInstance();
+            CreateDebugInstance();
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
             vkGetPhysicalDeviceProperties(physicalDevice, out deviceProperties);
@@ -404,12 +404,16 @@ namespace ScePSX
                 queueCount = 1,
                 pQueuePriorities = &queuePriority
             };
+
+            VkPhysicalDeviceFeatures enabledFeatures = new VkPhysicalDeviceFeatures();
+            enabledFeatures.samplerAnisotropy = VkBool32.True;
+
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
-                pEnabledFeatures = null
+                pEnabledFeatures = &enabledFeatures
             };
 
             vkRawList<IntPtr> instanceExtensions = new vkRawList<IntPtr>();
@@ -1377,6 +1381,7 @@ namespace ScePSX
 
         public unsafe VkDescriptorSetLayout CreateDescriptorSetLayout(VkDescriptorSetLayoutBinding[] bindings)
         {
+
             fixed (VkDescriptorSetLayoutBinding* pBindings = &bindings[0])
             {
                 VkDescriptorSetLayoutCreateInfo layoutInfo = new VkDescriptorSetLayoutCreateInfo
@@ -1858,7 +1863,7 @@ namespace ScePSX
             VkFence fence = CreateFence(false);
 
             if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence) != VkResult.Success)
-                throw new Exception("Failed to submit command buffer!");
+                Console.WriteLine("Failed to submit command buffer!");
 
             vkWaitForFences(device, 1, ref fence, VkBool32.True, ulong.MaxValue);
             vkDestroyFence(device, fence, null);
