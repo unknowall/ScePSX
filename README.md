@@ -121,13 +121,14 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 - ![老男人](https://img.shields.io/badge/Oldman-Emu-老男人) [讨论贴 https://bbs.oldmantvg.net/thread-77207.htm](htps://bbs.oldmantvg.net/thread-77207.htm)
 - ![chinaemu](https://img.shields.io/badge/China-Emu-org) [讨论贴 http://bbs.chinaemu.org/read-htm-tid-129832.html]([htps://bbs.oldmantvg.net/thread-77207.htm](http://bbs.chinaemu.org/read-htm-tid-129832.html))
-  >>我暂时还没有这两个BBS的账号，无法回复，见谅
+> **注：开发者账号正在注册中，暂无法进行官方回复，敬请谅解**
 
 # 下载 📥
 
 - **轻量版 (1.50 MB)**: 仅包含核心功能，适合快速体验。
 - **完整版 (7.99 MB)**: 包含所有功能（如 ReShade 集成）。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
+- **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
 [点击这里下载最新版本](https://github.com/unknowall/ScePSX/releases)
 
