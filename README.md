@@ -52,7 +52,7 @@ _图2：ScePSX 主界面展示_<br>
 - ReShade 在 OpenGL、Vulkan 渲染模式下可用
 - >D3D需额外安装reShade。
 - 按 **Home 键** 打开 ReShade 设置界面。
-- 可加载预设的 Shader 文件（位于 `ReShade/` 文件夹中）。
+- 可加载预设的 Shader 文件（已有多款可供选择）。
   
 #### 3. 多光盘游戏 📀
 - **存储卡1**: 每张光盘独立使用。
@@ -105,10 +105,11 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 ## 如何编译
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
-3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
-4. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
-5. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-6. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)<br>
+   或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
+5. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
+6. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+7. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
 
 ## 如何贡献 🤝
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
