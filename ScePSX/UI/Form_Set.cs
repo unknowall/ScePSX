@@ -34,12 +34,13 @@ namespace ScePSX.UI
                 this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
             }
             chkpgxp.Enabled = false;
+            cbgpures.Enabled = true;
             cbgpu.SelectedIndexChanged += Cbgpu_SelectedIndexChanged;
         }
 
         private void Cbgpu_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cbgpu.SelectedIndex > 0)
+            if (cbgpu.SelectedIndex != 1)
             {
                 cbgpures.Enabled = true;
                 chkpgxp.Enabled = false;

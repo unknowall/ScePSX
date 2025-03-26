@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Globalization;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
 using ScePSX.Render;
-using Vulkan;
 using static ScePSX.Controller;
-using static ScePSX.VulkanDevice;
 using static SDL2.SDL;
 
 namespace ScePSX.UI
@@ -55,7 +50,7 @@ namespace ScePSX.UI
 
         public ScaleParam scale;
         public int IRscale = 1;
-        public bool PGXP, PGXPT, Realcolor, AutoIR, KeepAR;
+        public bool PGXP, PGXPT, Realcolor, AutoIR, KeepAR, bFullScreen;
         private bool cutblackline = false;
         private int[] cutbuff = new int[1024 * 512];
 
@@ -63,7 +58,7 @@ namespace ScePSX.UI
 
         RenderMode Rendermode = RenderMode.OpenGL;
 
-        GPUType gputype = GPUType.Software;
+        GPUType gputype = GPUType.Advite;
 
         ToolStripMenuItem gpumnu;
 
@@ -258,10 +253,10 @@ namespace ScePSX.UI
                 scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
-            if (Core.GPU.type == GPUType.OpenGL)
+            if (Core.GPU.type == GPUType.OpenGL || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.OpenGL))
             {
                 UpdateStatus(5, $"OpenGL {Render.oglMSAA}xMSAA {IRscale}xIR");
-            } else if (Core.GPU.type == GPUType.Vulkan)
+            } else if (Core.GPU.type == GPUType.Vulkan || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.Vulkan))
             {
                 UpdateStatus(5, $"Vulkan {IRscale}xIR");
             } else
@@ -289,6 +284,12 @@ namespace ScePSX.UI
         private void SDLInit()
         {
             SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER);
+
+            if (File.Exists("./ControllerDB.txt"))
+            {
+                Console.WriteLine("ScePSX Load ControllerMappings...");
+                SDL_GameControllerAddMappingsFromFile("./ControllerDB.txt");
+            }
 
             audioCallbackDelegate = AudioCallbackImpl;
 
@@ -475,6 +476,30 @@ namespace ScePSX.UI
             }
         }
 
+        private void fullScreenF2_Click(object sender, EventArgs e)
+        {
+            if (Core == null)
+            {
+                return;
+            }
+
+            bFullScreen = !bFullScreen;
+
+            if (bFullScreen)
+            {
+                this.MainMenu.Visible = false;
+                this.StatusBar.Visible = false;
+                this.FormBorderStyle = FormBorderStyle.None;
+                this.WindowState = FormWindowState.Maximized;
+            } else
+            {
+                this.MainMenu.Visible = true;
+                this.StatusBar.Visible = true;
+                this.FormBorderStyle = FormBorderStyle.Sizable;
+                this.WindowState = FormWindowState.Normal;
+            }
+        }
+
         private void SearchMnu_Click(object sender, EventArgs e)
         {
             if (Core != null)
@@ -531,7 +556,7 @@ namespace ScePSX.UI
             {
                 Core.WaitPaused();
 
-                if (mode == RenderMode.OpenGL && gpumode == GPUType.OpenGL)
+                if (mode == RenderMode.OpenGL && (gpumode == GPUType.OpenGL || gpumode == GPUType.Advite))
                 {
                     Render.SelectRenderer(RenderMode.Null, this);
 
@@ -551,7 +576,7 @@ namespace ScePSX.UI
 
                     Core.GpuBackend = GPUType.OpenGL;
                 }
-                if (mode == RenderMode.Vulkan && gpumode == GPUType.Vulkan)
+                if (mode == RenderMode.Vulkan && (gpumode == GPUType.Vulkan || gpumode == GPUType.Advite))
                 {
                     Render.SelectRenderer(RenderMode.Null, this);
 
@@ -589,7 +614,7 @@ namespace ScePSX.UI
 
                     Core.GpuBackend = GPUType.Software;
                 }
-                if (gpumode == GPUType.Software)
+                if (gpumode == GPUType.Software || (mode != RenderMode.Vulkan && mode != RenderMode.OpenGL))
                 {
                     Render.SelectRenderer(Rendermode, this);
 
@@ -693,8 +718,12 @@ namespace ScePSX.UI
                 AutoIR = false;
                 switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
-                    case GPUType.OpenGL: (Core.GPU as OpenglGPU).IRScale = IRscale; break;
-                    case GPUType.Vulkan: (Core.GPU as VulkanGPU).IRScale = IRscale; break;
+                    case GPUType.OpenGL:
+                        (Core.GPU as OpenglGPU).IRScale = IRscale;
+                        break;
+                    case GPUType.Vulkan:
+                        (Core.GPU as VulkanGPU).IRScale = IRscale;
+                        break;
                     default:
                         if (scale.scale < 8)
                             scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
@@ -825,6 +854,17 @@ namespace ScePSX.UI
                     Core.Pause();
                 return;
             }
+            if (e.KeyCode == Keys.Escape)
+            {
+                if (bFullScreen)
+                    fullScreenF2_Click(null, null);
+                return;
+            }
+            if (e.KeyCode == Keys.F2)
+            {
+                fullScreenF2_Click(null, null);
+                return;
+            }
             if (e.KeyCode == Keys.F3)
             {
                 StateSlot = StateSlot < 9 ? StateSlot + 1 : StateSlot;
@@ -933,7 +973,7 @@ namespace ScePSX.UI
             {
                 OpenFileDialog FD = new OpenFileDialog();
                 FD.InitialDirectory = ini.Read("main", "LastPath");
-                FD.Filter = "ISO|*.bin;*.iso;*.cue;*.img";
+                FD.Filter = "Games|*.bin;*.iso;*.cue;*.img;*.exe";
                 if (FD.ShowDialog() == DialogResult.Cancel)
                 {
                     return;
@@ -971,6 +1011,8 @@ namespace ScePSX.UI
 
             GPUType gpumode = (GPUType)ini.ReadInt("main", "GpuMode");
 
+            GPUType bootmode;
+
             IRscale = ini.ReadInt("main", "GpuModeScale");
 
             AutoIR = IRscale == 0;
@@ -985,23 +1027,26 @@ namespace ScePSX.UI
 
             romList.Dispose();
 
-            if (gpumode == GPUType.OpenGL && Rendermode == RenderMode.OpenGL)
+            if ((gpumode == GPUType.OpenGL || gpumode == GPUType.Advite) && Rendermode == RenderMode.OpenGL)
             {
+                bootmode = GPUType.OpenGL;
                 Render.SelectRenderer(RenderMode.Null, this);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);
-            } else if (gpumode == GPUType.Vulkan && Rendermode == RenderMode.Vulkan)
+            } else if ((gpumode == GPUType.Vulkan || gpumode == GPUType.Advite) && Rendermode == RenderMode.Vulkan)
             {
+                bootmode = GPUType.Vulkan;
                 Render.SelectRenderer(RenderMode.Null, this);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);
             } else
             {
                 gpumode = GPUType.Software;
+                bootmode = GPUType.Software;
                 Render.SelectRenderer(Rendermode, this);
             }
 
-            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, gpumode, gameid);
+            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, bootmode, gameid);
 
             if (Core.DiskID == "")
             {
@@ -1013,7 +1058,7 @@ namespace ScePSX.UI
 
             SetAudioBuffer();
 
-            if (Core.GpuBackend == GPUType.OpenGL && Rendermode == RenderMode.OpenGL)
+            if ((gpumode == GPUType.OpenGL || gpumode == GPUType.Advite) && Rendermode == RenderMode.OpenGL)
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
@@ -1021,7 +1066,7 @@ namespace ScePSX.UI
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                 (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                 (Core.GPU as OpenglGPU).RealColor = Realcolor;
-            } else if (Core.GpuBackend == GPUType.Vulkan && Rendermode == RenderMode.Vulkan)
+            } else if ((gpumode == GPUType.Vulkan || gpumode == GPUType.Advite) && Rendermode == RenderMode.Vulkan)
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as VulkanGPU).IRScale = IRscale;

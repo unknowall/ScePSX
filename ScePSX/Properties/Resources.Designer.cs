@@ -709,6 +709,15 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Full Screen (F2) 的本地化字符串。
+        /// </summary>
+        internal static string FrmMain_InitializeComponent_FullScreenF2 {
+            get {
+                return ResourceManager.GetString("FrmMain_InitializeComponent_FullScreenF2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Oops 的本地化字符串。
         /// </summary>
         internal static string FrmMain_LoadRom_nobios {
@@ -862,7 +871,7 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Load disc 的本地化字符串。
+        ///   查找类似 Load Game 的本地化字符串。
         /// </summary>
         internal static string LoadDIsk {
             get {

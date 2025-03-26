@@ -94,6 +94,10 @@ namespace ScePSX
             {
                 return;
             }
+            if (RomFile.EndsWith(".exe"))
+            {
+                LoadEXE(RomFile);
+            }
 
             IRQCTL = new IRQController();
 
@@ -516,7 +520,7 @@ namespace ScePSX
             if (addr < 0x1F00_0000)
                 return *(uint*)(ramPtr + (addr & 0x1F_FFFF));
             //BIOS不查表
-            if(addr >= 0x1FC00000 && addr <0x1FC80000)
+            if (addr >= 0x1FC00000 && addr < 0x1FC80000)
                 return *(uint*)(biosPtr + (addr & 0x7_FFFF));
 
             int low = 0, high = _read32JumpTable.Count - 1;

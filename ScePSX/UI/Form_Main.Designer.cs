@@ -41,12 +41,10 @@
             UnLoadStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             CheatCode = new System.Windows.Forms.ToolStripMenuItem();
+            MemEditMnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             FreeSpeed = new System.Windows.Forms.ToolStripMenuItem();
             MnuPause = new System.Windows.Forms.ToolStripMenuItem();
-            MnuDebug = new System.Windows.Forms.ToolStripMenuItem();
-            CpuDbgMnu = new System.Windows.Forms.ToolStripMenuItem();
-            MemEditMnu = new System.Windows.Forms.ToolStripMenuItem();
             RenderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             CutBlackLineMnu = new System.Windows.Forms.ToolStripMenuItem();
             frameskipmnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,6 +56,8 @@
             toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             xBRScaleAdd = new System.Windows.Forms.ToolStripMenuItem();
             xBRScaleDec = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
+            fullScreenF2 = new System.Windows.Forms.ToolStripMenuItem();
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
             AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,7 +70,6 @@
             toolStripStatusLabel6 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel7 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel8 = new System.Windows.Forms.ToolStripStatusLabel();
-            toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             MainMenu.SuspendLayout();
             StatusBar.SuspendLayout();
             SuspendLayout();
@@ -78,7 +77,7 @@
             // MainMenu
             // 
             MainMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
-            MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, MnuDebug, RenderToolStripMenuItem, NetPlayMnu, AboutMnu });
+            MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, RenderToolStripMenuItem, NetPlayMnu, AboutMnu });
             MainMenu.Location = new System.Drawing.Point(0, 0);
             MainMenu.Name = "MainMenu";
             MainMenu.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
@@ -88,7 +87,7 @@
             // 
             // MnuFile
             // 
-            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, CheatCode, toolStripMenuItem5, FreeSpeed, MnuPause });
+            MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, SaveStripMenuItem, LoadStripMenuItem, UnLoadStripMenuItem, toolStripMenuItem3, CheatCode, MemEditMnu, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
             MnuFile.Size = new System.Drawing.Size(57, 21);
             MnuFile.Text = Properties.Resources.File;
@@ -179,6 +178,13 @@
             CheatCode.Text = Properties.Resources.CheatCode;
             CheatCode.Click += CheatCode_Click;
             // 
+            // MemEditMnu
+            // 
+            MemEditMnu.Name = "MemEditMnu";
+            MemEditMnu.Size = new System.Drawing.Size(191, 22);
+            MemEditMnu.Text = Properties.Resources.memedit;
+            MemEditMnu.Click += MnuDebug_Click;
+            // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
@@ -197,30 +203,9 @@
             MnuPause.Text = Properties.Resources.pause;
             MnuPause.Click += MnuPause_Click;
             // 
-            // MnuDebug
-            // 
-            MnuDebug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CpuDbgMnu, MemEditMnu });
-            MnuDebug.Name = "MnuDebug";
-            MnuDebug.Size = new System.Drawing.Size(76, 21);
-            MnuDebug.Text = Properties.Resources.debug;
-            // 
-            // CpuDbgMnu
-            // 
-            CpuDbgMnu.Enabled = false;
-            CpuDbgMnu.Name = "CpuDbgMnu";
-            CpuDbgMnu.Size = new System.Drawing.Size(167, 22);
-            CpuDbgMnu.Text = "CPU";
-            // 
-            // MemEditMnu
-            // 
-            MemEditMnu.Name = "MemEditMnu";
-            MemEditMnu.Size = new System.Drawing.Size(167, 22);
-            MemEditMnu.Text = Properties.Resources.memedit;
-            MemEditMnu.Click += MnuDebug_Click;
-            // 
             // RenderToolStripMenuItem
             // 
-            RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, VulkanRenderMnu, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec, toolStripMenuItem7 });
+            RenderToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, VulkanRenderMnu, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec, fullScreenF2, toolStripMenuItem7 });
             RenderToolStripMenuItem.Name = "RenderToolStripMenuItem";
             RenderToolStripMenuItem.Size = new System.Drawing.Size(78, 21);
             RenderToolStripMenuItem.Text = Properties.Resources.Render;
@@ -300,6 +285,18 @@
             xBRScaleDec.Text = "IR Scale --  (F12)";
             xBRScaleDec.Click += xBRScaleDec_Click;
             // 
+            // toolStripMenuItem7
+            // 
+            toolStripMenuItem7.Name = "toolStripMenuItem7";
+            toolStripMenuItem7.Size = new System.Drawing.Size(381, 6);
+            // 
+            // fullScreenF2
+            // 
+            fullScreenF2.Name = "fullScreenF2";
+            fullScreenF2.Size = new System.Drawing.Size(384, 22);
+            fullScreenF2.Text = Properties.Resources.FrmMain_InitializeComponent_FullScreenF2;
+            fullScreenF2.Click += fullScreenF2_Click;
+            // 
             // NetPlayMnu
             // 
             NetPlayMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { NetPlaySetMnu });
@@ -378,11 +375,6 @@
             toolStripStatusLabel8.Name = "toolStripStatusLabel8";
             toolStripStatusLabel8.Size = new System.Drawing.Size(0, 17);
             // 
-            // toolStripMenuItem7
-            // 
-            toolStripMenuItem7.Name = "toolStripMenuItem7";
-            toolStripMenuItem7.Size = new System.Drawing.Size(381, 6);
-            // 
             // FrmMain
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -409,8 +401,6 @@
 
         private System.Windows.Forms.MenuStrip MainMenu;
         private System.Windows.Forms.ToolStripMenuItem MnuFile;
-        private System.Windows.Forms.ToolStripMenuItem MnuDebug;
-        private System.Windows.Forms.ToolStripMenuItem CpuDbgMnu;
         private System.Windows.Forms.ToolStripMenuItem MemEditMnu;
         private System.Windows.Forms.ToolStripMenuItem RenderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem directx3DRender;
@@ -452,5 +442,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel8;
         private System.Windows.Forms.ToolStripMenuItem VulkanRenderMnu;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem7;
+        private System.Windows.Forms.ToolStripMenuItem fullScreenF2;
     }
 }

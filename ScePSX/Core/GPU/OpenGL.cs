@@ -53,7 +53,16 @@ namespace ScePSX
             //给窗口用
             DevicePixelFormatCollection pixelFormats = _DeviceContext.PixelsFormats;
             List<DevicePixelFormat> matchingPixelFormats = pixelFormats.Choose(pixelFormat);
-            _DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
+            try
+            {
+                Console.WriteLine($"[OpenGL GPU] SetPixelFormat {matchingPixelFormats[0]}");
+
+                _DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
+
+            } catch { 
+                Console.WriteLine($"[OpenGL GPU] SetPixelFormat Fail");
+            }
+            
 
             int[] attribs = {
                 Glx.CONTEXT_MAJOR_VERSION_ARB, 3,

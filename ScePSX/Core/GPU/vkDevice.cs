@@ -145,7 +145,7 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan Device] VulkanDevice Initialization....");
 
-            CreateDebugInstance();
+            CreateInstance();
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
             vkGetPhysicalDeviceProperties(physicalDevice, out deviceProperties);
@@ -163,8 +163,9 @@ namespace ScePSX
 
         public unsafe void VulkanDispose()
         {
-            vkDestroyDevice(device, IntPtr.Zero);
             vkDestroySurfaceKHR(instance, surface, IntPtr.Zero);
+
+            vkDestroyDevice(device, IntPtr.Zero);
             if (isDebug)
             {
                 IntPtr funcPtr = vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");

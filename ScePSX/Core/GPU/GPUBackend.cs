@@ -5,6 +5,7 @@ namespace ScePSX
 {
     public enum GPUType
     {
+        Advite,
         Software,
         OpenGL,
         Vulkan,

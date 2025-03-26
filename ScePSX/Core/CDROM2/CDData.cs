@@ -40,9 +40,9 @@ namespace ScePSX.CdRom2
             {
                 isCue = true;
                 tracks = FromCue(diskFilename);
-            } else
+            } else if (ext == ".exe")
             {
-
+                DiskID = CalcCRC32(diskFilename).ToString();
                 return;
             }
 

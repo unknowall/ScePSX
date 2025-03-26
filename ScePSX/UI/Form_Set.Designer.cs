@@ -354,7 +354,7 @@
             // 
             cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbgpu.FormattingEnabled = true;
-            cbgpu.Items.AddRange(new object[] { "Software", "OpenGL","VulKan" });
+            cbgpu.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "Software", "OpenGL","VulKan" });
             cbgpu.Location = new System.Drawing.Point(74, 227);
             cbgpu.Name = "cbgpu";
             cbgpu.Size = new System.Drawing.Size(141, 25);
@@ -374,7 +374,7 @@
             cbgpures.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbgpures.Enabled = false;
             cbgpures.FormattingEnabled = true;
-            cbgpures.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x(720P)", "4x", "5x(1080P)", "6x(1440P)", "7x", "8x", "9x(4K)" });
+            cbgpures.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x(720P)", "4x", "5x(1080P)", "6x(1440P)", "7x", "8x", "9x(4K)", "10x", "11x", "12x" });
             cbgpures.Location = new System.Drawing.Point(309, 227);
             cbgpures.Name = "cbgpures";
             cbgpures.Size = new System.Drawing.Size(109, 25);

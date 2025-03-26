@@ -121,7 +121,7 @@
     <value>文件(&amp;F)</value>
   </data>
   <data name="LoadDIsk" xml:space="preserve">
-    <value>加载光盘</value>
+    <value>加载游戏</value>
   </data>
   <data name="SwapDisc" xml:space="preserve">
     <value>更换光盘</value>
@@ -449,5 +449,8 @@
   </data>
   <data name="Form_Set_InitializeComponent_Keep43" xml:space="preserve">
     <value>保持 4:3</value>
+  </data>
+  <data name="FrmMain_InitializeComponent_FullScreenF2" xml:space="preserve">
+    <value>全屏模式 (F2)</value>
   </data>
 </root>

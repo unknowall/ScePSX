@@ -983,13 +983,21 @@ namespace ScePSX
         {
         }
 
-        public void SetRam(byte[] Ram)
+        public unsafe void SetRam(byte[] Ram)
         {
+            Marshal.Copy(Ram, 0, (IntPtr)VRAM, Ram.Length);
+
+            WriteTexture(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
+
+            CopyTexture(samplerTexture,drawTexture, VRAM_WIDTH, VRAM_HEIGHT, VRAM_WIDTH, VRAM_HEIGHT);
         }
 
-        public byte[] GetRam()
+        public unsafe byte[] GetRam()
         {
-            return null;
+            byte[] data = new byte[(1024 * 512) * 2];
+            Marshal.Copy((IntPtr)VRAM, data, 0, data.Length);
+
+            return data;
         }
 
         public void SetFrameBuff(byte[] FrameBuffer)
@@ -1020,19 +1028,16 @@ namespace ScePSX
                 height = offsetline * 2
             };
 
-            m_vramDisplayArea.x = m_vramDisplayArea.x * resolutionScale;
-
-            m_vramDisplayArea.y = m_vramDisplayArea.y * resolutionScale;
-
-            m_vramDisplayArea.width = ViewVRam ?
-                VRAM_WIDTH * resolutionScale :
-                m_vramDisplayArea.width * resolutionScale;
-
-            m_vramDisplayArea.height = ViewVRam ?
-                VRAM_HEIGHT * resolutionScale :
-                m_vramDisplayArea.height * resolutionScale;
-
             DrawBatch();
+
+            if (NullRenderer.isResizeed)
+            {
+                NullRenderer.isResizeed = false;
+
+                vkQueueWaitIdle(Device.presentQueue);
+
+                RecreateSwapChain();
+            }
 
             RenderToWindow(is24bit);
 
@@ -1071,6 +1076,19 @@ namespace ScePSX
                 is24bited = false;
                 vkQueueWaitIdle(Device.graphicsQueue);
                 Device.UpdateDescriptorImage(outDescriptorSet, drawTexture, 0);
+            } else if (!is24bit)
+            {
+                m_vramDisplayArea.x = m_vramDisplayArea.x * resolutionScale;
+
+                m_vramDisplayArea.y = m_vramDisplayArea.y * resolutionScale;
+
+                m_vramDisplayArea.width = ViewVRam ?
+                    VRAM_WIDTH * resolutionScale :
+                    m_vramDisplayArea.width * resolutionScale;
+
+                m_vramDisplayArea.height = ViewVRam ?
+                    VRAM_HEIGHT * resolutionScale :
+                    m_vramDisplayArea.height * resolutionScale;
             }
 
             Device.BeginRenderPass(cmd, renderPass,

@@ -121,7 +121,7 @@
     <value>File(&amp;F))</value>
   </data>
   <data name="LoadDIsk" xml:space="preserve">
-    <value>Load disc</value>
+    <value>Load Game</value>
   </data>
   <data name="SwapDisc" xml:space="preserve">
     <value>Change disc</value>
@@ -449,5 +449,8 @@
   </data>
   <data name="Form_Set_InitializeComponent_Keep43" xml:space="preserve">
     <value>Keep 4:3</value>
+  </data>
+  <data name="FrmMain_InitializeComponent_FullScreenF2" xml:space="preserve">
+    <value>Full Screen (F2)</value>
   </data>
 </root>

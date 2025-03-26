@@ -3,6 +3,7 @@ using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static OpenGL.Wgl;
 
 namespace ScePSX.Render
 {
@@ -16,6 +17,9 @@ namespace ScePSX.Render
         public static IntPtr hinstance;
 
         public static int MSAA;
+
+        private Timer resizeTimer;
+        public static bool isResizeed = false;
 
         public static int ClientWidth;
         public static int ClientHeight;
@@ -32,6 +36,12 @@ namespace ScePSX.Render
         [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
         private static extern IntPtr GetWindowLong32(IntPtr hWnd, int nIndex);
 
+        [DllImport("user32.dll", SetLastError = true, EntryPoint = "SetWindowLongPtr")]
+        private static extern IntPtr SetWindowLongPtr32(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        [DllImport("user32.dll", SetLastError = true, EntryPoint = "SetWindowLong")]
+        private static extern int SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
         public NullRenderer()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
@@ -40,6 +50,10 @@ namespace ScePSX.Render
             SetStyle(ControlStyles.ResizeRedraw, true);
             SetStyle(ControlStyles.UserPaint, true);
             DoubleBuffered = false;
+
+            resizeTimer = new Timer();
+            resizeTimer.Interval = 200;
+            resizeTimer.Tick += ResizeTimer_Tick;
 
             InitializeComponent();
         }
@@ -68,7 +82,7 @@ namespace ScePSX.Render
             MSAA = Param;
         }
 
-        protected override void OnHandleCreated(EventArgs e)
+        protected unsafe override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
 
@@ -83,6 +97,10 @@ namespace ScePSX.Render
                 hinstance = GetWindowLong32(hwnd, -6);
             }
 
+            PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR(32);
+
+            DescribePixelFormat(hdc, 1, (uint)sizeof(PIXELFORMATDESCRIPTOR), ref pfd);
+
             ClientWidth = this.ClientSize.Width;
             ClientHeight = this.ClientSize.Height;
         }
@@ -96,12 +114,21 @@ namespace ScePSX.Render
             base.OnPaint(e);
         }
 
+        private void ResizeTimer_Tick(object sender, EventArgs e)
+        {
+            resizeTimer.Stop();
+            isResizeed = true;
+        }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
 
             ClientWidth = this.ClientSize.Width;
             ClientHeight = this.ClientSize.Height;
+
+            resizeTimer.Stop();
+            resizeTimer.Start();
         }
 
         protected override void Dispose(bool disposing)
@@ -109,9 +136,21 @@ namespace ScePSX.Render
             if (hdc != IntPtr.Zero)
             {
                 ReleaseDC(hwnd, hdc);
+                SetWindowLongPtr(hwnd, -6, IntPtr.Zero);
+
                 hdc = IntPtr.Zero;
+                hwnd = IntPtr.Zero;
+                hinstance = IntPtr.Zero;
             }
             base.Dispose(disposing);
+        }
+
+        public static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+        {
+            if (IntPtr.Size == 8)
+                return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+            else
+                return SetWindowLongPtr32(hWnd, nIndex, dwNewLong);
         }
 
         protected override CreateParams CreateParams
