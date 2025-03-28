@@ -35,7 +35,10 @@
 _Figure 1: Gameplay with hardware backend_  
 ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
 
-_Figure 2: ScePSX Main Interface_  
+_Figure 2：hardware backend + ReShade_<br>
+![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9)
+
+_Figure 3: ScePSX Main Interface_  
 ![capture](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
 ### How to Use 🛠️
@@ -157,7 +160,11 @@ ScePSX is an open-source project intended solely for learning and research purpo
 _图1：使用硬件后端运行游戏的画面效果_<br>
 ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
 
-_图2：ScePSX 主界面展示_<br>
+_图2：使用硬件后端+ReShade_<br>
+![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9)
+
+
+_图3：ScePSX 主界面展示_<br>
 ![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
 ### 如何使用 🛠️
