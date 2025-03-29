@@ -1032,12 +1032,14 @@ namespace ScePSX.UI
             if ((gpumode == GPUType.OpenGL || gpumode == GPUType.Advite) && Rendermode == RenderMode.OpenGL)
             {
                 bootmode = GPUType.OpenGL;
+                Render.DisposeCurrentRenderer();
                 Render.SelectRenderer(RenderMode.Null, this);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);
             } else if ((gpumode == GPUType.Vulkan || gpumode == GPUType.Advite) && Rendermode == RenderMode.Vulkan)
             {
                 bootmode = GPUType.Vulkan;
+                Render.DisposeCurrentRenderer();
                 Render.SelectRenderer(RenderMode.Null, this);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);

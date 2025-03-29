@@ -1109,7 +1109,7 @@ namespace ScePSX
             vkCmdBindPipeline(cmd, VkPipelineBindPoint.Graphics, outPipeline.pipeline);
 
             SrcRectUBO u_srcRect = new SrcRectUBO(
-                m_vramDisplayArea.x,
+                m_vramDisplayArea.x + 3,
                 m_vramDisplayArea.y,
                 m_vramDisplayArea.width - 3,
                 m_vramDisplayArea.height
@@ -1126,7 +1126,29 @@ namespace ScePSX
 
             Device.BindDescriptorSet(cmd, outPipeline, outDescriptorSet);
 
-            Device.SetViewportAndScissor(cmd, 0, 0, (int)drawChain.Extent.width, (int)drawChain.Extent.height);
+            int renderX = 0;
+            int renderY = 0;
+            int width  = (int)drawChain.Extent.width;
+            int hgight = (int)drawChain.Extent.height;
+
+            if (KEEPAR)
+            {
+                float displayWidth = m_vramDisplayArea.width;
+                float displayHeight = ViewVRam ? m_vramDisplayArea.height : (displayWidth / AspectRatio);
+
+                float renderScale = Math.Min(width / displayWidth, hgight / displayHeight);
+
+                //if (!StretchToFit)
+                //    renderScale = Math.Max(1.0f, (float)Math.Floor(renderScale));
+
+                int renderWidth = (int)(displayWidth * renderScale);
+                int renderHeight = (int)(displayHeight * renderScale);
+                renderX = (width - renderWidth) / 2;
+                renderY = (hgight - renderHeight) / 2;
+
+                Device.SetViewportAndScissor(cmd, renderX, renderY, renderWidth, renderHeight);
+            }else
+                Device.SetViewportAndScissor(cmd, renderX, renderY, width, hgight);
 
             vkCmdDraw(cmd, 4, 1, 0, 0);
 
