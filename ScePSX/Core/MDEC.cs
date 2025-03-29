@@ -39,7 +39,7 @@ namespace ScePSX
 
         private Queue<ushort> inBuffer = new Queue<ushort>(1024);
 
-        private IMemoryOwner<byte> outBuffer = MemoryPool<byte>.Shared.Rent(0x30000); //wild guess while resumable dmas come...
+        private IMemoryOwner<byte> outBuffer = MemoryPool<byte>.Shared.Rent(0x60000); //MGS FMV 0ver 0x41000
         private int outBufferPos = 0;
 
         public void Dispose()

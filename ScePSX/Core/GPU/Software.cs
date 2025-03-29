@@ -199,6 +199,7 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe (int w, int h) GetPixels(bool is24bit, int dy1, int dy2, int rx, int ry, int w, int h, int[] Pixels)
         {
+            const int widthfix = 2;
             int retw, reth;
 
             if (is24bit)
@@ -248,12 +249,12 @@ namespace ScePSX
                 int LineOffset = (240 - (dy2 - dy1)) >> (h == 480 ? 0 : 1);
                 Parallel.For(LineOffset, h - LineOffset, line =>
                 {
-                    int srcIndex = rx + ((line - LineOffset + ry) * 1024);
-                    int dstIndex = (line - LineOffset) * w;
-                    Marshal.Copy((IntPtr)(FrameData.Pixels + srcIndex), Pixels, dstIndex, w);
+                    int srcIndex = (rx) + ((line - LineOffset + ry) * 1024);
+                    int dstIndex = (line - LineOffset) * (w - widthfix);
+                    Marshal.Copy((IntPtr)(FrameData.Pixels + srcIndex), Pixels, dstIndex, w - widthfix);
                 });
 
-                retw = w;
+                retw = w - widthfix;
                 reth = h - LineOffset * 2 - 1;
             }
 
