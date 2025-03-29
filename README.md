@@ -1,6 +1,133 @@
-<h2>这是一个完全用 c# 开发，小巧可用的 PS1 模拟器</h2>
+<h2>ScePSX - A Lightweight PlayStation 1 emulator Fully Developed in C#</h2>
 
 ![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![Gitee Repo](https://img.shields.io/badge/Gitee-Mirror-FFB71B)](https://gitee.com/unknowall/ScePSX)
+
+<details>
+<summary><h3> 🌐 English Version</h3></summary>
+
+## Key Features 🎮
+- **Save States**: Save and load game progress at any time.
+- **Multi-Renderer Support**: Dynamically switch between D2D, D3D, OpenGL, and Vulkan renderers to adapt to different hardware configurations.
+- **ReShade Integration**: ReShade post-processing effects supported on D3D, OpenGL, and Vulkan for enhanced graphics.
+- **Resolution Scaling**: Hardware backend supports up to 4K native resolution output, while the software backend improves visuals through xBR and JINC scaling.
+- **Memory Tools**: Memory editing and search functionality for advanced users to modify game behavior.
+- **Cheat Support**: Enable cheat codes to unlock hidden content or adjust game difficulty.
+- **Online Multiplayer**: Supports networked gameplay to relive classic gaming experiences.
+- **Save Management**: Easily manage multiple save files.
+
+**The English version is available starting from Beta 0.1.0.**
+
+## Performance Overview 🚀
+
+| Rendering Mode | Memory Usage | Recommended Hardware | Backend Mode          |
+|----------------|--------------|----------------------|-----------------------|
+| D2D            | ~32MB        | Older Machines       | Software              |
+| D3D            | ~52MB        | Older Devices        | Software              |
+| OpenGL         | ~86MB / ~138MB | Modern Devices     | Software / OpenGL     |
+| Vulkan         | ~120MB / ~143MB | Modern Devices     | Software / Vulkan     |
+
+> **Smooth Performance Test**: Runs at 60 FPS on an Intel Celeron i3 3215u. *No gamedb, no reshade.*
+
+> **Hardware Backend**: Better native graphics quality, lower CPU usage  
+> OpenGL requires a GPU supporting OpenGL 3.3+  
+> Vulkan requires a GPU supporting Vulkan 1.1+
+
+_Figure 1: Gameplay with hardware backend_  
+![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
+
+_Figure 2：hardware backend + ReShade_<br>
+![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9)
+
+_Figure 3: ScePSX Main Interface_  
+![capture](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
+
+### How to Use 🛠️
+
+#### 1. Setting Up BIOS 🔑
+> **Note**: Due to legal restrictions, the emulator does not include BIOS files. Please obtain a legal BIOS file.
+- Extract the BIOS file (e.g., `SCPH1001.BIN`) from your PlayStation console.
+- Place the file in the emulator's `bios` folder:
+/ScePSx<br>
+├── bios/<br>
+│ └── SCPH1001.bin<br>
+├── saves/<br>
+└── ScePSX.exe<br>
+
+#### 2. Using ReShade 🎨
+- ReShade is available in OpenGL and Vulkan rendering modes.
+- > For D3D, ReShade needs to be installed separately.
+- Press **Home** to open the ReShade settings interface.
+- Load pre-configured Shader files (several presets are available).
+
+#### 3. Multi-Disc Games 📀
+- **Memory Card 1**: Each disc uses its own memory card.
+- **Memory Card 2**: Shared across all discs, recommended for multi-disc games.
+
+#### 4. Controller Settings ⌨️🎮
+- Keyboard settings can be configured in the File menu.
+- Controllers are plug-and-play, no additional setup required.
+
+## Frequently Asked Questions ❓
+
+### Q: Why can't I start the game?
+A: Ensure the following:
+1. The BIOS file is correctly set up.
+2. The game image file format is correct (e.g., `.bin/.cue`, `.img/.cue`, or `.iso`).
+
+### Q: How do I get more ReShade Shaders?
+A: Visit the [ReShade Official Website](https://reshade.me/) to download Shader files and place them in the `reshade/` folder:
+
+### Q: What games are supported by the emulator?
+A: Most common games are supported.
+
+### Q: What should I do if CPU usage is too high?
+A: If CPU usage is high, try using the D2D renderer or reduce the internal resolution.
+
+### Q: My monitor is 4K. How can I improve native graphics quality?
+A: Press F11 multiple times and use the Home key to select ReShade for enhanced graphics.
+
+### Q: How do I fix audio desynchronization issues?
+A: Try adjusting the audio buffer size or switching the audio output device.
+
+### Q: Does it support all PS1 region versions?
+A: Yes, it supports NTSC-J, NTSC-U, and PAL formats.
+
+### Q: Why does Vulkan use the most memory?
+A: Because it requires extra memory to store:
+- 3 out-of-order command buffers
+- 5 unsigned synchronization protocols
+- 11 validation layer jokes
+- Developer's precious hair samples
+
+### Q: Is cross-platform support available?
+A: Currently, only Windows is supported. Future plans include Linux/macOS support via .NET MAUI or Avalonia.
+
+## How to Build
+1. The project is based on .NET 8.0 framework.
+2. SDL declarations are included in the code. Place the SDL2 DLL in the build directory.
+3. For OpenGL, install the OpenGL.NET NuGet package (.NET 4.7 framework, may have compatibility issues) or manually add dependencies using OpenGL.dll (.NET 8.0 compiled).
+4. For Vulkan, use the vk NuGet package or manually add dependencies using vk.dll.
+5. If using a framework below .NET 8.0, modify the project file manually.
+6. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
+
+## How to Contribute 🤝
+We welcome contributions to ScePSX, including code submissions, issue reporting, or documentation improvements. Here’s how you can participate:
+- **Submit Issues**: Report problems or suggestions on the [Issues](https://github.com/unknowall/ScePSX/issues) page.
+- **Submit PRs**: Fork the project and submit Pull Requests.
+- **Translation Support**: If you’re fluent in other languages, help translate README or UI text.
+
+# Downloads 📥
+- **Lightweight Version (1.51 MB)**: Core features only, ideal for quick testing.
+- **Full Version (8.02 MB)**: Includes all features (e.g., ReShade integration).
+- **GameDB Database**: Optional download for automatic game configuration recognition.
+- **ControllerDB Database**: Optional download for extended controller support.
+
+[Click here to download the latest version](https://github.com/unknowall/ScePSX/releases)
+
+### Legal Disclaimer ⚖️
+ScePSX is an open-source project intended solely for learning and research purposes. Ensure you have legal game ROMs and BIOS files and comply with relevant laws and regulations.
+</details>
+
 ## 主要功能 🎮
 - **即时存档/读档**: 随时保存和加载游戏进度。
 - **多渲染器支持**: 动态切换 D2D、D3D、OpenGL、Vulkan 渲染器，适配不同硬件配置。
@@ -33,7 +160,11 @@
 _图1：使用硬件后端运行游戏的画面效果_<br>
 ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
 
-_图2：ScePSX 主界面展示_<br>
+_图2：使用硬件后端+ReShade_<br>
+![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9)
+
+
+_图3：ScePSX 主界面展示_<br>
 ![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
 
 ### 如何使用 🛠️
@@ -52,7 +183,7 @@ _图2：ScePSX 主界面展示_<br>
 - ReShade 在 OpenGL、Vulkan 渲染模式下可用
 - >D3D需额外安装reShade。
 - 按 **Home 键** 打开 ReShade 设置界面。
-- 可加载预设的 Shader 文件（位于 `ReShade/` 文件夹中）。
+- 可加载预设的 Shader 文件（已有多款可供选择）。
   
 #### 3. 多光盘游戏 📀
 - **存储卡1**: 每张光盘独立使用。
@@ -105,10 +236,11 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 ## 如何编译
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
-3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)，或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
-4. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
-5. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-6. Core部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)<br>
+   或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
+5. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
+6. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+7. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
 
 ## 如何贡献 🤝
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
@@ -120,13 +252,14 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 - ![老男人](https://img.shields.io/badge/Oldman-Emu-老男人) [讨论贴 https://bbs.oldmantvg.net/thread-77207.htm](htps://bbs.oldmantvg.net/thread-77207.htm)
 - ![chinaemu](https://img.shields.io/badge/China-Emu-org) [讨论贴 http://bbs.chinaemu.org/read-htm-tid-129832.html]([htps://bbs.oldmantvg.net/thread-77207.htm](http://bbs.chinaemu.org/read-htm-tid-129832.html))
-  >>我暂时还没有这两个BBS的账号，无法回复，见谅
+> **注：开发者账号正在注册中，暂无法进行官方回复，敬请谅解**
 
 # 下载 📥
 
 - **轻量版 (1.50 MB)**: 仅包含核心功能，适合快速体验。
 - **完整版 (7.99 MB)**: 包含所有功能（如 ReShade 集成）。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
+- **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
 [点击这里下载最新版本](https://github.com/unknowall/ScePSX/releases)
 
