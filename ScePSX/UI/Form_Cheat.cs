@@ -184,6 +184,8 @@ namespace ScePSX.UI
                 cheatCodes = PSXCore.ParseTextToCheatCodeList(cheatstr, false);
 
                 updateclbs();
+
+                btnsave_Click(null,null);
             }
 
         }
