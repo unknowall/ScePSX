@@ -77,7 +77,7 @@ namespace ScePSX.Render
             }
         }
 
-        private void DisposeCurrentRenderer()
+        public void DisposeCurrentRenderer()
         {
             if (_currentRenderer == null)
                 return;

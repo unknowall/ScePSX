@@ -453,4 +453,7 @@
   <data name="FrmMain_InitializeComponent_FullScreenF2" xml:space="preserve">
     <value>Full Screen (F2)</value>
   </data>
+  <data name="Form_Cheat_InitializeComponent_FetchCheatsOnline" xml:space="preserve">
+    <value>Fetch Cheats Online</value>
+  </data>
 </root>

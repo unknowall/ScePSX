@@ -28,138 +28,159 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnadd = new System.Windows.Forms.Button();
-            this.btndel = new System.Windows.Forms.Button();
-            this.ctb = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.btnload = new System.Windows.Forms.Button();
-            this.btnimp = new System.Windows.Forms.Button();
-            this.btnsave = new System.Windows.Forms.Button();
-            this.btnapply = new System.Windows.Forms.Button();
-            this.clb = new System.Windows.Forms.ListView();
-            this.SuspendLayout();
+            btnadd = new System.Windows.Forms.Button();
+            btndel = new System.Windows.Forms.Button();
+            ctb = new System.Windows.Forms.TextBox();
+            label1 = new System.Windows.Forms.Label();
+            btnload = new System.Windows.Forms.Button();
+            btnimp = new System.Windows.Forms.Button();
+            btnsave = new System.Windows.Forms.Button();
+            btnapply = new System.Windows.Forms.Button();
+            clb = new System.Windows.Forms.ListView();
+            columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            BtnSearch = new System.Windows.Forms.Button();
+            SuspendLayout();
             // 
             // btnadd
             // 
-            this.btnadd.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnadd.Location = new System.Drawing.Point(12, 10);
-            this.btnadd.Name = "btnadd";
-            this.btnadd.Size = new System.Drawing.Size(57, 26);
-            this.btnadd.TabIndex = 0;
-            this.btnadd.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_增加;
-            this.btnadd.UseVisualStyleBackColor = true;
-            this.btnadd.Click += new System.EventHandler(this.btnadd_Click);
+            btnadd.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            btnadd.Location = new System.Drawing.Point(12, 10);
+            btnadd.Name = "btnadd";
+            btnadd.Size = new System.Drawing.Size(57, 26);
+            btnadd.TabIndex = 0;
+            btnadd.Text = Properties.Resources.Form_Cheat_InitializeComponent_增加;
+            btnadd.UseVisualStyleBackColor = true;
+            btnadd.Click += btnadd_Click;
             // 
             // btndel
             // 
-            this.btndel.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btndel.Location = new System.Drawing.Point(75, 10);
-            this.btndel.Name = "btndel";
-            this.btndel.Size = new System.Drawing.Size(55, 26);
-            this.btndel.TabIndex = 1;
-            this.btndel.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_删除;
-            this.btndel.UseVisualStyleBackColor = true;
-            this.btndel.Click += new System.EventHandler(this.btndel_Click);
+            btndel.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            btndel.Location = new System.Drawing.Point(75, 10);
+            btndel.Name = "btndel";
+            btndel.Size = new System.Drawing.Size(55, 26);
+            btndel.TabIndex = 1;
+            btndel.Text = Properties.Resources.Form_Cheat_InitializeComponent_删除;
+            btndel.UseVisualStyleBackColor = true;
+            btndel.Click += btndel_Click;
             // 
             // ctb
             // 
-            this.ctb.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.ctb.Location = new System.Drawing.Point(250, 41);
-            this.ctb.Multiline = true;
-            this.ctb.Name = "ctb";
-            this.ctb.Size = new System.Drawing.Size(227, 310);
-            this.ctb.TabIndex = 3;
+            ctb.Font = new System.Drawing.Font("Tahoma", 12F);
+            ctb.Location = new System.Drawing.Point(250, 41);
+            ctb.Multiline = true;
+            ctb.Name = "ctb";
+            ctb.Size = new System.Drawing.Size(227, 310);
+            ctb.TabIndex = 3;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label1.Location = new System.Drawing.Point(250, 18);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(69, 19);
-            this.label1.TabIndex = 4;
-            this.label1.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_地址代码;
+            label1.AutoSize = true;
+            label1.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            label1.Location = new System.Drawing.Point(250, 18);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(51, 19);
+            label1.TabIndex = 4;
+            label1.Text = "Codes";
             // 
             // btnload
             // 
-            this.btnload.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnload.Location = new System.Drawing.Point(22, 361);
-            this.btnload.Name = "btnload";
-            this.btnload.Size = new System.Drawing.Size(65, 26);
-            this.btnload.TabIndex = 5;
-            this.btnload.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_读取;
-            this.btnload.UseVisualStyleBackColor = true;
-            this.btnload.Click += new System.EventHandler(this.btnload_Click);
+            btnload.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            btnload.Location = new System.Drawing.Point(22, 361);
+            btnload.Name = "btnload";
+            btnload.Size = new System.Drawing.Size(65, 26);
+            btnload.TabIndex = 5;
+            btnload.Text = Properties.Resources.Form_Cheat_InitializeComponent_读取;
+            btnload.UseVisualStyleBackColor = true;
+            btnload.Click += btnload_Click;
             // 
             // btnimp
             // 
-            this.btnimp.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnimp.Location = new System.Drawing.Point(162, 361);
-            this.btnimp.Name = "btnimp";
-            this.btnimp.Size = new System.Drawing.Size(64, 26);
-            this.btnimp.TabIndex = 6;
-            this.btnimp.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_导入;
-            this.btnimp.UseVisualStyleBackColor = true;
-            this.btnimp.Click += new System.EventHandler(this.btnimp_Click);
+            btnimp.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            btnimp.Location = new System.Drawing.Point(162, 361);
+            btnimp.Name = "btnimp";
+            btnimp.Size = new System.Drawing.Size(64, 26);
+            btnimp.TabIndex = 6;
+            btnimp.Text = Properties.Resources.Form_Cheat_InitializeComponent_导入;
+            btnimp.UseVisualStyleBackColor = true;
+            btnimp.Click += btnimp_Click;
             // 
             // btnsave
             // 
-            this.btnsave.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnsave.Location = new System.Drawing.Point(93, 361);
-            this.btnsave.Name = "btnsave";
-            this.btnsave.Size = new System.Drawing.Size(63, 26);
-            this.btnsave.TabIndex = 7;
-            this.btnsave.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_保存;
-            this.btnsave.UseVisualStyleBackColor = true;
-            this.btnsave.Click += new System.EventHandler(this.btnsave_Click);
+            btnsave.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            btnsave.Location = new System.Drawing.Point(93, 361);
+            btnsave.Name = "btnsave";
+            btnsave.Size = new System.Drawing.Size(63, 26);
+            btnsave.TabIndex = 7;
+            btnsave.Text = Properties.Resources.Form_Cheat_InitializeComponent_保存;
+            btnsave.UseVisualStyleBackColor = true;
+            btnsave.Click += btnsave_Click;
             // 
             // btnapply
             // 
-            this.btnapply.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnapply.Location = new System.Drawing.Point(356, 361);
-            this.btnapply.Name = "btnapply";
-            this.btnapply.Size = new System.Drawing.Size(121, 26);
-            this.btnapply.TabIndex = 8;
-            this.btnapply.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_应用金手指;
-            this.btnapply.UseVisualStyleBackColor = true;
-            this.btnapply.Click += new System.EventHandler(this.btnapply_Click);
+            btnapply.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold);
+            btnapply.Location = new System.Drawing.Point(356, 361);
+            btnapply.Name = "btnapply";
+            btnapply.Size = new System.Drawing.Size(121, 26);
+            btnapply.TabIndex = 8;
+            btnapply.Text = Properties.Resources.Form_Cheat_InitializeComponent_应用金手指;
+            btnapply.UseVisualStyleBackColor = true;
+            btnapply.Click += btnapply_Click;
             // 
             // clb
             // 
-            this.clb.CheckBoxes = true;
-            this.clb.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.clb.FullRowSelect = true;
-            this.clb.LabelEdit = true;
-            this.clb.Location = new System.Drawing.Point(12, 42);
-            this.clb.MultiSelect = false;
-            this.clb.Name = "clb";
-            this.clb.Size = new System.Drawing.Size(223, 309);
-            this.clb.TabIndex = 9;
-            this.clb.UseCompatibleStateImageBehavior = false;
-            this.clb.View = System.Windows.Forms.View.List;
-            this.clb.SelectedIndexChanged += new System.EventHandler(this.clb_SelectedIndexChanged);
+            clb.CheckBoxes = true;
+            clb.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] { columnHeader1 });
+            clb.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F);
+            clb.FullRowSelect = true;
+            clb.LabelEdit = true;
+            clb.LabelWrap = false;
+            clb.Location = new System.Drawing.Point(12, 42);
+            clb.MultiSelect = false;
+            clb.Name = "clb";
+            clb.Size = new System.Drawing.Size(223, 309);
+            clb.TabIndex = 9;
+            clb.UseCompatibleStateImageBehavior = false;
+            clb.View = System.Windows.Forms.View.Details;
+            clb.SelectedIndexChanged += clb_SelectedIndexChanged;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "Cheat List";
+            columnHeader1.Width = 300;
+            // 
+            // BtnSearch
+            // 
+            BtnSearch.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            BtnSearch.Location = new System.Drawing.Point(318, 9);
+            BtnSearch.Name = "BtnSearch";
+            BtnSearch.Size = new System.Drawing.Size(159, 26);
+            BtnSearch.TabIndex = 10;
+            BtnSearch.Text = Properties.Resources.Form_Cheat_InitializeComponent_FetchCheatsOnline;
+            BtnSearch.UseVisualStyleBackColor = true;
+            BtnSearch.Click += BtnSearch_Click;
             // 
             // Form_Cheat
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(489, 400);
-            this.Controls.Add(this.clb);
-            this.Controls.Add(this.btnapply);
-            this.Controls.Add(this.btnsave);
-            this.Controls.Add(this.btnimp);
-            this.Controls.Add(this.btnload);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.ctb);
-            this.Controls.Add(this.btndel);
-            this.Controls.Add(this.btnadd);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.Name = "Form_Cheat";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = ScePSX.Properties.Resources.Form_Cheat_InitializeComponent_金手指;
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(489, 400);
+            Controls.Add(BtnSearch);
+            Controls.Add(clb);
+            Controls.Add(btnapply);
+            Controls.Add(btnsave);
+            Controls.Add(btnimp);
+            Controls.Add(btnload);
+            Controls.Add(label1);
+            Controls.Add(ctb);
+            Controls.Add(btndel);
+            Controls.Add(btnadd);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            Name = "Form_Cheat";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            Text = "Cheat Codes";
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
@@ -174,5 +195,7 @@
         private System.Windows.Forms.Button btnsave;
         private System.Windows.Forms.Button btnapply;
         private System.Windows.Forms.ListView clb;
+        private System.Windows.Forms.Button BtnSearch;
+        private System.Windows.Forms.ColumnHeader columnHeader1;
     }
 }

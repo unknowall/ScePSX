@@ -50,6 +50,15 @@ namespace ScePSX
             IntPtr pAllocator,
             out VkDebugReportCallbackEXT pCallback);
 
+        // 时间轴信号量特性查询结构体
+        [StructLayout(LayoutKind.Sequential)]
+        public struct VkPhysicalDeviceTimelineSemaphoreFeatures
+        {
+            public VkStructureType sType;
+            public IntPtr pNext;
+            public VkBool32 timelineSemaphore;
+        }
+
         public VkInstance instance;
         public VkPhysicalDevice physicalDevice;
         public VkDevice device;
@@ -243,10 +252,11 @@ namespace ScePSX
             instanceCreateInfo.pApplicationInfo = &appInfo;
 
             vkRawList<IntPtr> Extensions = new vkRawList<IntPtr>();
+
             Extensions.Add(vkStrings.VK_KHR_SURFACE_EXTENSION_NAME);
             Extensions.Add(vkStrings.VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+
             Extensions.Add(vkStrings.VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-            //Extensions.Add(vkStrings.VK_KHR_shader_non_semantic_info);
 
             vkRawList<IntPtr> Extensions1 = new vkRawList<IntPtr>();
             Extensions1.Add(vkStrings.VK_LAYER_KHRONOS_validation);
@@ -409,12 +419,20 @@ namespace ScePSX
             VkPhysicalDeviceFeatures enabledFeatures = new VkPhysicalDeviceFeatures();
             enabledFeatures.samplerAnisotropy = VkBool32.True;
 
+            var timelineFeaturesEnable = new VkPhysicalDeviceTimelineSemaphoreFeatures
+            {
+                //VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES
+                sType = (VkStructureType)1000207000,
+                timelineSemaphore = VkBool32.True
+            };
+
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
-                pEnabledFeatures = &enabledFeatures
+                pEnabledFeatures = &enabledFeatures,
+                pNext = &timelineFeaturesEnable
             };
 
             vkRawList<IntPtr> instanceExtensions = new vkRawList<IntPtr>();
@@ -1309,6 +1327,25 @@ namespace ScePSX
             }
 
             return CMDS;
+        }
+
+        public unsafe VkCommandPool CreateCommandPool()
+        {
+            var poolInfo = new VkCommandPoolCreateInfo
+            {
+                sType = VkStructureType.CommandPoolCreateInfo,
+                queueFamilyIndex = (uint)graphicsQueueFamilyIndex,
+                flags = VkCommandPoolCreateFlags.ResetCommandBuffer
+            };
+
+            VkCommandPool pool;
+
+            if (vkCreateCommandPool(device, &poolInfo, null, out pool) != VkResult.Success)
+            {
+                throw new Exception("Failed to create command pool!");
+            }
+
+            return pool;
         }
 
         public unsafe void DestoryCommandBuffers(vkCMDS CMDS)

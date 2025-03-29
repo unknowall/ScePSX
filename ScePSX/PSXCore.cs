@@ -241,16 +241,16 @@ namespace ScePSX
             if (!Running)
                 return;
 
-            int ir = 1;
-            if (GpuBackend == GPUType.OpenGL)
-            {
-                ir = (GPU as OpenglGPU).IRScale;
-                (GPU as OpenglGPU).IRScale = 1;
-                while ((GPU as OpenglGPU).resolutionScale != 1)
-                {
-                    Thread.Sleep(20);
-                }
-            }
+            //int ir = 1;
+            //if (GpuBackend == GPUType.OpenGL)
+            //{
+            //    ir = (GPU as OpenglGPU).IRScale;
+            //    (GPU as OpenglGPU).IRScale = 1;
+            //    while ((GPU as OpenglGPU).resolutionScale != 1)
+            //    {
+            //        Thread.Sleep(20);
+            //    }
+            //}
 
             Pauseing = true;
             while (!Pauseed)
@@ -264,10 +264,10 @@ namespace ScePSX
             PsxBus.ReadySerializable();
             StateToFile(PsxBus, fn);
 
-            if (GpuBackend == GPUType.OpenGL)
-            {
-                (GPU as OpenglGPU).IRScale = ir;
-            }
+            //if (GpuBackend == GPUType.OpenGL)
+            //{
+            //    (GPU as OpenglGPU).IRScale = ir;
+            //}
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State SAVEED.");

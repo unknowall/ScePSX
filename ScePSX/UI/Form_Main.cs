@@ -20,7 +20,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.6";
+        public static string version = "ScePSX Beta 0.1.6.1";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -558,6 +558,7 @@ namespace ScePSX.UI
 
                 if (mode == RenderMode.OpenGL && (gpumode == GPUType.OpenGL || gpumode == GPUType.Advite))
                 {
+                    Render.DisposeCurrentRenderer();
                     Render.SelectRenderer(RenderMode.Null, this);
 
                     while (NullRenderer.hwnd == 0)
@@ -578,6 +579,7 @@ namespace ScePSX.UI
                 }
                 if (mode == RenderMode.Vulkan && (gpumode == GPUType.Vulkan || gpumode == GPUType.Advite))
                 {
+                    Render.DisposeCurrentRenderer();
                     Render.SelectRenderer(RenderMode.Null, this);
 
                     while (NullRenderer.hwnd == 0)

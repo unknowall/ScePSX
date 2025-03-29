@@ -151,6 +151,15 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Fetch Cheats Online 的本地化字符串。
+        /// </summary>
+        internal static string Form_Cheat_InitializeComponent_FetchCheatsOnline {
+            get {
+                return ResourceManager.GetString("Form_Cheat_InitializeComponent_FetchCheatsOnline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Save 的本地化字符串。
         /// </summary>
         internal static string Form_Cheat_InitializeComponent_保存 {

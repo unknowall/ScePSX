@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Security.Policy;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ScePSX.UI
 {
@@ -150,6 +156,94 @@ namespace ScePSX.UI
                 ctb.Text += sub.Text;
             }
         }
+
+        private void clb_DrawItem(object sender, DrawListViewItemEventArgs e)
+        {
+            int width = clb.ClientSize.Width;
+
+            e.Graphics.FillRectangle(SystemBrushes.Window, e.Bounds);
+            e.Graphics.DrawString(e.Item.Text, clb.Font, SystemBrushes.WindowText, e.Bounds);
+
+            e.DrawFocusRectangle();
+        }
+
+        private async void BtnSearch_Click(object sender, EventArgs e)
+        {
+            const string urlprefix = "http://epsxe.com/cheats/";
+
+            string urlid = ConvertID(DiskID);
+            if (urlid != "")
+            {
+                string content = await ReadUrlContentAsync(urlprefix + urlid);
+
+                if (content == "")
+                    return;
+
+                string cheatstr = ConvertToBracketedFormat(content);
+
+                cheatCodes = PSXCore.ParseTextToCheatCodeList(cheatstr, false);
+
+                updateclbs();
+            }
+
+        }
+
+        private string ConvertID(string input)
+        {
+            if (!input.Contains("-"))
+            {
+                return "";
+            }
+
+            string[] parts = input.Split('-');
+            string prefix = parts[0];
+            string number = parts[1];
+
+            string integerPart = number.Substring(0, number.Length - 2);
+            string decimalPart = number.Substring(number.Length - 2);
+
+            return $"{prefix}/{prefix}_{integerPart}.{decimalPart}.txt";
+        }
+
+        private async Task<string> ReadUrlContentAsync(string url)
+        {
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+
+                HttpResponseMessage response = await client.GetAsync(url);
+
+                response.EnsureSuccessStatusCode();
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                    return "";
+
+                string content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+        }
+
+        private string ConvertToBracketedFormat(string input)
+        {
+            string[] lines = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> outputLines = new List<string>();
+
+            foreach (string line in lines)
+            {
+                if (line.TrimStart().StartsWith("#"))
+                {
+                    string content = line.Substring(line.IndexOf('#') + 1).Trim(); // 去掉 # 并去除多余空格
+                    outputLines.Add($"[{content}]");
+                    outputLines.Add("Active = 0");
+                } else
+                {
+                    outputLines.Add(line.Trim());
+                }
+            }
+            return string.Join(Environment.NewLine, outputLines);
+        }
+
     }
 
 }
