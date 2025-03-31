@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ScePSX
 {
-    public class MDEC: IDisposable
+    public class MDEC : IDisposable
     {
         private const int NUM_BLOCKS = 6;
         //For some reason even tho it iterates all blocks it starts at 4
