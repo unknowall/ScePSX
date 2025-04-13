@@ -117,12 +117,12 @@ namespace ScePSX
 
         VkRenderPass drawPass, renderPass;
 
-        vkSwapchain drawChain;
+        vkSwapchain renderChain;
 
         vkBuffer VaoBuffer, vertexUBO, fragmentUBO;
         vkTexture samplerTexture, drawTexture;
         VkFramebuffer drawFramebuff;
-        vkCMDS DrawCmd, OpCMD;
+        vkCMDS renderCmd, DrawCMD;
         vkCMDS ThreadCMD;
 
         //ImmediateCMD immediateCMD;
@@ -275,13 +275,13 @@ namespace ScePSX
                 VkImageLayout.ColorAttachmentOptimal
                 );
 
-            drawChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
+            renderChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
 
-            frameFences = new FrameFence[drawChain.Images.Count];
+            frameFences = new FrameFence[renderChain.Images.Count];
 
-            DrawCmd = Device.CreateCommandBuffers(drawChain.Images.Count);
+            renderCmd = Device.CreateCommandBuffers(renderChain.Images.Count);
 
-            OpCMD = Device.CreateCommandBuffers(2);
+            DrawCMD = Device.CreateCommandBuffers(2);
 
             VaoBuffer = Device.CreateBuffer((ulong)(VRAM_WIDTH * 44), VkBufferUsageFlags.VertexBuffer | VkBufferUsageFlags.TransferDst);
 
@@ -303,16 +303,16 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan GPU] samplerTexture 0x{samplerTexture.image.Handle:X}");
 
-            Device.BeginCommandBuffer(OpCMD.CMD[0]);
+            Device.BeginCommandBuffer(DrawCMD.CMD[0]);
 
             samplerTexture.layout = Device.TransitionImageLayout(
-                OpCMD.CMD[0],
+                DrawCMD.CMD[0],
                 samplerTexture,
                 samplerTexture.layout,
                 VkImageLayout.ShaderReadOnlyOptimal
             );
 
-            Device.EndAndWaitCommandBuffer(OpCMD.CMD[0]);
+            Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
 
             (drawTexture, drawFramebuff) = CreateDrawTexture();
 
@@ -813,16 +813,16 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan GPU] drawTexture 0x{tex.image.Handle:X}");
 
-            Device.BeginCommandBuffer(OpCMD.CMD[0]);
+            Device.BeginCommandBuffer(DrawCMD.CMD[0]);
 
             tex.layout = Device.TransitionImageLayout(
-                OpCMD.CMD[0],
+                DrawCMD.CMD[0],
                 tex,
                 tex.layout,
                 VkImageLayout.ColorAttachmentOptimal
             );
 
-            Device.EndAndWaitCommandBuffer(OpCMD.CMD[0]);
+            Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
 
             var fb = Device.CreateFramebuffer(drawPass, tex.imageview, (uint)(VRAM_WIDTH * resolutionScale), (uint)(VRAM_HEIGHT * resolutionScale));
 
@@ -831,7 +831,7 @@ namespace ScePSX
 
         private void CreateSyncObjects()
         {
-            for (int i = 0; i < drawChain.Images.Count; i++)
+            for (int i = 0; i < renderChain.Images.Count; i++)
             {
                 frameFences[i] = new FrameFence
                 {
@@ -865,8 +865,8 @@ namespace ScePSX
 
             Device.DestroyFramebuffer(drawFramebuff);
 
-            Device.DestoryCommandBuffers(DrawCmd);
-            Device.DestoryCommandBuffers(OpCMD);
+            Device.DestoryCommandBuffers(renderCmd);
+            Device.DestoryCommandBuffers(DrawCMD);
 
             vkDestroyDescriptorSetLayout(Device.device, outDescriptorLayout, null);
             vkDestroyDescriptorSetLayout(Device.device, drawDescriptorLayout, null);
@@ -889,7 +889,7 @@ namespace ScePSX
             Device.DestoryBuffer(vertexUBO);
             Device.DestoryBuffer(fragmentUBO);
 
-            Device.CleanupSwapChain(drawChain);
+            Device.CleanupSwapChain(renderChain);
 
             vkDestroyRenderPass(Device.device, renderPass, null);
             vkDestroyRenderPass(Device.device, drawPass, null);
@@ -1100,9 +1100,9 @@ namespace ScePSX
             }
 
             Device.BeginRenderPass(cmd, renderPass,
-                    drawChain.framebuffes[(int)chainidx],
-                    (int)drawChain.Extent.width,
-                    (int)drawChain.Extent.height,
+                    renderChain.framebuffes[(int)chainidx],
+                    (int)renderChain.Extent.width,
+                    (int)renderChain.Extent.height,
                     true, 0, 0, 0, 1);
 
             vkGraphicsPipeline outPipeline = is24bit ? out24Pipeline : out16Pipeline;
@@ -1128,8 +1128,8 @@ namespace ScePSX
 
             int renderX = 0;
             int renderY = 0;
-            int width  = (int)drawChain.Extent.width;
-            int hgight = (int)drawChain.Extent.height;
+            int width  = (int)renderChain.Extent.width;
+            int hgight = (int)renderChain.Extent.height;
 
             if (KEEPAR)
             {
@@ -1175,26 +1175,26 @@ namespace ScePSX
             uint imageIndex;
             VkResult result = vkAcquireNextImageKHR(
                 Device.device,
-                drawChain.Chain,
+                renderChain.Chain,
                 ulong.MaxValue,
                 currentFrame.ImageAvailable,
                 VkFence.Null,
                 &imageIndex
             );
 
-            VkCommandBuffer cmd = DrawCmd.CMD[imageIndex];
+            VkCommandBuffer cmd = renderCmd.CMD[imageIndex];
 
             //Console.WriteLine($"[Vulkan GPU] Present Start frameIndex {frameIndex} CMD 0x{cmd.Handle:X}!");
 
             RenderToSwapchain(cmd, imageIndex, is24bit);
 
             // 提交呈现命令
-            VkCommandBuffer presentCmd = DrawCmd.CMD[imageIndex];
+            VkCommandBuffer presentCmd = renderCmd.CMD[imageIndex];
 
             VkPipelineStageFlags waitStages = VkPipelineStageFlags.ColorAttachmentOutput;
             VkSemaphore ws = currentFrame.ImageAvailable;
             VkSemaphore ss = currentFrame.RenderFinished;
-            VkSwapchainKHR chain = drawChain.Chain;
+            VkSwapchainKHR chain = renderChain.Chain;
 
             VkSubmitInfo submitInfo = VkSubmitInfo.New();
             submitInfo.waitSemaphoreCount = 1;
@@ -1221,15 +1221,15 @@ namespace ScePSX
 
             //Console.WriteLine($"[Vulkan GPU] Present vkQueuePresentKHR done!");
 
-            frameIndex = (frameIndex + 1) % (int)drawChain.Images.Count;
+            frameIndex = (frameIndex + 1) % (int)renderChain.Images.Count;
         }
 
         private unsafe void RecreateSwapChain()
         {
             vkDeviceWaitIdle(Device.device);
 
-            Device.CleanupSwapChain(drawChain);
-            drawChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
+            Device.CleanupSwapChain(renderChain);
+            renderChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
         }
 
         private void UpdateScissor()
@@ -1756,7 +1756,7 @@ namespace ScePSX
             //    cmd = freeCmdQueue.Dequeue();
             //}
 
-            VkCommandBuffer cmd = OpCMD.CMD[1];
+            VkCommandBuffer cmd = DrawCMD.CMD[1];
 
             //VkCommandBuffer cmd = immediateCMD.GetImmediateCommandBuffer();
 
@@ -2271,7 +2271,7 @@ namespace ScePSX
 
         private unsafe void CopyTexture(vkTexture srcTexture, vkTexture dstTexture, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
         {
-            VkCommandBuffer cmd = OpCMD.CMD[0];
+            VkCommandBuffer cmd = DrawCMD.CMD[0];
 
             Device.BeginCommandBuffer(cmd);
 
@@ -2299,14 +2299,14 @@ namespace ScePSX
             };
 
             srcTexture.layout = Device.TransitionImageLayout(
-                OpCMD.CMD[0],
+                DrawCMD.CMD[0],
                 srcTexture,
                 srcTexture.layout,
                 VkImageLayout.TransferSrcOptimal
             );
 
             dstTexture.layout = Device.TransitionImageLayout(
-                OpCMD.CMD[0],
+                DrawCMD.CMD[0],
                 dstTexture,
                 dstTexture.layout,
                 VkImageLayout.TransferDstOptimal
@@ -2324,7 +2324,7 @@ namespace ScePSX
             );
 
             dstTexture.layout = Device.TransitionImageLayout(
-                OpCMD.CMD[0],
+                DrawCMD.CMD[0],
                 dstTexture,
                 dstTexture.layout,
                 VkImageLayout.ColorAttachmentOptimal
