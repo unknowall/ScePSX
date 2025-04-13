@@ -1,6 +1,6 @@
 <h2>ScePSX - A Lightweight PlayStation 1 emulator Fully Developed in C#</h2>
 
-![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![Gitee Repo](https://img.shields.io/badge/Gitee-Mirror-FFB71B)](https://gitee.com/unknowall/ScePSX)
+![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![Gitee Repo](https://img.shields.io/badge/Gitee-Mirror-FFB71B)](https://gitee.com/unknowall/ScePSX) [![Gitcode Repo](https://img.shields.io/badge/Gitcode-Mirror-FFB71B)](https://gitcode.com/unknowall/ScePSX)  ![star](https://gitcode.com/unknowall/ScePSX/star/badge.svg)
 
 <details>
 <summary><h3> 🌐 English Version</h3></summary>
@@ -140,7 +140,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 
 <b>the english version is available starting from Beta 0.1.0.</b>
 
-**项目已同步至 Gitee，国内用户可优先访问以加速下载。镜像仓库自动同步更新，确保内容一致**
+**项目已同步至 Gitee 以及 Gitcode 国内用户可优先访问以加速下载。镜像仓库自动同步更新，确保内容一致**
 
 ## 性能表现 🚀
 
@@ -256,8 +256,8 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 # 下载 📥
 
-- **轻量版 (1.50 MB)**: 仅包含核心功能，适合快速体验。
-- **完整版 (7.99 MB)**: 包含所有功能（如 ReShade 集成）。
+- **轻量版 (1.51 MB)**: 仅包含核心功能，适合快速体验。
+- **完整版 (8.02 MB)**: 包含所有功能（如 ReShade 集成）。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
