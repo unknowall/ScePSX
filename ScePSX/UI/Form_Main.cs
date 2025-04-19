@@ -1090,6 +1090,8 @@ namespace ScePSX.UI
                 Core.PsxBus.cpu.ttydebug = ini.ReadInt("Main", "TTYDebug") == 1;
             }
 
+            Core.CdromSpeed(ini.ReadInt("Main", "CdSpeed"));
+
             Core.SYNC_CYCLES_IDLE = ini.ReadFloat("CPU", "FrameIdle");
             Core.SYNC_CPU_TICK = ini.ReadInt("CPU", "CpuTicks");
             Core.SYNC_CYCLES_BUS = ini.ReadInt("CPU", "BusCycles");

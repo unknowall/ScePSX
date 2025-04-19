@@ -139,7 +139,7 @@ namespace ScePSX.CdRom2
             this.cd = cd;
             this.spu = spu;
 
-            SetSpeed(0);
+            //SetSpeed(0);
             swapdiskcount = 0;
         }
 
