@@ -165,7 +165,7 @@ namespace ScePSX.CdRom2
         public void SetSpeed(int Adjust)
         {
             SpeedAdjust = Adjust;
-
+            Console.WriteLine($"[CDROM] Speed : {(SpeedAdjust==0 ? "Adaptive" : SpeedAdjust+"x")}");
             if (Adjust == 0 || Adjust == 1)
             {
                 SeekTimeMutil = 3;
@@ -179,18 +179,18 @@ namespace ScePSX.CdRom2
 
         public bool SpeedLimit()
         {
-            bool ret = true;
+            bool ret = false;
             if (SpeedAdjust == 0)
             {
                 if (counter < (33868800 / (isDoubleSpeed ? 150 : 75)) || interruptQueue.Count != 0)
                 {
-                    ret = false;
+                    ret = true;
                 }
             } else
             {
                 if (counter < (33868800 / SpeedMutil) || interruptQueue.Count != 0)
                 {
-                    ret = false;
+                    ret = true;
                 }
             }
             return ret;

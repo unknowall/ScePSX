@@ -114,7 +114,10 @@ namespace ScePSX.UI
             cbcpumode.SelectedIndex = ini.ReadInt("Main", "CpuMode");
 
             cbgpu.SelectedIndex = ini.ReadInt("Main", "GpuMode");
+
             cbgpures.SelectedIndex = ini.ReadInt("Main", "GpuModeScale");
+
+            cbcdrom.SelectedIndex = ini.ReadInt("Main", "CdSpeed");
 
             var currbios = ini.Read("main", "bios");
 
@@ -163,9 +166,12 @@ namespace ScePSX.UI
                 ini.WriteInt("Main", "CpuMode", cbcpumode.SelectedIndex);
 
                 ini.WriteInt("Main", "GpuMode", cbgpu.SelectedIndex);
+
                 ini.WriteInt("Main", "GpuModeScale", cbgpures.SelectedIndex);
 
                 ini.WriteInt("Main", "ScaleMode", cbscalemode.SelectedIndex);
+
+                ini.WriteInt("Main", "CdSpeed", cbcdrom.SelectedIndex);
 
                 ini.Write("main", "bios", cbbios.Items[cbbios.SelectedIndex].ToString());
             } catch

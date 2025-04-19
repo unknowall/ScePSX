@@ -64,12 +64,14 @@
             chkpgxp = new System.Windows.Forms.CheckBox();
             chkpgxpt = new System.Windows.Forms.CheckBox();
             chkkeepar = new System.Windows.Forms.CheckBox();
+            label14 = new System.Windows.Forms.Label();
+            cbcdrom = new System.Windows.Forms.ComboBox();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // btnsave
             // 
-            btnsave.Location = new System.Drawing.Point(348, 303);
+            btnsave.Location = new System.Drawing.Point(343, 341);
             btnsave.Name = "btnsave";
             btnsave.Size = new System.Drawing.Size(75, 27);
             btnsave.TabIndex = 0;
@@ -305,7 +307,7 @@
             // 
             // btndel
             // 
-            btndel.Location = new System.Drawing.Point(241, 302);
+            btndel.Location = new System.Drawing.Point(236, 340);
             btndel.Name = "btndel";
             btndel.Size = new System.Drawing.Size(101, 27);
             btndel.TabIndex = 5;
@@ -335,7 +337,7 @@
             // label11
             // 
             label11.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            label11.Location = new System.Drawing.Point(17, 304);
+            label11.Location = new System.Drawing.Point(12, 342);
             label11.Name = "label11";
             label11.Size = new System.Drawing.Size(211, 23);
             label11.TabIndex = 8;
@@ -354,7 +356,7 @@
             // 
             cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbgpu.FormattingEnabled = true;
-            cbgpu.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "Software", "OpenGL","VulKan" });
+            cbgpu.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "Software", "OpenGL", "VulKan" });
             cbgpu.Location = new System.Drawing.Point(74, 227);
             cbgpu.Name = "cbgpu";
             cbgpu.Size = new System.Drawing.Size(141, 25);
@@ -383,9 +385,9 @@
             // chkrealcolor
             // 
             chkrealcolor.AutoSize = true;
-            chkrealcolor.Location = new System.Drawing.Point(15, 266);
+            chkrealcolor.Location = new System.Drawing.Point(15, 306);
             chkrealcolor.Name = "chkrealcolor";
-            chkrealcolor.Size = new System.Drawing.Size(88, 21);
+            chkrealcolor.Size = new System.Drawing.Size(89, 21);
             chkrealcolor.TabIndex = 13;
             chkrealcolor.Text = Properties.Resources.Form_Set_InitializeComponent_真彩色渲染;
             chkrealcolor.UseVisualStyleBackColor = true;
@@ -393,7 +395,7 @@
             // chkpgxp
             // 
             chkpgxp.AutoSize = true;
-            chkpgxp.Location = new System.Drawing.Point(126, 266);
+            chkpgxp.Location = new System.Drawing.Point(126, 306);
             chkpgxp.Name = "chkpgxp";
             chkpgxp.Size = new System.Drawing.Size(123, 21);
             chkpgxp.TabIndex = 14;
@@ -403,9 +405,9 @@
             // chkpgxpt
             // 
             chkpgxpt.AutoSize = true;
-            chkpgxpt.Location = new System.Drawing.Point(260, 266);
+            chkpgxpt.Location = new System.Drawing.Point(260, 306);
             chkpgxpt.Name = "chkpgxpt";
-            chkpgxpt.Size = new System.Drawing.Size(112, 21);
+            chkpgxpt.Size = new System.Drawing.Size(61, 21);
             chkpgxpt.TabIndex = 15;
             chkpgxpt.Text = Properties.Resources.Form_Set_InitializeComponent_透视校正;
             chkpgxpt.UseVisualStyleBackColor = true;
@@ -413,18 +415,39 @@
             // chkkeepar
             // 
             chkkeepar.AutoSize = true;
-            chkkeepar.Location = new System.Drawing.Point(350, 266);
+            chkkeepar.Location = new System.Drawing.Point(350, 306);
             chkkeepar.Name = "chkkeepar";
-            chkkeepar.Size = new System.Drawing.Size(112, 21);
+            chkkeepar.Size = new System.Drawing.Size(78, 21);
             chkkeepar.TabIndex = 15;
             chkkeepar.Text = Properties.Resources.Form_Set_InitializeComponent_Keep43;
             chkkeepar.UseVisualStyleBackColor = true;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new System.Drawing.Point(15, 270);
+            label14.Name = "label14";
+            label14.Size = new System.Drawing.Size(55, 17);
+            label14.TabIndex = 16;
+            label14.Text = "CDROM";
+            // 
+            // cbcdrom
+            // 
+            cbcdrom.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbcdrom.FormattingEnabled = true;
+            cbcdrom.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x", "4x", "5x", "6x", "7x", "8x", "9x", "10x" });
+            cbcdrom.Location = new System.Drawing.Point(74, 267);
+            cbcdrom.Name = "cbcdrom";
+            cbcdrom.Size = new System.Drawing.Size(141, 25);
+            cbcdrom.TabIndex = 17;
             // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(435, 351);
+            ClientSize = new System.Drawing.Size(435, 377);
+            Controls.Add(cbcdrom);
+            Controls.Add(label14);
             Controls.Add(chkkeepar);
             Controls.Add(chkpgxpt);
             Controls.Add(chkpgxp);
@@ -490,5 +513,7 @@
         private System.Windows.Forms.CheckBox chkpgxp;
         private System.Windows.Forms.CheckBox chkpgxpt;
         private System.Windows.Forms.CheckBox chkkeepar;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.ComboBox cbcdrom;
     }
 }
