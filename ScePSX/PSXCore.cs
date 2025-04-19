@@ -114,6 +114,14 @@ namespace ScePSX
             }
         }
 
+        public void CdromSpeed(int speed)
+        {
+            if (PsxBus != null && !Running)
+            {
+                PsxBus.cdrom.SetSpeed(speed);
+            }
+        }
+
         public void LoadCheats()
         {
             cheatCodes.Clear();

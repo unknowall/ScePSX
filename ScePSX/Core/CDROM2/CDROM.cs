@@ -84,6 +84,10 @@ namespace ScePSX.CdRom2
         private bool cdDebug = false;
         private bool isLidOpen = false;
 
+        private int SeekTimeMutil = 3;
+        private int SpeedMutil = 75;
+        private int SpeedAdjust = 0;
+
         [Serializable]
         private struct SectorHeader
         {
@@ -135,6 +139,7 @@ namespace ScePSX.CdRom2
             this.cd = cd;
             this.spu = spu;
 
+            SetSpeed(0);
             swapdiskcount = 0;
         }
 
@@ -155,6 +160,40 @@ namespace ScePSX.CdRom2
 
             this.cd = cd;
             //Console.WriteLine($"[CDROM] Shell is Open: {isLidOpen} STAT: {STAT}");
+        }
+
+        public void SetSpeed(int Adjust)
+        {
+            SpeedAdjust = Adjust;
+
+            if (Adjust == 0 || Adjust == 1)
+            {
+                SeekTimeMutil = 3;
+                SpeedMutil = 75;
+            } else
+            {
+                SeekTimeMutil = 3 * Adjust;
+                SpeedMutil = 75 * Adjust;
+            }
+        }
+
+        public bool SpeedLimit()
+        {
+            bool ret = true;
+            if (SpeedAdjust == 0)
+            {
+                if (counter < (33868800 / (isDoubleSpeed ? 150 : 75)) || interruptQueue.Count != 0)
+                {
+                    ret = false;
+                }
+            } else
+            {
+                if (counter < (33868800 / SpeedMutil) || interruptQueue.Count != 0)
+                {
+                    ret = false;
+                }
+            }
+            return ret;
         }
 
         public bool tick(int cycles)
@@ -192,7 +231,7 @@ namespace ScePSX.CdRom2
                     return false;
 
                 case Mode.Seek: //Hardcoded seek time...
-                    if (counter < 33868800 / 3 || interruptQueue.Count != 0)
+                    if (counter < 33868800 / SeekTimeMutil || interruptQueue.Count != 0)
                     {
                         return false;
                     }
@@ -206,7 +245,7 @@ namespace ScePSX.CdRom2
 
                 case Mode.Read:
                 case Mode.Play:
-                    if (counter < (33868800 / (isDoubleSpeed ? 150 : 75)) || interruptQueue.Count != 0)
+                    if (SpeedLimit())
                     {
                         return false;
                     }
@@ -314,7 +353,7 @@ namespace ScePSX.CdRom2
                     break;
 
                 case Mode.TOC:
-                    if (counter < 33868800 / (isDoubleSpeed ? 150 : 75) || interruptQueue.Count != 0)
+                    if (SpeedLimit())
                     {
                         return false;
                     }
