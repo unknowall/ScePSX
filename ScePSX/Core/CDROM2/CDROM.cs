@@ -282,9 +282,21 @@ namespace ScePSX.CdRom2
 
                         if (isReport)
                         {
-                            responseBuffer.EnqueueRange(GetCDDAReport());
+                            //TODO: fix GetCDDAReport()
+                            Span<byte> response = stackalloc byte[] {
+                                0x82,
+                                0x02,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x00,
+                                0x00,
+                                0xff
+                            };
+                            responseBuffer.EnqueueRange(response);
+                            //responseBuffer.EnqueueRange(GetCDDAReport());
                             interruptQueue.Enqueue(0x1);
-                            Console.WriteLine("[CDROM] CDDAReport");
+                            //Console.WriteLine("[CDROM] CDDAReport");
                         }
 
                         return false; //CDDA isn't delivered to CPU and doesn't raise interrupt
