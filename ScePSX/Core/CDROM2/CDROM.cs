@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Windows.Forms.AxHost;
 
 namespace ScePSX.CdRom2
 {
@@ -165,7 +167,7 @@ namespace ScePSX.CdRom2
         public void SetSpeed(int Adjust)
         {
             SpeedAdjust = Adjust;
-            Console.WriteLine($"[CDROM] Speed : {(SpeedAdjust==0 ? "Adaptive" : SpeedAdjust+"x")}");
+            Console.WriteLine($"[CDROM] Speed : {(SpeedAdjust == 0 ? "Adaptive" : SpeedAdjust + "x")}");
             if (Adjust == 0 || Adjust == 1)
             {
                 SeekTimeMutil = 3;
@@ -266,6 +268,7 @@ namespace ScePSX.CdRom2
                         if (!mutedAudio && isCDDA)
                         {
                             applyVolume(readSector);
+                            //Console.WriteLine("[CDROM] pushCdBufferSamples");
                             spu.pushCdBufferSamples(readSector);
                         }
 
@@ -279,7 +282,9 @@ namespace ScePSX.CdRom2
 
                         if (isReport)
                         {
-                            //Console.WriteLine("Report Not Handled");
+                            responseBuffer.EnqueueRange(GetCDDAReport());
+                            interruptQueue.Enqueue(0x1);
+                            Console.WriteLine("[CDROM] CDDAReport");
                         }
 
                         return false; //CDDA isn't delivered to CPU and doesn't raise interrupt
@@ -1215,6 +1220,25 @@ namespace ScePSX.CdRom2
         private static int BcdToDec(byte value)
         {
             return value - 6 * (value >> 4);
+        }
+
+        private byte[] GetCDDAReport()
+        {
+            //Report --> INT1(stat,track,index,mm/amm,ss+80h/ass,sect/asect,peaklo,peakhi)
+            CDTrack track = cd.getTrackFromLoc(readLoc);
+            int mm;
+            int ss;
+            int ff;
+            int index = 0x01;
+            bool pregap = readLoc < cd.tracks[track.Index - 1].LbaStart;
+            int or = 0;
+            //Relative
+            int trackStart = cd.tracks[track.Index - 1].LbaStart;
+            int difference = (int)(pregap ? trackStart - readLoc : readLoc - trackStart);
+            (mm, ss, ff) = getMMSSFFfromLBA(difference);
+            or = 0x80;
+
+            return new byte[] { STAT, DecToBcd((byte)track.Index), DecToBcd((byte)index), DecToBcd((byte)mm), (byte)(DecToBcd((byte)ss) | or), DecToBcd((byte)ff), 0x00, 0xFF };
         }
 
         private static (byte mm, byte ss, byte ff) getMMSSFFfromLBA(int lba)

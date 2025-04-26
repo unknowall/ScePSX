@@ -24,6 +24,8 @@ namespace ScePSX.CdRom2
 
         public bool isCue;
 
+        public bool isMultipleFile;
+
         public string DiskID = "";
 
         public CDData(string diskFilename, string diskid = "")
@@ -97,16 +99,12 @@ namespace ScePSX.CdRom2
 
             var stream = streams[track.Index - 1];
 
-            if (isCue && position >= PRE_GAP)
+            if (isCue && track.Index == 1 && position >= PRE_GAP && track.Indices.Count <= 1)
             {
                 position -= PRE_GAP;
-                if (track.Indices.Count > 1)
-                {
-                    position += PRE_GAP;
-                }
             }
 
-            position = (int)(position * BYTES_PER_SECTOR_RAW + track.FilePosition);
+            position = (int)(position * BYTES_PER_SECTOR_RAW);
 
             stream.Seek(position, SeekOrigin.Begin);
 
@@ -264,7 +262,7 @@ namespace ScePSX.CdRom2
             return crcValue ^ 0xFFFFFFFF;
         }
 
-        public static List<CDTrack> FromBin(string file)
+        public List<CDTrack> FromBin(string file)
         {
             var tracks = new List<CDTrack>();
 
@@ -279,7 +277,7 @@ namespace ScePSX.CdRom2
             return tracks;
         }
 
-        public static List<CDTrack> FromCue(string path)
+        public List<CDTrack> FromCue(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 Console.WriteLine("[CDROM] Value cannot be null or whitespace.", nameof(path));
@@ -360,6 +358,8 @@ namespace ScePSX.CdRom2
                     continue;
                 }
             }
+
+            isMultipleFile = files.Count > 1;
 
             if (files.Count is 1)
             {
