@@ -99,7 +99,7 @@ namespace ScePSX.CdRom2
 
             var stream = streams[track.Index - 1];
 
-            if (isCue && track.Index == 1 && position >= PRE_GAP && track.Indices.Count <= 1)
+            if (isCue /*&& track.Index == 1*/ && position >= PRE_GAP && track.Indices.Count <= 1)
             {
                 position -= PRE_GAP;
             }
