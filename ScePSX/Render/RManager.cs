@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Resources;
 using System.Windows.Forms;
 
 namespace ScePSX.Render
@@ -13,7 +12,7 @@ namespace ScePSX.Render
         Vulkan,
         Null
     }
-    
+
     public interface IRenderer : IDisposable
     {
         RenderMode Mode
@@ -64,7 +63,7 @@ namespace ScePSX.Render
 
                 if (_currentRenderer is OpenGLRenderer glRenderer)
                 {
-                    if(glRenderer.ShadreName == "" && oglShaderPath != "")
+                    if (glRenderer.ShadreName == "" && oglShaderPath != "")
                         glRenderer.LoadShaders(oglShaderPath);
 
                     glRenderer.MultisampleBits = (uint)oglMSAA;

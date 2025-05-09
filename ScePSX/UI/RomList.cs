@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime;
 using System.Windows.Forms;
 
 using ScePSX.CdRom2;
@@ -544,13 +543,13 @@ namespace ScePSX.UI
             Rectangle bounds = e.Bounds;
 
             bool isHovered = e.Index == _hoverIndex;
-            
+
             Color rowBackColor = (e.Index % 2 == 0)
                 ? ItemBackColor2 // 偶数行稍浅
                 : ItemBackColor1; // 奇数行稍深
 
             if (isHovered)
-                rowBackColor = HoverColor; 
+                rowBackColor = HoverColor;
 
             using (var backBrush = new SolidBrush(rowBackColor))
             {
@@ -619,7 +618,7 @@ namespace ScePSX.UI
 
             startX = bounds.Right - 340;
             startY = bounds.Bottom - 32;
-            if (game.LastPlayed != "" && this.Width>550)
+            if (game.LastPlayed != "" && this.Width > 550)
                 DrawInfoBox(g, $"{ScePSX.Properties.Resources.RomList_DrawInfoBoxes_最后运行}: {game.LastPlayed}", startX - 29, startY, 9);
             DrawInfoBox(g, $"{ScePSX.Properties.Resources.RomList_DrawInfoBoxes_即时存档}: {(game.HasSaveState ? "✓" : "✗")}", startX + 166, startY, 9);
             DrawInfoBox(g, $"{ScePSX.Properties.Resources.RomList_DrawInfoBoxes_金手指}: {(game.HasCheats ? "✓" : "✗")}", startX + 260, startY, 9);
@@ -941,7 +940,7 @@ namespace ScePSX.UI
                 DefaultIcon.Dispose();
                 foreach (var item in Items)
                 {
-                    if((item as Game).Icon != null)
+                    if ((item as Game).Icon != null)
                         (item as Game).Icon.Dispose();
                 }
             }
@@ -950,7 +949,7 @@ namespace ScePSX.UI
 
         protected override void WndProc(ref Message m)
         {
-           
+
             base.WndProc(ref m);
         }
 

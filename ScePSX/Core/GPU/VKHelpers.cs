@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 using Vulkan;
 using static ScePSX.VulkanDevice;
@@ -143,7 +142,7 @@ namespace ScePSX
 
         public void SubmitImmediate(VkCommandBuffer cmd)
         {
-            ulong ssv =++_timelineValue;
+            ulong ssv = ++_timelineValue;
 
             var signalInfo = new VkTimelineSemaphoreSubmitInfo
             {
@@ -185,7 +184,7 @@ namespace ScePSX
                 pSemaphores = &ts,
                 pValues = &tv
             };
-            
+
             if (vkWaitSemaphores(Device.device, ref waitInfo, 0) == VkResult.Success)
             {
                 while (_emergencyBuffers.Count > 0)

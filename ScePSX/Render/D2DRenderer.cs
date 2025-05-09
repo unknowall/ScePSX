@@ -15,7 +15,7 @@ namespace ScePSX.Render
         private D2D1BitmapProperties bmpprops;
         private D2D1ColorF clearcolor = new D2D1ColorF(0, 0, 0, 1);
         private int[] pixels = new int[1024 * 512];
-        private int width , oldwidth = 1024;
+        private int width, oldwidth = 1024;
         private int height, oldheight = 512;
         private ScaleParam scale, oldscale;
         public int frameskip, fsk = 1;

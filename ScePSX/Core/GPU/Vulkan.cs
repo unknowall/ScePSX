@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using ScePSX.Render;
 
 using Vulkan;
@@ -1128,7 +1127,7 @@ namespace ScePSX
 
             int renderX = 0;
             int renderY = 0;
-            int width  = (int)renderChain.Extent.width;
+            int width = (int)renderChain.Extent.width;
             int hgight = (int)renderChain.Extent.height;
 
             if (KEEPAR)
@@ -1147,7 +1146,7 @@ namespace ScePSX
                 renderY = (hgight - renderHeight) / 2;
 
                 Device.SetViewportAndScissor(cmd, renderX, renderY, renderWidth, renderHeight);
-            }else
+            } else
                 Device.SetViewportAndScissor(cmd, renderX, renderY, width, hgight);
 
             vkCmdDraw(cmd, 4, 1, 0, 0);

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ScePSX
+﻿namespace ScePSX
 {
     public class MetalGPU : IGPU
     {
@@ -114,7 +112,7 @@ namespace ScePSX
         public void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
         }
-        
+
     }
 
 }

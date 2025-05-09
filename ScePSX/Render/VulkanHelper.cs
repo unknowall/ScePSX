@@ -402,7 +402,9 @@ namespace ScePSX.Render
                 _currentIndex = 0;
             }
 
-            public void Dispose() { }
+            public void Dispose()
+            {
+            }
         }
     }
 }

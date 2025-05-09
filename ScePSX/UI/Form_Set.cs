@@ -137,7 +137,7 @@ namespace ScePSX.UI
                 }
             }
 
-            Cbgpu_SelectedIndexChanged(null,null);
+            Cbgpu_SelectedIndexChanged(null, null);
         }
 
         private void saveini(IniFile ini)

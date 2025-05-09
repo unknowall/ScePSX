@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using ScePSX.CdRom2;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScePSX
 {

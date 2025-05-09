@@ -50,9 +50,9 @@
             label2.AutoSize = true;
             label2.Location = new System.Drawing.Point(26, 141);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(56, 17);
+            label2.Size = new System.Drawing.Size(70, 17);
             label2.TabIndex = 1;
-            label2.Text = ScePSX.Properties.Resources.FrmAbout_InitializeComponent_维护者;
+            label2.Text = "Maintainer";
             // 
             // textBox1
             // 
@@ -70,7 +70,6 @@
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(350, 56);
             label3.TabIndex = 3;
-            label3.Text = $"{ScePSX.Properties.Resources.FrmAbout_InitializeComponent_read}\r\n\r\n{ScePSX.Properties.Resources.FrmAbout_InitializeComponent_read2}\r\n";
             // 
             // linkLabel1
             // 
@@ -81,6 +80,7 @@
             linkLabel1.TabIndex = 4;
             linkLabel1.TabStop = true;
             linkLabel1.Text = "https://github.com/unknowall/ScePSX";
+            linkLabel1.LinkClicked += Link_LinkClicked;
             // 
             // FrmAbout
             // 
@@ -96,7 +96,7 @@
             MaximizeBox = false;
             Name = "FrmAbout";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            Text = ScePSX.Properties.Resources.FrmAbout_InitializeComponent_关于;
+            Text = "About";
             ResumeLayout(false);
             PerformLayout();
         }

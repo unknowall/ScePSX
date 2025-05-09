@@ -6,8 +6,6 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Windows.Forms;
 
-using ScePSX;
-
 namespace ScePSX.UI
 {
     public partial class FrmNetPlay : Form
@@ -78,7 +76,7 @@ namespace ScePSX.UI
                 return;
 
             FrmMain.Core.PsxBus.SIO.Close();
-            FrmMain.Core.PsxBus.SIO.Active(true,tblocalip.Text,tbsrvip.Text);
+            FrmMain.Core.PsxBus.SIO.Active(true, tblocalip.Text, tbsrvip.Text);
 
             labhint.Text = ScePSX.Properties.Resources.FrmNetPlay_btnsrv_Click_已启用主机模式;
         }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Windows.Forms.AxHost;
 
 namespace ScePSX.CdRom2
 {

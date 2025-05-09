@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -12,7 +11,7 @@ namespace ScePSX.Render
         private int[] pixels = new int[1024 * 512];
         private ScaleParam scale, oldscale;
 
-        private IntPtr m_Window , p_Window;
+        private IntPtr m_Window, p_Window;
         private IntPtr m_Renderer;
         private IntPtr m_Texture;
         private SDL_Rect srcRect, dstRect;

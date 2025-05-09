@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing.Drawing2D;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -590,7 +589,9 @@ namespace ScePSX
             // 如果 tvIndex==2，特殊处理（硬件中该向量未正确添加）
             if (tvIndex == 2)
             {
-                tx = RFC; ty = GFC; tz = BFC;
+                tx = RFC;
+                ty = GFC;
+                tz = BFC;
                 Vector4 macPart1 = new Vector4(
                     tx * factor + mx.v1.x * vx.x,
                     ty * factor + mx.v2.x * vx.x,

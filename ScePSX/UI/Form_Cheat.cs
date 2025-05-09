@@ -4,10 +4,8 @@ using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ScePSX.UI
 {
@@ -185,7 +183,7 @@ namespace ScePSX.UI
 
                 updateclbs();
 
-                btnsave_Click(null,null);
+                btnsave_Click(null, null);
             }
 
         }

@@ -23,7 +23,7 @@ namespace ScePSX
 
         private int TextureWindowPostMaskX, TextureWindowPostMaskY, TextureWindowPreMaskX, TextureWindowPreMaskY;
 
-        public unsafe class RamBuff: IDisposable
+        public unsafe class RamBuff : IDisposable
         {
             public int Width;
             public int Height;
@@ -163,7 +163,7 @@ namespace ScePSX
             CheckMaskBeforeDraw = false;
 
             for (int i = 0; i < _VRAMTransfer.HalfWords; i++)
-                WriteToVRAM(*(ushort*)(RamData.Pixels+i));
+                WriteToVRAM(*(ushort*)(RamData.Pixels + i));
 
             _VRAMTransfer.HalfWords = 0;
             //Marshal.Copy(FrameBuffer,0, (IntPtr)FrameData.Pixels, FrameBuffer.Length);

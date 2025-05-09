@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static OpenGL.Wgl;

@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 using Vulkan;
 using Vulkan.Win32;
-using static Khronos.Platform;
 using static Vulkan.VulkanNative;
 
 namespace ScePSX.Render

@@ -59,10 +59,11 @@ namespace ScePSX
 
                 _DeviceContext.SetPixelFormat(matchingPixelFormats[0]);
 
-            } catch { 
+            } catch
+            {
                 Console.WriteLine($"[OpenGL GPU] SetPixelFormat Fail");
             }
-            
+
 
             int[] attribs = {
                 Glx.CONTEXT_MAJOR_VERSION_ARB, 3,
