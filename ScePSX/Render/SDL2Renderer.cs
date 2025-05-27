@@ -27,6 +27,8 @@ namespace ScePSX.Render
 
         public RenderMode Mode => RenderMode.Directx3D;
 
+        const uint FixUIHeight = 17;
+
         public SDL2Renderer()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
@@ -166,7 +168,7 @@ namespace ScePSX.Render
             lock (_renderLock)
             {
                 dstRect.w = this.Width;
-                dstRect.h = this.Height;
+                dstRect.h = this.Height - (int)FixUIHeight;
 
                 lock (bufferLock)
                 {

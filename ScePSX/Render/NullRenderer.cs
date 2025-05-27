@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+
 using static OpenGL.Wgl;
 
 namespace ScePSX.Render
@@ -21,6 +22,8 @@ namespace ScePSX.Render
 
         public static int ClientWidth;
         public static int ClientHeight;
+
+        const uint FixUIHeight = 17;
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetDC(IntPtr hwnd);
@@ -100,7 +103,7 @@ namespace ScePSX.Render
             DescribePixelFormat(hdc, 1, (uint)sizeof(PIXELFORMATDESCRIPTOR), ref pfd);
 
             ClientWidth = this.ClientSize.Width;
-            ClientHeight = this.ClientSize.Height;
+            ClientHeight = this.ClientSize.Height - (int)FixUIHeight;
         }
 
         public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)

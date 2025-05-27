@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace ScePSX.UI
 {
@@ -16,17 +15,17 @@ namespace ScePSX.UI
 
         private void Link_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-                try
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = linkLabel1.Text,
-                        UseShellExecute = true
-                    });
-                } catch
-                {
+                    FileName = linkLabel1.Text,
+                    UseShellExecute = true
+                });
+            } catch
+            {
 
-                }
+            }
         }
     }
 }

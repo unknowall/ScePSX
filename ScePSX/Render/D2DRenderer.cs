@@ -21,6 +21,8 @@ namespace ScePSX.Render
         public int frameskip, fsk = 1;
         private float dpiX, dpiY;
 
+        const uint FixUIHeight = 17;
+
         public RenderMode Mode => RenderMode.Directx2D;
 
         private readonly object bufferLock = new object();
@@ -90,7 +92,7 @@ namespace ScePSX.Render
             var hwndRenderTargetProperties = new D2D1HwndRenderTargetProperties
             (
                 this.Handle,
-                new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height),
+                new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height - FixUIHeight),
                 D2D1PresentOptions.None
             );
 
@@ -180,7 +182,7 @@ namespace ScePSX.Render
 
                 renderTarget.Clear();
 
-                var dstrect = new D2D1RectF(0, 0, ClientSize.Width, ClientSize.Height);
+                var dstrect = new D2D1RectF(0, 0, ClientSize.Width, ClientSize.Height - FixUIHeight);
                 var srcrect = new D2D1RectF(0, 0, width, height);
                 renderTarget.DrawBitmap(bitmap, dstrect, 1.0f, D2D1BitmapInterpolationMode.Linear, srcrect);
 
