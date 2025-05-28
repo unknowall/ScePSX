@@ -53,9 +53,9 @@ namespace ScePSX.Render
         public void Initialize(Control parentControl)
         {
             Parent = parentControl;
+            parentControl.Controls.Add(this);
             Dock = DockStyle.Fill;
             Enabled = false;
-            parentControl.Controls.Add(this);
         }
 
         public void SetParam(int Param)
@@ -196,7 +196,7 @@ namespace ScePSX.Render
 
             if (this.ClientSize.Width > 0 && this.ClientSize.Height > 0 && renderTarget != null)
             {
-                var dstrect = new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height);
+                var dstrect = new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height + 5);
 
                 renderTarget.Resize(dstrect);
 

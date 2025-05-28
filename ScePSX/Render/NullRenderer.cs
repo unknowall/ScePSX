@@ -103,7 +103,7 @@ namespace ScePSX.Render
             DescribePixelFormat(hdc, 1, (uint)sizeof(PIXELFORMATDESCRIPTOR), ref pfd);
 
             ClientWidth = this.ClientSize.Width;
-            ClientHeight = this.ClientSize.Height - (int)FixUIHeight;
+            ClientHeight = this.ClientSize.Height;
         }
 
         public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
@@ -126,7 +126,7 @@ namespace ScePSX.Render
             base.OnResize(e);
 
             ClientWidth = this.ClientSize.Width;
-            ClientHeight = this.ClientSize.Height;
+            ClientHeight = this.ClientSize.Height + 5;
 
             resizeTimer.Stop();
             resizeTimer.Start();

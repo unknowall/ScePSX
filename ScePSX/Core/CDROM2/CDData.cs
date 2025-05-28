@@ -262,6 +262,78 @@ namespace ScePSX.CdRom2
             return crcValue ^ 0xFFFFFFFF;
         }
 
+        public static Encoding DetectEncoding(string filePath)
+        {
+            byte[] buffer = File.ReadAllBytes(filePath);
+            int length = buffer.Length;
+            bool isAscii = true;
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            if (buffer.Length >= 3 && buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+                return Encoding.UTF8;
+
+            if (buffer.Length >= 2)
+            {
+                if (buffer[0] == 0xFF && buffer[1] == 0xFE)
+                    return Encoding.Unicode; // UTF-16 LE
+
+                if (buffer[0] == 0xFE && buffer[1] == 0xFF)
+                    return Encoding.BigEndianUnicode; // UTF-16 BE
+            }
+
+            if (buffer.Length >= 4)
+            {
+                if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0xFE && buffer[3] == 0xFF)
+                    return Encoding.GetEncoding(12000); // UTF-32 LE
+
+                if (buffer[0] == 0xFF && buffer[1] == 0xFE && buffer[2] == 0x00 && buffer[3] == 0x00)
+                    return Encoding.GetEncoding(12001); // UTF-32 BE
+            }
+
+            
+            foreach (byte b in buffer)
+            {
+                if (b > 0x7F)
+                {
+                    isAscii = false;
+                    break;
+                }
+            }
+
+            if (isAscii)
+            {
+                return Encoding.ASCII;
+            }
+
+            Encoding[] encodings = new[]
+            {
+                Encoding.GetEncoding(936), // GBK / GB2312
+                Encoding.GetEncoding(950), // Big5
+                Encoding.GetEncoding(932), // Shift-JIS 
+                Encoding.GetEncoding(28591), // ISO-8859-1
+                Encoding.GetEncoding(1251), // RU
+            };
+
+            foreach (Encoding encoding in encodings)
+            {
+                if (encoding == null)
+                    continue;
+
+                try
+                {
+                    Decoder decoder = encoding.GetDecoder();
+                    char[] chars = new char[encoding.GetCharCount(buffer, 0, length)];
+                    decoder.GetChars(buffer, 0, length, chars, 0);
+                    return encoding;
+                } catch
+                {
+                }
+            }
+
+            return new UTF8Encoding(false);
+        }
+
         public List<CDTrack> FromBin(string file)
         {
             var tracks = new List<CDTrack>();
@@ -286,7 +358,11 @@ namespace ScePSX.CdRom2
 
             var directory = Path.GetDirectoryName(path);
 
-            using var reader = new StreamReader(path);
+            Encoding fileEncoding = DetectEncoding(path);
+
+            Console.WriteLine($"[CDROM] Cue Encoding: {fileEncoding.CodePage.ToString()}");
+
+            using var reader = new StreamReader(path, fileEncoding);
 
             var tracks = new List<CDTrack>();
 
