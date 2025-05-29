@@ -172,7 +172,11 @@ namespace ScePSX.UI
             string urlid = ConvertID(DiskID);
             if (urlid != "")
             {
+                BtnSearch.Enabled = false;
+
                 string content = await ReadUrlContentAsync(urlprefix + urlid);
+
+                BtnSearch.Enabled = true;
 
                 if (content == "")
                     return;
