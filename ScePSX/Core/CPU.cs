@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 using ScePSX.Disassembler;
 
 namespace ScePSX
@@ -368,6 +369,8 @@ namespace ScePSX
             }
         }
 
+        public bool FastBoot = false;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int fetchDecode()
         {
@@ -376,6 +379,20 @@ namespace ScePSX
             PC_Now = PC;
             PC = PC_Predictor;
             PC_Predictor += 4;
+
+            if (FastBoot)
+            {
+                if (PC_Now == 0x80030000)
+                {
+                    PC = GPR[31];
+                    PC_Now = PC;
+                    PC_Predictor = PC + 4;
+                    FastBoot = false;
+                    opcodeIsBranch = false;
+                    opcodeTookBranch = false;
+                    return 20;
+                }
+            }
 
             opcodeIsDelaySlot = opcodeIsBranch;
             opcodeInDelaySlotTookBranch = opcodeTookBranch;

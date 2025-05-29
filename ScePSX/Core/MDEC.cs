@@ -49,6 +49,7 @@ namespace ScePSX
 
         public void write(uint addr, uint value)
         {
+            //Console.WriteLine($"[MDEC] write access {addr} : {value}");
             uint register = addr & 0xF;
             if (register == 0)
             {
@@ -58,7 +59,7 @@ namespace ScePSX
                 writeMDEC1_Control(value);
             } else
             {
-                Console.WriteLine($"[GPU] Unhandled GPU write access to register {register} : {value}");
+                Console.WriteLine($"[MDEC] Unhandled MDEC write access to register {register} : {value}");
             }
         }
 
@@ -352,6 +353,7 @@ namespace ScePSX
 
         public Span<uint> processDmaLoad(int size)
         {
+            //Console.WriteLine("[MDEC] DmaLoad " + size.ToString());
             if (dataOutputDepth == 2)
             { //2 24b
                 var byteSpan = outBuffer.Memory.Span.Slice(outBufferPos++ * 4 * size, 4 * size); //4 = RGBR, GBRG, BRGB...
@@ -410,6 +412,8 @@ namespace ScePSX
             status |= bit15 << 23;
             status |= (currentBlock + 4) % NUM_BLOCKS << 16;
             status |= (ushort)(remainingDataWords - 1);
+
+            //Console.WriteLine("[MDEC] dataOutputDepth " + dataOutputDepth.ToString("x8"));
             //Console.WriteLine("[MDEC] Load Status " + status.ToString("x8"));
             //Console.ReadLine();
 

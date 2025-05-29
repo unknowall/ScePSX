@@ -1058,6 +1058,8 @@ namespace ScePSX.UI
                 return;
             }
 
+            Core.PsxBus.cpu.FastBoot = ini.ReadInt("main", "FastBoot") == 1;
+
             sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
             SetAudioBuffer();

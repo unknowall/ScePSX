@@ -262,7 +262,7 @@ namespace ScePSX.CdRom2
             return crcValue ^ 0xFFFFFFFF;
         }
 
-        public static Encoding DetectEncoding(string filePath)
+        public Encoding DetectEncoding(string filePath)
         {
             byte[] buffer = File.ReadAllBytes(filePath);
             int length = buffer.Length;
