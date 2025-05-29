@@ -46,6 +46,9 @@ namespace ScePSX.CdRom2
             {
                 DiskID = CalcCRC32(diskFilename).ToString();
                 return;
+            } else
+            {
+                return;
             }
 
             if (diskid != "")

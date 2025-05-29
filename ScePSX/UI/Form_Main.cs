@@ -12,7 +12,6 @@ using static SDL2.SDL;
 
 namespace ScePSX.UI
 {
-
     public partial class FrmMain : Form, IAudioHandler, IRenderHandler
     {
         [DllImport("kernel32.dll")]
@@ -77,8 +76,8 @@ namespace ScePSX.UI
 
             //CheckForIllegalCrossThreadCalls = false;
 
-            KeyDown += new KeyEventHandler(ButtonsDown);
-            KeyUp += new KeyEventHandler(ButtonsUp);
+            panel.KeyDown += new KeyEventHandler(ButtonsDown);
+            panel.KeyUp += new KeyEventHandler(ButtonsUp);
 
             if (!Path.Exists("./Save"))
                 Directory.CreateDirectory("./Save");
@@ -535,7 +534,7 @@ namespace ScePSX.UI
             romList = new RomList();
             romList.Parent = this;
             romList.Dock = DockStyle.Fill;
-            Controls.Add(romList);
+            panel.Controls.Add(romList);
             romList.Enabled = true;
             romList.Visible = true;
             romList.BorderStyle = BorderStyle.FixedSingle;
@@ -559,7 +558,7 @@ namespace ScePSX.UI
                 if (mode == RenderMode.OpenGL && (gpumode == GPUType.OpenGL || gpumode == GPUType.Advite))
                 {
                     Render.DisposeCurrentRenderer();
-                    Render.SelectRenderer(RenderMode.Null, this);
+                    Render.SelectRenderer(RenderMode.Null, panel);
 
                     while (NullRenderer.hwnd == 0)
                         Thread.Sleep(100);
@@ -580,7 +579,7 @@ namespace ScePSX.UI
                 if (mode == RenderMode.Vulkan && (gpumode == GPUType.Vulkan || gpumode == GPUType.Advite))
                 {
                     Render.DisposeCurrentRenderer();
-                    Render.SelectRenderer(RenderMode.Null, this);
+                    Render.SelectRenderer(RenderMode.Null, panel);
 
                     while (NullRenderer.hwnd == 0)
                         Thread.Sleep(100);
@@ -600,7 +599,7 @@ namespace ScePSX.UI
                 }
                 if (mode != RenderMode.OpenGL && gpumode == GPUType.OpenGL)
                 {
-                    Render.SelectRenderer(Rendermode, this);
+                    Render.SelectRenderer(Rendermode, panel);
 
                     if (Core.GpuBackend != GPUType.Software)
                         Core.PsxBus.gpu.SelectGPU(GPUType.Software);
@@ -609,7 +608,7 @@ namespace ScePSX.UI
                 }
                 if (mode != RenderMode.Vulkan && gpumode == GPUType.Vulkan)
                 {
-                    Render.SelectRenderer(Rendermode, this);
+                    Render.SelectRenderer(Rendermode, panel);
 
                     if (Core.GpuBackend != GPUType.Software)
                         Core.PsxBus.gpu.SelectGPU(GPUType.Software);
@@ -618,7 +617,7 @@ namespace ScePSX.UI
                 }
                 if (gpumode == GPUType.Software || (mode != RenderMode.Vulkan && mode != RenderMode.OpenGL))
                 {
-                    Render.SelectRenderer(Rendermode, this);
+                    Render.SelectRenderer(Rendermode, panel);
 
                     if (Core.GpuBackend != GPUType.Software)
                         Core.PsxBus.gpu.SelectGPU(GPUType.Software);
@@ -1033,21 +1032,21 @@ namespace ScePSX.UI
             {
                 bootmode = GPUType.OpenGL;
                 Render.DisposeCurrentRenderer();
-                Render.SelectRenderer(RenderMode.Null, this);
+                Render.SelectRenderer(RenderMode.Null, panel);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);
             } else if ((gpumode == GPUType.Vulkan || gpumode == GPUType.Advite) && Rendermode == RenderMode.Vulkan)
             {
                 bootmode = GPUType.Vulkan;
                 Render.DisposeCurrentRenderer();
-                Render.SelectRenderer(RenderMode.Null, this);
+                Render.SelectRenderer(RenderMode.Null, panel);
                 while (NullRenderer.hwnd == 0)
                     Thread.Sleep(100);
             } else
             {
                 gpumode = GPUType.Software;
                 bootmode = GPUType.Software;
-                Render.SelectRenderer(Rendermode, this);
+                Render.SelectRenderer(Rendermode, panel);
             }
 
             Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, bootmode, gameid);

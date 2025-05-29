@@ -56,8 +56,8 @@
             toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             xBRScaleAdd = new System.Windows.Forms.ToolStripMenuItem();
             xBRScaleDec = new System.Windows.Forms.ToolStripMenuItem();
-            toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             fullScreenF2 = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
             AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,6 +70,7 @@
             toolStripStatusLabel6 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel7 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel8 = new System.Windows.Forms.ToolStripStatusLabel();
+            panel = new System.Windows.Forms.Panel();
             MainMenu.SuspendLayout();
             StatusBar.SuspendLayout();
             SuspendLayout();
@@ -285,17 +286,17 @@
             xBRScaleDec.Text = "IR Scale --  (F12)";
             xBRScaleDec.Click += xBRScaleDec_Click;
             // 
-            // toolStripMenuItem7
-            // 
-            toolStripMenuItem7.Name = "toolStripMenuItem7";
-            toolStripMenuItem7.Size = new System.Drawing.Size(381, 6);
-            // 
             // fullScreenF2
             // 
             fullScreenF2.Name = "fullScreenF2";
             fullScreenF2.Size = new System.Drawing.Size(384, 22);
             fullScreenF2.Text = Properties.Resources.FrmMain_InitializeComponent_FullScreenF2;
             fullScreenF2.Click += fullScreenF2_Click;
+            // 
+            // toolStripMenuItem7
+            // 
+            toolStripMenuItem7.Name = "toolStripMenuItem7";
+            toolStripMenuItem7.Size = new System.Drawing.Size(381, 6);
             // 
             // NetPlayMnu
             // 
@@ -375,11 +376,20 @@
             toolStripStatusLabel8.Name = "toolStripStatusLabel8";
             toolStripStatusLabel8.Size = new System.Drawing.Size(0, 17);
             // 
+            // panel
+            // 
+            panel.Dock = System.Windows.Forms.DockStyle.Fill;
+            panel.Location = new System.Drawing.Point(0, 25);
+            panel.Name = "panel";
+            panel.Size = new System.Drawing.Size(684, 451);
+            panel.TabIndex = 2;
+            // 
             // FrmMain
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(684, 498);
+            Controls.Add(panel);
             Controls.Add(StatusBar);
             Controls.Add(MainMenu);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
@@ -443,5 +453,6 @@
         private System.Windows.Forms.ToolStripMenuItem VulkanRenderMnu;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem7;
         private System.Windows.Forms.ToolStripMenuItem fullScreenF2;
+        private System.Windows.Forms.Panel panel;
     }
 }

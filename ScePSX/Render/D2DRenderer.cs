@@ -21,8 +21,6 @@ namespace ScePSX.Render
         public int frameskip, fsk = 1;
         private float dpiX, dpiY;
 
-        const uint FixUIHeight = 17;
-
         public RenderMode Mode => RenderMode.Directx2D;
 
         private readonly object bufferLock = new object();
@@ -50,12 +48,13 @@ namespace ScePSX.Render
             this.ResumeLayout(false);
         }
 
-        public void Initialize(Control parentControl)
+        public void Initialize(Control parent)
         {
-            Parent = parentControl;
-            parentControl.Controls.Add(this);
+            parent.SuspendLayout();
             Dock = DockStyle.Fill;
             Enabled = false;
+            parent.Controls.Add(this);
+            parent.ResumeLayout();
         }
 
         public void SetParam(int Param)
@@ -92,7 +91,7 @@ namespace ScePSX.Render
             var hwndRenderTargetProperties = new D2D1HwndRenderTargetProperties
             (
                 this.Handle,
-                new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height - FixUIHeight),
+                new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height),
                 D2D1PresentOptions.None
             );
 
@@ -182,7 +181,7 @@ namespace ScePSX.Render
 
                 renderTarget.Clear();
 
-                var dstrect = new D2D1RectF(0, 0, ClientSize.Width, ClientSize.Height - FixUIHeight);
+                var dstrect = new D2D1RectF(0, 0, ClientSize.Width, ClientSize.Height);
                 var srcrect = new D2D1RectF(0, 0, width, height);
                 renderTarget.DrawBitmap(bitmap, dstrect, 1.0f, D2D1BitmapInterpolationMode.Linear, srcrect);
 
@@ -196,7 +195,7 @@ namespace ScePSX.Render
 
             if (this.ClientSize.Width > 0 && this.ClientSize.Height > 0 && renderTarget != null)
             {
-                var dstrect = new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height + 5);
+                var dstrect = new D2D1SizeU((uint)this.ClientSize.Width, (uint)this.ClientSize.Height);
 
                 renderTarget.Resize(dstrect);
 

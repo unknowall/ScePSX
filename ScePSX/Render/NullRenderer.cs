@@ -70,12 +70,13 @@ namespace ScePSX.Render
             this.ResumeLayout(false);
         }
 
-        public void Initialize(Control parentControl)
+        public void Initialize(Control parent)
         {
-            Parent = parentControl;
+            parent.SuspendLayout();
             Dock = DockStyle.Fill;
             Enabled = false;
-            parentControl.Controls.Add(this);
+            parent.Controls.Add(this);
+            parent.ResumeLayout();
         }
 
         public void SetParam(int Param)
@@ -126,7 +127,7 @@ namespace ScePSX.Render
             base.OnResize(e);
 
             ClientWidth = this.ClientSize.Width;
-            ClientHeight = this.ClientSize.Height + 5;
+            ClientHeight = this.ClientSize.Height;
 
             resizeTimer.Stop();
             resizeTimer.Start();

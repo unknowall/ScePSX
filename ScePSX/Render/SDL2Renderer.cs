@@ -27,8 +27,6 @@ namespace ScePSX.Render
 
         public RenderMode Mode => RenderMode.Directx3D;
 
-        const uint FixUIHeight = 17;
-
         public SDL2Renderer()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
@@ -52,12 +50,13 @@ namespace ScePSX.Render
             this.ResumeLayout(false);
         }
 
-        public void Initialize(Control parentControl)
+        public void Initialize(Control parent)
         {
-            Parent = parentControl;
+            parent.SuspendLayout();
             Dock = DockStyle.Fill;
             Enabled = false;
-            parentControl.Controls.Add(this);
+            parent.Controls.Add(this);
+            parent.ResumeLayout();
         }
 
         public void SetParam(int Param)
@@ -168,7 +167,7 @@ namespace ScePSX.Render
             lock (_renderLock)
             {
                 dstRect.w = this.Width;
-                dstRect.h = this.Height - (int)FixUIHeight;
+                dstRect.h = this.Height;
 
                 lock (bufferLock)
                 {

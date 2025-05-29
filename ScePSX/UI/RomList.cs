@@ -169,7 +169,8 @@ namespace ScePSX.UI
                         MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
                         foreach (var Slot in mcr.Slots)
                         {
-                            if (Slot.ProdCode == id && Slot.type == MemCardMange.SlotTypes.initial)
+                            //if (Slot.ProdCode == selectedGame.ID && Slot.IconFrames > 0) //Slot.type == MemCardMange.SlotTypes.initial
+                            if (Slot.IconFrames > 0)
                             {
                                 game.Icon = Slot.GetIconBitmap(0);
                                 game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
@@ -200,7 +201,8 @@ namespace ScePSX.UI
                     game.Name = Path.GetFileNameWithoutExtension(f.FullName);
                 game.FileName = Path.GetFileName(f.FullName);
                 game.ID = id;
-                game.Size = cddata.tracks[0].FileLength;
+                if(cddata.tracks != null)
+                    game.Size = cddata.tracks[0].FileLength;
 
                 string infos = FrmMain.ini.Read("history", id);
 
@@ -225,7 +227,8 @@ namespace ScePSX.UI
                     MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
                     foreach (var Slot in mcr.Slots)
                     {
-                        if (Slot.ProdCode == id && Slot.type == MemCardMange.SlotTypes.initial)
+                        //if (Slot.ProdCode == selectedGame.ID && Slot.IconFrames > 0) //Slot.type == MemCardMange.SlotTypes.initial
+                        if (Slot.IconFrames > 0)
                         {
                             game.Icon = Slot.GetIconBitmap(0);
                             game.Icon.Save($"./Icons/{id}.png", ImageFormat.Png);
@@ -325,7 +328,7 @@ namespace ScePSX.UI
         private void ShowFrom(Form Frm)
         {
             Frm.StartPosition = FormStartPosition.Manual;
-            Frm.Owner = (Form)this.Parent;
+            Frm.Owner = (Form)this.Parent.Parent;
 
             Point parentCenterClient = new Point(
                 this.ClientSize.Width / 2,
@@ -365,7 +368,8 @@ namespace ScePSX.UI
             MemCardMange mcr = new MemCardMange($"./Save/{selectedGame.ID}.dat");
             foreach (var Slot in mcr.Slots)
             {
-                if (Slot.ProdCode == selectedGame.ID && Slot.type == MemCardMange.SlotTypes.initial)
+                //if (Slot.ProdCode == selectedGame.ID && Slot.IconFrames > 0) //Slot.type == MemCardMange.SlotTypes.initial
+                if (Slot.IconFrames > 0)
                 {
                     if (selectedGame.Icon != null)
                         selectedGame.Icon.Dispose();

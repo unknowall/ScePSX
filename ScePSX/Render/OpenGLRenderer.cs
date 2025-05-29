@@ -46,12 +46,13 @@ namespace ScePSX.Render
                    .Any(m => m.ModuleName.Contains("ReShade"));
         }
 
-        public void Initialize(Control parentControl)
+        public void Initialize(Control parent)
         {
-            Parent = parentControl;
+            parent.SuspendLayout();
             Dock = DockStyle.Fill;
             Enabled = false;
-            parentControl.Controls.Add(this);
+            parent.Controls.Add(this);
+            parent.ResumeLayout();
         }
 
         public void SetParam(int Param)

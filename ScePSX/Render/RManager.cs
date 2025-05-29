@@ -22,7 +22,7 @@ namespace ScePSX.Render
 
         void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale);
 
-        void Initialize(Control parentControl);
+        void Initialize(Control parent);
 
         void SetParam(int Param);
     }
@@ -48,7 +48,7 @@ namespace ScePSX.Render
         };
         }
 
-        public void SelectRenderer(RenderMode mode, Control parentControl, int Param = 0)
+        public void SelectRenderer(RenderMode mode, Control parent, int Param = 0)
         {
             if (_currentRenderer?.Mode == mode)
                 return;
@@ -59,7 +59,7 @@ namespace ScePSX.Render
             {
                 _currentRenderer = factory();
 
-                _currentRenderer.Initialize(parentControl);
+                _currentRenderer.Initialize(parent);
 
                 if (_currentRenderer is OpenGLRenderer glRenderer)
                 {
