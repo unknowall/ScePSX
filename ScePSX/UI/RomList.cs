@@ -201,7 +201,7 @@ namespace ScePSX.UI
                     game.Name = Path.GetFileNameWithoutExtension(f.FullName);
                 game.FileName = Path.GetFileName(f.FullName);
                 game.ID = id;
-                if(cddata.tracks != null)
+                if (cddata.tracks != null)
                     game.Size = cddata.tracks[0].FileLength;
 
                 string infos = FrmMain.ini.Read("history", id);

@@ -294,7 +294,7 @@ namespace ScePSX.CdRom2
                     return Encoding.GetEncoding(12001); // UTF-32 BE
             }
 
-            
+
             foreach (byte b in buffer)
             {
                 if (b > 0x7F)
