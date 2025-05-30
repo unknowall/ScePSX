@@ -112,6 +112,7 @@ namespace ScePSX.UI
             contextMenuStrip.BackColor = MenuBackColor;
             var split = new ToolStripSeparator();
 
+
             var item0 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_存档管理, null, OnMcrClick);
             var item1 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_修改设置, null, OnSetClick);
             var item2 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_编辑金手指, null, OnCheatClick);
@@ -119,8 +120,12 @@ namespace ScePSX.UI
             var item5 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_取存档图标, null, OnUpIconClick);
             var item3 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_设置图标, null, OnSetIconClick);
             var item4 = new ToolStripMenuItem(ScePSX.Properties.Resources.RomList_RomList_删除, null, OnDeleteClick);
+
+            var item6 = new ToolStripMenuItem("FastBoot", null, OnFastBoot);
+
             contextMenuStrip.Items.AddRange(new ToolStripItem[]
             {
+                item6, split,
                 item0, split,
                 item1, item2, split,
                 item5, item3, split, item4
@@ -343,6 +348,14 @@ namespace ScePSX.UI
                 );
 
             Frm.Show();
+        }
+
+        private void OnFastBoot(object sender, EventArgs e)
+        {
+            if (SelectedGame() == null)
+                return;
+            var Game = SelectedGame();
+            (Parent.Parent as FrmMain).LoadRom(Game.fullName, Game, true);
         }
 
         private void OnSetClick(object sender, EventArgs e)

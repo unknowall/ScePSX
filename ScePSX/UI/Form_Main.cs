@@ -960,7 +960,7 @@ namespace ScePSX.UI
                 Core.Button(button1, false, 1);
         }
 
-        private void LoadRom(string fn = "", RomList.Game game = null)
+        public void LoadRom(string fn = "", RomList.Game game = null, bool FastBoot = false)
         {
             if (!File.Exists("./BIOS/" + currbios))
             {
@@ -1057,7 +1057,8 @@ namespace ScePSX.UI
                 return;
             }
 
-            Core.PsxBus.cpu.FastBoot = ini.ReadInt("main", "FastBoot") == 1;
+            //Core.PsxBus.cpu.FastBoot = ini.ReadInt("main", "FastBoot") == 1;
+            Core.PsxBus.cpu.FastBoot = FastBoot;
 
             sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
