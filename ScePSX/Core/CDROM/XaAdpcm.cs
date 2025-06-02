@@ -105,11 +105,6 @@ namespace ScePSX.CdRom
                     short finalRight = (short)Math.Clamp(rightOutput, -0x8000, 0x7FFF);
                     output.Enqueue(finalLeft);
                     output.Enqueue(finalRight);
-
-                    //The reason why leftSample = M[i] and rightSample = M[i] is because
-                    //Naudio expects Stereo buffer [first L sample then R sample],
-                    //so we output the same sample twice, one for L and one for R
-                    //It is worth noting that the result is much better that using dst = dst + 2 as in psxspx
                 }
             }
         }

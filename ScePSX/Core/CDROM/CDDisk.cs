@@ -289,7 +289,7 @@ namespace ScePSX.CdRom
                 Encoding.GetEncoding(950), // Big5
                 Encoding.GetEncoding(932), // Shift-JIS 
                 Encoding.GetEncoding(28591), // ISO-8859-1
-                Encoding.GetEncoding(1251), // RU
+                Encoding.GetEncoding(1251), // CP1251
             };
 
             foreach (Encoding encoding in encodings)

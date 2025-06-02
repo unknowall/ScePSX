@@ -202,9 +202,9 @@ namespace ScePSX.CdRom
             }
         }
 
-        public bool LoadNewSector(int currentIndex)
+        public bool LoadNewSector(int currentPos)
         {
-            SelectedTrack.ReadSector(currentIndex);
+            SelectedTrack.ReadSector(currentPos);
 
             LastSectorHeader[0] = SelectedTrack.SectorBuffer[0x0C];
             LastSectorHeader[1] = SelectedTrack.SectorBuffer[0x0D];
@@ -238,32 +238,32 @@ namespace ScePSX.CdRom
                 //Should continue to data path
                 uint size = SizeOfDataSegment;
                 LastReadSector.TrackNumber = SelectedTrackNumber;
-                LastReadSector.Start = (int)(BytesToSkip);// + currentIndex);
+                LastReadSector.Start = (int)(BytesToSkip);// + currentPos);
                 LastReadSector.Length = (int)size;
                 return true;
             }
         }
 
-        public void PlayCDDA(int currentIndex)
+        public void PlayCDDA(int currentPos)
         {
-            int offset = currentIndex - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart;
+            int offset = currentPos - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart;
 
             if (offset >= SelectedTrack.PLength && Disk.Tracks.Count > 1)
             {
-                int newTrack = FindTrack(currentIndex, 1);
-                offset = (currentIndex - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart);
+                int newTrack = FindTrack(currentPos, 1);
+                offset = (currentPos - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart);
                 SelectTrackAndRead(newTrack, offset);
                 Console.WriteLine("[CDROM] CD-DA Moving to track: " + SelectedTrackNumber);
             } else if (offset < 0 && Disk.Tracks.Count > 1)
             {
-                int newTrack = FindTrack(currentIndex, 1);
+                int newTrack = FindTrack(currentPos, 1);
                 if (newTrack == SelectedTrackNumber)
                 {
                     Console.WriteLine("[CDROM] CD-DA Pregap!");
                     return;
                 } else
                 {
-                    offset = currentIndex - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart;
+                    offset = currentPos - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart;
                     SelectTrackAndRead(newTrack, offset);
                 }
             } else

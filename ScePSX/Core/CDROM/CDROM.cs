@@ -83,7 +83,7 @@ namespace ScePSX.CdRom
     [Serializable]
     public unsafe class CDROM
     {
-        const int OneSecond = 33868800;
+        const int PSX_MHZ = 33868800;
 
         public enum Flags
         {
@@ -100,17 +100,17 @@ namespace ScePSX.CdRom
         {
             Zero = 0,
             INT1_SingleSpeed = 0x006e1cd,
-            INT1_DoubleSpeed = (int)(OneSecond * 0.65666),
+            INT1_DoubleSpeed = (int)(PSX_MHZ * 0.65666),
             INT2_GetID = 0x0004a00,
-            INT2_Pause_SingleSpeed = (int)(OneSecond * 0.070),
-            INT2_Pause_DoubleSpeed = (int)(OneSecond * 0.035),
+            INT2_Pause_SingleSpeed = (int)(PSX_MHZ * 0.070),
+            INT2_Pause_DoubleSpeed = (int)(PSX_MHZ * 0.035),
             INT2_PauseWhenPaused = 0x0001df2,
             INT2_Stop_SingleSpeed = 0x0d38aca,
             INT2_Stop_DoubleSpeed = 0x18a6076,
             INT2_StopWhenStopped = 0x0001d7b,
-            INT2LongSeek = OneSecond * 2,
-            INT2_Init = (int)(OneSecond * 0.120),
-            INT3_Init = (int)(OneSecond * 0.002),
+            INT2LongSeek = PSX_MHZ * 2,
+            INT2_Init = (int)(PSX_MHZ * 0.120),
+            INT3_Init = (int)(PSX_MHZ * 0.002),
             INT3_General = 0x000c4e1,
             INT3_GetStatWhenStopped = 0x0005cf4,
             INT4 = 0, //? 
@@ -196,7 +196,7 @@ namespace ScePSX.CdRom
         bool IsError;
         int SpeedAdjust;
 
-        public int CombineDelaySet = (int)(OneSecond * 0.002);
+        public int CombineDelaySet = (int)(PSX_MHZ * 0.002);
 
         public CDROM(IRQController irq, string path, string diskid = null)
         {
@@ -249,7 +249,7 @@ namespace ScePSX.CdRom
             {
                 Responses = new Queue<Response>(Responses.Where(x => x.interrupt == (int)Flags.INT3));
                 stat = 0x6;
-                Error(Errors.InvalidParameter, OneSecond * 5);
+                Error(Errors.InvalidParameter, PSX_MHZ * 5);
                 Console.WriteLine($"[CDROM] Error at command {command:X2}");
                 return;
             }
@@ -343,7 +343,7 @@ namespace ScePSX.CdRom
         public void SwapDisk(CDData cddata)
         {
             //Console.WriteLine($"[CDROM] SwappingDisk Disk");
-            SwappingDelay = (int)(OneSecond * 0.03);
+            SwappingDelay = (int)(PSX_MHZ * 0.03);
             DATA = cddata;
             State = CDROMState.SwappingDisk;
             LidOpen = true;
@@ -496,7 +496,7 @@ namespace ScePSX.CdRom
             {
                 if (Responses.Peek().FinishedProcessing)
                 {
-                    Responses.Peek().delay = (int)Math.Ceiling(OneSecond * 0.00035); //350us
+                    Responses.Peek().delay = (int)Math.Ceiling(PSX_MHZ * 0.00035); //350us
                 }
             }
         }
@@ -740,7 +740,7 @@ namespace ScePSX.CdRom
         private void Play()
         {
             int newIndex = ((M * 60 * 75) + (S * 75) + F) * 0x930;
-            ReadRate = OneSecond / (DoubleSpeed ? 150 : 75);
+            ReadRate = PSX_MHZ / (DoubleSpeed ? 150 : 75);
 
             if (SetLoc)
             {
@@ -925,7 +925,7 @@ namespace ScePSX.CdRom
             }
 
             int newIndex = ((M * 60 * 75) + (S * 75) + F - 150) * 0x930;
-            ReadRate = OneSecond / (DoubleSpeed ? 150 : 75);
+            ReadRate = PSX_MHZ / (DoubleSpeed ? 150 : 75);
 
             if (SetLoc)
             {
@@ -951,11 +951,11 @@ namespace ScePSX.CdRom
                 if (CurrentPos > DATA.EndOfDisk)
                 {
                     error = Errors.InvalidParameter;
-                    delay = (int)(OneSecond * 0.7);
+                    delay = (int)(PSX_MHZ * 0.7);
                 } else
                 {
                     error = Errors.SeekError;
-                    delay = (OneSecond * 4) + 300000;
+                    delay = (PSX_MHZ * 4) + 300000;
                 }
                 Error(error, delay);
                 return;
@@ -1027,7 +1027,7 @@ namespace ScePSX.CdRom
             if (position > DATA.Disk.Tracks[0].Length)
             {
                 stat = 0x6;
-                Error(Errors.SeekError, (OneSecond * 4) + 300000);
+                Error(Errors.SeekError, (PSX_MHZ * 4) + 300000);
                 return;
             }
 
@@ -1328,7 +1328,7 @@ namespace ScePSX.CdRom
                         Response sectorAck = new Response(new byte[] { stat }, Delays.Zero, Flags.INT1, CDROMState.ReadingData);
                         Responses.Enqueue(sectorAck);
                     }
-                    ReadRate = OneSecond / (DoubleSpeed ? 150 : 75);
+                    ReadRate = PSX_MHZ / (DoubleSpeed ? 150 : 75);
 
                     break;
 
@@ -1365,7 +1365,7 @@ namespace ScePSX.CdRom
                     }
 
                     IncrementIndex(0);
-                    ReadRate = OneSecond / (DoubleSpeed ? 150 : 75);
+                    ReadRate = PSX_MHZ / (DoubleSpeed ? 150 : 75);
                     break;
             }
 
@@ -1403,7 +1403,7 @@ namespace ScePSX.CdRom
 
         private long CalculateSeekTime(int position, int destination)
         {
-            long wait = (long)((long)OneSecond * 2 * 0.001 * (Math.Abs((position - destination)) / (75 * 0x930)));
+            long wait = (long)((long)PSX_MHZ * 2 * 0.001 * (Math.Abs((position - destination)) / (75 * 0x930)));
             //Console.WriteLine("[CDROM] Difference of: " + (Math.Abs((position - destination)) / (75 * 0x930)) + " Seconds");
             //Console.WriteLine("[CDROM] Seek time: " + wait);
             return (long)Delays.INT3_General;

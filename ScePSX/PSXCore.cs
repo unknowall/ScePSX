@@ -75,9 +75,10 @@ namespace ScePSX
 
         public void ColorLine(string logs)
         {
+            ConsoleColor previousColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(logs);
-            Console.ResetColor();
+            Console.ForegroundColor = previousColor;
         }
 
         public void CombineSet()
@@ -86,8 +87,8 @@ namespace ScePSX
             if (PsxBus.DiskID == "SLUS-00748" || PsxBus.DiskID == "SLES-00972" || PsxBus.DiskID == "SLES-00973"
             || PsxBus.DiskID == "SLES-00974" || PsxBus.DiskID == "SLES-00975" || PsxBus.DiskID == "SLUS-00421")
             {
-                //PsxBus.cdrom.CombineDelaySet = (int)(33868800 * 0.001);
-                //ColorLine($"ScePSX CombineSet {PsxBus.cdrom.CombineDelaySet}");
+                PsxBus.cdrom.CombineDelaySet = (int)(PSX_MHZ * 0.001);
+                ColorLine($"ScePSX CombineSet {PsxBus.cdrom.CombineDelaySet}");
             }
         }
 
@@ -398,15 +399,7 @@ namespace ScePSX
                 if (!Pauseing)
                 {
                     Pauseed = false;
-                    //for (int i = 0; i < SYNC_LOOPS; i++)
-                    //{
-                    //    for (int j = 0; j < SYNC_CPU_TICK; j++) //42
-                    //    {
-                    //        PsxBus.cpu.tick();
-                    //    }
-                    //    PsxBus.tick(SYNC_CYCLES_BUS);
-                    //    PsxBus.cpu.handleInterrupts();
-                    //}
+
                     for (int i = 0; i < totalTicks; i++)
                     {
                         PsxBus.cpu.tick();

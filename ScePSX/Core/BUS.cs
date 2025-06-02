@@ -103,10 +103,8 @@ namespace ScePSX
 
             dma = new DMA(this);
 
-            //spu = new SPU(Host, IRQCTL);
-            //cdrom = new CDROM(cddata, spu);
-
             spu = new SPU(Host, cddata, IRQCTL);
+
             cdrom = new CDROM(IRQCTL, cddata);
 
             SIO = new SerialIO();
