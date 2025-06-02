@@ -4,9 +4,11 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using ScePSX.CdRom2;
+using ScePSX.CdRom;
 
 namespace ScePSX.UI
 {
@@ -190,10 +192,13 @@ namespace ScePSX.UI
             SortByLastPlayed();
         }
 
-        public void AddByFile(FileInfo f)
+        public void AddByFile(FileInfo f, CDData cddata)
         {
             string ext = Path.GetExtension(f.FullName);
-            CDData cddata = new CDData(f.FullName);
+
+            cddata.DiskID = "";
+            cddata.LoadDisk(f.FullName);
+
             if (cddata.DiskID != "")
             {
                 string id = cddata.DiskID;
@@ -206,8 +211,10 @@ namespace ScePSX.UI
                     game.Name = Path.GetFileNameWithoutExtension(f.FullName);
                 game.FileName = Path.GetFileName(f.FullName);
                 game.ID = id;
-                if (cddata.tracks != null)
-                    game.Size = cddata.tracks[0].FileLength;
+                //if (cddata.tracks != null)
+                //    game.Size = cddata.tracks[0].FileLength;
+                if (cddata.Disk.Tracks != null)
+                    game.Size = cddata.EndOfDisk;
 
                 string infos = FrmMain.ini.Read("history", id);
 
@@ -247,41 +254,171 @@ namespace ScePSX.UI
         }
 
         private bool? _shouldSearchSubdirectories = null;
+        private CDData cddata;
+        private List<string> addedfiles;
+        private Form scanningDialog;
 
-        public void SearchDir(string dir)
+        private void ShowScanningDialog(string currentScanDir)
         {
-            if (File.Exists("gamedb.yaml"))
-                SimpleYaml.ParseYamlFile("gamedb.yaml");
-            DirectoryInfo dirinfo = new DirectoryInfo(dir);
-            foreach (FileInfo f in dirinfo.GetFiles())
+            if (scanningDialog != null && !scanningDialog.IsDisposed)
             {
-                AddByFile(f);
+                scanningDialog.Close();
+                scanningDialog.Dispose();
             }
-            DirectoryInfo[] subDirectories = dirinfo.GetDirectories();
-            if (subDirectories.Length > 0)
+
+            scanningDialog = new Form()
             {
-                if (_shouldSearchSubdirectories == null)
-                {
-                    DialogResult result = MessageBox.Show(
-                        ScePSX.Properties.Resources.RomList_SearchDir_是否要搜索子目录,
-                        "",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question
-                    );
+                Width = 300,
+                Height = 30,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterScreen,
+                Text = $"Scanning {currentScanDir} ...",
+                ControlBox = false,
+                TopMost = true,
+                Font = new Font("Microsoft YaHei", 12)
+            };
 
-                    _shouldSearchSubdirectories = result == DialogResult.Yes;
-                }
+            scanningDialog.Show();
+            scanningDialog.Refresh();
 
-                if (_shouldSearchSubdirectories == true)
+            //scanningDialog.Activate();
+            //scanningDialog.TopMost = false;
+        }
+
+        private void CloseScanningDialog()
+        {
+            if (scanningDialog != null && !scanningDialog.IsDisposed)
+            {
+                scanningDialog.Invoke((MethodInvoker)delegate
                 {
-                    foreach (DirectoryInfo subDir in subDirectories)
+                    scanningDialog.Close();
+                    scanningDialog.Dispose();
+                });
+            }
+        }
+
+        private CancellationTokenSource cts;
+
+        public void SearchDir(string dir, bool first = true)
+        {
+            cts?.Cancel();
+            cts = new CancellationTokenSource();
+
+            Task.Run(() => SearchDirTask(dir, first, cts.Token), cts.Token);
+        }
+
+        private void ProcessFiles(FileInfo[] files, CancellationToken cancellationToken)
+        {
+            foreach (var f in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (addedfiles.Contains(f.FullName))
+                    continue;
+
+                AddByFile(f, cddata);
+
+                if (cddata.Disk.Tracks.Count > 0)
+                {
+                    foreach (var track in cddata.Disk.Tracks)
                     {
-                        SearchDir(subDir.FullName);
+                        addedfiles.Add(track.FilePath);
                     }
                 }
             }
-            SimpleYaml.Clear();
-            SortByLastPlayed();
+        }
+
+        public void SearchDirTask(string dir, bool first, CancellationToken cancellationToken)
+        {
+            if (!Directory.Exists(dir))
+                return;
+
+            if (first)
+            {
+                this.Invoke((MethodInvoker)delegate
+                {
+                    addedfiles = new List<string>();
+                    cddata = new CDData();
+                    if (File.Exists("gamedb.yaml"))
+                        SimpleYaml.ParseYamlFile("gamedb.yaml");
+
+                    ShowScanningDialog(dir);
+                });
+            }
+
+            try
+            {
+                DirectoryInfo dirinfo = new DirectoryInfo(dir);
+
+                ProcessFiles(dirinfo.GetFiles("*.cue"), cancellationToken);
+
+                foreach (var f in dirinfo.GetFiles())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (f.Extension == ".cue")
+                        continue;
+                    if (f.Extension != ".bin" && f.Extension != ".iso" && f.Extension != ".img")
+                        continue;
+                    if (f.Length < 100 * 1024)
+                        continue;
+                    if (addedfiles.Contains(f.FullName))
+                        continue;
+
+                    AddByFile(f, cddata);
+
+                    if (cddata.Disk.Tracks.Count > 0)
+                    {
+                        foreach (var track in cddata.Disk.Tracks)
+                        {
+                            addedfiles.Add(track.FilePath);
+                        }
+                    }
+                }
+
+                var subDirectories = dirinfo.GetDirectories();
+                if (subDirectories.Length > 0)
+                {
+                    if (_shouldSearchSubdirectories == null)
+                    {
+                        bool? result = null;
+                        this.Invoke((MethodInvoker)delegate
+                        {
+                            var dialogResult = MessageBox.Show(
+                                ScePSX.Properties.Resources.RomList_SearchDir_是否要搜索子目录,
+                                "",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question
+                            );
+                            result = dialogResult == DialogResult.Yes;
+                        });
+
+                        _shouldSearchSubdirectories = result;
+                    }
+
+                    if (_shouldSearchSubdirectories == true)
+                    {
+                        foreach (var subDir in subDirectories)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            SearchDirTask(subDir.FullName, false, cancellationToken);
+                        }
+                    }
+                }
+            } catch (OperationCanceledException)
+            {
+            } finally
+            {
+                if (first)
+                {
+                    this.Invoke((MethodInvoker)delegate
+                    {
+                        SimpleYaml.Clear();
+                        SortByLastPlayed();
+                        CloseScanningDialog();
+                    });
+                }
+            }
         }
 
         private void AddOrReplace(Game game)

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using ScePSX.CdRom2;
+
+using ScePSX.CdRom;
 
 namespace ScePSX
 {
@@ -102,8 +103,11 @@ namespace ScePSX
 
             dma = new DMA(this);
 
-            spu = new SPU(Host, IRQCTL);
-            cdrom = new CDROM(cddata, spu);
+            //spu = new SPU(Host, IRQCTL);
+            //cdrom = new CDROM(cddata, spu);
+
+            spu = new SPU(Host, cddata, IRQCTL);
+            cdrom = new CDROM(IRQCTL, cddata);
 
             SIO = new SerialIO();
 
@@ -134,6 +138,7 @@ namespace ScePSX
             }
             cddata = swapcddata;
             DiskID = cddata.DiskID;
+            spu.CDDataControl = cddata;
             cdrom.SwapDisk(cddata);
         }
 
@@ -145,7 +150,7 @@ namespace ScePSX
             Marshal.Copy((IntPtr)memoryControl1, memctl1, 0, memctl1.Length);
             Marshal.Copy((IntPtr)memoryControl2, memctl2, 0, memctl2.Length);
 
-            Marshal.Copy((IntPtr)spu.ram, spuram, 0, spuram.Length);
+            //Marshal.Copy((IntPtr)spu.ram, spuram, 0, spuram.Length);
 
             gpu.ReadySerialized();
         }
@@ -158,7 +163,7 @@ namespace ScePSX
             memoryControl1 = (byte*)Marshal.AllocHGlobal(0x40);
             memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
 
-            spu.ram = (byte*)Marshal.AllocHGlobal(512 * 1024);
+            //spu.ram = (byte*)Marshal.AllocHGlobal(512 * 1024);
 
             Marshal.Copy(ram, 0, (IntPtr)ramPtr, ram.Length);
             Marshal.Copy(scrathpadram, 0, (IntPtr)scrathpadPtr, scrathpadram.Length);
@@ -166,7 +171,7 @@ namespace ScePSX
             Marshal.Copy(memctl1, 0, (IntPtr)memoryControl1, memctl1.Length);
             Marshal.Copy(memctl2, 0, (IntPtr)memoryControl2, memctl2.Length);
 
-            Marshal.Copy(spuram, 0, (IntPtr)spu.ram, spuram.Length);
+            //Marshal.Copy(spuram, 0, (IntPtr)spu.ram, spuram.Length);
 
             InitializeJumpTables();
 
@@ -181,7 +186,7 @@ namespace ScePSX
             gpu.SelectGPU(gputype);
             gpu.DeSerialized();
 
-            cddata.LoadFileStream();
+            cddata.ReLoadFS();
         }
 
         public unsafe void Dispose()
@@ -192,7 +197,7 @@ namespace ScePSX
             Marshal.FreeHGlobal((nint)memoryControl1);
             Marshal.FreeHGlobal((nint)memoryControl2);
 
-            Marshal.FreeHGlobal((nint)spu.ram);
+            //Marshal.FreeHGlobal((nint)spu.ram);
 
             gpu.Backend.Dispose();
         }

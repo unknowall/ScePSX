@@ -54,9 +54,7 @@ namespace ScePSX
             _IRender = render;
             GpuBackend = gputype;
 
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"ScePSX Booting...");
-            Console.ResetColor();
+            ColorLine($"ScePSX Booting...");
 
             PsxBus = new BUS(this, BiosFile, RomFile, gputype, diskid);
 
@@ -64,16 +62,44 @@ namespace ScePSX
 
             if (DiskID == "")
             {
-                Console.WriteLine($"ScePSX Boot Fail...");
-                Console.ResetColor();
+                ColorLine($"ScePSX Boot Fail...");
                 return;
             }
 
+            CombineSet();
+
             GPU = PsxBus.gpu.Backend.GPU;
 
+            ColorLine($"ScePSX Running...");
+        }
+
+        public void ColorLine(string logs)
+        {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"ScePSX Running...");
+            Console.WriteLine(logs);
             Console.ResetColor();
+        }
+
+        public void CombineSet()
+        {
+            //SLUS-00748, SLUS-00756 Resident Evil 2 - Dual Shock Ver. (USA)
+            if (PsxBus.DiskID == "SLUS-00748" || PsxBus.DiskID == "SLES-00972" || PsxBus.DiskID == "SLES-00973"
+            || PsxBus.DiskID == "SLES-00974" || PsxBus.DiskID == "SLES-00975" || PsxBus.DiskID == "SLUS-00421")
+            {
+                //PsxBus.cdrom.CombineDelaySet = (int)(33868800 * 0.001);
+                //ColorLine($"ScePSX CombineSet {PsxBus.cdrom.CombineDelaySet}");
+            }
+        }
+
+        public void SwapDisk(string RomFile)
+        {
+            PsxBus.SwapDisk(RomFile);
+            if (PsxBus.DiskID == "")
+            {
+                ColorLine($"ScePSX Swap Disk Fail...");
+                return;
+            }
+            CombineSet();
         }
 
         public void Start()

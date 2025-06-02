@@ -19,7 +19,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.6.6";
+        public static string version = "ScePSX Beta 0.1.6.7";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -507,18 +507,19 @@ namespace ScePSX.UI
             }
             if (romList != null)
             {
-                OpenFileDialog FD = new OpenFileDialog();
-                FD.InitialDirectory = ini.Read("main", "LastPath");
-                FD.ValidateNames = false;
-                FD.CheckFileExists = false;
-                FD.CheckPathExists = true;
-                FD.FileName = "select";
-                if (FD.ShowDialog() == DialogResult.Cancel)
+                var folderDialog = new FolderBrowserDialog();
+                folderDialog.InitialDirectory = ini.Read("main", "LastPath");
+                folderDialog.Description = "";
+
+                if (folderDialog.ShowDialog() == DialogResult.Cancel)
                 {
                     return;
                 }
-                if (FD.FileName != "")
-                    romList.SearchDir(Path.GetDirectoryName(FD.FileName));
+
+                if (!string.IsNullOrEmpty(folderDialog.SelectedPath))
+                {
+                    romList.SearchDir(folderDialog.SelectedPath);
+                }
             }
         }
 
@@ -1143,7 +1144,7 @@ namespace ScePSX.UI
             }
             ;
 
-            Core.PsxBus.SwapDisk(FD.FileName);
+            Core.SwapDisk(FD.FileName);
 
             Core.Pauseing = false;
 
