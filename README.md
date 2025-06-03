@@ -14,8 +14,6 @@
 - **Online Multiplayer**: Supports networked gameplay to relive classic gaming experiences.
 - **Save Management**: Easily manage multiple save files.
 
-**The English version is available starting from Beta 0.1.0.**
-
 ## Performance Overview 🚀
 
 | Rendering Mode | Memory Usage | Recommended Hardware | Backend Mode          |
@@ -134,8 +132,6 @@ ScePSX is an open-source project intended solely for learning and research purpo
 - **金手指支持**: 开启作弊功能，解锁隐藏内容或调整游戏难度。
 - **网络对战**: 支持联机对战，重温经典游戏乐趣。
 - **存档管理**: 方便管理多个游戏存档。
-
-<b>the english version is available starting from Beta 0.1.0.</b>
 
 **项目已同步至 Gitee 以及 Gitcode 国内用户可优先访问以加速下载。镜像仓库自动同步更新，确保内容一致**
 
