@@ -150,12 +150,12 @@ ScePSX is an open-source project intended solely for learning and research purpo
 > OpenGL 需支持OpenGL 3.3以上的显卡<br>
 > Vulkan 需支持Vulkan 1.1以上的显卡<br>
 
-_图1：主界面 (UI文本需跟随系统语言)_<br>
+_图1：主界面 (UI文本跟随系统语言)_<br>
 ![psx 1](https://github.com/user-attachments/assets/6166e262-a587-4d26-ad2a-d74e05697ccc)
 
 <!-- ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0) -->
 
-_图2：ReShade界面 (UI文本需跟随系统语言)_<br>
+_图2：ReShade界面 (UI文本跟随系统语言)_<br>
 ![psx 3](https://github.com/user-attachments/assets/4ccdf2d6-f79f-4dd5-a131-9365bfc878b6)
 
 <!-- ![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9) -->
