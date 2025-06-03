@@ -23,8 +23,6 @@ namespace ScePSX.Render
         public static int ClientWidth;
         public static int ClientHeight;
 
-        const uint FixUIHeight = 17;
-
         [DllImport("user32.dll")]
         private static extern IntPtr GetDC(IntPtr hwnd);
 

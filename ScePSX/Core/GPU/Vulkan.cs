@@ -1000,6 +1000,7 @@ namespace ScePSX
         public unsafe byte[] GetRam()
         {
             byte[] data = new byte[(VRAM_WIDTH * VRAM_HEIGHT) * 2];
+
             Marshal.Copy((IntPtr)VRAM, data, 0, data.Length);
 
             return data;
@@ -1027,10 +1028,10 @@ namespace ScePSX
 
             m_vramDisplayArea = new DisplayArea
             {
-                x = rx,
-                y = ry,
-                width = w,
-                height = offsetline * 2
+                x = rx + 3,
+                y = ry + 3,
+                width = w - 6,
+                height = offsetline * 2 - 6
             };
 
             DrawBatch();
@@ -1108,9 +1109,9 @@ namespace ScePSX
             vkCmdBindPipeline(cmd, VkPipelineBindPoint.Graphics, outPipeline.pipeline);
 
             SrcRectUBO u_srcRect = new SrcRectUBO(
-                m_vramDisplayArea.x + 3,
+                m_vramDisplayArea.x,
                 m_vramDisplayArea.y,
-                m_vramDisplayArea.width - 3,
+                m_vramDisplayArea.width,
                 m_vramDisplayArea.height
             );
 
@@ -1261,11 +1262,6 @@ namespace ScePSX
                 minDepth = 0,
                 maxDepth = 1
             };
-        }
-
-        public void SetVRAMTransfer(VRAMTransfer val)
-        {
-            _VRAMTransfer = val;
         }
 
         public unsafe void SetMaskBit(uint value)
@@ -1603,6 +1599,11 @@ namespace ScePSX
                 // 没有回绕
                 WriteTexture(originX, originY, width, height);
             }
+        }
+
+        public void SetVRAMTransfer(VRAMTransfer val)
+        {
+            _VRAMTransfer = val;
         }
 
         public unsafe uint ReadFromVRAM()
