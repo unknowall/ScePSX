@@ -87,6 +87,9 @@ A: Try adjusting the audio buffer size or switching the audio output device.
 ### Q: Does it support all PS1 region versions?
 A: Yes, it supports NTSC-J, NTSC-U, and PAL formats.
 
+### Q: Why isn't the controller vibrating?
+A: For games that support vibration feedback, you need to press **F10** to switch to **analog mode**
+
 ### Q: Why does Vulkan use the most memory?
 A: Because it requires extra memory to store:
 - 3 out-of-order command buffers
@@ -215,6 +218,9 @@ A: 尝试调整音频缓冲区大小，或更换音频输出设备。
 
 ### Q: 是否支持 PS1 的所有区域版本？
 A: 是的，支持 NTSC-J、NTSC-U 和 PAL 格式的游戏。
+
+### Q: 为什么手柄不会震动？
+A: 对于支持震动的游戏，您需要按下F10切换至模拟手柄。
 
 ### Q: 为什么 Vulkan 的内存占用最高？
 A: 因为它需要额外内存来存储：  
