@@ -256,47 +256,6 @@ namespace ScePSX.UI
         private bool? _shouldSearchSubdirectories = null;
         private CDData cddata;
         private List<string> addedfiles;
-        private Form scanningDialog;
-
-        private void ShowScanningDialog(string currentScanDir)
-        {
-            if (scanningDialog != null && !scanningDialog.IsDisposed)
-            {
-                scanningDialog.Close();
-                scanningDialog.Dispose();
-            }
-
-            scanningDialog = new Form()
-            {
-                Width = 300,
-                Height = 30,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                StartPosition = FormStartPosition.CenterScreen,
-                Text = $"Scanning {currentScanDir} ...",
-                ControlBox = false,
-                TopMost = true,
-                Font = new Font("Microsoft YaHei", 12)
-            };
-
-            scanningDialog.Show();
-            scanningDialog.Refresh();
-
-            //scanningDialog.Activate();
-            //scanningDialog.TopMost = false;
-        }
-
-        private void CloseScanningDialog()
-        {
-            if (scanningDialog != null && !scanningDialog.IsDisposed)
-            {
-                scanningDialog.Invoke((MethodInvoker)delegate
-                {
-                    scanningDialog.Close();
-                    scanningDialog.Dispose();
-                });
-            }
-        }
-
         private CancellationTokenSource cts;
 
         public void SearchDir(string dir, bool first = true)
@@ -341,11 +300,12 @@ namespace ScePSX.UI
                     cddata = new CDData();
                     if (File.Exists("gamedb.yaml"))
                         SimpleYaml.ParseYamlFile("gamedb.yaml");
-
-                    ShowScanningDialog(dir);
                 });
             }
-
+            this.Invoke((MethodInvoker)delegate
+            {
+                SimpleOSD.Show(this, $"Search {dir}", 30000);
+            });
             try
             {
                 DirectoryInfo dirinfo = new DirectoryInfo(dir);
@@ -415,7 +375,7 @@ namespace ScePSX.UI
                     {
                         SimpleYaml.Clear();
                         SortByLastPlayed();
-                        CloseScanningDialog();
+                        SimpleOSD.Show(this, "Search Done!", 2000);
                     });
                 }
             }

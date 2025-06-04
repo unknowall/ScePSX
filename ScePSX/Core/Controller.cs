@@ -23,6 +23,7 @@ namespace ScePSX
         public byte VibrationRight = 0x00;
         public byte VibrationLeft = 0x00;
 
+        [NonSerialized]
         public IRumbleHandler RumbleHandler = null;
 
         private enum Mode
@@ -121,9 +122,6 @@ namespace ScePSX
                         if (transferCounter == 3)
                         {
                             VibrationLeft = b;
-                        }
-                        if (transferCounter == 4)
-                        {
                             RumbleHandler?.ControllerRumble(VibrationRight, VibrationLeft);
                             //Console.WriteLine($"[Controller] Rumble {VibrationRight},{VibrationLeft}");
                         }

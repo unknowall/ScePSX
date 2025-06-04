@@ -277,14 +277,14 @@
             xBRScaleAdd.Name = "xBRScaleAdd";
             xBRScaleAdd.Size = new System.Drawing.Size(384, 22);
             xBRScaleAdd.Text = "IR Scale++ (F11)";
-            xBRScaleAdd.Click += xBRScaleAdd_Click;
+            xBRScaleAdd.Click += UpScale_Click;
             // 
             // xBRScaleDec
             // 
             xBRScaleDec.Name = "xBRScaleDec";
             xBRScaleDec.Size = new System.Drawing.Size(384, 22);
             xBRScaleDec.Text = "IR Scale --  (F12)";
-            xBRScaleDec.Click += xBRScaleDec_Click;
+            xBRScaleDec.Click += DownScale_Click;
             // 
             // fullScreenF2
             // 

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -255,10 +256,10 @@ namespace ScePSX.UI
             UpdateStatus(0, Core.DiskID);
             if (Core.GPU.type == GPUType.OpenGL || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.OpenGL))
             {
-                UpdateStatus(5, $"OpenGL {Render.oglMSAA}xMSAA {IRscale}xIR");
+                UpdateStatus(5, $"OpenGL {Render.oglMSAA}xMSAA  {IRscale}xIR");
             } else if (Core.GPU.type == GPUType.Vulkan || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.Vulkan))
             {
-                UpdateStatus(5, $"Vulkan {IRscale}xIR");
+                UpdateStatus(5, $"Vulkan  {IRscale}xIR");
             } else
             {
                 UpdateStatus(5, $"{Core.GPU.type.ToString()} {rendername}");
@@ -632,6 +633,8 @@ namespace ScePSX.UI
                 gpumnu.Text = $"GPU: {Core.GpuBackend.ToString()}";
 
                 Core.Pauseing = false;
+
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"GPU: {Core.GpuBackend.ToString()} Render: {mode.ToString()}", 5000);
             }
         }
 
@@ -713,11 +716,12 @@ namespace ScePSX.UI
             SwapDisc();
         }
 
-        private void xBRScaleAdd_Click(object sender, EventArgs e)
+        private void UpScale_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
             {
                 IRscale = IRscale < 9 ? IRscale + 1 : 9;
+                int xscale = IRscale;
                 AutoIR = false;
                 switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
@@ -730,16 +734,20 @@ namespace ScePSX.UI
                     default:
                         if (scale.scale < 8)
                             scale.scale = scale.scale == 0 ? 2 : scale.scale * 2;
+                        xscale = scale.scale;
                         break;
                 }
+
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{xscale}xIR");
             }
         }
 
-        private void xBRScaleDec_Click(object sender, EventArgs e)
+        private void DownScale_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
             {
                 IRscale = IRscale > 1 ? IRscale - 1 : 1;
+                int xscale = IRscale;
                 AutoIR = false;
                 switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
@@ -752,8 +760,11 @@ namespace ScePSX.UI
                     default:
                         if (scale.scale > 0)
                             scale.scale /= 2;
+                        xscale = scale.scale;
                         break;
                 }
+
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{xscale}xIR");
             }
         }
 
@@ -827,6 +838,7 @@ namespace ScePSX.UI
             if (Core != null && Core.Running)
             {
                 Core.SaveState(Slot.ToString());
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{ScePSX.Properties.Resources.FrmMain_SaveState_saved} [{StateSlot}]");
                 UpdateStatus(1, $"{ScePSX.Properties.Resources.FrmMain_SaveState_saved} [{StateSlot}]", true);
                 StatusDelay = 3;
             }
@@ -838,6 +850,7 @@ namespace ScePSX.UI
             {
                 Core.SaveState("~");
                 Core.LoadState(Slot.ToString());
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"LoadState [{Slot}]");
             }
         }
 
@@ -854,7 +867,10 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.Space)
             {
                 if (Core != null && Core.Running)
+                {
+                    SimpleOSD.Show(Render._currentRenderer as UserControl, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中);
                     Core.Pause();
+                }
                 return;
             }
             if (e.KeyCode == Keys.Escape)
@@ -871,11 +887,13 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.F3)
             {
                 StateSlot = StateSlot < 9 ? StateSlot + 1 : StateSlot;
+                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [{StateSlot}]");
                 return;
             }
             if (e.KeyCode == Keys.F4)
             {
                 StateSlot = StateSlot > 0 ? StateSlot - 1 : StateSlot;
+                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [{StateSlot}]");
                 return;
             }
             if (e.KeyCode == Keys.F5)
@@ -914,6 +932,9 @@ namespace ScePSX.UI
                 {
                     Core.PsxBus.controller1.IsAnalog = isAnalog;
                 }
+                SimpleOSD.Show(Render._currentRenderer as UserControl, 
+                    $"{(isAnalog ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_多轴手柄 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_数字手柄)}"
+                    );
                 return;
             }
             if (e.KeyCode == Keys.Tab && Core != null)
@@ -923,12 +944,12 @@ namespace ScePSX.UI
             }
             if (e.KeyCode == Keys.F11)
             {
-                xBRScaleAdd_Click(null, null);
+                UpScale_Click(null, null);
                 return;
             }
             if (e.KeyCode == Keys.F12)
             {
-                xBRScaleDec_Click(null, null);
+                DownScale_Click(null, null);
                 return;
             }
 
@@ -966,6 +987,7 @@ namespace ScePSX.UI
         {
             if (!File.Exists("./BIOS/" + currbios))
             {
+                SimpleOSD.Show(this.romList, "Bios Not Found!");
                 UpdateStatus(0, $"{ScePSX.Properties.Resources.FrmMain_LoadRom_nobios} (Bios Not Found)", true);
                 timer.Enabled = false;
                 timer.Stop();
