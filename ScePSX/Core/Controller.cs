@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace ScePSX
 {
@@ -17,6 +18,12 @@ namespace ScePSX
         protected Queue<byte> DataFifo = new Queue<byte>();
 
         public bool ack;
+
+        public int transferCounter = 0;
+        public byte VibrationRight = 0x00;
+        public byte VibrationLeft = 0x00;
+
+        public IRumbleHandler RumbleHandler = null;
 
         private enum Mode
         {
@@ -92,6 +99,7 @@ namespace ScePSX
                             //Console.WriteLine("[Controller] Connected Init Transfer Process 0x42");
                             mode = Mode.Transfering;
                             GenRepsone();
+                            transferCounter = 0;
                             ack = true;
                             return DataFifo.Dequeue();
                         default:
@@ -104,6 +112,23 @@ namespace ScePSX
 
                 case Mode.Transfering:
                     byte data = DataFifo.Dequeue();
+                    if (IsAnalog)
+                    {
+                        if (transferCounter == 2)
+                        {
+                            VibrationRight = b;
+                        }
+                        if (transferCounter == 3)
+                        {
+                            VibrationLeft = b;
+                        }
+                        if (transferCounter == 4)
+                        {
+                            RumbleHandler?.ControllerRumble(VibrationRight, VibrationLeft);
+                            //Console.WriteLine($"[Controller] Rumble {VibrationRight},{VibrationLeft}");
+                        }
+                    }
+                    transferCounter++;
                     ack = DataFifo.Count > 0;
                     if (!ack)
                     {
@@ -121,6 +146,9 @@ namespace ScePSX
         public void resetToIdle()
         {
             mode = Mode.Idle;
+            transferCounter = 0;
+            VibrationRight = 0;
+            VibrationLeft = 0;
         }
 
         private void GenRepsone()
@@ -131,6 +159,8 @@ namespace ScePSX
                 DataFifo.Enqueue(0x73);
             } else
             {
+                VibrationRight = 0;
+                VibrationLeft = 0;
                 DataFifo.Enqueue(0x41);
             }
             DataFifo.Enqueue(0x5A);

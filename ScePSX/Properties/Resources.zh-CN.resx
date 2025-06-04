@@ -238,7 +238,7 @@
     <value>手柄优先</value>
   </data>
   <data name="FrmMain_Timer_Elapsed_多轴手柄" xml:space="preserve">
-    <value>多轴手柄</value>
+    <value>模拟手柄</value>
   </data>
   <data name="FrmMain_Timer_Elapsed_数字手柄" xml:space="preserve">
     <value>数字手柄</value>

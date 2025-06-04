@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -33,6 +34,7 @@ namespace ScePSX
 
         private IAudioHandler _Audio;
         private IRenderHandler _IRender;
+        private IRumbleHandler _IRumble;
 
         public struct AddrItem
         {
@@ -48,10 +50,12 @@ namespace ScePSX
         }
         public List<CheatCode> cheatCodes = new List<CheatCode> { };
 
-        public PSXCore(IRenderHandler render, IAudioHandler audio, string RomFile, string BiosFile, GPUType gputype, string diskid = "")
+        public PSXCore(IRenderHandler render, IAudioHandler audio, IRumbleHandler rumble, string RomFile, string BiosFile, GPUType gputype, string diskid = "")
         {
             _Audio = audio;
             _IRender = render;
+            _IRumble = rumble;
+
             GpuBackend = gputype;
 
             ColorLine($"ScePSX Booting...");
@@ -69,6 +73,8 @@ namespace ScePSX
             CombineSet();
 
             GPU = PsxBus.gpu.Backend.GPU;
+
+            PsxBus.controller1.RumbleHandler = _IRumble;
 
             ColorLine($"ScePSX Running...");
         }
@@ -263,6 +269,8 @@ namespace ScePSX
             {
                 (GPU as OpenglGPU).IRScale = ir;
             }
+
+            PsxBus.controller1.RumbleHandler = _IRumble;
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");

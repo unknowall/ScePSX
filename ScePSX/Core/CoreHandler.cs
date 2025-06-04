@@ -15,4 +15,9 @@
     {
         void RenderFrame(int[] pixels, int width, int height);
     }
+
+    public interface IRumbleHandler
+    {
+        void ControllerRumble(byte VibrationRight, byte VibrationLeft);
+    }
 }

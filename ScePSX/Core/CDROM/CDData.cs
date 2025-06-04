@@ -246,6 +246,12 @@ namespace ScePSX.CdRom
 
         public void PlayCDDA(int currentPos)
         {
+            if (!Disk.HasAudioTracks)
+            {
+                //Console.WriteLine("[CDROM] CD-DA with Not AudioTracks!");
+                return;
+            }
+
             int offset = currentPos - Disk.Tracks[SelectedTrackNumber - 1].RoundedStart;
 
             if (offset >= SelectedTrack.PLength && Disk.Tracks.Count > 1)

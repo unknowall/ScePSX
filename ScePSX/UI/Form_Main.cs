@@ -13,14 +13,14 @@ using static SDL2.SDL;
 
 namespace ScePSX.UI
 {
-    public partial class FrmMain : Form, IAudioHandler, IRenderHandler
+    public partial class FrmMain : Form, IAudioHandler, IRenderHandler, IRumbleHandler
     {
         [DllImport("kernel32.dll")]
         public static extern Boolean AllocConsole();
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.7.0";
+        public static string version = "ScePSX Beta 0.1.7.1";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -283,7 +283,7 @@ namespace ScePSX.UI
 
         private void SDLInit()
         {
-            SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER);
+            SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
 
             if (File.Exists("./ControllerDB.txt"))
             {
@@ -1051,7 +1051,7 @@ namespace ScePSX.UI
                 Render.SelectRenderer(Rendermode, panel);
             }
 
-            Core = new PSXCore(this, this, fn, mypath + "/BIOS/" + currbios, bootmode, gameid);
+            Core = new PSXCore(this, this, this, fn, mypath + "/BIOS/" + currbios, bootmode, gameid);
 
             if (Core.DiskID == "")
             {
@@ -1187,6 +1187,26 @@ namespace ScePSX.UI
             }
         }
 
+        public void ControllerRumble(byte VibrationRight, byte VibrationLeft)
+        {
+            if (!isAnalog || controller1 == 0)
+                return;
+
+            if (HasRumble1)
+            {
+                ushort VibrationRight1 = VibrationRight > 0 ? (ushort)0xFFFF : (ushort)0x0000;
+                ushort VibrationLeft1 = (ushort)(VibrationLeft * 257);
+
+                //if (VibrationRight1 != 0 || VibrationLeft1 != 0)
+                //    Console.WriteLine($"Controller Rumble {VibrationRight1}, {VibrationLeft1}");
+
+                if (SDL_GameControllerRumble(controller1, VibrationRight1, VibrationLeft1, 0) != 0)
+                {
+                    Console.WriteLine($"Controller 1 Rumble Error: {SDL_GetError()}");
+                }
+            }
+        }
+
         private unsafe void AudioCallbackImpl(IntPtr userdata, IntPtr stream, int len)
         {
             byte[] tempBuffer = new byte[len];
@@ -1211,6 +1231,8 @@ namespace ScePSX.UI
 
         #region SDLController
 
+        bool HasRumble1, HasRumble2;
+
         private void CheckController()
         {
             concount = SDL_NumJoysticks();
@@ -1224,7 +1246,18 @@ namespace ScePSX.UI
                 {
                     controller1 = SDL_JoystickOpen(0);
                 }
-                Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected");
+                if (controller1 != 0)
+                {
+                    HasRumble1 = SDL_GameControllerHasRumble(controller1) == SDL_bool.SDL_TRUE;
+                    Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected, Rumble: {HasRumble1}");
+                    if (HasRumble1)
+                        if (SDL_GameControllerRumble(controller1, 0, 0, 0) != 0)
+                        {
+                            Console.WriteLine($"Controller 1 Rumble Error: {SDL_GetError()}");
+                        }
+                    SDL_Event dummyEvent;
+                    SDL_PollEvent(out dummyEvent);
+                }
             }
 
             if (controller2 == 0 && concount >= 2)
@@ -1236,7 +1269,18 @@ namespace ScePSX.UI
                 {
                     controller2 = SDL_JoystickOpen(1);
                 }
-                Console.WriteLine($"Controller Device 2 : {SDL_JoystickNameForIndex(1)} Connected");
+                if (controller2 != 0)
+                {
+                    HasRumble2 = SDL_GameControllerHasRumble(controller2) == SDL_bool.SDL_TRUE;
+                    Console.WriteLine($"Controller Device 2 : {SDL_JoystickNameForIndex(0)} Connected, Rumble: {HasRumble2}");
+                    if (HasRumble2)
+                        if (SDL_GameControllerRumble(controller2, 0, 0, 0) != 0)
+                        {
+                            Console.WriteLine($"Controller 2 Rumble Error: {SDL_GetError()}");
+                        }
+                }
+                SDL_Event dummyEvent;
+                SDL_PollEvent(out dummyEvent);
             }
         }
 

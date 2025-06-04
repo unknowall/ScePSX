@@ -129,12 +129,12 @@ namespace ScePSX.CdRom
 
         public enum CDROMState
         {
-            Swaped,
             Idle,
             Seeking,
             ReadingData,
             PlayingCDDA,
-            SwappingDisk
+            SwappingDisk,
+            Swaped
         }
 
         //Status Register
@@ -756,8 +756,6 @@ namespace ScePSX.CdRom
             if (ParameterBuffer.Count > 0 && ParameterBuffer.Peek() > 0)
             {
                 int trackNumber = ParameterBuffer.Dequeue();
-                if (trackNumber == 1)
-                    trackNumber++; //Track 1 is always the data track, so we skip it
                 if (DATA.SelectedTrackNumber != trackNumber)
                 {
                     DATA.SelectTrackAndRead(trackNumber, CurrentPos);
@@ -1034,7 +1032,7 @@ namespace ScePSX.CdRom
             int oldPosition = CurrentPos;
             CurrentPos = ((M * 60 * 75) + (S * 75) + F - 150) * 0x930;
 
-            Response done = new Response(new byte[] { stat }, CalculateSeekTime(oldPosition, CurrentPos), (int)Flags.INT2, CDROMState.Idle);
+            Response done = new Response(new byte[] { stat }, (Delays)CalculateSeekTime(oldPosition, CurrentPos), Flags.INT2, CDROMState.Idle);
             Responses.Enqueue(done);
             SetLoc = false;
             DATA.SelectTrackAndRead(DATA.FindTrack(CurrentPos), CurrentPos);
@@ -1401,12 +1399,13 @@ namespace ScePSX.CdRom
             return M <= 99 && S <= 59 && F <= 74;
         }
 
-        private long CalculateSeekTime(int position, int destination)
+        private int CalculateSeekTime(int position, int destination)
         {
-            long wait = (long)((long)PSX_MHZ * 2 * 0.001 * (Math.Abs((position - destination)) / (75 * 0x930)));
+            int wait = (int)(PSX_MHZ * 2 * 0.001 * (Math.Abs((position - destination)) / (75 * 0x930)));
             //Console.WriteLine("[CDROM] Difference of: " + (Math.Abs((position - destination)) / (75 * 0x930)) + " Seconds");
             //Console.WriteLine("[CDROM] Seek time: " + wait);
-            return (long)Delays.INT3_General;
+            //return wait;
+            return (int)Delays.INT3_General;
         }
     }
 }
