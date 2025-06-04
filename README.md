@@ -1,4 +1,4 @@
-<h2>ScePSX - A Lightweight PlayStation 1 emulator Fully Developed in C#</h2>
+<h2>ScePSX - A Lightweight PS1 emulator Fully Developed in C#</h2>
 
 ![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![downloads](https://img.shields.io/github/downloads/unknowall/ScePSX/total.svg) [![Gitee Repo](https://img.shields.io/badge/Gitee-Mirror-FFB71B)](https://gitee.com/unknowall/ScePSX)
 <details>
@@ -78,7 +78,7 @@ A: Most common games are supported.
 ### Q: What should I do if CPU usage is too high?
 A: If CPU usage is high, try using the D2D renderer or reduce the internal resolution.
 
-### Q: My monitor is 4K. How can I improve native graphics quality?
+### Q: How can I improve native graphics quality?
 A: Press F11 multiple times and use the Home key to select ReShade for enhanced graphics.
 
 ### Q: How do I fix audio desynchronization issues?
@@ -210,7 +210,7 @@ A: 绝大部分常见的游戏都已支持。
 ### Q: CPU 占用较高怎么办？
 A: 如果 CPU 占用过高，建议使用 D2D 渲染器或降低内部分辨率。
 
-### Q: 我的显示器是4K的，需要更好的原生画质
+### Q: 如何获得更好的画质
 A: 多按几下F11，建议配合home键选择ReShade增强画质
 
 ### Q: 如何解决音效不同步的问题？
