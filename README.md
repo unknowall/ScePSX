@@ -1,4 +1,4 @@
-<h2>ScePSX - A Lightweight PlayStation 1 emulator Fully Developed in C#</h2>
+<h2>ScePSX - A Lightweight PS1 emulator Fully Developed in C#</h2>
 
 ![License](https://img.shields.io/badge/license-MIT-blue) ![GitHub Release](https://img.shields.io/github/v/release/unknowall/ScePSX?label=Release) ![Language](https://img.shields.io/github/languages/top/unknowall/ScePSX) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![downloads](https://img.shields.io/github/downloads/unknowall/ScePSX/total.svg) [![Gitee Repo](https://img.shields.io/badge/Gitee-Mirror-FFB71B)](https://gitee.com/unknowall/ScePSX)
 <details>
@@ -13,8 +13,6 @@
 - **Cheat Support**: Enable cheat codes to unlock hidden content or adjust game difficulty.
 - **Online Multiplayer**: Supports networked gameplay to relive classic gaming experiences.
 - **Save Management**: Easily manage multiple save files.
-
-**The English version is available starting from Beta 0.1.0.**
 
 ## Performance Overview 🚀
 
@@ -31,14 +29,12 @@
 > OpenGL requires a GPU supporting OpenGL 3.3+  
 > Vulkan requires a GPU supporting Vulkan 1.1+
 
-_Figure 1: Gameplay with hardware backend_  
-![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
+_Figure 1: Main Interface(UI text follows system language)_  
+![psx 1 eng](https://github.com/user-attachments/assets/a1e52f58-12e7-42ec-b819-965a0ce82caf)
 
-_Figure 2：hardware backend + ReShade_<br>
-![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9)
 
-_Figure 3: ScePSX Main Interface_  
-![capture](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
+_Figure 2：ReShade(UI text follows system language)_<br>
+![psx 3](https://github.com/user-attachments/assets/4ccdf2d6-f79f-4dd5-a131-9365bfc878b6)
 
 ### How to Use 🛠️
 
@@ -82,7 +78,7 @@ A: Most common games are supported.
 ### Q: What should I do if CPU usage is too high?
 A: If CPU usage is high, try using the D2D renderer or reduce the internal resolution.
 
-### Q: My monitor is 4K. How can I improve native graphics quality?
+### Q: How can I improve native graphics quality?
 A: Press F11 multiple times and use the Home key to select ReShade for enhanced graphics.
 
 ### Q: How do I fix audio desynchronization issues?
@@ -90,6 +86,9 @@ A: Try adjusting the audio buffer size or switching the audio output device.
 
 ### Q: Does it support all PS1 region versions?
 A: Yes, it supports NTSC-J, NTSC-U, and PAL formats.
+
+### Q: Why isn't the controller vibrating?
+A: For games that support vibration feedback, you need to press **F10** to switch to **analog mode**
 
 ### Q: Why does Vulkan use the most memory?
 A: Because it requires extra memory to store:
@@ -137,8 +136,6 @@ ScePSX is an open-source project intended solely for learning and research purpo
 - **网络对战**: 支持联机对战，重温经典游戏乐趣。
 - **存档管理**: 方便管理多个游戏存档。
 
-<b>the english version is available starting from Beta 0.1.0.</b>
-
 **项目已同步至 Gitee 以及 Gitcode 国内用户可优先访问以加速下载。镜像仓库自动同步更新，确保内容一致**
 
 ## 性能表现 🚀
@@ -156,15 +153,15 @@ ScePSX is an open-source project intended solely for learning and research purpo
 > OpenGL 需支持OpenGL 3.3以上的显卡<br>
 > Vulkan 需支持Vulkan 1.1以上的显卡<br>
 
-_图1：使用硬件后端运行游戏的画面效果_<br>
-![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0)
+_图1：主界面 (UI文本跟随系统语言)_<br>
+![psx 1](https://github.com/user-attachments/assets/6166e262-a587-4d26-ad2a-d74e05697ccc)
 
-_图2：使用硬件后端+ReShade_<br>
-![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9)
+<!-- ![ogl](https://github.com/user-attachments/assets/fad3885b-f0eb-4168-a4ab-60e2d75b79f0) -->
 
+_图2：ReShade界面 (UI文本跟随系统语言)_<br>
+![psx 3](https://github.com/user-attachments/assets/4ccdf2d6-f79f-4dd5-a131-9365bfc878b6)
 
-_图3：ScePSX 主界面展示_<br>
-![捕获](https://github.com/user-attachments/assets/88c1f283-127c-4f74-9cbe-7e64def43962)
+<!-- ![捕获233](https://github.com/user-attachments/assets/fb0ba1a7-3dc8-428a-8d79-25d1e03677a9) -->
 
 ### 如何使用 🛠️
 
@@ -213,7 +210,7 @@ A: 绝大部分常见的游戏都已支持。
 ### Q: CPU 占用较高怎么办？
 A: 如果 CPU 占用过高，建议使用 D2D 渲染器或降低内部分辨率。
 
-### Q: 我的显示器是4K的，需要更好的原生画质
+### Q: 如何获得更好的画质
 A: 多按几下F11，建议配合home键选择ReShade增强画质
 
 ### Q: 如何解决音效不同步的问题？
@@ -221,6 +218,9 @@ A: 尝试调整音频缓冲区大小，或更换音频输出设备。
 
 ### Q: 是否支持 PS1 的所有区域版本？
 A: 是的，支持 NTSC-J、NTSC-U 和 PAL 格式的游戏。
+
+### Q: 为什么手柄不会震动？
+A: 对于支持震动的游戏，您需要按下F10切换至模拟手柄。
 
 ### Q: 为什么 Vulkan 的内存占用最高？
 A: 因为它需要额外内存来存储：  
@@ -251,7 +251,6 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 - ![老男人](https://img.shields.io/badge/Oldman-Emu-老男人) [讨论贴 https://bbs.oldmantvg.net/thread-77207.htm](htps://bbs.oldmantvg.net/thread-77207.htm)
 - ![chinaemu](https://img.shields.io/badge/China-Emu-org) [讨论贴 http://bbs.chinaemu.org/read-htm-tid-129832.html]([htps://bbs.oldmantvg.net/thread-77207.htm](http://bbs.chinaemu.org/read-htm-tid-129832.html))
-> **注：开发者账号正在注册中，暂无法进行官方回复，敬请谅解**
 
 # 下载 📥
 
