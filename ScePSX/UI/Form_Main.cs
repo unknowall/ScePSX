@@ -215,6 +215,7 @@ namespace ScePSX.UI
 
             if (Core.Pauseed)
             {
+                SimpleOSD.Show(Render._currentRenderer as UserControl, " ▌▌");
                 UpdateStatus(1, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中, true);
             }
 
@@ -634,7 +635,7 @@ namespace ScePSX.UI
 
                 Core.Pauseing = false;
 
-                SimpleOSD.Show(Render._currentRenderer as UserControl, $"GPU: {Core.GpuBackend.ToString()} Render: {mode.ToString()}", 5000);
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"GPU {Core.GpuBackend.ToString()} Render {mode.ToString()}", 5000);
             }
         }
 
@@ -838,7 +839,7 @@ namespace ScePSX.UI
             if (Core != null && Core.Running)
             {
                 Core.SaveState(Slot.ToString());
-                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{ScePSX.Properties.Resources.FrmMain_SaveState_saved} [{StateSlot}]");
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{ScePSX.Properties.Resources.FrmMain_SaveState_saved} [ {StateSlot} ]");
                 UpdateStatus(1, $"{ScePSX.Properties.Resources.FrmMain_SaveState_saved} [{StateSlot}]", true);
                 StatusDelay = 3;
             }
@@ -868,7 +869,8 @@ namespace ScePSX.UI
             {
                 if (Core != null && Core.Running)
                 {
-                    SimpleOSD.Show(Render._currentRenderer as UserControl, ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_暂停中);
+                    if(Core.Pauseed)
+                        SimpleOSD.Close();
                     Core.Pause();
                 }
                 return;
@@ -887,13 +889,13 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.F3)
             {
                 StateSlot = StateSlot < 9 ? StateSlot + 1 : StateSlot;
-                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [{StateSlot}]");
+                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [ {StateSlot} ]");
                 return;
             }
             if (e.KeyCode == Keys.F4)
             {
                 StateSlot = StateSlot > 0 ? StateSlot - 1 : StateSlot;
-                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [{StateSlot}]");
+                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [ {StateSlot} ]");
                 return;
             }
             if (e.KeyCode == Keys.F5)

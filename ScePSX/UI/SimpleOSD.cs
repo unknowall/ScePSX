@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
 
 namespace ScePSX.UI
 {
@@ -10,27 +11,30 @@ namespace ScePSX.UI
         private Timer hideTimer;
         private int displayTime = 3000;
         private string currentMessage = string.Empty;
+        private Color _BgColor;
+        public static Control _parent;
 
-        public static void Show(Control parent, string message, int displayTime = 3000)
+        public static void Show(Control parent, string message, int displayTime = 3000, Color BgColor = default)
         {
-            foreach (Control control in parent.Controls)
+            _parent = parent;
+            
+            foreach (Control control in _parent.Controls)
             {
                 if (control is SimpleOSD existingOsd)
                 {
-                    existingOsd.ShowMessage(message, displayTime);
+                    existingOsd.ShowMessage(message, displayTime, BgColor);
                     return;
                 }
             }
-
             SimpleOSD osd = new SimpleOSD();
             parent.Controls.Add(osd);
             osd.BringToFront();
-            osd.ShowMessage(message, displayTime);
+            osd.ShowMessage(message, displayTime, BgColor);
         }
 
-        public static void Hide(Control parent)
+        public static void Close()
         {
-            foreach (Control control in parent.Controls)
+            foreach (Control control in _parent.Controls)
             {
                 if (control is SimpleOSD existingOsd)
                 {
@@ -44,15 +48,10 @@ namespace ScePSX.UI
         public SimpleOSD()
         {
             this.DoubleBuffered = true;
-            this.Size = new Size(200, 40);
-            //this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-            //this.BackColor = Color.Transparent;
-            this.BackColor = Color.FromArgb(255, 0, 0, 180);
-
+            this.Size = new Size(40, 40);
             hideTimer = new Timer();
             hideTimer.Interval = displayTime;
             hideTimer.Tick += HideTimer_Tick;
-
             this.Visible = false;
         }
 
@@ -62,72 +61,58 @@ namespace ScePSX.UI
             this.Hide();
         }
 
-        public void ShowMessage(string message, int displayTime = 3000)
+        public void ShowMessage(string message, int displayTime = 3000, Color BgColor = default)
         {
+            this._BgColor = BgColor == default ? Color.FromArgb(200, 35, 35, 35) : BgColor;
             this.displayTime = displayTime;
             currentMessage = message;
-
             if (!string.IsNullOrEmpty(message))
             {
                 using (var g = this.CreateGraphics())
-                using (var font = new Font("Arial", 14, FontStyle.Bold))
+                using (var font = new Font("Arial", 10, FontStyle.Bold))
                 {
                     var format = new StringFormat(StringFormatFlags.NoWrap);
                     var textSize = g.MeasureString(message, font, int.MaxValue, format);
-                    int newWidth = Math.Max(200, (int)textSize.Width + 40);
-
+                    int newWidth = Math.Max(40, (int)textSize.Width + 30);
                     this.Size = new Size(newWidth, 40);
                 }
             }
-
             if (this.Parent != null)
             {
                 this.Location = new Point(10, 10);
             }
-
             this.Show();
             this.BringToFront();
-
             hideTimer.Stop();
             hideTimer.Interval = displayTime;
             hideTimer.Start();
-
             this.Invalidate();
         }
 
-        //protected override void OnPaintBackground(PaintEventArgs e)
-        //{
-        //    using (var brush = new SolidBrush(Color.FromArgb(180, 0, 0, 180)))
-        //    {
-        //        e.Graphics.FillRectangle(brush, this.ClientRectangle);
-        //    }
-        //}
-
         protected override void OnPaint(PaintEventArgs e)
         {
-            using (var pen = new Pen(Color.Yellow, 1))
+            Graphics g = e.Graphics;
+
+            using (Brush backBrush = new SolidBrush(_BgColor))
             {
-                e.Graphics.DrawRectangle(pen, 0, 0, this.Width - 1, this.Height - 1);
+                g.FillRectangle(backBrush, this.ClientRectangle);
+            }
+
+            using (Pen borderPen = new Pen(Color.FromArgb(90, 90, 90), 1))
+            {
+                g.DrawRectangle(borderPen, 0, 0, this.Width - 1, this.Height - 1);
             }
 
             if (!string.IsNullOrEmpty(currentMessage))
             {
-                using (var brush = new SolidBrush(Color.Yellow))
-                using (var format = new StringFormat())
-                {
-                    format.Alignment = StringAlignment.Center;
-                    format.LineAlignment = StringAlignment.Center;
-
-                    e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-
-                    e.Graphics.DrawString(
-                        currentMessage,
-                        new Font("Arial", 14, FontStyle.Bold),
-                        brush,
-                        this.ClientRectangle,
-                        format
-                    );
-                }
+                TextRenderer.DrawText(
+                    g,
+                    currentMessage,
+                    new Font("Arial", 10, FontStyle.Bold),
+                    new Rectangle(6, 4, Width - 12, Height - 8),
+                    Color.White,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter
+                );
             }
         }
     }

@@ -304,7 +304,7 @@ namespace ScePSX.UI
             }
             this.Invoke((MethodInvoker)delegate
             {
-                SimpleOSD.Show(this, $"Search {dir}", 30000);
+                SimpleOSD.Show(this, $"Search {dir}", 30000, Color.DarkBlue);
             });
             try
             {
@@ -373,9 +373,8 @@ namespace ScePSX.UI
                 {
                     this.Invoke((MethodInvoker)delegate
                     {
-                        SimpleYaml.Clear();
                         SortByLastPlayed();
-                        SimpleOSD.Show(this, "Search Done!", 2000);
+                        SimpleOSD.Show(this, "Search Done!", 2000, Color.DarkBlue);
                     });
                 }
             }
