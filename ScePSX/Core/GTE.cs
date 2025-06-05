@@ -783,65 +783,132 @@ namespace ScePSX
             IR[3] = setIR(3, MAC3, lm);
         }
 
+        //Normal clipping
         private void NCLIP()
-        { //Normal clipping
+        {
             // MAC0 = SX0*SY1 + SX1*SY2 + SX2*SY0 - SX0*SY2 - SX1*SY0 - SX2*SY1
             MAC0 = (int)setMAC0((long)SXY[0].x * SXY[1].y + SXY[1].x * SXY[2].y + SXY[2].x * SXY[0].y - SXY[0].x * SXY[2].y - SXY[1].x * SXY[0].y - SXY[2].x * SXY[1].y);
         }
 
+        //Perspective Transformation Triple
         private void RTPT()
-        { //Perspective Transformation Triple
+        { 
             RTPS(0, false);
             RTPS(1, false);
             RTPS(2, true);
         }
 
+        public bool use_pgxp = false;
+
         private void RTPS(int r, bool setMac0)
         {
-            // 计算第一行：MAC1 = (TRX*0x1000 + RT.v1.x*V[r].x + RT.v1.y*V[r].y + RT.v1.z*V[r].z) SAR (sf)
+            if (use_pgxp)
+            {
+                double xx = V[r].x;
+                double yy = V[r].y;
+                double zz = V[r].z;
+
+                //Console.WriteLine($"[PGXP] Raw Vertex {r}: X={xx}, Y={yy}, Z={zz}");
+
+                double worldX = TRX + (RT.v1.x * xx + RT.v1.y * yy + RT.v1.z * zz) / 4096.0;
+                double worldY = TRY + (RT.v2.x * xx + RT.v2.y * yy + RT.v2.z * zz) / 4096.0;
+                double worldZ = TRZ + (RT.v3.x * xx + RT.v3.y * yy + RT.v3.z * zz) / 4096.0;
+
+                //Console.WriteLine($"[PGXP] World Transformed {r}: X={worldX:F6}, Y={worldY:F6}, Z={worldZ:F6}");
+
+                long mac1_val = (long)Math.Round(worldX * 4096.0);
+                long mac2_val = (long)Math.Round(worldY * 4096.0);
+                long mac3_val = (long)Math.Round(worldZ * 4096.0);
+
+                MAC1 = (int)(setMAC(1, mac1_val) >> sf);
+                MAC2 = (int)(setMAC(2, mac2_val) >> sf);
+                MAC3 = (int)(setMAC(3, mac3_val) >> sf);
+
+                IR[1] = setIR(1, MAC1, lm);
+                IR[2] = setIR(2, MAC2, lm);
+                IR[3] = setIR(3, MAC3, lm);
+
+                double hFloat = H;
+                double invZ = 1.0 / (Math.Abs(worldZ) > 0.001 ? worldZ : 0.001);
+                double screenX = (worldX * hFloat) * invZ + (OFX / 65536.0); // 16 bit
+                double screenY = (worldY * hFloat) * invZ + (OFY / 65536.0);
+
+                //Console.WriteLine($"[PGXP] Intermediate {r}: H={hFloat}, invZ={invZ:F6}, OFX={OFX / 65536.0}, OFY={OFY / 65536.0}");
+
+                //int sx = (int)Math.Clamp(screenX, -0x400, 0x3FF);
+                //int sy = (int)Math.Clamp(screenY, -0x400, 0x3FF);
+
+                int sx = (int)(setMAC0((long)screenX));
+                int sy = (int)(setMAC0((long)screenY));
+
+                SZ[0] = SZ[1];
+                SZ[1] = SZ[2];
+                SZ[2] = SZ[3];
+                //SZ[3] = (ushort)Math.Clamp(worldZ, 0, 0xFFFF);
+                SZ[3] = setSZ3(mac3_val >> 12);
+
+                SXY[0] = SXY[1];
+                SXY[1] = SXY[2];
+                //SXY[2].x = (short)sx;
+                //SXY[2].y = (short)sy;
+                SXY[2].x = setSXY(1, sx);
+                SXY[2].y = setSXY(2, sy);
+
+                if (setMac0)
+                {
+                    //MAC0 = (int)(DQA * (hFloat * invZ) + DQB);
+                    long mac0 = setMAC0((long)(DQA * (hFloat * invZ) + DQB));
+                    MAC0 = (int)mac0;
+                    IR[0] = setIR0((int)(mac0 >> 12));
+                    //Console.WriteLine($"[PGXP] MAC0 Calculation: DQA={DQA}, invZ={invZ:F6}, H={H}, DQB={DQB} => MAC0={MAC0}, IR0={IR[0]}");
+                }
+
+                //if (screenX < -0x400 || screenX > 0x3FF || screenY < -0x400 || screenY > 0x3FF)
+                //{
+                //    FLAG |= 0x4_0000;
+                //    Console.WriteLine($"[PGXP] Screen coordinate overflow detected! ScreenX={screenX:F2}, ScreenY={screenY:F2}");
+                //}
+
+                //Console.WriteLine($"[PGXP] Screen: ({screenX:F6}, {screenY:F6}) => Clamped: ({sx}, {sy})");
+                //Console.WriteLine($"[PGXP] SZ FIFO: [{SZ[0]}, {SZ[1]}, {SZ[2]}, {SZ[3]}]");
+                //Console.WriteLine($"[PGXP] SXY FIFO: [({SXY[0].x}, {SXY[0].y}), ({SXY[1].x}, {SXY[1].y}), ({SXY[2].x}, {SXY[2].y})]");
+
+                return;
+            }
+
             long sum1 = (long)TRX * 0x1000 + RT.v1.x * V[r].x + RT.v1.y * V[r].y + RT.v1.z * V[r].z;
-            MAC1 = (int)(setMAC(1, sum1) >> sf);
-
-            // 计算第二行：MAC2 = (TRY*0x1000 + RT.v2.x*V[r].x + RT.v2.y*V[r].y + RT.v2.z*V[r].z) SAR (sf)
             long sum2 = (long)TRY * 0x1000 + RT.v2.x * V[r].x + RT.v2.y * V[r].y + RT.v2.z * V[r].z;
-            MAC2 = (int)(setMAC(2, sum2) >> sf);
-
-            // 计算第三行：MAC3 = (TRZ*0x1000 + RT.v3.x*V[r].x + RT.v3.y*V[r].y + RT.v3.z*V[r].z) SAR (sf)
             long sum3 = (long)TRZ * 0x1000 + RT.v3.x * V[r].x + RT.v3.y * V[r].y + RT.v3.z * V[r].z;
+
+            MAC1 = (int)(setMAC(1, sum1) >> sf);
+            MAC2 = (int)(setMAC(2, sum2) >> sf);
             MAC3 = (int)(setMAC(3, sum3) >> sf);
 
-            // 更新 IR 寄存器
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
-            // 对 IR[3] 的设置采取先计算中间值后调用 setIR
-            int ir3Value = (int)(sum3 >> 12);
-            setIR(3, ir3Value, false);
             IR[3] = (short)Math.Clamp(MAC3, lm ? 0 : -0x8000, 0x7FFF);
 
-            // 更新屏幕Z FIFO：SZ3 = MAC3 SAR ((1-sf)*12)
             SZ[0] = SZ[1];
             SZ[1] = SZ[2];
             SZ[2] = SZ[3];
             SZ[3] = setSZ3(sum3 >> 12);
 
-            // UNR 除法运算部分保持不变
             long n;
             if (H < SZ[3] * 2)
             {
                 int z = BitOperations.LeadingZeroCount(SZ[3]) - 16;
                 n = H << z;
                 uint d = (uint)(SZ[3] << z);
-                ushort u = (ushort)(unrTable[(int)(d - 0x7FC0) >> 7] + 0x101);
+                ushort u = (ushort)(unrTable[(int)((d - 0x7FC0) >> 7)] + 0x101);
                 d = ((0x2000080 - (d * u)) >> 8);
                 d = ((0x0000080 + (d * u)) >> 8);
-                n = (int)Math.Min(0x1FFFF, ((n * d) + 0x8000) >> 16);
+                n = (int)(((n * d) + 0x8000) >> 16);
             } else
             {
                 FLAG |= 1 << 17;
                 n = 0x1FFFF;
             }
 
-            // 根据计算结果更新屏幕坐标
             int x = (int)(setMAC0(n * IR[1] + OFX) >> 16);
             int y = (int)(setMAC0(n * IR[2] + OFY) >> 16);
 
@@ -850,12 +917,11 @@ namespace ScePSX
             SXY[2].x = setSXY(1, x);
             SXY[2].y = setSXY(2, y);
 
-            // 如果需要更新 MAC0 及 IR[0]
             if (setMac0)
             {
                 long mac0 = setMAC0(n * DQA + DQB);
                 MAC0 = (int)mac0;
-                IR[0] = setIR0(mac0 >> 12);
+                IR[0] = setIR0((int)(mac0 >> 12));
             }
         }
 

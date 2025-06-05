@@ -33,7 +33,7 @@ namespace ScePSX.UI
                 btndel.Visible = true;
                 this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
             }
-            chkpgxp.Enabled = false;
+            //chkpgxp.Enabled = false;
             cbgpures.Enabled = true;
             cbgpu.SelectedIndexChanged += Cbgpu_SelectedIndexChanged;
         }
@@ -43,13 +43,13 @@ namespace ScePSX.UI
             if (cbgpu.SelectedIndex != 1)
             {
                 cbgpures.Enabled = true;
-                chkpgxp.Enabled = false;
+                //chkpgxp.Enabled = false;
                 chkpgxpt.Enabled = true;
                 chkkeepar.Enabled = true;
             } else
             {
                 cbgpures.Enabled = false;
-                chkpgxp.Enabled = false;
+                //chkpgxp.Enabled = false;
                 chkpgxpt.Enabled = false;
                 chkkeepar.Enabled = false;
             }

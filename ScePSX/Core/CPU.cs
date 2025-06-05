@@ -95,7 +95,7 @@ namespace ScePSX
             OVERFLOW = 0xC
         }
 
-        private GTE gte;
+        public GTE gte;
         private BUS bus;
 
         private BIOS_Disassembler bios;

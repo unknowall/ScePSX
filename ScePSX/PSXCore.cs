@@ -31,6 +31,7 @@ namespace ScePSX
 
         public string DiskID = "";
         public bool Pauseing, Pauseed, Running, Boost;
+        public bool GTE_PGXP = false;
 
         private IAudioHandler _Audio;
         private IRenderHandler _IRender;
@@ -271,6 +272,8 @@ namespace ScePSX
             }
 
             PsxBus.controller1.RumbleHandler = _IRumble;
+
+            PsxBus.cpu.gte.use_pgxp = GTE_PGXP;
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");

@@ -255,15 +255,16 @@ namespace ScePSX.UI
                 scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
+            string str_pgxp = PGXP ? "PGXP " : "";
             if (Core.GPU.type == GPUType.OpenGL || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.OpenGL))
             {
-                UpdateStatus(5, $"OpenGL {Render.oglMSAA}xMSAA  {IRscale}xIR");
+                UpdateStatus(5, $"{str_pgxp}OpenGL {Render.oglMSAA}xMSAA  {IRscale}xIR");
             } else if (Core.GPU.type == GPUType.Vulkan || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.Vulkan))
             {
-                UpdateStatus(5, $"Vulkan  {IRscale}xIR");
+                UpdateStatus(5, $"{str_pgxp}Vulkan  {IRscale}xIR");
             } else
             {
-                UpdateStatus(5, $"{Core.GPU.type.ToString()} {rendername}");
+                UpdateStatus(5, $"{str_pgxp}{Core.GPU.type.ToString()} {rendername}");
             }
             UpdateStatus(6, $"{(scale.scale > 0 ? scale.mode.ToString() : "")} {scalew}*{scaleh}");
             UpdateStatus(7, $"FPS {_currentFps:F1}");
@@ -573,7 +574,7 @@ namespace ScePSX.UI
 
                     IRscale = IRscale < 1 ? 1 : IRscale;
                     (Core.GPU as OpenglGPU).IRScale = IRscale;
-                    (Core.GPU as OpenglGPU).PGXP = PGXP;
+                    (Core.GPU as OpenglGPU).PGXP = false;
                     (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                     (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                     (Core.GPU as OpenglGPU).RealColor = Realcolor;
@@ -594,7 +595,7 @@ namespace ScePSX.UI
 
                     IRscale = IRscale < 1 ? 1 : IRscale;
                     (Core.GPU as VulkanGPU).IRScale = IRscale;
-                    (Core.GPU as VulkanGPU).PGXP = PGXP;
+                    (Core.GPU as VulkanGPU).PGXP = false;
                     (Core.GPU as VulkanGPU).PGXPT = PGXPT;
                     (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
                     (Core.GPU as VulkanGPU).RealColor = Realcolor;
@@ -1085,6 +1086,8 @@ namespace ScePSX.UI
 
             //Core.PsxBus.cpu.FastBoot = ini.ReadInt("main", "FastBoot") == 1;
             Core.PsxBus.cpu.FastBoot = FastBoot;
+            Core.PsxBus.cpu.gte.use_pgxp = PGXP;
+            Core.GTE_PGXP = PGXP;
 
             sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
@@ -1094,7 +1097,7 @@ namespace ScePSX.UI
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
-                (Core.GPU as OpenglGPU).PGXP = PGXP;
+                (Core.GPU as OpenglGPU).PGXP = false;
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                 (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                 (Core.GPU as OpenglGPU).RealColor = Realcolor;
@@ -1102,7 +1105,7 @@ namespace ScePSX.UI
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as VulkanGPU).IRScale = IRscale;
-                (Core.GPU as VulkanGPU).PGXP = PGXP;
+                (Core.GPU as VulkanGPU).PGXP = false;
                 (Core.GPU as VulkanGPU).PGXPT = PGXPT;
                 (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
                 (Core.GPU as VulkanGPU).RealColor = Realcolor;
