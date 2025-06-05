@@ -217,17 +217,20 @@ namespace ScePSX
             int[] display = new int[] { DisplayVRAMStartX, DisplayVRAMStartY, DisplayHorizontalStart, DisplayHorizontalEnd, DisplayVerticalStart, DisplayVerticalEnd };
             Backend.GPU.SetParams(display);
 
-            (OutWidth, OutHeight) = Backend.GPU.GetPixels
-                (
-                DisplayMode.Is24BitDepth,
-                DisplayVerticalStart, DisplayVerticalEnd,
-                DisplayVRAMStartX, DisplayVRAMStartY,
-                horizontalRes, verticalRes,
-                _Pixels
-                );
+            if (!IsDisplayDisabled)
+            {
+                (OutWidth, OutHeight) = Backend.GPU.GetPixels
+                    (
+                    DisplayMode.Is24BitDepth,
+                    DisplayVerticalStart, DisplayVerticalEnd,
+                    DisplayVRAMStartX, DisplayVRAMStartY,
+                    horizontalRes, verticalRes,
+                    _Pixels
+                    );
 
-            if (OutHeight > 0)
-                host.FrameReady(_Pixels, OutWidth, OutHeight);
+                if (OutHeight > 0)
+                    host.FrameReady(_Pixels, OutWidth, OutHeight);
+            }
 
             return true;
         }
@@ -985,7 +988,16 @@ namespace ScePSX
             TimingVertical = DisplayMode.IsPAL ? 314 : 263;
 
             horizontalRes = Resolutions[(DisplayMode.HorizontalResolution2 << 2) | DisplayMode.HorizontalResolution1];
-            verticalRes = DisplayMode.IsVerticalResolution480 ? 480 : 240;
+            if (DisplayMode.IsVerticalResolution480)
+            {
+                verticalRes = 480;
+            } else if (DisplayMode.IsVerticalInterlace)
+            {
+                verticalRes = 240;
+            } else
+            {
+                verticalRes = 240;
+            }
         }
 
         private void GP1_09_TextureDisable(uint value)

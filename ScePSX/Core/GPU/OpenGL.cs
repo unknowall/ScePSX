@@ -667,24 +667,33 @@ namespace ScePSX
         {
             THREADCHANGE();
 
-            int offsetline = ((DisplayVerticalEnd - DisplayVerticalStart)) >> (h == 480 ? 0 : 1);
-
-            if (offsetline < 0)
-                return (0, -1);
-
             //AutoCropFrame(h);
             //var (top, bottom) = GetCropData();
+            if (is24bit)
+            {
+                int offsetline = DisplayVerticalEnd - DisplayVerticalStart;
+                //Console.WriteLine($"[OpenGL GPU] 24bit: {rx},{ry} - {w}*{h} fix {offsetline}");
+                m_vramDisplayArea.x = rx;
+                m_vramDisplayArea.y = ry;
+                m_vramDisplayArea.width = w;
+                m_vramDisplayArea.height = offsetline;
 
-            m_vramDisplayArea.x = rx;
-            m_vramDisplayArea.y = ry;
-            m_vramDisplayArea.width = w;
-            m_vramDisplayArea.height = offsetline * 2;
+                m_targetDisplayArea.x = 0;
+                m_targetDisplayArea.y = 0;
+                m_targetDisplayArea.width = w;
+                m_targetDisplayArea.height = offsetline;
+            } else
+            {
+                m_vramDisplayArea.x = rx;
+                m_vramDisplayArea.y = ry;
+                m_vramDisplayArea.width = w;
+                m_vramDisplayArea.height = h;
 
-            m_targetDisplayArea.x = 0;
-            m_targetDisplayArea.y = 0;
-            m_targetDisplayArea.width = w;
-            m_targetDisplayArea.height = offsetline * 2;
-
+                m_targetDisplayArea.x = 0;
+                m_targetDisplayArea.y = 0;
+                m_targetDisplayArea.width = w;
+                m_targetDisplayArea.height = h;
+            }
             DrawBatch();
 
             // 重置渲染状态
@@ -759,8 +768,9 @@ namespace ScePSX
 
                 m_vramDrawTexture.Bind();
                 Gl.Viewport(
-                    m_targetDisplayArea.x * resolutionScale,
-                    m_targetDisplayArea.y * resolutionScale,
+                    //m_targetDisplayArea.x * resolutionScale,
+                    //m_targetDisplayArea.y * resolutionScale,
+                    0, 0,
                     (int)srcWidth,
                     (int)srcHeight
                 );

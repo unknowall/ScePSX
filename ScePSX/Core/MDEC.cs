@@ -42,6 +42,12 @@ namespace ScePSX
         private IMemoryOwner<byte> outBuffer = MemoryPool<byte>.Shared.Rent(0x60000); //MGS FMV 0ver 0x41000
         private int outBufferPos = 0;
 
+        private int yuvToRgbBlockPos = 0;
+
+        public MDEC()
+        {
+        }
+
         public void Dispose()
         {
             outBuffer?.Dispose();
@@ -154,7 +160,6 @@ namespace ScePSX
             }
         }
 
-        int yuvToRgbBlockPos = 0;
         private void yuv_to_rgb(short[] Yblk, int xx, int yy)
         {
             Span<byte> rgb = stackalloc byte[3];
