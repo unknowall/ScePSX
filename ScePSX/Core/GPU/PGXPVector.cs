@@ -52,11 +52,8 @@ namespace ScePSX.Core.GPU
 
         public static void Add(LowPos low, HighPos high)
         {
-            //各后端仍需实现自己的PGXPVector.Add方法
-            //暂不使用PGXPVector
-
-            //lowToHighMap[low] = high;
-            //addedKeys.Add(low);
+            lowToHighMap[low] = high;
+            addedKeys.Add(low);
         }
 
         public static bool Find(LowPos low, out HighPos high)
