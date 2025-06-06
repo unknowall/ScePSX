@@ -273,10 +273,11 @@ namespace ScePSX
 
             PsxBus.controller1.RumbleHandler = _IRumble;
 
-            PsxBus.cpu.gte.use_pgxp = GTE_PGXP;
+            PsxBus.cpu.gte.use_pgxp = false; //GTE_PGXP
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");
+            Console.WriteLine($"State LOADED.PGXP {GTE_PGXP}");
             Console.ResetColor();
 
             Pauseing = false;

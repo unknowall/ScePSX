@@ -977,14 +977,23 @@ namespace ScePSX
 
         uniform float u_resolutionScale;
         uniform bool u_pgxp;
-        uniform mat4 u_mvp;  // 模型视图投影矩阵
+        uniform mat4 u_mvp;
 
         void main()
         {
             if (u_pgxp)
             {
                 // 应用MVP矩阵
-                gl_Position = u_mvp * vec4(v_pos_high, 1.0);
+                // gl_Position = u_mvp * vec4(v_pos_high, 1.0);
+
+                float vertexOffset = 0.5 / u_resolutionScale;
+
+                float x = (v_pos_high.x + vertexOffset) / 512.0 - 1.0;
+                float y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
+
+                Position = vec3( v_pos_high.xy, v_pos_high.z );
+
+                gl_Position = vec4(x, y, 0.0, 1.0);
             }
             else
             {

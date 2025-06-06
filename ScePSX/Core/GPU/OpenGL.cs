@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Khronos;
 using OpenGL;
-
+using ScePSX.Core.GPU;
 using ScePSX.Render;
 
 namespace ScePSX
@@ -1271,14 +1271,20 @@ namespace ScePSX
 
             VAOBuff.SubData<Vertex>(Vertexs.Count, Vertexs.ToArray());
 
-            if (PGXP)
-            {
-                Gl.Enable(EnableCap.DepthTest);
-                Gl.DepthFunc(DepthFunction.Lequal);
+            //if (PGXP)
+            //{
+            //    Gl.Enable(EnableCap.DepthTest);
+            //    Gl.DepthFunc(DepthFunction.Lequal);
 
-                float[] mvp = new float[] { m_mvpMatrix.M11 };
-                Gl.UniformMatrix4(mvpLoc, false, mvp);
-            }
+            //    float[] mvpArray = new float[]
+            //    {
+            //        m_mvpMatrix.M11, m_mvpMatrix.M12, m_mvpMatrix.M13, m_mvpMatrix.M14,
+            //        m_mvpMatrix.M21, m_mvpMatrix.M22, m_mvpMatrix.M23, m_mvpMatrix.M24,
+            //        m_mvpMatrix.M31, m_mvpMatrix.M32, m_mvpMatrix.M33, m_mvpMatrix.M34,
+            //        m_mvpMatrix.M41, m_mvpMatrix.M42, m_mvpMatrix.M43, m_mvpMatrix.M44
+            //    };
+            //    Gl.UniformMatrix4(mvpLoc, false, mvpArray);
+            //}
 
             if (m_semiTransparencyEnabled && (m_semiTransparencyMode == 2) && !m_TexPage.TextureDisable)
             {
@@ -1299,6 +1305,11 @@ namespace ScePSX
             } else
             {
                 Gl.DrawArrays(PrimitiveType.Triangles, 0, Vertexs.Count);
+            }
+
+            if (PGXP)
+            {
+                PGXPVector.Deletes();
             }
 
             Vertexs.Clear();
@@ -1421,6 +1432,11 @@ namespace ScePSX
                 vertices[i].v_clut.Value = 0;
                 vertices[i].v_texPage.TextureDisable = true;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                if (PGXP)
+                {
+                    vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
+                }
             }
 
             if (Vertexs.Count + 6 > 1024)
@@ -1526,14 +1542,11 @@ namespace ScePSX
 
                 if (PGXP)
                 {
-                    // 计算高精度坐标
-                    float vertexOffset = 0.5f / resolutionScale;
-                    float highX = (vertices[i].v_pos.x + vertexOffset) / 512.0f * 2.0f - 1.0f;
-                    float highY = (vertices[i].v_pos.y + vertexOffset) / 256.0f * 2.0f - 1.0f;
-                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;
-
-                    // 设置高精度坐标
-                    vertices[i].v_pos_high = new Vector3(highX, highY, highZ);
+                    PGXPVector.HighPos HighPos;
+                    if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
+                    {
+                        vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                    }
                 }
             }
 
@@ -1620,14 +1633,11 @@ namespace ScePSX
 
                 if (PGXP)
                 {
-                    // 计算高精度坐标
-                    float vertexOffset = 0.5f / resolutionScale;
-                    float highX = (vertices[i].v_pos.x + vertexOffset) / 512.0f * 2.0f - 1.0f;
-                    float highY = (vertices[i].v_pos.y + vertexOffset) / 256.0f * 2.0f - 1.0f;
-                    float highZ = (float)vertices[i].v_pos.z / 32767.0f;
-
-                    // 设置高精度坐标
-                    vertices[i].v_pos_high = new Vector3(highX, highY, highZ);
+                    PGXPVector.HighPos HighPos;
+                    if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
+                    {
+                        vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                    }
                 }
             }
 

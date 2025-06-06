@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using ScePSX.Core.GPU;
 
 namespace ScePSX
 {
@@ -853,13 +854,18 @@ namespace ScePSX
                 SXY[2].x = setSXY(1, sx);
                 SXY[2].y = setSXY(2, sy);
 
+                PGXPVector.Add(
+                    new PGXPVector.LowPos { x = SXY[2].x, y = SXY[2].y },
+                    new PGXPVector.HighPos { x = screenX, y = screenY, z = invZ, worldX = worldX, worldY = worldY, worldZ = worldZ }
+                );
+
                 //Console.WriteLine();
                 //Console.WriteLine($"[PGXP] Screen: ({SXY[2].x}, {SXY[2].y})");
                 //Console.WriteLine($"[PGXP] MAC FIFO: [{MAC1}, {MAC2}, {MAC3}]");
                 //Console.WriteLine($"[PGXP] IR FIFO: [{IR[1]}, {IR[2]}, {IR[3]}]");
                 //Console.WriteLine($"[PGXP] SZ FIFO: [{SZ[0]}, {SZ[1]}, {SZ[2]}, {SZ[3]}]");
                 //Console.WriteLine($"[PGXP] SXY FIFO: [({SXY[0].x}, {SXY[0].y}), ({SXY[1].x}, {SXY[1].y}), ({SXY[2].x}, {SXY[2].y})]");
-                
+
                 if (setMac0)
                 {
                     long nn;
