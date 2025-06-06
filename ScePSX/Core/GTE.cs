@@ -844,7 +844,6 @@ namespace ScePSX
                 SZ[0] = SZ[1];
                 SZ[1] = SZ[2];
                 SZ[2] = SZ[3];
-                //SZ[3] = (ushort)Math.Clamp(worldZ, 0, 0xFFFF);
                 SZ[3] = setSZ3(mac3_val >> 12);
 
                 SXY[0] = SXY[1];
@@ -854,24 +853,44 @@ namespace ScePSX
                 SXY[2].x = setSXY(1, sx);
                 SXY[2].y = setSXY(2, sy);
 
+                //Console.WriteLine();
+                //Console.WriteLine($"[PGXP] Screen: ({SXY[2].x}, {SXY[2].y})");
+                //Console.WriteLine($"[PGXP] MAC FIFO: [{MAC1}, {MAC2}, {MAC3}]");
+                //Console.WriteLine($"[PGXP] IR FIFO: [{IR[1]}, {IR[2]}, {IR[3]}]");
+                //Console.WriteLine($"[PGXP] SZ FIFO: [{SZ[0]}, {SZ[1]}, {SZ[2]}, {SZ[3]}]");
+                //Console.WriteLine($"[PGXP] SXY FIFO: [({SXY[0].x}, {SXY[0].y}), ({SXY[1].x}, {SXY[1].y}), ({SXY[2].x}, {SXY[2].y})]");
+                
                 if (setMac0)
                 {
-                    //MAC0 = (int)(DQA * (hFloat * invZ) + DQB);
-                    long mac0 = setMAC0((long)(DQA * (hFloat * invZ) + DQB));
+                    long nn;
+                    if (H < SZ[3] * 2)
+                    {
+                        int z = BitOperations.LeadingZeroCount(SZ[3]) - 16;
+                        nn = H << z;
+                        uint d = (uint)(SZ[3] << z);
+                        ushort u = (ushort)(unrTable[(int)((d - 0x7FC0) >> 7)] + 0x101);
+                        d = ((0x2000080 - (d * u)) >> 8);
+                        d = ((0x0000080 + (d * u)) >> 8);
+                        nn = (int)(((nn * d) + 0x8000) >> 16);
+                    } else
+                    {
+                        FLAG |= 1 << 17;
+                        nn = 0x1FFFF;
+                    }
+                    //long mac0 = setMAC0((long)(DQA * (hFloat * invZ) + DQB));
+                    long mac0 = setMAC0(nn * DQA + DQB);
                     MAC0 = (int)mac0;
                     IR[0] = setIR0((int)(mac0 >> 12));
-                    //Console.WriteLine($"[PGXP] MAC0 Calculation: DQA={DQA}, invZ={invZ:F6}, H={H}, DQB={DQB} => MAC0={MAC0}, IR0={IR[0]}");
+                    //Console.WriteLine($"[PGXP] setMac0 [{MAC0}] IR0 [{IR[0]}]");
                 }
+
+                //Console.WriteLine($"[PGXP] FLAG (0x{FLAG:X8})");
 
                 //if (screenX < -0x400 || screenX > 0x3FF || screenY < -0x400 || screenY > 0x3FF)
                 //{
                 //    FLAG |= 0x4_0000;
                 //    Console.WriteLine($"[PGXP] Screen coordinate overflow detected! ScreenX={screenX:F2}, ScreenY={screenY:F2}");
                 //}
-
-                //Console.WriteLine($"[PGXP] Screen: ({screenX:F6}, {screenY:F6}) => Clamped: ({sx}, {sy})");
-                //Console.WriteLine($"[PGXP] SZ FIFO: [{SZ[0]}, {SZ[1]}, {SZ[2]}, {SZ[3]}]");
-                //Console.WriteLine($"[PGXP] SXY FIFO: [({SXY[0].x}, {SXY[0].y}), ({SXY[1].x}, {SXY[1].y}), ({SXY[2].x}, {SXY[2].y})]");
 
                 return;
             }
@@ -917,12 +936,22 @@ namespace ScePSX
             SXY[2].x = setSXY(1, x);
             SXY[2].y = setSXY(2, y);
 
+            //Console.WriteLine();
+            //Console.WriteLine($"[RTPS] Screen: ({SXY[2].x}, {SXY[2].y})");
+            //Console.WriteLine($"[RTPS] MAC FIFO: [{MAC1}, {MAC2}, {MAC3}]");
+            //Console.WriteLine($"[RTPS] IR FIFO: [{IR[1]}, {IR[2]}, {IR[3]}]");
+            //Console.WriteLine($"[RTPS] SZ FIFO: [{SZ[0]}, {SZ[1]}, {SZ[2]}, {SZ[3]}]");
+            //Console.WriteLine($"[RTPS] SXY FIFO: [({SXY[0].x}, {SXY[0].y}), ({SXY[1].x}, {SXY[1].y}), ({SXY[2].x}, {SXY[2].y})]");
+
             if (setMac0)
             {
                 long mac0 = setMAC0(n * DQA + DQB);
                 MAC0 = (int)mac0;
                 IR[0] = setIR0((int)(mac0 >> 12));
+                //Console.WriteLine($"[RTPS] setMac0 [{MAC0}] IR0 [{IR[0]}]");
             }
+
+            //Console.WriteLine($"[RTPS] FLAG (0x{FLAG:X8})");
         }
 
         private short setIR0(long value)
