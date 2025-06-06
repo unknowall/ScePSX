@@ -23,6 +23,7 @@
 | OpenGL         | ~86MB / ~138MB | Modern Devices     | Software / OpenGL     |
 | Vulkan         | ~120MB / ~143MB | Modern Devices     | Software / Vulkan     |
 
+**Note that when using on older machines, the PGXP feature is effective in software, OpenGL, and Vulkan backends; enable it as appropriate.**
 > **Smooth Performance Test**: Runs at 60 FPS on an Intel Celeron i3 3215u. *No gamedb, no reshade.*
 
 > **Hardware Backend**: Better native graphics quality, lower CPU usage  
@@ -147,6 +148,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 | OpenGL   | ~86MB / ~138MB   | 现代设备 | software / OpenGL |
 | Vulkan   | ~120MB / ~143MB  | 现代设备 | software / Vulkan          |
 
+**在老机器上使用时需注意PGXP功能在 软件、OpenGL、Vulkan 后端均生效，酌情启用**
 > **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, 不使用reshade
 
 > **硬件后端**: 更好的原生画质，更低的CPU使用率<br>
