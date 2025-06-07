@@ -404,7 +404,7 @@ namespace ScePSX
                     MAC2 = (int)setMAC(2, mac2);
                     MAC3 = (int)setMAC(3, mac3);
 
-                    interpolateColor(MAC1, MAC2, MAC3, true);
+                    interpolateColor(MAC1, MAC2, MAC3, PGXPVector.use_perspective_correction);
 
                     RGB[0] = RGB[1];
                     RGB[1] = RGB[2];
