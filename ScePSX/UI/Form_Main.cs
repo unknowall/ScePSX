@@ -21,7 +21,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.7.1";
+        public static string version = "ScePSX Beta 0.1.7.2";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -1098,7 +1098,7 @@ namespace ScePSX.UI
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
-                (Core.GPU as OpenglGPU).PGXP = false;
+                (Core.GPU as OpenglGPU).PGXP = PGXP;
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                 (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                 (Core.GPU as OpenglGPU).RealColor = Realcolor;

@@ -55,11 +55,15 @@ namespace ScePSX.Core.GPU
 
         private static Dictionary<LowPos, HighPos> lowToHighMap = new Dictionary<LowPos, HighPos>();
         private static HashSet<LowPos> addedKeys = new();
+        public static double MaxDepth = 0;
 
         public static void Add(LowPos low, HighPos high)
         {
             lowToHighMap[low] = high;
             addedKeys.Add(low);
+
+            if (high.z> MaxDepth)
+                MaxDepth = high.z;
         }
 
         public static bool Find(LowPos low, out HighPos high)

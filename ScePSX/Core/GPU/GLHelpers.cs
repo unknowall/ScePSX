@@ -971,6 +971,8 @@ namespace ScePSX
         out vec3 BlendColor;
         out vec2 TexCoord;
         out vec3 Position;
+        out float invZ;
+
         flat out ivec2 TexPageBase;
         flat out ivec2 ClutBase;
         flat out int TexPage;
@@ -983,16 +985,16 @@ namespace ScePSX
         {
             if (u_pgxp)
             {
-                // 应用MVP矩阵
-                // gl_Position = u_mvp * vec4(v_pos_high, 1.0);
-
                 float vertexOffset = 0.5 / u_resolutionScale;
 
                 float x = (v_pos_high.x + vertexOffset) / 512.0 - 1.0;
                 float y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
-                float z = ( v_pos_high.z / 32767.0 );
 
-                Position = vec3( v_pos_high.xy, z );
+                Position = vec3( v_pos_high.xy, v_pos.z / 32767.0 );
+
+                invZ = v_pos_high.z;
+
+                TexCoord = v_texCoord / invZ; 
 
                 gl_Position = vec4(x, y, 0.0, 1.0);
             }
@@ -1006,6 +1008,10 @@ namespace ScePSX
 
 	            Position = vec3( v_pos.xy, z );
 
+                invZ = 1.0;
+
+                TexCoord = v_texCoord;
+
 	            gl_Position = vec4( x, y, 0.0, 1.0 );
             }
 
@@ -1014,7 +1020,6 @@ namespace ScePSX
 	        ClutBase = ivec2( ( v_clut & 0x3f ) * 16, v_clut >> 6 );
 
 	        BlendColor = v_color;
-	        TexCoord = v_texCoord;
 
 	        TexPage = v_texPage;
         }";
@@ -1025,6 +1030,8 @@ namespace ScePSX
         in vec3 BlendColor;
         in vec2 TexCoord;
         in vec3 Position;
+        in float invZ;
+
         flat in ivec2 TexPageBase;
         flat in ivec2 ClutBase;
         flat in int TexPage;
@@ -1145,8 +1152,17 @@ namespace ScePSX
         vec4 LookupTexel()
         {
 	        vec4 color;
+            ivec2 texCoord;
 
-	        ivec2 texCoord = ivec2( floor( TexCoord + vec2( 0.0001 ) ) ) & ivec2( 0xff );
+            if (invZ != 1.0)
+            {
+                vec2 scaledCoord = TexCoord * 1024.0;
+                texCoord = ivec2(floor(scaledCoord + vec2(0.0001))) & ivec2(0xff);
+            }
+            else
+            {
+                texCoord = ivec2(floor(TexCoord + vec2(0.0001))) & ivec2(0xff);
+            }
 
 	        // apply texture window
 	        texCoord.x = ( texCoord.x & ~( u_texWindowMask.x * 8 ) ) | ( ( u_texWindowOffset.x & u_texWindowMask.x ) * 8 );
