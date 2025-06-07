@@ -17,6 +17,7 @@ using Khronos;
 using OpenGL;
 using ScePSX.Core.GPU;
 using ScePSX.Render;
+using static ScePSX.Core.GPU.PGXPVector;
 
 namespace ScePSX
 {
@@ -1436,6 +1437,11 @@ namespace ScePSX
                 if (PGXP)
                 {
                     vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
+                    //PGXPVector.HighPos HighPos;
+                    //if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
+                    //{
+                    //    vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                    //}
                 }
             }
 
@@ -1546,6 +1552,9 @@ namespace ScePSX
                     if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
                     {
                         vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                    } else
+                    {
+                        vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
                     }
                 }
             }
@@ -1637,6 +1646,9 @@ namespace ScePSX
                     if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
                     {
                         vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                    } else
+                    {
+                        vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
                     }
                 }
             }

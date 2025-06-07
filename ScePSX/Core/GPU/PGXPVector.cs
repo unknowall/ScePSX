@@ -8,6 +8,12 @@ namespace ScePSX.Core.GPU
 {
     public static class PGXPVector
     {
+        public static bool use_pgxp = false;
+        public static bool use_pgxp_highpos = false;
+        public static bool use_pgxp_clip = false;
+        public static bool use_pgxp_aff = true;
+        public static bool use_perspective_correction = true;
+
         public struct LowPos
         {
             public short x;

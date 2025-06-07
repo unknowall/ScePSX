@@ -121,6 +121,8 @@ namespace ScePSX
         private bool lm;                    //Saturate IR1,IR2,IR3 result (0=To -8000h..+7FFFh, 1=To 0..+7FFFh)
         private uint currentCommand;        //GTE current command temporary stored for MVMVA decoding
 
+        public bool use_pgxp = false;
+
         public void execute(uint command)
         {
             //Console.WriteLine($"GTE EXECUTE {(command & 0x3F):x2}");
@@ -229,30 +231,6 @@ namespace ScePSX
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
         }
-
-        //private void CC()
-        //{
-        //    // 使用 SIMD 向量化计算 [R * IR1, G * IR2, B * IR3]
-        //    Vector<int> rgbcVec = new Vector<int>(new int[] { RGBC.r, RGBC.g, RGBC.b });
-        //    Vector<int> irVec = new Vector<int>(new int[] { IR[1], IR[2], IR[3] });
-        //    Vector<int> macVec = (rgbcVec * irVec) << 4;
-
-        //    MAC1 = (int)setMAC(1, macVec[0]);
-        //    MAC2 = (int)setMAC(2, macVec[1]);
-        //    MAC3 = (int)setMAC(3, macVec[2]);
-
-        //    interpolateColor(MAC1, MAC2, MAC3);
-
-        //    RGB[0] = RGB[1];
-        //    RGB[1] = RGB[2];
-
-        //    // 使用 SIMD 向量化更新 RGB[2]
-        //    Vector<int> rgbShifted = macVec >> 4;
-        //    RGB[2].r = setRGB(1, rgbShifted[0]);
-        //    RGB[2].g = setRGB(2, rgbShifted[1]);
-        //    RGB[2].b = setRGB(3, rgbShifted[2]);
-        //    RGB[2].c = RGBC.c;
-        //}
 
         private void CC()
         {
@@ -393,6 +371,58 @@ namespace ScePSX
         }
 
         private void INTPL()
+        {
+            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_aff)
+            {
+                if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
+                    PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
+                    PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2))
+                {
+                    double z0 = Math.Max(p0.worldZ, 0.001);
+                    double z1 = Math.Max(p1.worldZ, 0.001);
+                    double z2 = Math.Max(p2.worldZ, 0.001);
+
+                    double w0 = 1.0 / z0;
+                    double w1 = 1.0 / z1;
+                    double w2 = 1.0 / z2;
+                    double totalWeight = w0 + w1 + w2;
+
+                    double ir0 = IR[0];
+                    double weightedIR0 = (w0 * ir0 + w1 * ir0 + w2 * ir0) / totalWeight;
+
+                    // [MAC1, MAC2, MAC3] = ((IR1, IR2, IR3) * weightedIR0) SHL 12
+
+                    //long mac1 = (long)((IR[1] * weightedIR0) * 4096);
+                    //long mac2 = (long)((IR[2] * weightedIR0) * 4096);
+                    //long mac3 = (long)((IR[3] * weightedIR0) * 4096);
+
+                    long mac1 = clampMAC(1, (long)((IR[1] * weightedIR0) * 4096));
+                    long mac2 = clampMAC(2, (long)((IR[2] * weightedIR0) * 4096));
+                    long mac3 = clampMAC(3, (long)((IR[3] * weightedIR0) * 4096));
+
+                    MAC1 = (int)setMAC(1, mac1);
+                    MAC2 = (int)setMAC(2, mac2);
+                    MAC3 = (int)setMAC(3, mac3);
+
+                    interpolateColor(MAC1, MAC2, MAC3, true);
+
+                    RGB[0] = RGB[1];
+                    RGB[1] = RGB[2];
+                    RGB[2].r = setRGB(1, MAC1 >> 4);
+                    RGB[2].g = setRGB(2, MAC2 >> 4);
+                    RGB[2].b = setRGB(3, MAC3 >> 4);
+                    RGB[2].c = RGBC.c;
+                } else
+                {
+                    BASE_INTPL();
+                }
+            } else
+            {
+                BASE_INTPL();
+            }
+        }
+
+        private void BASE_INTPL()
         {
             // [MAC1, MAC2, MAC3] = [IR1, IR2, IR3] SHL 12               ;<--- for INTPL only
             MAC1 = (int)setMAC(1, (long)IR[1] << 12);
@@ -649,20 +679,55 @@ namespace ScePSX
 
         private void AVSZ3()
         {
-            //MAC0 = ZSF3 * (SZ1 + SZ2 + SZ3); for AVSZ3
-            //OTZ = MAC0 / 1000h;for both(saturated to 0..FFFFh)
-            long avsz3 = (long)ZSF3 * (SZ[1] + SZ[2] + SZ[3]);
-            MAC0 = (int)setMAC0(avsz3);
-            OTZ = setSZ3(avsz3 >> 12);
+            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_highpos)
+            {
+                if (PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
+                    PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2) &&
+                    PGXPVector.Find(SXY[3].x, SXY[3].y, out var p3))
+                {
+                    double avgZ = (p1.worldZ + p2.worldZ + p3.worldZ) / 3.0;
+                    long avsz3 = (long)(ZSF3 * avgZ * 4096.0);
+                    MAC0 = (int)setMAC0(avsz3);
+                    OTZ = setSZ3(avsz3 >> 12);
+                } else
+                {
+                    long avsz3 = (long)ZSF3 * (SZ[1] + SZ[2] + SZ[3]);
+                    MAC0 = (int)setMAC0(avsz3);
+                    OTZ = setSZ3(avsz3 >> 12);
+                }
+            } else
+            {
+                long avsz3 = (long)ZSF3 * (SZ[1] + SZ[2] + SZ[3]);
+                MAC0 = (int)setMAC0(avsz3);
+                OTZ = setSZ3(avsz3 >> 12);
+            }
         }
 
         private void AVSZ4()
         {
-            //MAC0 = ZSF4 * (SZ0 + SZ1 + SZ2 + SZ3);for AVSZ4
-            //OTZ = MAC0 / 1000h;for both(saturated to 0..FFFFh)
-            long avsz4 = (long)ZSF4 * (SZ[0] + SZ[1] + SZ[2] + SZ[3]);
-            MAC0 = (int)setMAC0(avsz4);
-            OTZ = setSZ3(avsz4 >> 12);
+            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_highpos)
+            {
+                if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
+                    PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
+                    PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2) &&
+                    PGXPVector.Find(SXY[3].x, SXY[3].y, out var p3))
+                {
+                    double avgZ = (p0.worldZ + p1.worldZ + p2.worldZ + p3.worldZ) / 4.0;
+                    long avsz4 = (long)(ZSF4 * avgZ * 4096.0);
+                    MAC0 = (int)setMAC0(avsz4);
+                    OTZ = setSZ3(avsz4 >> 12);
+                } else
+                {
+                    long avsz4 = (long)ZSF4 * (SZ[0] + SZ[1] + SZ[2] + SZ[3]);
+                    MAC0 = (int)setMAC0(avsz4);
+                    OTZ = setSZ3(avsz4 >> 12);
+                }
+            } else
+            {
+                long avsz4 = (long)ZSF4 * (SZ[0] + SZ[1] + SZ[2] + SZ[3]);
+                MAC0 = (int)setMAC0(avsz4);
+                OTZ = setSZ3(avsz4 >> 12);
+            }
         }
 
         private void NCDS(int r)
@@ -743,7 +808,7 @@ namespace ScePSX
             RGB[2].c = RGBC.c;
         }
 
-        private void interpolateColor(int mac1, int mac2, int mac3)
+        private void interpolateColor(int mac1, int mac2, int mac3, bool perspectiveCorrect = false)
         {
             // PSX SPX is very convoluted about this and it lacks some info
             // [MAC1, MAC2, MAC3] = MAC + (FC - MAC) * IR0;< --- for NCDx only
@@ -754,56 +819,109 @@ namespace ScePSX
             // [MAC1, MAC2, MAC3] = [MAC1, MAC2, MAC3] SAR(sf * 12);< --- for NCDx / NCCx
             // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
 
-            // 将 MAC1, MAC2, MAC3 转换为 Vector4 进行 SIMD 操作
-            Vector4 mac = new Vector4(mac1, mac2, mac3, 0);
+            if (!perspectiveCorrect)
+            {
+                Vector4 mac = new Vector4(mac1, mac2, mac3, 0);
+                Vector4 fc = new Vector4(RFC, GFC, BFC, 0);
+                Vector4 ir = (fc * 0x1000 - mac) / (1 << sf);
+                Vector4 min = new Vector4(-0x8000, -0x8000, -0x8000, 0);
+                Vector4 max = new Vector4(0x7FFF, 0x7FFF, 0x7FFF, 0);
+                ir = Vector4.Clamp(ir, min, max);
 
-            // 将 RFC, GFC, BFC 转换为 Vector4 进行 SIMD 操作
-            Vector4 fc = new Vector4(RFC, GFC, BFC, 0);
+                mac = ir * IR[0] + mac;
+                mac /= (1 << sf);
 
-            // [IR1, IR2, IR3] = (([RFC, GFC, BFC] SHL 12) - [MAC1, MAC2, MAC3]) SAR(sf * 12)
-            Vector4 ir = (fc * 0x1000 - mac) / (1 << sf);
+                MAC1 = (int)mac.X;
+                MAC2 = (int)mac.Y;
+                MAC3 = (int)mac.Z;
 
-            // 确保 IR 在合理范围内 (-8000h..+7FFFh)
-            Vector4 min = new Vector4(-0x8000, -0x8000, -0x8000, 0);
-            Vector4 max = new Vector4(0x7FFF, 0x7FFF, 0x7FFF, 0);
-            ir = Vector4.Clamp(ir, min, max);
+                IR[1] = setIR(1, MAC1, lm);
+                IR[2] = setIR(2, MAC2, lm);
+                IR[3] = setIR(3, MAC3, lm);
 
-            // [MAC1, MAC2, MAC3] = (([IR1, IR2, IR3] * IR0) + [MAC1, MAC2, MAC3])
-            mac = ir * IR[0] + mac;
+                return;
+            }
 
-            // [MAC1, MAC2, MAC3] = [MAC1, MAC2, MAC3] SAR(sf * 12);< --- for NCDx / NCCx
-            mac /= (1 << sf);
+            if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
+                PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
+                PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2))
+            {
+                double z0 = p0.worldZ;
+                double z1 = p1.worldZ;
+                double z2 = p2.worldZ;
 
-            // 确保 MAC1, MAC2, MAC3 在合理范围内
-            MAC1 = (int)mac.X;
-            MAC2 = (int)mac.Y;
-            MAC3 = (int)mac.Z;
+                double invZ = 1.0 / ((z0 + z1 + z2) / 3); // 平均深度倒数
 
-            IR[1] = setIR(1, MAC1, lm);
-            IR[2] = setIR(2, MAC2, lm);
-            IR[3] = setIR(3, MAC3, lm);
+                double w0 = 1.0 / Math.Max(z0, 0.001);
+                double w1 = 1.0 / Math.Max(z1, 0.001);
+                double w2 = 1.0 / Math.Max(z2, 0.001);
+                double totalWeight = w0 + w1 + w2;
+
+                double r = (double)(w0 * MAC1 + w1 * MAC2 + w2 * MAC3) / totalWeight;
+                double g = (double)(w0 * MAC2 + w1 * MAC3 + w2 * MAC1) / totalWeight;
+                double b = (double)(w0 * MAC3 + w1 * MAC1 + w2 * MAC2) / totalWeight;
+
+                MAC1 = (int)r;
+                MAC2 = (int)g;
+                MAC3 = (int)b;
+
+                IR[1] = setIR(1, MAC1, lm);
+                IR[2] = setIR(2, MAC2, lm);
+                IR[3] = setIR(3, MAC3, lm);
+            } else
+            {
+                interpolateColor(mac1, mac2, mac3, false);
+            }
         }
 
         //Normal clipping
         private void NCLIP()
         {
-            // MAC0 = SX0*SY1 + SX1*SY2 + SX2*SY0 - SX0*SY2 - SX1*SY0 - SX2*SY1
-            MAC0 = (int)setMAC0((long)SXY[0].x * SXY[1].y + SXY[1].x * SXY[2].y + SXY[2].x * SXY[0].y - SXY[0].x * SXY[2].y - SXY[1].x * SXY[0].y - SXY[2].x * SXY[1].y);
+            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_clip)
+            {
+                if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
+                    PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
+                    PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2))
+                {
+                    double areaSign = p0.x * p1.y + p1.x * p2.y + p2.x * p0.y
+                                     - p0.x * p2.y - p1.x * p0.y - p2.x * p1.y;
+
+                    MAC0 = (int)setMAC0((long)areaSign);
+                } else
+                {
+                    long areaSign = (long)SXY[0].x * SXY[1].y +
+                                    SXY[1].x * SXY[2].y +
+                                    SXY[2].x * SXY[0].y -
+                                    SXY[0].x * SXY[2].y -
+                                    SXY[1].x * SXY[0].y -
+                                    SXY[2].x * SXY[1].y;
+
+                    MAC0 = (int)setMAC0(areaSign);
+                }
+            } else
+            {
+                long areaSign = (long)SXY[0].x * SXY[1].y +
+                                SXY[1].x * SXY[2].y +
+                                SXY[2].x * SXY[0].y -
+                                SXY[0].x * SXY[2].y -
+                                SXY[1].x * SXY[0].y -
+                                SXY[2].x * SXY[1].y;
+
+                MAC0 = (int)setMAC0(areaSign);
+            }
         }
 
         //Perspective Transformation Triple
         private void RTPT()
-        { 
+        {
             RTPS(0, false);
             RTPS(1, false);
             RTPS(2, true);
         }
 
-        public bool use_pgxp = false;
-
         private void RTPS(int r, bool setMac0)
         {
-            if (use_pgxp)
+            if (PGXPVector.use_pgxp)
             {
                 double xx = V[r].x;
                 double yy = V[r].y;
@@ -817,9 +935,13 @@ namespace ScePSX
 
                 //Console.WriteLine($"[PGXP] World Transformed {r}: X={worldX:F6}, Y={worldY:F6}, Z={worldZ:F6}");
 
-                long mac1_val = (long)Math.Round(worldX * 4096.0);
-                long mac2_val = (long)Math.Round(worldY * 4096.0);
-                long mac3_val = (long)Math.Round(worldZ * 4096.0);
+                //long mac1_val = (long)Math.Round(worldX * 4096.0);
+                //long mac2_val = (long)Math.Round(worldY * 4096.0);
+                //long mac3_val = (long)Math.Round(worldZ * 4096.0);
+
+                long mac1_val = (long)(worldX * 4096);
+                long mac2_val = (long)(worldY * 4096);
+                long mac3_val = (long)(worldZ * 4096);
 
                 MAC1 = (int)(setMAC(1, mac1_val) >> sf);
                 MAC2 = (int)(setMAC(2, mac2_val) >> sf);
@@ -854,10 +976,10 @@ namespace ScePSX
                 SXY[2].x = setSXY(1, sx);
                 SXY[2].y = setSXY(2, sy);
 
-                //PGXPVector.Add(
-                //    new PGXPVector.LowPos { x = SXY[2].x, y = SXY[2].y },
-                //    new PGXPVector.HighPos { x = screenX, y = screenY, z = invZ, worldX = worldX, worldY = worldY, worldZ = worldZ }
-                //);
+                PGXPVector.Add(
+                    new PGXPVector.LowPos { x = SXY[2].x, y = SXY[2].y, z = (short)SZ[3] },
+                    new PGXPVector.HighPos { x = screenX, y = screenY, z = invZ, worldX = worldX, worldY = worldY, worldZ = worldZ }
+                );
 
                 //Console.WriteLine();
                 //Console.WriteLine($"[PGXP] Screen: ({SXY[2].x}, {SXY[2].y})");
@@ -1037,6 +1159,24 @@ namespace ScePSX
             }
 
             return (short)value;
+        }
+
+        private long clampMAC(int idx, long value)
+        {
+            const long min = -0x8000_0000;
+            const long max = 0x7FFF_FFFF;
+
+            if (value < min)
+            {
+                FLAG |= (uint)(0x800_0000 >> (idx - 1));
+                return min;
+            }
+            if (value > max)
+            {
+                FLAG |= (uint)(0x4000_0000 >> (idx - 1));
+                return max;
+            }
+            return value;
         }
 
         private long setMAC0(long value)

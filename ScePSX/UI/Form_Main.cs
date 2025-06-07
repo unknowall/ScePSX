@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Windows.Forms;
-
+using ScePSX.Core.GPU;
 using ScePSX.Render;
 using static ScePSX.Controller;
 using static SDL2.SDL;
@@ -574,7 +574,7 @@ namespace ScePSX.UI
 
                     IRscale = IRscale < 1 ? 1 : IRscale;
                     (Core.GPU as OpenglGPU).IRScale = IRscale;
-                    (Core.GPU as OpenglGPU).PGXP = false;
+                    (Core.GPU as OpenglGPU).PGXP = PGXP;
                     (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                     (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                     (Core.GPU as OpenglGPU).RealColor = Realcolor;
@@ -1085,9 +1085,10 @@ namespace ScePSX.UI
             }
 
             //Core.PsxBus.cpu.FastBoot = ini.ReadInt("main", "FastBoot") == 1;
+
             Core.PsxBus.cpu.FastBoot = FastBoot;
-            Core.PsxBus.cpu.gte.use_pgxp = PGXP;
-            Core.GTE_PGXP = PGXP;
+
+            PGXPVector.use_pgxp = PGXP;
 
             sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 

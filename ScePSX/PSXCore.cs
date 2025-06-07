@@ -8,6 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ScePSX.Core.GPU;
 
 #pragma warning disable SYSLIB0011
 
@@ -273,11 +274,10 @@ namespace ScePSX
 
             PsxBus.controller1.RumbleHandler = _IRumble;
 
-            PsxBus.cpu.gte.use_pgxp = false; //GTE_PGXP
+            //PGXPVector.use_pgxp = false;
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");
-            Console.WriteLine($"State LOADED.PGXP {GTE_PGXP}");
             Console.ResetColor();
 
             Pauseing = false;

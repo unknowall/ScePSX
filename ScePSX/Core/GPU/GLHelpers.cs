@@ -990,8 +990,9 @@ namespace ScePSX
 
                 float x = (v_pos_high.x + vertexOffset) / 512.0 - 1.0;
                 float y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
+                float z = ( v_pos_high.z / 32767.0 );
 
-                Position = vec3( v_pos_high.xy, v_pos_high.z );
+                Position = vec3( v_pos_high.xy, z );
 
                 gl_Position = vec4(x, y, 0.0, 1.0);
             }
