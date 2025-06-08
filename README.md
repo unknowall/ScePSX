@@ -6,6 +6,7 @@
 
 ## Key Features 🎮
 - **Save States**: Save and load game progress at any time.
+- **PGXP**: Supported by both software and hardware backends, with all adjustments taking effect instantly without requiring a restart.
 - **Multi-Renderer Support**: Dynamically switch between D2D, D3D, OpenGL, and Vulkan renderers to adapt to different hardware configurations.
 - **ReShade Integration**: ReShade post-processing effects supported on D3D, OpenGL, and Vulkan for enhanced graphics.
 - **Resolution Scaling**: Hardware backend supports up to 4K native resolution output, while the software backend improves visuals through xBR and JINC scaling.
@@ -23,7 +24,7 @@
 | OpenGL         | ~86MB / ~138MB | Modern Devices     | Software / OpenGL     |
 | Vulkan         | ~120MB / ~143MB | Modern Devices     | Software / Vulkan     |
 
-**Note that when using on older machines, the PGXP feature is effective in software, OpenGL, and Vulkan backends; enable it as appropriate.**
+**PGXP is supported across software, OpenGL, and Vulkan backends; older systems should enable it with caution.**
 > **Smooth Performance Test**: Runs at 60 FPS on an Intel Celeron i3 3215u. *No gamedb, no reshade，PGXP off.*
 
 > **Hardware Backend**: Better native graphics quality, lower CPU usage  
@@ -129,6 +130,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 
 ## 主要功能 🎮
 - **即时存档/读档**: 随时保存和加载游戏进度。
+- **PGXP**: 软件及硬件后端同样支持，各项调整即时生效，无需重启。
 - **多渲染器支持**: 动态切换 D2D、D3D、OpenGL、Vulkan 渲染器，适配不同硬件配置。
 - **ReShade 集成**: D3D、OpenGL、Vulkan 支持 ReShade 后处理效果，增强画质。
 - **分辨率调节**: 硬件后端可输出4K原生分辨率，软件后端可通过xBR,JINC提升视觉体验。
@@ -148,7 +150,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 | OpenGL   | ~86MB / ~138MB   | 现代设备 | software / OpenGL |
 | Vulkan   | ~120MB / ~143MB  | 现代设备 | software / Vulkan          |
 
-**在老机器上使用时需注意PGXP功能在 软件、OpenGL、Vulkan 后端均生效，酌情启用**
+**PGXP功能在 软件、OpenGL、Vulkan 后端均生效，老机器酌情启用**
 > **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, reshade, 不开启PGXP*
 
 > **硬件后端**: 更好的原生画质，更低的CPU使用率<br>
