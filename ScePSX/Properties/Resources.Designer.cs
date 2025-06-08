@@ -70,7 +70,7 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Return 的本地化字符串。
+        ///   查找类似 Close Game 的本地化字符串。
         /// </summary>
         internal static string BackToMain {
             get {
@@ -457,65 +457,74 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Setting 的本地化字符串。
+        ///   查找类似 24Bit FMV 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_Form_Set_set {
+        internal static string Form_Set_InitializeComponent_24bitfmv {
             get {
-                return ResourceManager.GetString("Form_Set_Form_Set_set", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_24bitfmv", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Audiobuffer(ms) 的本地化字符串。
+        ///   查找类似 AudioBuff(ms) 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_audio {
+        internal static string Form_Set_InitializeComponent_audiobuff {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_audio", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_audiobuff", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Bus Ticks 的本地化字符串。
+        ///   查找类似 BUS Tick 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_bt {
+        internal static string Form_Set_InitializeComponent_bustick {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_bt", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_bustick", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Enable console 的本地化字符串。
+        ///   查找类似 CPU Tick 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_con {
+        internal static string Form_Set_InitializeComponent_CPUtick {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_con", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_CPUtick", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 CPU Ticks 的本地化字符串。
+        ///   查找类似 Cycle fix 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_CPUt {
+        internal static string Form_Set_InitializeComponent_cyclefix {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_CPUt", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_cyclefix", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Cyles fix 的本地化字符串。
+        ///   查找类似 Debug Console 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_cyles {
+        internal static string Form_Set_InitializeComponent_debugcon {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_cyles", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_debugcon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Frame skip 的本地化字符串。
+        ///   查找类似 Frame limit 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_fsk {
+        internal static string Form_Set_InitializeComponent_framelimit {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_fsk", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_framelimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 D2D Frame skip 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_frameskip {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_frameskip", resourceCulture);
             }
         }
         
@@ -529,16 +538,16 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 GPU Res 的本地化字符串。
+        ///   查找类似 IR Scale 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_GPU分辨率 {
+        internal static string Form_Set_InitializeComponent_GPUResolution {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_GPU分辨率", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_GPUResolution", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Keep 4:3 的本地化字符串。
+        ///   查找类似 4:3 AR 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_Keep43 {
             get {
@@ -547,25 +556,106 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Frame limit 的本地化字符串。
+        ///   查找类似 Adjust only if experienced 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_limit {
+        internal static string Form_Set_InitializeComponent_ModifyOnlyIfexp {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_limit", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_ModifyOnlyIfexp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 PGXP Correction 的本地化字符串。
+        ///   查找类似 MSAA 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_PGXP几何校正 {
+        internal static string Form_Set_InitializeComponent_msaa {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXP几何校正", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_msaa", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Save 的本地化字符串。
+        ///   查找类似 PGXP Affine Correction (No issues in most cases) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPaff {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPaff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Average Depth (recommended, minimal issues) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPavsz {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPavsz", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Features (Recommended for 3D) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPbase {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPbase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Clipping Fix (may cause missing textures) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPclip {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPclip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP High-Precision Rendering (recommended, low risk) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPhighpos {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPhighpos", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 **Settings apply instantly. Avoid for 2D games 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_pgxphint {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_pgxphint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Coordinate Capture (may cause texture errors) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPmemcap {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPmemcap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Normal Correction (Little effect, resource-heavy) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPnc {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPnc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 PGXP Color Correction (Some games may have color issues) 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_PGXPppc {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_PGXPppc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Apply 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_save {
             get {
@@ -574,20 +664,29 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Modify only if known 的本地化字符串。
+        ///   查找类似 SoftGPU Scale 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改 {
+        internal static string Form_Set_InitializeComponent_softscale {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_softscale", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 IR Scale 的本地化字符串。
+        ///   查找类似 Fix Triangle 的本地化字符串。
         /// </summary>
-        internal static string Form_Set_InitializeComponent_内部分辨率放大 {
+        internal static string Form_Set_InitializeComponent_Trianglefix {
             get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_内部分辨率放大", resourceCulture);
+                return ResourceManager.GetString("Form_Set_InitializeComponent_Trianglefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 True Color 的本地化字符串。
+        /// </summary>
+        internal static string Form_Set_InitializeComponent_truecolor {
+            get {
+                return ResourceManager.GetString("Form_Set_InitializeComponent_truecolor", resourceCulture);
             }
         }
         
@@ -610,15 +709,6 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 True Color 的本地化字符串。
-        /// </summary>
-        internal static string Form_Set_InitializeComponent_真彩色渲染 {
-            get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_真彩色渲染", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Adaptive 的本地化字符串。
         /// </summary>
         internal static string Form_Set_InitializeComponent_自适应 {
@@ -633,15 +723,6 @@ namespace ScePSX.Properties {
         internal static string Form_Set_InitializeComponent_设置 {
             get {
                 return ResourceManager.GetString("Form_Set_InitializeComponent_设置", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 PerFix 的本地化字符串。
-        /// </summary>
-        internal static string Form_Set_InitializeComponent_透视校正 {
-            get {
-                return ResourceManager.GetString("Form_Set_InitializeComponent_透视校正", resourceCulture);
             }
         }
         
@@ -691,7 +772,7 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Save 的本地化字符串。
+        ///   查找类似 Apply 的本地化字符串。
         /// </summary>
         internal static string FrmInput_InitializeComponent_保存设置 {
             get {
@@ -1042,7 +1123,7 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Search 的本地化字符串。
+        ///   查找类似 Search Games 的本地化字符串。
         /// </summary>
         internal static string SearchDir {
             get {

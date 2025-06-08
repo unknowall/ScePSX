@@ -993,16 +993,15 @@ namespace ScePSX
                 y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
 
                 //v_pos_high.z is invZ
-                float worldZ = 1.0 / max(v_pos_high.z, 0.00001);
+                invZ = v_pos_high.z;
+                float worldZ = 1.0 / max(invZ, 0.00001);
                 normalizedZ = worldZ / 32767.0;
 
-                //normalizedZ = v_pos.z / 32767.0;   
+                Position = vec3(v_pos_high.xy, normalizedZ);
 
-                Position = vec3(v_pos_high.xy, normalizedZ);  
+                invZ = 1.0;
 
-                invZ = v_pos_high.z;
-
-                TexCoord = v_texCoord * invZ; 
+                TexCoord = v_texCoord * invZ;
 
                 gl_Position = vec4( x, y, normalizedZ, 1.0 );
 

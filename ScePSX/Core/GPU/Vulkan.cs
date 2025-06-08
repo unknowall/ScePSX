@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ScePSX.Core.GPU;
 using ScePSX.Render;
 
 using Vulkan;
@@ -1051,12 +1052,20 @@ namespace ScePSX
 
             SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
+            PGXPVector.Clear();
+
             if (IRScale != resolutionScale)
                 SetResolutionScale(IRScale);
+
             if (RealColor != m_realColor)
             {
                 SetRealColor(RealColor);
             }
+
+            PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
+
+            //drawVert.u_pgxp = PGXP ? 1 : 0;
+            //UpdateVert();
 
             return (m_vramDisplayArea.width, m_vramDisplayArea.height);
         }
@@ -1941,6 +1950,16 @@ namespace ScePSX
                 vertices[i].v_clut.Value = 0;
                 vertices[i].v_texPage.TextureDisable = true;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                if (PGXP)
+                {
+                    vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
+                    //PGXPVector.HighPos HighPos;
+                    //if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
+                    //{
+                    //    vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                    //}
+                }
             }
 
             if (Vertexs.Count + 6 > VRAM_WIDTH)
@@ -2042,6 +2061,20 @@ namespace ScePSX
                 vertices[i].v_clut.Value = primitive.clut;
                 vertices[i].v_texPage.Value = primitive.texpage;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                if (PGXP)
+                {
+                    PGXPVector.HighPos HighPos;
+                    if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
+                    {
+                        vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                        //Console.WriteLine($"[PGXP] PGXPVector Find x {HighPos.x}, y {HighPos.y}, invZ {HighPos.z}");
+                    } else
+                    {
+                        //Console.WriteLine($"[PGXP] DrawRect PGXPVector Miss x {vertices[i].v_pos.x}, y {vertices[i].v_pos.y}");
+                        vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
+                    }
+                }
             }
 
             Vertexs.Add(vertices[0]);
@@ -2121,6 +2154,20 @@ namespace ScePSX
                 vertices[i].v_clut.Value = primitive.clut;
                 vertices[i].v_texPage.Value = primitive.texpage;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                if (PGXP)
+                {
+                    PGXPVector.HighPos HighPos;
+                    if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
+                    {
+                        vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                        //Console.WriteLine($"[PGXP] PGXPVector Find x {HighPos.x}, y {HighPos.y}, invZ {HighPos.z}");
+                    } else
+                    {
+                        //Console.WriteLine($"[PGXP] DrawTriangle PGXPVector Miss x {vertices[i].v_pos.x}, y {vertices[i].v_pos.y}");
+                        vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
+                    }
+                }
             }
 
             Vertexs.AddRange(vertices);

@@ -9,10 +9,13 @@ namespace ScePSX.Core.GPU
     public static class PGXPVector
     {
         public static bool use_pgxp = false;
-        public static bool use_pgxp_highpos = false;
+        public static bool use_pgxp_avs = true;
         public static bool use_pgxp_clip = false;
-        public static bool use_pgxp_aff = true;
-        public static bool use_perspective_correction = true;
+        public static bool use_pgxp_aff = false;
+        public static bool use_perspective_correction = false;
+        public static bool use_pgxp_nc = false;
+        public static bool use_pgxp_highpos = true;
+        public static bool use_pgxp_memcap = false;
 
         public struct LowPos
         {
@@ -65,7 +68,9 @@ namespace ScePSX.Core.GPU
 
         public static bool Find(LowPos low, out HighPos high)
         {
-            return lowToHighMap.TryGetValue(low, out high);
+            bool found = lowToHighMap.TryGetValue(low, out high);
+
+            return found;
         }
 
         public static bool Find(short x, short y, out HighPos high)
@@ -73,7 +78,10 @@ namespace ScePSX.Core.GPU
             workPos.x = x;
             workPos.y = y;
             //LowPos low = new LowPos { x = x, y = y };
-            return lowToHighMap.TryGetValue(workPos, out high);
+
+            bool found = lowToHighMap.TryGetValue(workPos, out high);
+
+            return found;
         }
 
         public static bool Delete(LowPos low)

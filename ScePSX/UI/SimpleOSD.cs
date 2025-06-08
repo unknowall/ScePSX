@@ -34,9 +34,12 @@ namespace ScePSX.UI
 
         public static void Close()
         {
+            if (_parent == null || _parent.Controls.Count == 0)
+                return;
+
             foreach (Control control in _parent.Controls)
             {
-                if (control is SimpleOSD existingOsd)
+                if (control != null && control is SimpleOSD existingOsd)
                 {
                     existingOsd.hideTimer.Stop();
                     existingOsd.Hide();

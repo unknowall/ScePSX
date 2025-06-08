@@ -1,4 +1,6 @@
-﻿namespace ScePSX.UI
+﻿using ScePSX.Properties;
+
+namespace ScePSX.UI
 {
     partial class Form_Set
     {
@@ -29,6 +31,24 @@
         private void InitializeComponent()
         {
             btnsave = new System.Windows.Forms.Button();
+            btndel = new System.Windows.Forms.Button();
+            label11 = new System.Windows.Forms.Label();
+            SetTab = new System.Windows.Forms.TabControl();
+            SetPage1 = new System.Windows.Forms.TabPage();
+            ChkFMV = new System.Windows.Forms.CheckBox();
+            cbcdrom = new System.Windows.Forms.ComboBox();
+            label14 = new System.Windows.Forms.Label();
+            chkkeepar = new System.Windows.Forms.CheckBox();
+            chkpgxpt = new System.Windows.Forms.CheckBox();
+            chkrealcolor = new System.Windows.Forms.CheckBox();
+            cbgpures = new System.Windows.Forms.ComboBox();
+            label13 = new System.Windows.Forms.Label();
+            cbgpu = new System.Windows.Forms.ComboBox();
+            label12 = new System.Windows.Forms.Label();
+            cbcpumode = new System.Windows.Forms.ComboBox();
+            label10 = new System.Windows.Forms.Label();
+            cbbios = new System.Windows.Forms.ComboBox();
+            label1 = new System.Windows.Forms.Label();
             groupBox1 = new System.Windows.Forms.GroupBox();
             cbscalemode = new System.Windows.Forms.ComboBox();
             label7 = new System.Windows.Forms.Label();
@@ -50,34 +70,221 @@
             tbbuscycles = new System.Windows.Forms.TextBox();
             label2 = new System.Windows.Forms.Label();
             cbconsole = new System.Windows.Forms.CheckBox();
-            label1 = new System.Windows.Forms.Label();
-            cbbios = new System.Windows.Forms.ComboBox();
-            btndel = new System.Windows.Forms.Button();
-            label10 = new System.Windows.Forms.Label();
-            cbcpumode = new System.Windows.Forms.ComboBox();
-            label11 = new System.Windows.Forms.Label();
-            label12 = new System.Windows.Forms.Label();
-            cbgpu = new System.Windows.Forms.ComboBox();
-            label13 = new System.Windows.Forms.Label();
-            cbgpures = new System.Windows.Forms.ComboBox();
-            chkrealcolor = new System.Windows.Forms.CheckBox();
+            SetPage2 = new System.Windows.Forms.TabPage();
+            chkpgxp_avs = new System.Windows.Forms.CheckBox();
+            chkpgxp_clip = new System.Windows.Forms.CheckBox();
+            chkpgxp_memcap = new System.Windows.Forms.CheckBox();
+            chkpgxp_nc = new System.Windows.Forms.CheckBox();
+            chkpgxp_ppc = new System.Windows.Forms.CheckBox();
+            chkpgxp_aff = new System.Windows.Forms.CheckBox();
+            chkpgxp_highpos = new System.Windows.Forms.CheckBox();
+            labPGXP = new System.Windows.Forms.Label();
             chkpgxp = new System.Windows.Forms.CheckBox();
-            chkpgxpt = new System.Windows.Forms.CheckBox();
-            chkkeepar = new System.Windows.Forms.CheckBox();
-            label14 = new System.Windows.Forms.Label();
-            cbcdrom = new System.Windows.Forms.ComboBox();
+            SetTab.SuspendLayout();
+            SetPage1.SuspendLayout();
             groupBox1.SuspendLayout();
+            SetPage2.SuspendLayout();
             SuspendLayout();
             // 
             // btnsave
             // 
-            btnsave.Location = new System.Drawing.Point(343, 341);
+            btnsave.Location = new System.Drawing.Point(347, 361);
             btnsave.Name = "btnsave";
             btnsave.Size = new System.Drawing.Size(75, 27);
             btnsave.TabIndex = 0;
-            btnsave.Text = Properties.Resources.Form_Set_InitializeComponent_save;
+            btnsave.Text = Resources.Form_Set_InitializeComponent_save;
             btnsave.UseVisualStyleBackColor = true;
             btnsave.Click += btnsave_Click;
+            // 
+            // btndel
+            // 
+            btndel.Location = new System.Drawing.Point(240, 360);
+            btndel.Name = "btndel";
+            btndel.Size = new System.Drawing.Size(101, 27);
+            btndel.TabIndex = 5;
+            btndel.Text = Resources.Form_Set_InitializeComponent_gbs;
+            btndel.UseVisualStyleBackColor = true;
+            btndel.Click += btndel_Click;
+            // 
+            // label11
+            // 
+            label11.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            label11.Location = new System.Drawing.Point(16, 362);
+            label11.Name = "label11";
+            label11.Size = new System.Drawing.Size(211, 23);
+            label11.TabIndex = 8;
+            label11.Text = Resources.Form_Set_InitializeComponent_ModifyOnlyIfexp;
+            // 
+            // SetTab
+            // 
+            SetTab.Controls.Add(SetPage1);
+            SetTab.Controls.Add(SetPage2);
+            SetTab.Location = new System.Drawing.Point(12, 2);
+            SetTab.Name = "SetTab";
+            SetTab.SelectedIndex = 0;
+            SetTab.Size = new System.Drawing.Size(432, 352);
+            SetTab.TabIndex = 18;
+            // 
+            // SetPage1
+            // 
+            SetPage1.Controls.Add(ChkFMV);
+            SetPage1.Controls.Add(cbcdrom);
+            SetPage1.Controls.Add(label14);
+            SetPage1.Controls.Add(chkkeepar);
+            SetPage1.Controls.Add(chkpgxpt);
+            SetPage1.Controls.Add(chkrealcolor);
+            SetPage1.Controls.Add(cbgpures);
+            SetPage1.Controls.Add(label13);
+            SetPage1.Controls.Add(cbgpu);
+            SetPage1.Controls.Add(label12);
+            SetPage1.Controls.Add(cbcpumode);
+            SetPage1.Controls.Add(label10);
+            SetPage1.Controls.Add(cbbios);
+            SetPage1.Controls.Add(label1);
+            SetPage1.Controls.Add(groupBox1);
+            SetPage1.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            SetPage1.Location = new System.Drawing.Point(4, 26);
+            SetPage1.Name = "SetPage1";
+            SetPage1.Padding = new System.Windows.Forms.Padding(3);
+            SetPage1.Size = new System.Drawing.Size(424, 322);
+            SetPage1.TabIndex = 0;
+            SetPage1.Text = "Base";
+            SetPage1.UseVisualStyleBackColor = true;
+            // 
+            // ChkFMV
+            // 
+            ChkFMV.AutoSize = true;
+            ChkFMV.Location = new System.Drawing.Point(305, 294);
+            ChkFMV.Name = "ChkFMV";
+            ChkFMV.Size = new System.Drawing.Size(86, 21);
+            ChkFMV.TabIndex = 33;
+            ChkFMV.Text = Resources.Form_Set_InitializeComponent_24bitfmv;
+            ChkFMV.UseVisualStyleBackColor = true;
+            // 
+            // cbcdrom
+            // 
+            cbcdrom.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbcdrom.FormattingEnabled = true;
+            cbcdrom.Items.AddRange(new object[] { Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x", "4x", "5x", "6x", "7x", "8x", "9x", "10x" });
+            cbcdrom.Location = new System.Drawing.Point(68, 255);
+            cbcdrom.Name = "cbcdrom";
+            cbcdrom.Size = new System.Drawing.Size(141, 25);
+            cbcdrom.TabIndex = 32;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new System.Drawing.Point(9, 258);
+            label14.Name = "label14";
+            label14.Size = new System.Drawing.Size(55, 17);
+            label14.TabIndex = 31;
+            label14.Text = "CDROM";
+            // 
+            // chkkeepar
+            // 
+            chkkeepar.AutoSize = true;
+            chkkeepar.Location = new System.Drawing.Point(210, 294);
+            chkkeepar.Name = "chkkeepar";
+            chkkeepar.Size = new System.Drawing.Size(87, 21);
+            chkkeepar.TabIndex = 29;
+            chkkeepar.Text = Resources.Form_Set_InitializeComponent_Keep43;
+            chkkeepar.UseVisualStyleBackColor = true;
+            // 
+            // chkpgxpt
+            // 
+            chkpgxpt.AutoSize = true;
+            chkpgxpt.Location = new System.Drawing.Point(108, 293);
+            chkpgxpt.Name = "chkpgxpt";
+            chkpgxpt.Size = new System.Drawing.Size(93, 21);
+            chkpgxpt.TabIndex = 30;
+            chkpgxpt.Text = Resources.Form_Set_InitializeComponent_Trianglefix;
+            chkpgxpt.UseVisualStyleBackColor = true;
+            // 
+            // chkrealcolor
+            // 
+            chkrealcolor.AutoSize = true;
+            chkrealcolor.Location = new System.Drawing.Point(9, 294);
+            chkrealcolor.Name = "chkrealcolor";
+            chkrealcolor.Size = new System.Drawing.Size(89, 21);
+            chkrealcolor.TabIndex = 27;
+            chkrealcolor.Text = Resources.Form_Set_InitializeComponent_truecolor;
+            chkrealcolor.UseVisualStyleBackColor = true;
+            // 
+            // cbgpures
+            // 
+            cbgpures.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbgpures.Enabled = false;
+            cbgpures.FormattingEnabled = true;
+            cbgpures.Items.AddRange(new object[] { Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x(720P)", "4x", "5x(1080P)", "6x(1440P)", "7x", "8x", "9x(4K)", "10x", "11x", "12x" });
+            cbgpures.Location = new System.Drawing.Point(303, 215);
+            cbgpures.Name = "cbgpures";
+            cbgpures.Size = new System.Drawing.Size(109, 25);
+            cbgpures.TabIndex = 26;
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new System.Drawing.Point(224, 219);
+            label13.Name = "label13";
+            label13.Size = new System.Drawing.Size(98, 17);
+            label13.TabIndex = 25;
+            label13.Text = Resources.Form_Set_InitializeComponent_GPUResolution;
+            // 
+            // cbgpu
+            // 
+            cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbgpu.FormattingEnabled = true;
+            cbgpu.Items.AddRange(new object[] { Resources.Form_Set_InitializeComponent_自适应, "Software", "OpenGL", "VulKan" });
+            cbgpu.Location = new System.Drawing.Point(68, 215);
+            cbgpu.Name = "cbgpu";
+            cbgpu.Size = new System.Drawing.Size(141, 25);
+            cbgpu.TabIndex = 24;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new System.Drawing.Point(7, 219);
+            label12.Name = "label12";
+            label12.Size = new System.Drawing.Size(33, 17);
+            label12.TabIndex = 23;
+            label12.Text = "GPU";
+            // 
+            // cbcpumode
+            // 
+            cbcpumode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbcpumode.FormattingEnabled = true;
+            cbcpumode.Items.AddRange(new object[] { Resources.Form_Set_InitializeComponent_性能优化模式, Resources.Form_Set_InitializeComponent_完整指令模式 });
+            cbcpumode.Location = new System.Drawing.Point(303, 178);
+            cbcpumode.Name = "cbcpumode";
+            cbcpumode.Size = new System.Drawing.Size(109, 25);
+            cbcpumode.TabIndex = 22;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new System.Drawing.Point(224, 181);
+            label10.Name = "label10";
+            label10.Size = new System.Drawing.Size(32, 17);
+            label10.TabIndex = 21;
+            label10.Text = "CPU";
+            // 
+            // cbbios
+            // 
+            cbbios.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbbios.FormattingEnabled = true;
+            cbbios.Location = new System.Drawing.Point(68, 178);
+            cbbios.Name = "cbbios";
+            cbbios.Size = new System.Drawing.Size(141, 25);
+            cbbios.TabIndex = 20;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(7, 181);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(37, 17);
+            label1.TabIndex = 19;
+            label1.Text = "BIOS";
             // 
             // groupBox1
             // 
@@ -101,10 +308,10 @@
             groupBox1.Controls.Add(tbbuscycles);
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(cbconsole);
-            groupBox1.Location = new System.Drawing.Point(12, 12);
+            groupBox1.Location = new System.Drawing.Point(6, 0);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(411, 171);
-            groupBox1.TabIndex = 2;
+            groupBox1.Size = new System.Drawing.Size(411, 168);
+            groupBox1.TabIndex = 18;
             groupBox1.TabStop = false;
             // 
             // cbscalemode
@@ -122,9 +329,9 @@
             label7.AutoSize = true;
             label7.Location = new System.Drawing.Point(229, 49);
             label7.Name = "label7";
-            label7.Size = new System.Drawing.Size(54, 17);
+            label7.Size = new System.Drawing.Size(90, 17);
             label7.TabIndex = 19;
-            label7.Text = Properties.Resources.Form_Set_InitializeComponent_内部分辨率放大;
+            label7.Text = Resources.Form_Set_InitializeComponent_softscale;
             // 
             // chkTTY
             // 
@@ -162,7 +369,6 @@
             tbcylesfix.Name = "tbcylesfix";
             tbcylesfix.Size = new System.Drawing.Size(66, 23);
             tbcylesfix.TabIndex = 15;
-            tbcylesfix.KeyPress += edtxt_KeyPress;
             // 
             // label9
             // 
@@ -171,7 +377,7 @@
             label9.Name = "label9";
             label9.Size = new System.Drawing.Size(55, 17);
             label9.TabIndex = 14;
-            label9.Text = Properties.Resources.Form_Set_InitializeComponent_cyles;
+            label9.Text = Resources.Form_Set_InitializeComponent_cyclefix;
             // 
             // tbframeidle
             // 
@@ -179,7 +385,6 @@
             tbframeidle.Name = "tbframeidle";
             tbframeidle.Size = new System.Drawing.Size(66, 23);
             tbframeidle.TabIndex = 13;
-            tbframeidle.KeyPress += edtxt_KeyPress;
             // 
             // label8
             // 
@@ -188,7 +393,7 @@
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(72, 17);
             label8.TabIndex = 12;
-            label8.Text = Properties.Resources.Form_Set_InitializeComponent_limit;
+            label8.Text = Resources.Form_Set_InitializeComponent_framelimit;
             // 
             // tbaudiobuffer
             // 
@@ -196,16 +401,15 @@
             tbaudiobuffer.Name = "tbaudiobuffer";
             tbaudiobuffer.Size = new System.Drawing.Size(96, 23);
             tbaudiobuffer.TabIndex = 10;
-            tbaudiobuffer.KeyPress += edtxt_KeyPress;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new System.Drawing.Point(16, 109);
+            label6.Location = new System.Drawing.Point(14, 109);
             label6.Name = "label6";
-            label6.Size = new System.Drawing.Size(102, 17);
+            label6.Size = new System.Drawing.Size(90, 17);
             label6.TabIndex = 9;
-            label6.Text = Properties.Resources.Form_Set_InitializeComponent_audio;
+            label6.Text = Resources.Form_Set_InitializeComponent_audiobuff;
             // 
             // tbframeskip
             // 
@@ -213,16 +417,15 @@
             tbframeskip.Name = "tbframeskip";
             tbframeskip.Size = new System.Drawing.Size(66, 23);
             tbframeskip.TabIndex = 8;
-            tbframeskip.KeyPress += edtxt_KeyPress;
             // 
             // label5
             // 
             label5.AutoSize = true;
             label5.Location = new System.Drawing.Point(229, 137);
             label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(72, 17);
+            label5.Size = new System.Drawing.Size(101, 17);
             label5.TabIndex = 7;
-            label5.Text = Properties.Resources.Form_Set_InitializeComponent_fsk;
+            label5.Text = Resources.Form_Set_InitializeComponent_frameskip;
             // 
             // cbmsaa
             // 
@@ -239,9 +442,9 @@
             label4.AutoSize = true;
             label4.Location = new System.Drawing.Point(16, 136);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(94, 17);
+            label4.Size = new System.Drawing.Size(43, 17);
             label4.TabIndex = 5;
-            label4.Text = "OpenGL MSAA";
+            label4.Text = "MSAA";
             // 
             // tbcputicks
             // 
@@ -249,16 +452,15 @@
             tbcputicks.Name = "tbcputicks";
             tbcputicks.Size = new System.Drawing.Size(96, 23);
             tbcputicks.TabIndex = 4;
-            tbcputicks.KeyPress += edtxt_KeyPress;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(16, 78);
+            label3.Location = new System.Drawing.Point(14, 78);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(65, 17);
+            label3.Size = new System.Drawing.Size(59, 17);
             label3.TabIndex = 3;
-            label3.Text = Properties.Resources.Form_Set_InitializeComponent_CPUt;
+            label3.Text = Resources.Form_Set_InitializeComponent_CPUtick;
             // 
             // tbbuscycles
             // 
@@ -266,254 +468,210 @@
             tbbuscycles.Name = "tbbuscycles";
             tbbuscycles.Size = new System.Drawing.Size(96, 23);
             tbbuscycles.TabIndex = 2;
-            tbbuscycles.KeyPress += edtxt_KeyPress;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(16, 49);
+            label2.Location = new System.Drawing.Point(15, 49);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(62, 17);
+            label2.Size = new System.Drawing.Size(59, 17);
             label2.TabIndex = 1;
-            label2.Text = Properties.Resources.Form_Set_InitializeComponent_bt;
+            label2.Text = Resources.Form_Set_InitializeComponent_bustick;
             // 
             // cbconsole
             // 
             cbconsole.AutoSize = true;
             cbconsole.Location = new System.Drawing.Point(16, 18);
             cbconsole.Name = "cbconsole";
-            cbconsole.Size = new System.Drawing.Size(115, 21);
+            cbconsole.Size = new System.Drawing.Size(117, 21);
             cbconsole.TabIndex = 0;
-            cbconsole.Text = Properties.Resources.Form_Set_InitializeComponent_con;
+            cbconsole.Text = Resources.Form_Set_InitializeComponent_debugcon;
             cbconsole.UseVisualStyleBackColor = true;
             // 
-            // label1
+            // SetPage2
             // 
-            label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(13, 193);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(37, 17);
-            label1.TabIndex = 3;
-            label1.Text = "BIOS";
+            SetPage2.Controls.Add(chkpgxp_avs);
+            SetPage2.Controls.Add(chkpgxp_clip);
+            SetPage2.Controls.Add(chkpgxp_memcap);
+            SetPage2.Controls.Add(chkpgxp_nc);
+            SetPage2.Controls.Add(chkpgxp_ppc);
+            SetPage2.Controls.Add(chkpgxp_aff);
+            SetPage2.Controls.Add(chkpgxp_highpos);
+            SetPage2.Controls.Add(labPGXP);
+            SetPage2.Controls.Add(chkpgxp);
+            SetPage2.Location = new System.Drawing.Point(4, 26);
+            SetPage2.Name = "SetPage2";
+            SetPage2.Padding = new System.Windows.Forms.Padding(3);
+            SetPage2.Size = new System.Drawing.Size(424, 322);
+            SetPage2.TabIndex = 1;
+            SetPage2.Text = "PGXP";
+            SetPage2.UseVisualStyleBackColor = true;
             // 
-            // cbbios
+            // chkpgxp_avs
             // 
-            cbbios.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cbbios.FormattingEnabled = true;
-            cbbios.Location = new System.Drawing.Point(74, 190);
-            cbbios.Name = "cbbios";
-            cbbios.Size = new System.Drawing.Size(141, 25);
-            cbbios.TabIndex = 4;
+            chkpgxp_avs.AutoSize = true;
+            chkpgxp_avs.Location = new System.Drawing.Point(13, 103);
+            chkpgxp_avs.Name = "chkpgxp_avs";
+            chkpgxp_avs.Size = new System.Drawing.Size(278, 21);
+            chkpgxp_avs.TabIndex = 37;
+            chkpgxp_avs.Text = Resources.Form_Set_InitializeComponent_PGXPavsz;
+            chkpgxp_avs.UseVisualStyleBackColor = true;
             // 
-            // btndel
+            // chkpgxp_clip
             // 
-            btndel.Location = new System.Drawing.Point(236, 340);
-            btndel.Name = "btndel";
-            btndel.Size = new System.Drawing.Size(101, 27);
-            btndel.TabIndex = 5;
-            btndel.Text = Properties.Resources.Form_Set_InitializeComponent_gbs;
-            btndel.UseVisualStyleBackColor = true;
-            btndel.Click += btndel_Click;
+            chkpgxp_clip.AutoSize = true;
+            chkpgxp_clip.Location = new System.Drawing.Point(13, 273);
+            chkpgxp_clip.Name = "chkpgxp_clip";
+            chkpgxp_clip.Size = new System.Drawing.Size(242, 21);
+            chkpgxp_clip.TabIndex = 36;
+            chkpgxp_clip.Text = Resources.Form_Set_InitializeComponent_PGXPclip;
+            chkpgxp_clip.UseVisualStyleBackColor = true;
             // 
-            // label10
+            // chkpgxp_memcap
             // 
-            label10.AutoSize = true;
-            label10.Location = new System.Drawing.Point(230, 193);
-            label10.Name = "label10";
-            label10.Size = new System.Drawing.Size(32, 17);
-            label10.TabIndex = 6;
-            label10.Text = "CPU";
+            chkpgxp_memcap.AutoSize = true;
+            chkpgxp_memcap.Location = new System.Drawing.Point(13, 238);
+            chkpgxp_memcap.Name = "chkpgxp_memcap";
+            chkpgxp_memcap.Size = new System.Drawing.Size(242, 21);
+            chkpgxp_memcap.TabIndex = 35;
+            chkpgxp_memcap.Text = Resources.Form_Set_InitializeComponent_PGXPmemcap;
+            chkpgxp_memcap.UseVisualStyleBackColor = true;
             // 
-            // cbcpumode
+            // chkpgxp_nc
             // 
-            cbcpumode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cbcpumode.FormattingEnabled = true;
-            cbcpumode.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_性能优化模式, Properties.Resources.Form_Set_InitializeComponent_完整指令模式 });
-            cbcpumode.Location = new System.Drawing.Point(309, 190);
-            cbcpumode.Name = "cbcpumode";
-            cbcpumode.Size = new System.Drawing.Size(109, 25);
-            cbcpumode.TabIndex = 7;
+            chkpgxp_nc.AutoSize = true;
+            chkpgxp_nc.Location = new System.Drawing.Point(13, 203);
+            chkpgxp_nc.Name = "chkpgxp_nc";
+            chkpgxp_nc.Size = new System.Drawing.Size(258, 21);
+            chkpgxp_nc.TabIndex = 34;
+            chkpgxp_nc.Text = Resources.Form_Set_InitializeComponent_PGXPnc;
+            chkpgxp_nc.UseVisualStyleBackColor = true;
             // 
-            // label11
+            // chkpgxp_ppc
             // 
-            label11.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            label11.Location = new System.Drawing.Point(12, 342);
-            label11.Name = "label11";
-            label11.Size = new System.Drawing.Size(211, 23);
-            label11.TabIndex = 8;
-            label11.Text = Properties.Resources.Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改;
+            chkpgxp_ppc.AutoSize = true;
+            chkpgxp_ppc.Location = new System.Drawing.Point(13, 170);
+            chkpgxp_ppc.Name = "chkpgxp_ppc";
+            chkpgxp_ppc.Size = new System.Drawing.Size(294, 21);
+            chkpgxp_ppc.TabIndex = 33;
+            chkpgxp_ppc.Text = Resources.Form_Set_InitializeComponent_PGXPppc;
+            chkpgxp_ppc.UseVisualStyleBackColor = true;
             // 
-            // label12
+            // chkpgxp_aff
             // 
-            label12.AutoSize = true;
-            label12.Location = new System.Drawing.Point(13, 231);
-            label12.Name = "label12";
-            label12.Size = new System.Drawing.Size(33, 17);
-            label12.TabIndex = 9;
-            label12.Text = "GPU";
+            chkpgxp_aff.AutoSize = true;
+            chkpgxp_aff.Location = new System.Drawing.Point(13, 136);
+            chkpgxp_aff.Name = "chkpgxp_aff";
+            chkpgxp_aff.Size = new System.Drawing.Size(258, 21);
+            chkpgxp_aff.TabIndex = 32;
+            chkpgxp_aff.Text = Resources.Form_Set_InitializeComponent_PGXPaff;
+            chkpgxp_aff.UseVisualStyleBackColor = true;
             // 
-            // cbgpu
+            // chkpgxp_highpos
             // 
-            cbgpu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cbgpu.FormattingEnabled = true;
-            cbgpu.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "Software", "OpenGL", "VulKan" });
-            cbgpu.Location = new System.Drawing.Point(74, 227);
-            cbgpu.Name = "cbgpu";
-            cbgpu.Size = new System.Drawing.Size(141, 25);
-            cbgpu.TabIndex = 10;
+            chkpgxp_highpos.AutoSize = true;
+            chkpgxp_highpos.Location = new System.Drawing.Point(13, 71);
+            chkpgxp_highpos.Name = "chkpgxp_highpos";
+            chkpgxp_highpos.Size = new System.Drawing.Size(294, 21);
+            chkpgxp_highpos.TabIndex = 31;
+            chkpgxp_highpos.Text = Resources.Form_Set_InitializeComponent_PGXPhighpos;
+            chkpgxp_highpos.UseVisualStyleBackColor = true;
             // 
-            // label13
+            // labPGXP
             // 
-            label13.AutoSize = true;
-            label13.Location = new System.Drawing.Point(230, 231);
-            label13.Name = "label13";
-            label13.Size = new System.Drawing.Size(58, 17);
-            label13.TabIndex = 11;
-            label13.Text = Properties.Resources.Form_Set_InitializeComponent_GPU分辨率;
-            // 
-            // cbgpures
-            // 
-            cbgpures.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cbgpures.Enabled = false;
-            cbgpures.FormattingEnabled = true;
-            cbgpures.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x(720P)", "4x", "5x(1080P)", "6x(1440P)", "7x", "8x", "9x(4K)", "10x", "11x", "12x" });
-            cbgpures.Location = new System.Drawing.Point(309, 227);
-            cbgpures.Name = "cbgpures";
-            cbgpures.Size = new System.Drawing.Size(109, 25);
-            cbgpures.TabIndex = 12;
-            // 
-            // chkrealcolor
-            // 
-            chkrealcolor.AutoSize = true;
-            chkrealcolor.Location = new System.Drawing.Point(15, 306);
-            chkrealcolor.Name = "chkrealcolor";
-            chkrealcolor.Size = new System.Drawing.Size(89, 21);
-            chkrealcolor.TabIndex = 13;
-            chkrealcolor.Text = Properties.Resources.Form_Set_InitializeComponent_真彩色渲染;
-            chkrealcolor.UseVisualStyleBackColor = true;
+            labPGXP.AutoSize = true;
+            labPGXP.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            labPGXP.Location = new System.Drawing.Point(18, 10);
+            labPGXP.Name = "labPGXP";
+            labPGXP.Size = new System.Drawing.Size(286, 17);
+            labPGXP.TabIndex = 30;
+            labPGXP.Text = Resources.Form_Set_InitializeComponent_pgxphint;
             // 
             // chkpgxp
             // 
             chkpgxp.AutoSize = true;
-            chkpgxp.Location = new System.Drawing.Point(126, 306);
+            chkpgxp.Location = new System.Drawing.Point(13, 41);
             chkpgxp.Name = "chkpgxp";
-            chkpgxp.Size = new System.Drawing.Size(123, 21);
-            chkpgxp.TabIndex = 14;
-            chkpgxp.Text = Properties.Resources.Form_Set_InitializeComponent_PGXP几何校正;
+            chkpgxp.Size = new System.Drawing.Size(194, 21);
+            chkpgxp.TabIndex = 29;
+            chkpgxp.Text = Resources.Form_Set_InitializeComponent_PGXPbase;
             chkpgxp.UseVisualStyleBackColor = true;
-            // 
-            // chkpgxpt
-            // 
-            chkpgxpt.AutoSize = true;
-            chkpgxpt.Location = new System.Drawing.Point(260, 306);
-            chkpgxpt.Name = "chkpgxpt";
-            chkpgxpt.Size = new System.Drawing.Size(61, 21);
-            chkpgxpt.TabIndex = 15;
-            chkpgxpt.Text = Properties.Resources.Form_Set_InitializeComponent_透视校正;
-            chkpgxpt.UseVisualStyleBackColor = true;
-            // 
-            // chkkeepar
-            // 
-            chkkeepar.AutoSize = true;
-            chkkeepar.Location = new System.Drawing.Point(350, 306);
-            chkkeepar.Name = "chkkeepar";
-            chkkeepar.Size = new System.Drawing.Size(78, 21);
-            chkkeepar.TabIndex = 15;
-            chkkeepar.Text = Properties.Resources.Form_Set_InitializeComponent_Keep43;
-            chkkeepar.UseVisualStyleBackColor = true;
-            // 
-            // label14
-            // 
-            label14.AutoSize = true;
-            label14.Location = new System.Drawing.Point(15, 270);
-            label14.Name = "label14";
-            label14.Size = new System.Drawing.Size(55, 17);
-            label14.TabIndex = 16;
-            label14.Text = "CDROM";
-            // 
-            // cbcdrom
-            // 
-            cbcdrom.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cbcdrom.FormattingEnabled = true;
-            cbcdrom.Items.AddRange(new object[] { Properties.Resources.Form_Set_InitializeComponent_自适应, "1x", "2x", "3x", "4x", "5x", "6x", "7x", "8x", "9x", "10x" });
-            cbcdrom.Location = new System.Drawing.Point(74, 267);
-            cbcdrom.Name = "cbcdrom";
-            cbcdrom.Size = new System.Drawing.Size(141, 25);
-            cbcdrom.TabIndex = 17;
             // 
             // Form_Set
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(435, 377);
-            Controls.Add(cbcdrom);
-            Controls.Add(label14);
-            Controls.Add(chkkeepar);
-            Controls.Add(chkpgxpt);
-            Controls.Add(chkpgxp);
-            Controls.Add(chkrealcolor);
-            Controls.Add(cbgpures);
-            Controls.Add(label13);
-            Controls.Add(cbgpu);
-            Controls.Add(label12);
+            ClientSize = new System.Drawing.Size(451, 399);
+            Controls.Add(SetTab);
             Controls.Add(label11);
-            Controls.Add(cbcpumode);
-            Controls.Add(label10);
             Controls.Add(btndel);
-            Controls.Add(cbbios);
-            Controls.Add(label1);
-            Controls.Add(groupBox1);
             Controls.Add(btnsave);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "Form_Set";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = Properties.Resources.Form_Set_InitializeComponent_设置;
+            Text = "Settings";
+            SetTab.ResumeLayout(false);
+            SetPage1.ResumeLayout(false);
+            SetPage1.PerformLayout();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            SetPage2.ResumeLayout(false);
+            SetPage2.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
         private System.Windows.Forms.Button btnsave;
+        private System.Windows.Forms.Button btndel;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TabControl SetTab;
+        private System.Windows.Forms.TabPage SetPage1;
+        private System.Windows.Forms.TabPage SetPage2;
+        private System.Windows.Forms.ComboBox cbcdrom;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.CheckBox chkkeepar;
+        private System.Windows.Forms.CheckBox chkpgxpt;
+        private System.Windows.Forms.CheckBox chkrealcolor;
+        private System.Windows.Forms.ComboBox cbgpures;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.ComboBox cbgpu;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.ComboBox cbcpumode;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.ComboBox cbbios;
+        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.ComboBox cbscalemode;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox chkTTY;
+        private System.Windows.Forms.CheckBox chkcpu;
+        private System.Windows.Forms.CheckBox chkbios;
+        private System.Windows.Forms.TextBox tbcylesfix;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox tbframeidle;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox tbaudiobuffer;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox tbframeskip;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ComboBox cbmsaa;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox tbcputicks;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox tbbuscycles;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox cbconsole;
-        private System.Windows.Forms.ComboBox cbmsaa;
-        private System.Windows.Forms.TextBox tbframeskip;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox tbaudiobuffer;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox tbframeidle;
-        private System.Windows.Forms.TextBox tbcylesfix;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.CheckBox chkcpu;
-        private System.Windows.Forms.CheckBox chkbios;
-        private System.Windows.Forms.CheckBox chkTTY;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox cbbios;
-        private System.Windows.Forms.Button btndel;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.ComboBox cbcpumode;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.ComboBox cbscalemode;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.ComboBox cbgpu;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.ComboBox cbgpures;
-        private System.Windows.Forms.CheckBox chkrealcolor;
         private System.Windows.Forms.CheckBox chkpgxp;
-        private System.Windows.Forms.CheckBox chkpgxpt;
-        private System.Windows.Forms.CheckBox chkkeepar;
-        private System.Windows.Forms.Label label14;
-        private System.Windows.Forms.ComboBox cbcdrom;
+        private System.Windows.Forms.CheckBox ChkFMV;
+        private System.Windows.Forms.Label labPGXP;
+        private System.Windows.Forms.CheckBox chkpgxp_highpos;
+        private System.Windows.Forms.CheckBox chkpgxp_nc;
+        private System.Windows.Forms.CheckBox chkpgxp_ppc;
+        private System.Windows.Forms.CheckBox chkpgxp_aff;
+        private System.Windows.Forms.CheckBox chkpgxp_memcap;
+        private System.Windows.Forms.CheckBox chkpgxp_clip;
+        private System.Windows.Forms.CheckBox chkpgxp_avs;
     }
 }

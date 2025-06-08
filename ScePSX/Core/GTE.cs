@@ -268,13 +268,6 @@ namespace ScePSX
             IR[3] = setIR(3, MAC3, lm);
         }
 
-        private void DCPT()
-        {
-            DPCS(true);
-            DPCS(true);
-            DPCS(true);
-        }
-
         private void DCPL()
         {
             //[MAC1, MAC2, MAC3] = [R*IR1, G*IR2, B*IR3] SHL 4          ;<--- for DCPL only
@@ -282,7 +275,7 @@ namespace ScePSX
             MAC2 = (int)(setMAC(2, RGBC.g * IR[2]) << 4);
             MAC3 = (int)(setMAC(3, RGBC.b * IR[3]) << 4);
 
-            interpolateColor(MAC1, MAC2, MAC3);
+            interpolateColor(MAC1, MAC2, MAC3, PGXPVector.use_pgxp && PGXPVector.use_perspective_correction);
 
             // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE]
             RGB[0] = RGB[1];
@@ -292,6 +285,13 @@ namespace ScePSX
             RGB[2].g = setRGB(2, MAC2 >> 4);
             RGB[2].b = setRGB(3, MAC3 >> 4);
             RGB[2].c = RGBC.c;
+        }
+
+        private void NCCT()
+        {
+            NCCS(0);
+            NCCS(1);
+            NCCS(2);
         }
 
         private void NCCS(int r)
@@ -333,11 +333,11 @@ namespace ScePSX
             IR[3] = setIR(3, MAC3, lm);
         }
 
-        private void NCCT()
+        private void DCPT()
         {
-            NCCS(0);
-            NCCS(1);
-            NCCS(2);
+            DPCS(true);
+            DPCS(true);
+            DPCS(true);
         }
 
         private void DPCS(bool dpct)
@@ -353,12 +353,12 @@ namespace ScePSX
                 g = RGB[0].g;
                 b = RGB[0].b;
             }
-            //[MAC1, MAC2, MAC3] = [R, G, B] SHL 16                     ;<--- for DPCS/DPCT
+            //[MAC1, MAC2, MAC3] = [R, G, B] SHL 16
             MAC1 = (int)(setMAC(1, r) << 16);
             MAC2 = (int)(setMAC(2, g) << 16);
             MAC3 = (int)(setMAC(3, b) << 16);
 
-            interpolateColor(MAC1, MAC2, MAC3);
+            interpolateColor(MAC1, MAC2, MAC3, PGXPVector.use_pgxp && PGXPVector.use_perspective_correction);
 
             // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE]
             RGB[0] = RGB[1];
@@ -404,7 +404,7 @@ namespace ScePSX
                     MAC2 = (int)setMAC(2, mac2);
                     MAC3 = (int)setMAC(3, mac3);
 
-                    interpolateColor(MAC1, MAC2, MAC3, PGXPVector.use_perspective_correction);
+                    interpolateColor(MAC1, MAC2, MAC3, false); //PGXPVector.use_perspective_correction
 
                     RGB[0] = RGB[1];
                     RGB[1] = RGB[2];
@@ -636,13 +636,6 @@ namespace ScePSX
             RGB[2].c = RGBC.c;
         }
 
-        private void NCDT()
-        {
-            NCDS(0);
-            NCDS(1);
-            NCDS(2);
-        }
-
         private void OP()
         {
             // 提取 RT 的对角线元素（RT 的 RT11, RT22, RT33）
@@ -679,7 +672,7 @@ namespace ScePSX
 
         private void AVSZ3()
         {
-            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_highpos)
+            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_avs)
             {
                 if (PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
                     PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2) &&
@@ -705,7 +698,7 @@ namespace ScePSX
 
         private void AVSZ4()
         {
-            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_highpos)
+            if (PGXPVector.use_pgxp && PGXPVector.use_pgxp_avs)
             {
                 if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
                     PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
@@ -728,6 +721,13 @@ namespace ScePSX
                 MAC0 = (int)setMAC0(avsz4);
                 OTZ = setSZ3(avsz4 >> 12);
             }
+        }
+
+        private void NCDT()
+        {
+            NCDS(0);
+            NCDS(1);
+            NCDS(2);
         }
 
         private void NCDS(int r)
@@ -796,7 +796,7 @@ namespace ScePSX
             MAC2 = (int)setMAC(2, ((long)RGBC.g * IR[2]) << 4);
             MAC3 = (int)setMAC(3, ((long)RGBC.b * IR[3]) << 4);
 
-            interpolateColor(MAC1, MAC2, MAC3);
+            interpolateColor(MAC1, MAC2, MAC3, PGXPVector.use_pgxp && PGXPVector.use_perspective_correction);
 
             // 更新颜色 FIFO（移位操作）
             RGB[0] = RGB[1];
@@ -842,28 +842,41 @@ namespace ScePSX
                 return;
             }
 
-            if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
-                PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
-                PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2))
+            //if (PGXPVector.Find(SXY[0].x, SXY[0].y, out var p0) &&
+            //    PGXPVector.Find(SXY[1].x, SXY[1].y, out var p1) &&
+            //    PGXPVector.Find(SXY[2].x, SXY[2].y, out var p2))
+            //{
+            //    double z0 = p0.worldZ;
+            //    double z1 = p1.worldZ;
+            //    double z2 = p2.worldZ;
+
+            //    double invZ = 1.0 / ((z0 + z1 + z2) / 3); // 平均深度倒数
+
+            //    double w0 = 1.0 / Math.Max(z0, 0.001);
+            //    double w1 = 1.0 / Math.Max(z1, 0.001);
+            //    double w2 = 1.0 / Math.Max(z2, 0.001);
+            //    double totalWeight = w0 + w1 + w2;
+
+            //    double r = (double)(w0 * MAC1 + w1 * MAC2 + w2 * MAC3) / totalWeight;
+            //    double g = (double)(w0 * MAC2 + w1 * MAC3 + w2 * MAC1) / totalWeight;
+            //    double b = (double)(w0 * MAC3 + w1 * MAC1 + w2 * MAC2) / totalWeight;
+
+            //    MAC1 = (int)r;
+            //    MAC2 = (int)g;
+            //    MAC3 = (int)b;
+
+            //    IR[1] = setIR(1, MAC1, lm);
+            //    IR[2] = setIR(2, MAC2, lm);
+            //    IR[3] = setIR(3, MAC3, lm);
+            //} else
+            if (PGXPVector.Find(SXY[2].x, SXY[2].y, out var pgxpVertex))
             {
-                double z0 = p0.worldZ;
-                double z1 = p1.worldZ;
-                double z2 = p2.worldZ;
+                double z = Math.Max(pgxpVertex.worldZ, 0.001);
+                double w = 1.0 / z; // 当前顶点权重
 
-                double invZ = 1.0 / ((z0 + z1 + z2) / 3); // 平均深度倒数
-
-                double w0 = 1.0 / Math.Max(z0, 0.001);
-                double w1 = 1.0 / Math.Max(z1, 0.001);
-                double w2 = 1.0 / Math.Max(z2, 0.001);
-                double totalWeight = w0 + w1 + w2;
-
-                double r = (double)(w0 * MAC1 + w1 * MAC2 + w2 * MAC3) / totalWeight;
-                double g = (double)(w0 * MAC2 + w1 * MAC3 + w2 * MAC1) / totalWeight;
-                double b = (double)(w0 * MAC3 + w1 * MAC1 + w2 * MAC2) / totalWeight;
-
-                MAC1 = (int)r;
-                MAC2 = (int)g;
-                MAC3 = (int)b;
+                MAC1 = (int)(mac1 * w);
+                MAC2 = (int)(mac2 * w);
+                MAC3 = (int)(mac3 * w);
 
                 IR[1] = setIR(1, MAC1, lm);
                 IR[2] = setIR(2, MAC2, lm);
@@ -1338,21 +1351,25 @@ namespace ScePSX
                     break;
                 case 12:
                     SXY[0].val = v;
-                    //AddPGXPCache(SXY[0].x, SXY[0].y);
+                    if(PGXPVector.use_pgxp_memcap)
+                        AddPGXPCache(SXY[0].x, SXY[0].y);
                     break;
                 case 13:
                     SXY[1].val = v;
-                    //AddPGXPCache(SXY[1].x, SXY[1].y);
+                    if (PGXPVector.use_pgxp_memcap)
+                        AddPGXPCache(SXY[1].x, SXY[1].y);
                     break;
                 case 14:
                     SXY[2].val = v;
-                    //AddPGXPCache(SXY[2].x, SXY[2].y);
+                    if (PGXPVector.use_pgxp_memcap)
+                        AddPGXPCache(SXY[2].x, SXY[2].y);
                     break;
                 case 15:
                     SXY[0] = SXY[1];
                     SXY[1] = SXY[2];
                     SXY[2].val = v;
-                    //AddPGXPCache(SXY[2].x, SXY[2].y);
+                    if (PGXPVector.use_pgxp_memcap)
+                        AddPGXPCache(SXY[2].x, SXY[2].y);
                     break; //On load mirrors 0x14 on write cycles the fifo
                 case 16:
                     SZ[0] = (ushort)v;

@@ -851,10 +851,7 @@ namespace ScePSX
             // 恢复渲染状态
             RestoreRenderState();
 
-            if (PGXP)
-            {
-                PGXPVector.Deletes();
-            }
+            PGXPVector.Clear();
 
             //参数变动
             if (RealColor != m_realColor)
@@ -865,6 +862,7 @@ namespace ScePSX
             {
                 SetResolutionScale(IRScale);
             }
+            PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
             if (PGXP != m_pgxp)
             {
                 SetPGXP(PGXP);
@@ -1107,23 +1105,29 @@ namespace ScePSX
             var srcBounds = glRectangle<int>.FromExtents(srcX, srcY, width, height);
             var destBounds = glRectangle<int>.FromExtents(destX, destY, width, height);
 
-            // 检查是否需要更新读取纹理
             if (m_dirtyArea.Intersects(srcBounds))
             {
-                // 如果源区域是脏区域，则更新读取纹理
                 UpdateReadTexture();
                 m_dirtyArea.Grow(destBounds);
             } else
             {
-                // 否则仅扩展脏区域
                 GrowDirtyArea(destBounds);
             }
 
-            // 更新深度缓冲区
+            //if (PGXPVector.Find((short)srcX, (short)srcY, out var highsrc))
+            //{
+            //    Console.WriteLine($"[OpenGL GPU] CopyRectVRAMtoVRAM: PGXP Vector found src ({srcX}, {srcY}) Position {highsrc}");
+            //}
+
+            //if (PGXPVector.Find((short)destX, (short)destY, out var highdst))
+            //{
+            //    Console.WriteLine($"[OpenGL GPU] CopyRectVRAMtoVRAM: PGXP Vector found dst ({destX}, {destY}) Position {highdst}");
+            //}
+
             UpdateCurrentDepth();
 
-            // 绑定 VAO 和着色器
             BlankVAO.Bind();
+
             vRamCopyShader.Use(
                 srcX / VRamWidthF,
                 srcY / VRamHeightF,
@@ -1133,15 +1137,12 @@ namespace ScePSX
                 ForceSetMaskBit
             );
 
-            // 禁用混合和剪裁测试
             Gl.Disable(EnableCap.Blend);
             Gl.Disable(EnableCap.ScissorTest);
 
-            // 设置视口并绘制
             SetViewport((int)destX, (int)destY, (int)width, (int)height);
             Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
 
-            // 恢复渲染状态
             RestoreRenderState();
         }
 
@@ -1151,6 +1152,11 @@ namespace ScePSX
 
             if (m_dirtyArea.Intersects(readBounds))
                 DrawBatch();
+
+            //if (PGXPVector.Find((short)left, (short)top, out var highsrc))
+            //{
+            //    Console.WriteLine($"[OpenGL GPU] CopyRectVRAMtoCPU: PGXP Vector found src ({left}, {top}) Position {highsrc}");
+            //}
 
             int readWidth = readBounds.GetWidth();
             int readHeight = readBounds.GetHeight();
@@ -1207,9 +1213,14 @@ namespace ScePSX
 
         public unsafe void CopyRectCPUtoVRAM(int left, int top, int width, int height)
         {
-            // 获取包裹后的边界
             var updateBounds = GetWrappedBounds(left, top, width, height);
+
             GrowDirtyArea(updateBounds);
+
+            //if (PGXPVector.Find((short)left, (short)top, out var highsrc))
+            //{
+            //    Console.WriteLine($"[OpenGL GPU] CopyRectCPUtoVRAM: PGXP Vector found src ({left}, {top}) Position {highsrc}");
+            //}
 
             Gl.PixelStore(PixelStoreParameter.UnpackAlignment, GetPixelStoreAlignment(left, width));
 

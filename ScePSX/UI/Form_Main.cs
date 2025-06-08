@@ -255,7 +255,7 @@ namespace ScePSX.UI
                 scaleh *= scale.scale;
             }
             UpdateStatus(0, Core.DiskID);
-            string str_pgxp = PGXP ? "PGXP " : "";
+            string str_pgxp = PGXPVector.use_pgxp ? "PGXP " : "";
             if (Core.GPU.type == GPUType.OpenGL || (Core.GPU.type == GPUType.Advite && Rendermode == RenderMode.OpenGL))
             {
                 UpdateStatus(5, $"{str_pgxp}OpenGL {Render.oglMSAA}xMSAA  {IRscale}xIR");
@@ -574,7 +574,7 @@ namespace ScePSX.UI
 
                     IRscale = IRscale < 1 ? 1 : IRscale;
                     (Core.GPU as OpenglGPU).IRScale = IRscale;
-                    (Core.GPU as OpenglGPU).PGXP = PGXP;
+                    (Core.GPU as OpenglGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
                     (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                     (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                     (Core.GPU as OpenglGPU).RealColor = Realcolor;
@@ -595,7 +595,7 @@ namespace ScePSX.UI
 
                     IRscale = IRscale < 1 ? 1 : IRscale;
                     (Core.GPU as VulkanGPU).IRScale = IRscale;
-                    (Core.GPU as VulkanGPU).PGXP = false;
+                    (Core.GPU as VulkanGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
                     (Core.GPU as VulkanGPU).PGXPT = PGXPT;
                     (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
                     (Core.GPU as VulkanGPU).RealColor = Realcolor;
@@ -986,6 +986,18 @@ namespace ScePSX.UI
                 Core.Button(button1, false, 1);
         }
 
+        private void applypgxp()
+        {
+            PGXPVector.use_pgxp = ini.ReadInt("PGXP", "base") == 1;
+            PGXPVector.use_pgxp_aff = ini.ReadInt("PGXP", "aff") == 1;
+            PGXPVector.use_pgxp_avs = ini.ReadInt("PGXP", "avs") == 1;
+            PGXPVector.use_pgxp_clip = ini.ReadInt("PGXP", "clip") == 1;
+            PGXPVector.use_pgxp_nc = ini.ReadInt("PGXP", "nc") == 1;
+            PGXPVector.use_pgxp_highpos = ini.ReadInt("PGXP", "highpos") == 1;
+            PGXPVector.use_pgxp_memcap = ini.ReadInt("PGXP", "memcap") == 1;
+            PGXPVector.use_perspective_correction = ini.ReadInt("PGXP", "ppc") == 1;
+        }
+
         public void LoadRom(string fn = "", RomList.Game game = null, bool FastBoot = false)
         {
             if (!File.Exists("./BIOS/" + currbios))
@@ -1088,7 +1100,7 @@ namespace ScePSX.UI
 
             Core.PsxBus.cpu.FastBoot = FastBoot;
 
-            PGXPVector.use_pgxp = PGXP;
+            applypgxp();
 
             sysini.Write("history", Core.DiskID, $"{fn}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
@@ -1098,7 +1110,7 @@ namespace ScePSX.UI
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
-                (Core.GPU as OpenglGPU).PGXP = PGXP;
+                (Core.GPU as OpenglGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                 (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                 (Core.GPU as OpenglGPU).RealColor = Realcolor;
@@ -1106,7 +1118,7 @@ namespace ScePSX.UI
             {
                 IRscale = IRscale < 1 ? 1 : IRscale;
                 (Core.GPU as VulkanGPU).IRScale = IRscale;
-                (Core.GPU as VulkanGPU).PGXP = false;
+                (Core.GPU as VulkanGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
                 (Core.GPU as VulkanGPU).PGXPT = PGXPT;
                 (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
                 (Core.GPU as VulkanGPU).RealColor = Realcolor;

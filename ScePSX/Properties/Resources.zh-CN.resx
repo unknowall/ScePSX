@@ -183,32 +183,8 @@
   <data name="Font" xml:space="preserve">
     <value>微软雅黑</value>
   </data>
-  <data name="Form_Set_Form_Set_set" xml:space="preserve">
-    <value>的设置</value>
-  </data>
   <data name="Form_Set_InitializeComponent_save" xml:space="preserve">
     <value>保存</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_cyles" xml:space="preserve">
-    <value>时序修正</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_limit" xml:space="preserve">
-    <value>帧限制(fps)</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_audio" xml:space="preserve">
-    <value>音频缓冲(ms)</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_fsk" xml:space="preserve">
-    <value>D2D,D3D 跳帧</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_CPUt" xml:space="preserve">
-    <value>CPU执行</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_bt" xml:space="preserve">
-    <value>总线执行</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_con" xml:space="preserve">
-    <value>启动时开启控制台</value>
   </data>
   <data name="Form_Set_InitializeComponent_gbs" xml:space="preserve">
     <value>使用全局设置</value>
@@ -218,12 +194,6 @@
   </data>
   <data name="Form_Set_InitializeComponent_完整指令模式" xml:space="preserve">
     <value>完整指令模式</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改" xml:space="preserve">
-    <value>不清楚作用的设置尽量不要修改</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_内部分辨率放大" xml:space="preserve">
-    <value>内部分辨率放大</value>
   </data>
   <data name="Form_Set_InitializeComponent_设置" xml:space="preserve">
     <value>设置</value>
@@ -432,18 +402,6 @@
   <data name="Form_McrMange_InitializeComponent_MemcardMange" xml:space="preserve">
     <value>内存卡管理</value>
   </data>
-  <data name="Form_Set_InitializeComponent_透视校正" xml:space="preserve">
-    <value>透视校正</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_PGXP几何校正" xml:space="preserve">
-    <value>PGXP几何校正</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_真彩色渲染" xml:space="preserve">
-    <value>真彩色渲染</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_GPU分辨率" xml:space="preserve">
-    <value>GPU分辨率</value>
-  </data>
   <data name="Form_Set_InitializeComponent_自适应" xml:space="preserve">
     <value>自适应</value>
   </data>
@@ -455,5 +413,74 @@
   </data>
   <data name="Form_Cheat_InitializeComponent_FetchCheatsOnline" xml:space="preserve">
     <value>下载金手指</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_24bitfmv" xml:space="preserve">
+    <value>24位色 FMV</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_Trianglefix" xml:space="preserve">
+    <value>三角形过滤</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_truecolor" xml:space="preserve">
+    <value>真彩色渲染</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_softscale" xml:space="preserve">
+    <value>软件后端缩放</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_cyclefix" xml:space="preserve">
+    <value>时序修正</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_framelimit" xml:space="preserve">
+    <value>帧率限制</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_audiobuff" xml:space="preserve">
+    <value>音频缓冲(ms)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_frameskip" xml:space="preserve">
+    <value>D2D,D3D 跳帧</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_msaa" xml:space="preserve">
+    <value>抗锯齿</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_CPUtick" xml:space="preserve">
+    <value>CPU执行</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_bustick" xml:space="preserve">
+    <value>总线执行</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_debugcon" xml:space="preserve">
+    <value>输出调试信息</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPbase" xml:space="preserve">
+    <value>PGXP 基础功能 （ 推荐开启 ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_pgxphint" xml:space="preserve">
+    <value>**所有选项保存后即时生效。2D游戏建议关闭PGXP</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPhighpos" xml:space="preserve">
+    <value>PGXP 高精度渲染 （ 推荐开启，极少兼容问题  ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPaff" xml:space="preserve">
+    <value>PGXP 仿射矫正 （ 大多数情况没有问题  ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPppc" xml:space="preserve">
+    <value>PGXP 着色矫正 （ 少量游戏可能出现颜色异常  ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPnc" xml:space="preserve">
+    <value>PGXP 法线矫正 （ 作用不大且占用资源  ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPmemcap" xml:space="preserve">
+    <value>PGXP 内存捕获 （ 可能造成贴图错位 ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPclip" xml:space="preserve">
+    <value>PGXP 裁剪纠正（ 可能造成贴图丢失  ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPavsz" xml:space="preserve">
+    <value>PGXP 平均深度（ 推荐开启，极少兼容问题  ）</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_ModifyOnlyIfexp" xml:space="preserve">
+    <value>只修改清楚作用的设置</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_GPUResolution" xml:space="preserve">
+    <value>内部分辨率</value>
   </data>
 </root>

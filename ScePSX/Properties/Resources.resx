@@ -127,10 +127,10 @@
     <value>Change disc</value>
   </data>
   <data name="BackToMain" xml:space="preserve">
-    <value>Return</value>
+    <value>Close Game</value>
   </data>
   <data name="SearchDir" xml:space="preserve">
-    <value>Search</value>
+    <value>Search Games</value>
   </data>
   <data name="Setting" xml:space="preserve">
     <value>Options</value>
@@ -183,32 +183,8 @@
   <data name="Font" xml:space="preserve">
     <value>Arial</value>
   </data>
-  <data name="Form_Set_Form_Set_set" xml:space="preserve">
-    <value>Setting</value>
-  </data>
   <data name="Form_Set_InitializeComponent_save" xml:space="preserve">
-    <value>Save</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_cyles" xml:space="preserve">
-    <value>Cyles fix</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_limit" xml:space="preserve">
-    <value>Frame limit</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_audio" xml:space="preserve">
-    <value>Audiobuffer(ms)</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_fsk" xml:space="preserve">
-    <value>Frame skip</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_CPUt" xml:space="preserve">
-    <value>CPU Ticks</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_bt" xml:space="preserve">
-    <value>Bus Ticks</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_con" xml:space="preserve">
-    <value>Enable console</value>
+    <value>Apply</value>
   </data>
   <data name="Form_Set_InitializeComponent_gbs" xml:space="preserve">
     <value>Defaults</value>
@@ -218,12 +194,6 @@
   </data>
   <data name="Form_Set_InitializeComponent_完整指令模式" xml:space="preserve">
     <value>Normal</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_不清楚作用的设置尽量不要修改" xml:space="preserve">
-    <value>Modify only if known</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_内部分辨率放大" xml:space="preserve">
-    <value>IR Scale</value>
   </data>
   <data name="Form_Set_InitializeComponent_设置" xml:space="preserve">
     <value>Setting</value>
@@ -376,7 +346,7 @@
     <value>Memcard Mange</value>
   </data>
   <data name="FrmInput_InitializeComponent_保存设置" xml:space="preserve">
-    <value>Save</value>
+    <value>Apply</value>
   </data>
   <data name="FrmInput_InitializeComponent_按下" xml:space="preserve">
     <value>Press any key, ESC to cancel</value>
@@ -432,28 +402,85 @@
   <data name="Form_McrMange_InitializeComponent_MemcardMange" xml:space="preserve">
     <value>Memcard Mange</value>
   </data>
-  <data name="Form_Set_InitializeComponent_透视校正" xml:space="preserve">
-    <value>PerFix</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_PGXP几何校正" xml:space="preserve">
-    <value>PGXP Correction</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_真彩色渲染" xml:space="preserve">
-    <value>True Color</value>
-  </data>
-  <data name="Form_Set_InitializeComponent_GPU分辨率" xml:space="preserve">
-    <value>GPU Res</value>
-  </data>
   <data name="Form_Set_InitializeComponent_自适应" xml:space="preserve">
     <value>Adaptive</value>
   </data>
   <data name="Form_Set_InitializeComponent_Keep43" xml:space="preserve">
-    <value>Keep 4:3</value>
+    <value>4:3 AR</value>
   </data>
   <data name="FrmMain_InitializeComponent_FullScreenF2" xml:space="preserve">
     <value>Full Screen (F2)</value>
   </data>
   <data name="Form_Cheat_InitializeComponent_FetchCheatsOnline" xml:space="preserve">
     <value>Fetch Cheats Online</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_24bitfmv" xml:space="preserve">
+    <value>24Bit FMV</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_Trianglefix" xml:space="preserve">
+    <value>Fix Triangle</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_truecolor" xml:space="preserve">
+    <value>True Color</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_softscale" xml:space="preserve">
+    <value>SoftGPU Scale</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_cyclefix" xml:space="preserve">
+    <value>Cycle fix</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_framelimit" xml:space="preserve">
+    <value>Frame limit</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_audiobuff" xml:space="preserve">
+    <value>AudioBuff(ms)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_frameskip" xml:space="preserve">
+    <value>D2D Frame skip</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_msaa" xml:space="preserve">
+    <value>MSAA</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_CPUtick" xml:space="preserve">
+    <value>CPU Tick</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_bustick" xml:space="preserve">
+    <value>BUS Tick</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_debugcon" xml:space="preserve">
+    <value>Debug Console</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPbase" xml:space="preserve">
+    <value>PGXP Features (Recommended for 3D)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_pgxphint" xml:space="preserve">
+    <value>**Settings apply instantly. Avoid for 2D games</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPhighpos" xml:space="preserve">
+    <value>PGXP High-Precision Rendering (recommended, low risk)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPaff" xml:space="preserve">
+    <value>PGXP Affine Correction (No issues in most cases)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPppc" xml:space="preserve">
+    <value>PGXP Color Correction (Some games may have color issues)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPnc" xml:space="preserve">
+    <value>PGXP Normal Correction (Little effect, resource-heavy)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPmemcap" xml:space="preserve">
+    <value>PGXP Coordinate Capture (may cause texture errors)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPclip" xml:space="preserve">
+    <value>PGXP Clipping Fix (may cause missing textures)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_PGXPavsz" xml:space="preserve">
+    <value>PGXP Average Depth (recommended, minimal issues)</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_ModifyOnlyIfexp" xml:space="preserve">
+    <value>Adjust only if experienced</value>
+  </data>
+  <data name="Form_Set_InitializeComponent_GPUResolution" xml:space="preserve">
+    <value>IR Scale</value>
   </data>
 </root>

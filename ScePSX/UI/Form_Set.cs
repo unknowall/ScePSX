@@ -31,11 +31,13 @@ namespace ScePSX.UI
                     loadini(ini);
                 }
                 btndel.Visible = true;
-                this.Text = $" {id} {ScePSX.Properties.Resources.Form_Set_Form_Set_set}";
+                this.Text = $" {id} Settings";
             }
-            //chkpgxp.Enabled = false;
+
             cbgpures.Enabled = true;
             cbgpu.SelectedIndexChanged += Cbgpu_SelectedIndexChanged;
+
+            applypgxp();
         }
 
         private void Cbgpu_SelectedIndexChanged(object sender, EventArgs e)
@@ -43,13 +45,11 @@ namespace ScePSX.UI
             if (cbgpu.SelectedIndex != 1)
             {
                 cbgpures.Enabled = true;
-                //chkpgxp.Enabled = false;
                 chkpgxpt.Enabled = true;
                 chkkeepar.Enabled = true;
             } else
             {
                 cbgpures.Enabled = false;
-                //chkpgxp.Enabled = false;
                 chkpgxpt.Enabled = false;
                 chkkeepar.Enabled = false;
             }
@@ -73,6 +73,8 @@ namespace ScePSX.UI
             {
                 saveini(ini);
             }
+
+            applypgxp();
         }
 
         private void btndel_Click(object sender, EventArgs e)
@@ -86,6 +88,18 @@ namespace ScePSX.UI
                 File.Delete(fn);
             }
             loadini(FrmMain.ini);
+        }
+
+        private void applypgxp()
+        {
+            ScePSX.Core.GPU.PGXPVector.use_pgxp = chkpgxp.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_pgxp_avs = chkpgxp_avs.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_pgxp_clip = chkpgxp_clip.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_pgxp_aff = chkpgxp_aff.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_pgxp_nc = chkpgxp_nc.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_pgxp_highpos = chkpgxp_highpos.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_pgxp_memcap = chkpgxp_memcap.Checked;
+            ScePSX.Core.GPU.PGXPVector.use_perspective_correction = chkpgxp_ppc.Checked;
         }
 
         private void loadini(IniFile ini)
@@ -106,7 +120,6 @@ namespace ScePSX.UI
             chkTTY.Checked = ini.ReadInt("Main", "TTYDebug") == 1;
             cbconsole.Checked = ini.ReadInt("Main", "Console") == 1;
 
-            chkpgxp.Checked = ini.ReadInt("Main", "PGXP") == 1;
             chkpgxpt.Checked = ini.ReadInt("Main", "PGXPT") == 1;
             chkrealcolor.Checked = ini.ReadInt("Main", "RealColor") == 1;
             chkkeepar.Checked = ini.ReadInt("Main", "KeepAR") == 1;
@@ -118,6 +131,17 @@ namespace ScePSX.UI
             cbgpures.SelectedIndex = ini.ReadInt("Main", "GpuModeScale");
 
             cbcdrom.SelectedIndex = ini.ReadInt("Main", "CdSpeed");
+
+            ChkFMV.Checked = ini.ReadInt("Main", "24bitfmv") == 1;
+
+            chkpgxp.Checked = ini.ReadInt("PGXP", "base") == 1;
+            chkpgxp_aff.Checked = ini.ReadInt("PGXP", "aff") == 1;
+            chkpgxp_avs.Checked = ini.ReadInt("PGXP", "avs") == 1;
+            chkpgxp_clip.Checked = ini.ReadInt("PGXP", "clip") == 1;
+            chkpgxp_nc.Checked = ini.ReadInt("PGXP", "nc") == 1;
+            chkpgxp_highpos.Checked = ini.ReadInt("PGXP", "highpos") == 1;
+            chkpgxp_memcap.Checked = ini.ReadInt("PGXP", "memcap") == 1;
+            chkpgxp_ppc.Checked = ini.ReadInt("PGXP", "ppc") == 1;
 
             var currbios = ini.Read("main", "bios");
 
@@ -173,7 +197,19 @@ namespace ScePSX.UI
 
                 ini.WriteInt("Main", "CdSpeed", cbcdrom.SelectedIndex);
 
+                ini.WriteInt("Main", "24bitfmv", ChkFMV.Checked ? 1 : 0);
+
                 ini.Write("main", "bios", cbbios.Items[cbbios.SelectedIndex].ToString());
+
+                ini.WriteInt("PGXP", "base", chkpgxp.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "aff", chkpgxp_aff.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "avs", chkpgxp_avs.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "clip", chkpgxp_clip.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "highpos", chkpgxp_highpos.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "memcap", chkpgxp_memcap.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "nc", chkpgxp_nc.Checked ? 1 : 0);
+                ini.WriteInt("PGXP", "ppc", chkpgxp_ppc.Checked ? 1 : 0);
+
             } catch
             {
             }
