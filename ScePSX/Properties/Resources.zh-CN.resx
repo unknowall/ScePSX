@@ -469,7 +469,7 @@
     <value>PGXP 法线矫正 （ 作用不大且占用资源  ）</value>
   </data>
   <data name="Form_Set_InitializeComponent_PGXPmemcap" xml:space="preserve">
-    <value>PGXP 内存捕获 （ 可能造成贴图错位 ）</value>
+    <value>PGXP 内存坐标捕获 （ 可能造成贴图错位 ）</value>
   </data>
   <data name="Form_Set_InitializeComponent_PGXPclip" xml:space="preserve">
     <value>PGXP 裁剪纠正（ 可能造成贴图丢失  ）</value>
