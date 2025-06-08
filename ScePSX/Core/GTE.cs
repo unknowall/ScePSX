@@ -1271,6 +1271,31 @@ namespace ScePSX
             return value;
         }
 
+        private void AddPGXPCache(short screenX, short screenY)
+        {
+            if (!PGXPVector.use_pgxp)
+                return;
+
+            const double fixedDepth = 1000.0; // 默认深度值
+            double invZ = 1.0 / fixedDepth;
+
+            double worldX = (screenX - (double)OFX / 65536) * fixedDepth / H;
+            double worldY = (screenY - (double)OFY / 65536) * fixedDepth / H;
+
+            PGXPVector.Add(
+                new PGXPVector.LowPos { x = screenX, y = screenY, z = 0 },
+                new PGXPVector.HighPos
+                {
+                    x = screenX,
+                    y = screenY,
+                    z = invZ,
+                    worldX = worldX,
+                    worldY = worldY,
+                    worldZ = fixedDepth
+                }
+            );
+        }
+
         public void writeData(uint fs, uint v)
         {
             switch (fs)
@@ -1313,17 +1338,21 @@ namespace ScePSX
                     break;
                 case 12:
                     SXY[0].val = v;
+                    //AddPGXPCache(SXY[0].x, SXY[0].y);
                     break;
                 case 13:
                     SXY[1].val = v;
+                    //AddPGXPCache(SXY[1].x, SXY[1].y);
                     break;
                 case 14:
                     SXY[2].val = v;
+                    //AddPGXPCache(SXY[2].x, SXY[2].y);
                     break;
                 case 15:
                     SXY[0] = SXY[1];
                     SXY[1] = SXY[2];
                     SXY[2].val = v;
+                    //AddPGXPCache(SXY[2].x, SXY[2].y);
                     break; //On load mirrors 0x14 on write cycles the fifo
                 case 16:
                     SZ[0] = (ushort)v;

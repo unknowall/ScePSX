@@ -189,6 +189,7 @@ namespace ScePSX
         List<Vertex> Vertexs = new List<Vertex>();
 
         Matrix4x4 m_mvpMatrix;
+        float[] mvpArray;
 
         struct DisplayArea
         {
@@ -330,20 +331,14 @@ namespace ScePSX
 
             RestoreRenderState();
 
-            Matrix4x4 viewMatrix = Matrix4x4.CreateLookAt(
-                new Vector3(0, 0, 5),
-                new Vector3(0, 0, 0),
-                Vector3.UnitY
-            );
+            BuildMVP();
 
-            Matrix4x4 projMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
-                (float)Math.PI / 4,
-                AspectRatio,
-                0.1f,
-                100.0f
-            );
-
-            m_mvpMatrix = viewMatrix * projMatrix;
+            //Matrix4x4 projMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
+            //    (float)Math.PI / 4,
+            //    AspectRatio,
+            //    0.1f,
+            //    100.0f
+            //);
 
             //m_computeShader = new GLComputeShader();
 
@@ -362,6 +357,38 @@ namespace ScePSX
             _DeviceContext.MakeCurrent(ShareGlContext);
 
             _ThreadID = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        private void BuildMVP()
+        {
+            // PS1 虚拟视口范围：X∈[-256,256]，Y∈[-192,192]，Z∈[0,1]（归一化后）
+            float left = -256.0f;
+            float right = 256.0f;
+            float bottom = -192.0f;
+            float top = 192.0f;
+            float nearPlane = 0.0f;   // PS1 Z 最小值（近）
+            float farPlane = 1.0f;    // PS1 Z 最大值（远）
+
+            Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(
+                left, right,
+                bottom, top,
+                farPlane, nearPlane  // 交换 near/far，让 Z 轴方向适配 OpenGL 右手系
+            );
+
+            Matrix4x4 view = Matrix4x4.Identity;   // PS1 视角无额外变换
+            Matrix4x4 model = Matrix4x4.Identity;  // 模型变换GTE处理
+
+            m_mvpMatrix = Matrix4x4.Multiply(Matrix4x4.Multiply(projection, view), model);
+
+            m_mvpMatrix = Matrix4x4.Transpose(m_mvpMatrix);
+
+            mvpArray = new float[16]
+            {
+                m_mvpMatrix.M11, m_mvpMatrix.M21, m_mvpMatrix.M31, m_mvpMatrix.M41,
+                m_mvpMatrix.M12, m_mvpMatrix.M22, m_mvpMatrix.M32, m_mvpMatrix.M42,
+                m_mvpMatrix.M13, m_mvpMatrix.M23, m_mvpMatrix.M33, m_mvpMatrix.M43,
+                m_mvpMatrix.M14, m_mvpMatrix.M24, m_mvpMatrix.M34, m_mvpMatrix.M44
+            };
         }
 
         private void CreateVRamFramebuffers()
@@ -824,6 +851,11 @@ namespace ScePSX
             // 恢复渲染状态
             RestoreRenderState();
 
+            if (PGXP)
+            {
+                PGXPVector.Deletes();
+            }
+
             //参数变动
             if (RealColor != m_realColor)
             {
@@ -1272,20 +1304,14 @@ namespace ScePSX
 
             VAOBuff.SubData<Vertex>(Vertexs.Count, Vertexs.ToArray());
 
-            //if (PGXP)
-            //{
-            //    Gl.Enable(EnableCap.DepthTest);
-            //    Gl.DepthFunc(DepthFunction.Lequal);
+            if (PGXP)
+            {
+                Gl.Enable(EnableCap.DepthTest);
+                Gl.DepthFunc(DepthFunction.Always); //Less
+                Gl.DepthMask(true);
 
-            //    float[] mvpArray = new float[]
-            //    {
-            //        m_mvpMatrix.M11, m_mvpMatrix.M12, m_mvpMatrix.M13, m_mvpMatrix.M14,
-            //        m_mvpMatrix.M21, m_mvpMatrix.M22, m_mvpMatrix.M23, m_mvpMatrix.M24,
-            //        m_mvpMatrix.M31, m_mvpMatrix.M32, m_mvpMatrix.M33, m_mvpMatrix.M34,
-            //        m_mvpMatrix.M41, m_mvpMatrix.M42, m_mvpMatrix.M43, m_mvpMatrix.M44
-            //    };
-            //    Gl.UniformMatrix4(mvpLoc, false, mvpArray);
-            //}
+                //Gl.UniformMatrix4(mvpLoc, false, mvpArray);
+            }
 
             if (m_semiTransparencyEnabled && (m_semiTransparencyMode == 2) && !m_TexPage.TextureDisable)
             {
@@ -1306,11 +1332,6 @@ namespace ScePSX
             } else
             {
                 Gl.DrawArrays(PrimitiveType.Triangles, 0, Vertexs.Count);
-            }
-
-            if (PGXP)
-            {
-                PGXPVector.Deletes();
             }
 
             Vertexs.Clear();
@@ -1552,8 +1573,10 @@ namespace ScePSX
                     if (PGXPVector.Find(vertices[i].v_pos.x, vertices[i].v_pos.y, out HighPos))
                     {
                         vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
+                        //Console.WriteLine($"[PGXP] PGXPVector Find x {HighPos.x}, y {HighPos.y}, invZ {HighPos.z}");
                     } else
                     {
+                        //Console.WriteLine($"[PGXP] DrawRect PGXPVector Miss x {vertices[i].v_pos.x}, y {vertices[i].v_pos.y}");
                         vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
                     }
                 }
@@ -1649,6 +1672,7 @@ namespace ScePSX
                         //Console.WriteLine($"[PGXP] PGXPVector Find x {HighPos.x}, y {HighPos.y}, invZ {HighPos.z}");
                     }else
                     {
+                        //Console.WriteLine($"[PGXP] DrawTriangle PGXPVector Miss x {vertices[i].v_pos.x}, y {vertices[i].v_pos.y}");
                         vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
                     }
                 }

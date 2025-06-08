@@ -983,36 +983,46 @@ namespace ScePSX
 
         void main()
         {
+            float x, y, normalizedZ;
+
             if (u_pgxp)
             {
                 float vertexOffset = 0.5 / u_resolutionScale;
 
-                float x = (v_pos_high.x + vertexOffset) / 512.0 - 1.0;
-                float y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
+                x = (v_pos_high.x + vertexOffset) / 512.0 - 1.0;
+                y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
 
-                Position = vec3( v_pos_high.xy, v_pos.z / 32767.0 );
+                //v_pos_high.z is invZ
+                float worldZ = 1.0 / max(v_pos_high.z, 0.00001);
+                normalizedZ = worldZ / 32767.0;
+
+                //normalizedZ = v_pos.z / 32767.0;   
+
+                Position = vec3(v_pos_high.xy, normalizedZ);  
 
                 invZ = v_pos_high.z;
 
-                TexCoord = v_texCoord / invZ; 
+                TexCoord = v_texCoord * invZ; 
 
-                gl_Position = vec4(x, y, 0.0, 1.0);
+                gl_Position = vec4( x, y, normalizedZ, 1.0 );
+
             }
             else
             {
 	            float vertexOffset = 0.5 / u_resolutionScale;
 
-	            float x = ( v_pos.x + vertexOffset ) / 512.0 - 1.0;
-	            float y = ( v_pos.y + vertexOffset ) / 256.0 - 1.0;
-	            float z = ( v_pos.z / 32767.0 );
+	            x = ( v_pos.x + vertexOffset ) / 512.0 - 1.0;
+	            y = ( v_pos.y + vertexOffset ) / 256.0 - 1.0;
+                normalizedZ = v_pos.z / 32767.0;
 
-	            Position = vec3( v_pos.xy, z );
+	            Position = vec3( v_pos.xy, normalizedZ );
 
                 invZ = 1.0;
 
                 TexCoord = v_texCoord;
 
-	            gl_Position = vec4( x, y, 0.0, 1.0 );
+                gl_Position = vec4( x, y, normalizedZ, 1.0 );
+
             }
 
 	        TexPageBase = ivec2( ( v_texPage & 0xf ) * 64, ( ( v_texPage >> 4 ) & 0x1 ) * 256 );
@@ -1154,15 +1164,8 @@ namespace ScePSX
 	        vec4 color;
             ivec2 texCoord;
 
-            if (invZ != 1.0)
-            {
-                vec2 scaledCoord = TexCoord * 1024.0;
-                texCoord = ivec2(floor(scaledCoord + vec2(0.0001))) & ivec2(0xff);
-            }
-            else
-            {
-                texCoord = ivec2(floor(TexCoord + vec2(0.0001))) & ivec2(0xff);
-            }
+            vec2 baseTexCoord = TexCoord / invZ;
+            texCoord = ivec2(floor(baseTexCoord + vec2(0.0001))) & ivec2(0xff);
 
 	        // apply texture window
 	        texCoord.x = ( texCoord.x & ~( u_texWindowMask.x * 8 ) ) | ( ( u_texWindowOffset.x & u_texWindowMask.x ) * 8 );

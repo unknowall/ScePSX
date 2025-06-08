@@ -55,15 +55,12 @@ namespace ScePSX.Core.GPU
 
         private static Dictionary<LowPos, HighPos> lowToHighMap = new Dictionary<LowPos, HighPos>();
         private static HashSet<LowPos> addedKeys = new();
-        public static double MaxDepth = 0;
+        private static LowPos workPos;
 
         public static void Add(LowPos low, HighPos high)
         {
             lowToHighMap[low] = high;
             addedKeys.Add(low);
-
-            if (high.z> MaxDepth)
-                MaxDepth = high.z;
         }
 
         public static bool Find(LowPos low, out HighPos high)
@@ -73,8 +70,10 @@ namespace ScePSX.Core.GPU
 
         public static bool Find(short x, short y, out HighPos high)
         {
-            LowPos low = new LowPos { x = x, y = y };
-            return lowToHighMap.TryGetValue(low, out high);
+            workPos.x = x;
+            workPos.y = y;
+            //LowPos low = new LowPos { x = x, y = y };
+            return lowToHighMap.TryGetValue(workPos, out high);
         }
 
         public static bool Delete(LowPos low)
@@ -84,8 +83,10 @@ namespace ScePSX.Core.GPU
 
         public static bool Delete(short x, short y)
         {
-            LowPos low = new LowPos { x = x, y = y };
-            return lowToHighMap.Remove(low);
+            workPos.x = x;
+            workPos.y = y;
+            //LowPos low = new LowPos { x = x, y = y };
+            return lowToHighMap.Remove(workPos);
         }
 
         public static void Deletes()
