@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Windows.Forms;
 using ScePSX.Core.GPU;
@@ -21,7 +19,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.7.2";
+        public static string version = "ScePSX Beta 0.1.8.0";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -158,6 +156,8 @@ namespace ScePSX.UI
 
             gpumnu = AddMenu("gpumode", $"GPU: {gputype.ToString()}", 88, RenderToolStripMenuItem);
             gpumnu.Enabled = false;
+
+            VulkanRenderMnu.Text = VulkanRenderMnu.Text + " (Not recommended)";
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -870,7 +870,7 @@ namespace ScePSX.UI
             {
                 if (Core != null && Core.Running)
                 {
-                    if(Core.Pauseed)
+                    if (Core.Pauseed)
                         SimpleOSD.Close();
                     Core.Pause();
                 }
@@ -890,13 +890,13 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.F3)
             {
                 StateSlot = StateSlot < 9 ? StateSlot + 1 : StateSlot;
-                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [ {StateSlot} ]");
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [ {StateSlot} ]");
                 return;
             }
             if (e.KeyCode == Keys.F4)
             {
                 StateSlot = StateSlot > 0 ? StateSlot - 1 : StateSlot;
-                SimpleOSD.Show(Render._currentRenderer as UserControl,$"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [ {StateSlot} ]");
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"{ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_存档槽} [ {StateSlot} ]");
                 return;
             }
             if (e.KeyCode == Keys.F5)
@@ -935,7 +935,7 @@ namespace ScePSX.UI
                 {
                     Core.PsxBus.controller1.IsAnalog = isAnalog;
                 }
-                SimpleOSD.Show(Render._currentRenderer as UserControl, 
+                SimpleOSD.Show(Render._currentRenderer as UserControl,
                     $"{(isAnalog ? ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_多轴手柄 : ScePSX.Properties.Resources.FrmMain_Timer_Elapsed_数字手柄)}"
                     );
                 return;

@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Threading;
+
 using ScePSX.Core.GPU;
 using ScePSX.Render;
 
@@ -66,13 +66,14 @@ namespace ScePSX
         private bool CheckMaskBit, ForceSetMaskBit;
 
         bool isDisposed = false;
-        bool m_dither = false;
+        //bool m_dither = false;
         bool m_realColor = false;
 
         bool m_semiTransparencyEnabled = false;
         byte m_semiTransparencyMode = 0;
 
-        uint oldmaskbit, oldtexwin;
+        uint oldtexwin;
+        int setMaskBit;
         short m_currentDepth = 1;
 
         int resolutionScale = 1;
@@ -82,8 +83,15 @@ namespace ScePSX
 
         vkRectangle<int> m_dirtyArea, m_clutArea, m_textureArea;
 
-        [StructLayout(LayoutKind.Explicit, Size = 44)]
-        struct Vertex
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Vector2Int
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Explicit, Size = 84)]
+        public struct Vertex
         {
             [FieldOffset(0)] public vkPosition v_pos;
             [FieldOffset(8)] public Vector3 v_pos_high;
@@ -91,9 +99,20 @@ namespace ScePSX
             [FieldOffset(24)] public vkColor v_color;
             [FieldOffset(36)] public vkClutAttribute v_clut;
             [FieldOffset(40)] public vkTexPage v_texPage;
+
+            [FieldOffset(44)] public float u_srcBlend;
+            [FieldOffset(48)] public float u_destBlend;
+            [FieldOffset(52)] public int u_setMaskBit;
+            [FieldOffset(56)] public int u_drawOpaquePixels;
+            [FieldOffset(60)] public int u_drawTransparentPixels;
+
+            [FieldOffset(64)] public Vector2Int u_texWindowMask;
+            [FieldOffset(72)] public Vector2Int u_texWindowOffset;
+
+            [FieldOffset(80)] public int BlendMode;
         }
 
-        List<Vertex> Vertexs = new List<Vertex>();
+        //List<Vertex> Vertexs = new List<Vertex>();
 
         struct DisplayArea
         {
@@ -123,9 +142,6 @@ namespace ScePSX
         vkTexture samplerTexture, drawTexture;
         VkFramebuffer drawFramebuff;
         vkCMDS renderCmd, DrawCMD;
-        vkCMDS ThreadCMD;
-
-        //ImmediateCMD immediateCMD;
 
         vkGraphicsPipeline out24Pipeline, out16Pipeline;
         vkGraphicsPipeline drawAvgBlend, drawAddBlend, drawSubtractBlend, drawConstantBlend, drawNoBlend;
@@ -161,25 +177,8 @@ namespace ScePSX
         [StructLayout(LayoutKind.Sequential)]
         struct drawfragUBO
         {
-            public float u_srcBlend;
-            public float u_destBlend;
-            public int u_setMaskBit;
-            public int u_drawOpaquePixels;
-            public int u_drawTransparentPixels;
             public int u_dither;
             public int u_realColor;
-
-            public int _padding;
-
-            public Vector2Int u_texWindowMask;        // 偏移32，大小8（ivec2）
-            public Vector2Int u_texWindowOffset;      // 偏移40，大小8（ivec2）
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct Vector2Int
-            {
-                public int X;
-                public int Y;
-            }
         }
         drawfragUBO drawFrag;
 
@@ -202,7 +201,7 @@ namespace ScePSX
 
         private static readonly byte[] LookupTable1555to8888 = new byte[32];
 
-        enum BlendMode
+        public enum BlendMode
         {
             Opaque,     // 不透明
             AlphaBlend, // 普通透明混合
@@ -211,7 +210,9 @@ namespace ScePSX
             Quarter,    // 四分之一混合
         }
 
-        struct BlendParams
+        BlendMode CurrentBlendMode;
+
+        public struct BlendParams
         {
             public vkGraphicsPipeline Pipeline;
             public float SrcFactor;
@@ -221,19 +222,29 @@ namespace ScePSX
 
         private Dictionary<BlendMode, BlendParams> blendPresets = new();
 
-        BlendParams currentBlend;
+        BlendParams CurrentBlend;
+
+        public struct PipelineDrawBlock
+        {
+            public BlendParams Blend;
+            public BlendMode mode;
+
+            public VkRect2D Scissor;
+
+            public bool HasTexture;
+            public bool semiTransparencyEnabled;
+
+            public List<Vertex> Vertexs;
+        }
+
+        ulong vaoOffset = 0;
+        uint currentBlockFirstVertex, currentBlockVertexCount;
+        VkCommandBuffer CurrentDrawCMD;
+        PipelineDrawBlock CurrentBlock = new PipelineDrawBlock();
 
         uint minAlignment;
         int alignedRowPitch;
         uint minUboAlignment;
-        uint fragOffset;
-        uint[] dymoffets = new uint[2];
-
-        //Task SubmitTask;
-        bool SubmitRun = true;
-        private static ManualResetEvent queueEvent = new ManualResetEvent(false);
-        private static ThreadSafeQueue<VkCommandBuffer> freeCmdQueue = new ThreadSafeQueue<VkCommandBuffer>();
-        private static ThreadSafeQueue<VkCommandBuffer> submitCmdQueue = new ThreadSafeQueue<VkCommandBuffer>();
 
         #endregion
 
@@ -283,7 +294,11 @@ namespace ScePSX
 
             DrawCMD = Device.CreateCommandBuffers(2);
 
-            VaoBuffer = Device.CreateBuffer((ulong)(VRAM_WIDTH * 44), VkBufferUsageFlags.VertexBuffer | VkBufferUsageFlags.TransferDst);
+            VaoBuffer = Device.CreateBuffer((ulong)(2048 * 10 * sizeof(Vertex)), VkBufferUsageFlags.VertexBuffer | VkBufferUsageFlags.TransferDst);
+
+            void* mappedData;
+            vkMapMemory(Device.device, VaoBuffer.stagingMemory, 0, WholeSize, 0, &mappedData);
+            VaoBuffer.mappedData = mappedData;
 
             samplerTexture = Device.CreateTexture(
                 VRAM_WIDTH, VRAM_HEIGHT,
@@ -305,6 +320,20 @@ namespace ScePSX
 
             Device.BeginCommandBuffer(DrawCMD.CMD[0]);
 
+            VkBufferMemoryBarrier barrier = new()
+            {
+                sType = VkStructureType.BufferMemoryBarrier,
+                srcAccessMask = VkAccessFlags.TransferWrite,
+                dstAccessMask = VkAccessFlags.VertexAttributeRead,
+                buffer = VaoBuffer.stagingBuffer,
+                size = WholeSize
+            };
+
+            vkCmdPipelineBarrier(DrawCMD.CMD[0],
+                VkPipelineStageFlags.Transfer,
+                VkPipelineStageFlags.VertexInput,
+                0, 0, null, 1, ref barrier, 0, null);
+
             samplerTexture.layout = Device.TransitionImageLayout(
                 DrawCMD.CMD[0],
                 samplerTexture,
@@ -319,57 +348,141 @@ namespace ScePSX
             var vertexType = typeof(Vertex);
             VkVertexInputAttributeDescription[] drawAttributes = new VkVertexInputAttributeDescription[]
             {
-                new() { // v_pos (location=0)
+                // v_pos (location=0)
+                new()
+                {
                     location = 0,
                     binding = 0,
                     format = VkFormat.R16g16b16a16Sscaled,
                     offset = 0
                 },
-                new() { // v_pos_high (location=1)
+
+                // v_pos_high (location=1)
+                new()
+                {
                     location = 1,
                     binding = 0,
                     format = VkFormat.R32g32b32Sfloat,
                     offset = 8
                 },
-                new() { // v_texCoord (location=2)
+
+                // v_texCoord (location=2)
+                new()
+                {
                     location = 2,
                     binding = 0,
                     format = VkFormat.R16g16Sscaled,
                     offset = 20
                 },
-                new() { // v_color (location=3)
+
+                // v_color (location=3)
+                new()
+                {
                     location = 3,
                     binding = 0,
                     format = VkFormat.R8g8b8Unorm,
                     offset = 24
                 },
-                new() { // v_clut (location=4)
+
+                // v_clut (location=4)
+                new()
+                {
                     location = 4,
                     binding = 0,
                     format = VkFormat.R32Sint,
                     offset = 36
                 },
-                new() { // v_texPage (location=5)
+
+                // v_texPage (location=5)
+                new()
+                {
                     location = 5,
                     binding = 0,
                     format = VkFormat.R32Sint,
                     offset = 40
+                },
+
+                // u_srcBlend (location=6) - float
+                new()
+                {
+                    location = 6,
+                    binding = 0,
+                    format = VkFormat.R32Sfloat,
+                    offset = 44
+                },
+
+                // u_destBlend (location=7) - float
+                new()
+                {
+                    location = 7,
+                    binding = 0,
+                    format = VkFormat.R32Sfloat,
+                    offset = 48
+                },
+
+                // u_setMaskBit (location=8) - int
+                new()
+                {
+                    location = 8,
+                    binding = 0,
+                    format = VkFormat.R32Sint,
+                    offset = 52
+                },
+
+                // u_drawOpaquePixels (location=9) - int
+                new()
+                {
+                    location = 9,
+                    binding = 0,
+                    format = VkFormat.R32Sint,
+                    offset = 56
+                },
+
+                // u_drawTransparentPixels (location=10) - int
+                new()
+                {
+                    location = 10,
+                    binding = 0,
+                    format = VkFormat.R32Sint,
+                    offset = 60
+                },
+
+                // u_texWindowMask (location=11) - Vector2Int (ivec2)
+                new()
+                {
+                    location = 11,
+                    binding = 0,
+                    format = VkFormat.R32g32Sint,
+                    offset = 64
+                },
+
+                // u_texWindowOffset (location=12) - Vector2Int (ivec2)
+                new()
+                {
+                    location = 12,
+                    binding = 0,
+                    format = VkFormat.R32g32Sint,
+                    offset = 72
+                },
+
+                //BlendMode
+                new()
+                {
+                    location = 13,
+                    binding = 0,
+                    format = VkFormat.R32Sint,
+                    offset = 80
                 }
             };
 
             minUboAlignment = (uint)Device.GetMinUniformBufferAlignment();
 
             uint uboSize = (uint)Marshal.SizeOf<drawvertUBO>();
-            uint dynamicUboSize = (uint)((uboSize + minUboAlignment - 1) & ~(minUboAlignment - 1));
-
-            vertexUBO = Device.CreateBuffer(dynamicUboSize, VkBufferUsageFlags.UniformBuffer | VkBufferUsageFlags.TransferDst);
+            vertexUBO = Device.CreateBuffer(uboSize * 2, VkBufferUsageFlags.UniformBuffer | VkBufferUsageFlags.TransferDst);
 
             uboSize = (uint)Marshal.SizeOf<drawfragUBO>();
-            fragOffset = (uint)((uboSize + minUboAlignment - 1) & ~(minUboAlignment - 1));
+            fragmentUBO = Device.CreateBuffer(uboSize * 2, VkBufferUsageFlags.UniformBuffer | VkBufferUsageFlags.TransferDst);
 
-            fragmentUBO = Device.CreateBuffer(fragOffset * 2, VkBufferUsageFlags.UniformBuffer | VkBufferUsageFlags.TransferDst);
-
-            void* mappedData;
             vkMapMemory(Device.device, fragmentUBO.stagingMemory, 0, WholeSize, 0, &mappedData);
             drawFragData = (byte*)mappedData;
 
@@ -391,7 +504,7 @@ namespace ScePSX
                     },
                     new VkDescriptorPoolSize
                     {
-                        type = VkDescriptorType.UniformBufferDynamic,
+                        type = VkDescriptorType.UniformBuffer,//UniformBufferDynamic,
                         descriptorCount = 2
                     }
                 }
@@ -402,14 +515,14 @@ namespace ScePSX
                 // 顶点着色器的 UniformBuffer (binding=0)
                 new VkDescriptorSetLayoutBinding {
                     binding = 0,
-                    descriptorType = VkDescriptorType.UniformBufferDynamic,
+                    descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic,
                     descriptorCount = 1,
                     stageFlags = VkShaderStageFlags.Vertex
                 },
                 // 片段着色器的 UniformBuffer (binding=1)
                 new VkDescriptorSetLayoutBinding {
                     binding = 1,
-                    descriptorType = VkDescriptorType.UniformBufferDynamic,
+                    descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic,
                     descriptorCount = 1,
                     stageFlags = VkShaderStageFlags.Fragment
                 },
@@ -429,7 +542,7 @@ namespace ScePSX
             {
                 buffer = vertexUBO.stagingBuffer,
                 offset = 0,
-                range = (ulong)Marshal.SizeOf<drawvertUBO>()
+                range = 80//(ulong)Marshal.SizeOf<drawvertUBO>()
             };
 
             // 片段着色器的 CombinedImageSampler (binding=1)
@@ -458,7 +571,7 @@ namespace ScePSX
                         dstBinding = 0,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.UniformBufferDynamic,
+                        descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic
                         pBufferInfo = &vertBufferInfo
                     },
                     // 更新片段着色器的 UniformBuffer (binding=1)
@@ -469,7 +582,7 @@ namespace ScePSX
                         dstBinding = 1,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.UniformBufferDynamic,
+                        descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic
                         pBufferInfo =  &fragBufferInfo
                     },
                     // 更新片段着色器的 CombinedImageSampler (binding=2)
@@ -679,25 +792,17 @@ namespace ScePSX
 
             UpdateVert();
 
-            drawFrag.u_srcBlend = 1.0f;
-            drawFrag.u_destBlend = 0.0f;
             drawFrag.u_realColor = 1;
             drawFrag.u_dither = 0;
-            drawFrag.u_setMaskBit = 0;
-            drawFrag.u_drawOpaquePixels = 1;
-            drawFrag.u_drawTransparentPixels = 1;
 
             UpdateFrag();
 
             SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
             //IRScale = 2;
-
             //SetResolutionScale(IRScale);
 
-            //immediateCMD = new ImmediateCMD(Device);
-
-            //SubmitTask = Task.Factory.StartNew(BatchSubmiter, TaskCreationOptions.LongRunning);
+            StartRenderPass();
 
             Console.WriteLine("[Vulkan GPU] Initialization Complete.");
         }
@@ -745,7 +850,7 @@ namespace ScePSX
                 RequireDoublePass = false
             });
 
-            currentBlend = blendPresets[BlendMode.Opaque];
+            CurrentBlend = blendPresets[BlendMode.Opaque];
         }
 
         private VkPipelineColorBlendAttachmentState GetBlendState(int mode)
@@ -855,6 +960,7 @@ namespace ScePSX
 
             vkUnmapMemory(Device.device, fragmentUBO.stagingMemory);
             vkUnmapMemory(Device.device, samplerTexture.imagememory);
+            vkUnmapMemory(Device.device, VaoBuffer.stagingMemory);
 
             foreach (var frame in frameFences)
             {
@@ -1035,7 +1141,9 @@ namespace ScePSX
                 height = offsetline * 2 - 6
             };
 
-            DrawBatch();
+            SubmitRecord();
+
+            SubmitRenderPass();
 
             if (NullRenderer.isResizeed)
             {
@@ -1046,11 +1154,7 @@ namespace ScePSX
                 RecreateSwapChain();
             }
 
-            //immediateCMD.FinishSemaphore();
-
             RenderToWindow(is24bit);
-
-            SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
             PGXPVector.Clear();
 
@@ -1064,8 +1168,12 @@ namespace ScePSX
 
             PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
 
-            //drawVert.u_pgxp = PGXP ? 1 : 0;
-            //UpdateVert();
+            drawVert.u_pgxp = PGXP ? 1 : 0;
+            UpdateVert();
+
+            SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
+
+            StartRenderPass();
 
             return (m_vramDisplayArea.width, m_vramDisplayArea.height);
         }
@@ -1249,6 +1357,8 @@ namespace ScePSX
             int height = Math.Max(DrawingAreaBottomRight.Y - DrawingAreaTopLeft.Y + 0, 0);
 
             SetScissor(x, y, width, height);
+
+            //CurrentBlock.Scissor = scissor;
         }
 
         private unsafe void SetScissor(int x, int y, int width, int height)
@@ -1275,42 +1385,24 @@ namespace ScePSX
 
         public unsafe void SetMaskBit(uint value)
         {
-            if (oldmaskbit != value)
-            {
-                oldmaskbit = value;
-                DrawBatch();
+            ForceSetMaskBit = ((value & 1) != 0);
+            CheckMaskBit = (((value >> 1) & 1) != 0);
 
-                ForceSetMaskBit = ((value & 1) != 0);
-                CheckMaskBit = (((value >> 1) & 1) != 0);
-
-                drawFrag.u_setMaskBit = ForceSetMaskBit ? 1 : 0;
-
-                UpdateFrag();
-            }
+            setMaskBit = ForceSetMaskBit ? 1 : 0;
         }
 
         public void SetDrawingAreaTopLeft(TDrawingArea value)
         {
-            if (DrawingAreaTopLeft != value)
-            {
-                DrawBatch();
+            DrawingAreaTopLeft = value;
 
-                DrawingAreaTopLeft = value;
-
-                UpdateScissor();
-            }
+            UpdateScissor();
         }
 
         public void SetDrawingAreaBottomRight(TDrawingArea value)
         {
-            if (DrawingAreaBottomRight != value)
-            {
-                DrawBatch();
+            DrawingAreaBottomRight = value;
 
-                DrawingAreaBottomRight = value;
-
-                UpdateScissor();
-            }
+            UpdateScissor();
         }
 
         public void SetDrawingOffset(TDrawingOffset value)
@@ -1326,29 +1418,19 @@ namespace ScePSX
             {
                 oldtexwin = value;
 
-                DrawBatch();
-
                 TextureWindowXMask = (int)(value & 0x1f);
                 TextureWindowYMask = (int)((value >> 5) & 0x1f);
 
                 TextureWindowXOffset = (int)((value >> 10) & 0x1f);
                 TextureWindowYOffset = (int)((value >> 15) & 0x1f);
 
-                drawFrag.u_texWindowMask.X = TextureWindowXMask;
-                drawFrag.u_texWindowMask.Y = TextureWindowYMask;
-                drawFrag.u_texWindowOffset.X = TextureWindowXOffset;
-                drawFrag.u_texWindowOffset.Y = TextureWindowYOffset;
-
                 //Console.WriteLine($"SetTextureWindow mask {TextureWindowXMask},{TextureWindowYMask} offset {TextureWindowXOffset},{TextureWindowYOffset}");
-
-                UpdateFrag();
             }
         }
 
         public unsafe void FillRectVRAM(ushort left, ushort top, ushort width, ushort height, uint colorval)
         {
-            var bounds = GetWrappedBounds(left, top, width, height);
-            GrowDirtyArea(bounds);
+            GrowDirtyArea(GetWrappedBounds(left, top, width, height));
 
             bool wrapX = (left + width) > VRAM_WIDTH;
             bool wrapY = (top + height) > VRAM_HEIGHT;
@@ -1398,9 +1480,6 @@ namespace ScePSX
             vertices[2].v_color = color;
             vertices[3].v_color = color;
 
-            if (Vertexs.Count + 6 > VRAM_WIDTH)
-                DrawBatch();
-
             ushort texpage = (ushort)(1 << 11);
 
             SetDrawMode(texpage, 0, false);
@@ -1412,15 +1491,35 @@ namespace ScePSX
                 vertices[i].v_clut.Value = 0;
                 vertices[i].v_texPage.Value = texpage;
                 vertices[i].v_pos.z = m_currentDepth;
+
+                vertices[i].u_srcBlend = CurrentBlend.SrcFactor;
+                vertices[i].u_destBlend = CurrentBlend.DstFactor;
+                vertices[i].u_setMaskBit = setMaskBit;
+                vertices[i].u_drawOpaquePixels = 1;
+                vertices[i].u_drawTransparentPixels = 1;
+                vertices[i].u_texWindowMask.X = 0;
+                vertices[i].u_texWindowMask.Y = 0;
+                vertices[i].u_texWindowOffset.X = 0;
+                vertices[i].u_texWindowOffset.Y = 0;
+                vertices[i].BlendMode = (int)CurrentBlendMode;
+
+                if (PGXP)
+                {
+                    vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
+                }
             }
 
-            Vertexs.Add(vertices[0]);
-            Vertexs.Add(vertices[1]);
-            Vertexs.Add(vertices[2]);
+            CurrentBlock.Vertexs.Add(vertices[0]);
+            CurrentBlock.Vertexs.Add(vertices[1]);
+            CurrentBlock.Vertexs.Add(vertices[2]);
 
-            Vertexs.Add(vertices[1]);
-            Vertexs.Add(vertices[2]);
-            Vertexs.Add(vertices[3]);
+            CurrentBlock.Vertexs.Add(vertices[1]);
+            CurrentBlock.Vertexs.Add(vertices[2]);
+            CurrentBlock.Vertexs.Add(vertices[3]);
+
+            SubmitRecord();
+
+            //Console.WriteLine($"[Vulkan GPU] FillRectVRAM {left + width},{top + height}");
         }
 
         public unsafe void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
@@ -1470,7 +1569,7 @@ namespace ScePSX
 
             if (m_dirtyArea.Intersects(readBounds))
             {
-                DrawBatch();
+
             }
 
             int readWidth = readBounds.GetWidth();
@@ -1517,6 +1616,9 @@ namespace ScePSX
             }
         }
 
+        //这里是在裸写显存，不要随便改
+        // Direct VRAM memory write for performance. Handle with care.
+        // Yes, I'm writing mapped VRAM directly. It's faster. Don't "fix" it.
         public unsafe void WriteTexture(int x, int y, int width, int height)
         {
             ushort* src = VRAM + x + y * VRAM_WIDTH;
@@ -1651,24 +1753,24 @@ namespace ScePSX
 
         public void SetDrawMode(ushort vtexPage, ushort vclut, bool dither)
         {
-            if (m_realColor)
-                dither = false;
+            //if (m_realColor)
+            //    dither = false;
 
-            if (m_dither != dither)
-            {
-                DrawBatch();
-                m_dither = dither;
-                drawFrag.u_dither = m_dither ? 1 : 0;
-                UpdateFrag();
-            }
+            //if (m_dither != dither)
+            //{
+            //    DrawBatch();
+            //    m_dither = dither;
+            //    drawFrag.u_dither = m_dither ? 1 : 0;
+            //    UpdateFrag();
+            //}
 
             if (m_TexPage.Value != vtexPage)
             {
-                DrawBatch();
-
                 m_TexPage.Value = vtexPage;
 
                 SetSemiTransparencyMode(m_TexPage.SemiTransparencymode);
+
+                CurrentBlock.HasTexture = m_TexPage.TextureDisable == false;
 
                 if (!m_TexPage.TextureDisable)
                 {
@@ -1682,8 +1784,6 @@ namespace ScePSX
                 }
             } else if (m_clut.Value != vclut && !m_TexPage.TextureDisable && m_TexPage.TexturePageColors < 2)
             {
-                DrawBatch();
-
                 UpdateClut(vclut);
             }
 
@@ -1691,150 +1791,117 @@ namespace ScePSX
                 UpdateReadTexture();
         }
 
-        public unsafe void BatchSubmiter()
+        public unsafe void StartRenderPass()
         {
-            VkFence _fence = VkFence.Null;
+            //Console.WriteLine($"[Vulkan GPU] PIPELINE ----------------------------------------------- ");
 
-            VkSubmitInfo submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                commandBufferCount = 1,
-            };
+            vaoOffset = 0;
 
-            ThreadCMD = Device.CreateCommandBuffers(20);
+            CurrentBlock.Blend = CurrentBlend;
+            CurrentBlock.mode = CurrentBlendMode;
+            CurrentBlock.Scissor = scissor;
+            CurrentBlock.semiTransparencyEnabled = m_semiTransparencyEnabled;
+            CurrentBlock.Vertexs = new List<Vertex>();
 
-            for (int i = 0; i < ThreadCMD.CMD.Count; i++)
-                freeCmdQueue.Enqueue(ThreadCMD.CMD[i]);
+            SetScissor(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
-            while (SubmitRun)
-            {
-                queueEvent.WaitOne();
+            CurrentDrawCMD = DrawCMD.CMD[1];
 
-                if (_fence == VkFence.Null)
-                {
-                    _fence = Device.CreateFence(false);
-                } else
-                {
-                    vkResetFences(Device.device, 1, ref _fence);
-                }
+            Device.BeginCommandBuffer(CurrentDrawCMD);
 
-                VkCommandBuffer cmd = submitCmdQueue.Dequeue();
+            Device.BeginRenderPass(CurrentDrawCMD, drawPass, drawFramebuff, drawTexture.width, drawTexture.height, false);
 
-                submitInfo.pCommandBuffers = &cmd;
+            vkCmdBindVertexBuffers(CurrentDrawCMD, 0, 1, ref VaoBuffer.stagingBuffer, ref vaoOffset);
 
-                if (vkQueueSubmit(Device.graphicsQueue, 1, &submitInfo, _fence) != VkResult.Success)
-                {
-                    Console.WriteLine("[Vulkan GPU] Failed to submit command buffer!");
-                    vkDestroyFence(Device.device, _fence, null);
-                    _fence = VkFence.Null;
-                    return;
-                }
-                vkWaitForFences(Device.device, 1, ref _fence, VkBool32.True, ulong.MaxValue);
+            vkCmdSetViewport(CurrentDrawCMD, 0, 1, ref viewport);
 
-                vkResetCommandBuffer(cmd, VkCommandBufferResetFlags.None);
-
-                freeCmdQueue.Enqueue(cmd);
-
-                queueEvent.Reset();
-            }
-
-            if (_fence != VkFence.Null)
-                vkDestroyFence(Device.device, _fence, 0);
+            //vkCmdSetScissor(CurrentDrawCMD, 0, 1, ref scissor);
         }
 
-        public unsafe void DrawBatch()
+        public void SubmitRenderPass()
         {
-            if (Vertexs.Count == 0)
+            vkCmdEndRenderPass(CurrentDrawCMD);
+
+            Device.EndAndWaitCommandBuffer(CurrentDrawCMD);
+        }
+
+        public void SubmitRecord()
+        {
+            //Console.WriteLine($"[Vulkan GPU] SubmitRecord mode {m_semiTransparencyMode}, {CurrentBlock.mode.ToString()}, {CurrentBlock.Vertexs.Count} Vertexs, {CurrentBlock.HasTexture}");
+
+            RecordCMD(CurrentBlock);
+
+            CurrentBlock.Blend = CurrentBlend;
+            CurrentBlock.mode = CurrentBlendMode;
+            CurrentBlock.Scissor = scissor;
+            CurrentBlock.semiTransparencyEnabled = m_semiTransparencyEnabled;
+            CurrentBlock.Vertexs.Clear();
+        }
+
+        public unsafe void UploadVertexs(List<Vertex> vertexs)
+        {
+            ulong size = 0;
+
+            var sourceSpan = CollectionsMarshal.AsSpan(vertexs);
+            fixed (Vertex* pSrc = sourceSpan)
+            {
+                byte* pDst = (byte*)VaoBuffer.mappedData + vaoOffset;
+                size = (ulong)(sourceSpan.Length * sizeof(Vertex));
+                Buffer.MemoryCopy(pSrc, pDst, size, size);
+            }
+
+            currentBlockFirstVertex = (uint)(vaoOffset / (ulong)sizeof(Vertex));
+            currentBlockVertexCount = (uint)sourceSpan.Length;
+
+            vaoOffset += size;
+        }
+
+        public unsafe void RecordCMD(PipelineDrawBlock block)
+        {
+            if (block.Vertexs.Count == 0)
                 return;
 
-            //Console.WriteLine($"[Vulkan GPU] DrawBatch currentPipeline 0x{currentPipeline.pipeline.Handle:X} Vertexs {Vertexs.Count}!");
+            //Console.WriteLine($"[Vulkan GPU] RecordCMD: RequireDoublePass {block.BlendParam.RequireDoublePass} , mode {block.mode} , {block.Vertexs.Count} vertices，Offset {vaoOffset}");
 
-            //bool bSubmit = false;
-            //VkCommandBuffer cmd;
+            UploadVertexs(block.Vertexs);
 
-            //if (freeCmdQueue.Count == 0)
-            //{
-            //    Console.WriteLine($"[Vulkan GPU] DrawBatch No Free Command !");
-
-            //    cmd = OpCMD.CMD[1];
-
-            //    bSubmit = true;
-
-            //} else
-            //{
-            //    cmd = freeCmdQueue.Dequeue();
-            //}
-
-            VkCommandBuffer cmd = DrawCMD.CMD[1];
-
-            //VkCommandBuffer cmd = immediateCMD.GetImmediateCommandBuffer();
-
-            Device.BeginCommandBuffer(cmd);
-
-            Device.UpdateBuffWaitAndBind(cmd, VaoBuffer, Marshal.UnsafeAddrOfPinnedArrayElement(Vertexs.ToArray(), 0), sizeof(Vertex) * Vertexs.Count);
-
-            Device.BeginRenderPass(cmd, drawPass, drawFramebuff, drawTexture.width, drawTexture.height, false);
+            vkCmdSetScissor(CurrentDrawCMD, 0, 1, ref block.Scissor);
 
             // 模式2需先绘制不透明部分
-            if (currentBlend.RequireDoublePass && !m_TexPage.TextureDisable && m_semiTransparencyEnabled)
+            if (block.Blend.RequireDoublePass && block.HasTexture && block.semiTransparencyEnabled)
             {
-                drawFrag.u_drawOpaquePixels = 1;
-                drawFrag.u_drawTransparentPixels = 0;
-                UpdateFrag(1);
+                Device.BindGraphicsPipeline(CurrentDrawCMD, drawNoBlend, false);
 
-                Device.BindGraphicsPipeline(cmd, drawNoBlend, false);
+                Device.BindDescriptorSet(CurrentDrawCMD, drawNoBlend, drawDescriptorSet);
 
-                vkCmdSetViewport(cmd, 0, 1, ref viewport);
-                vkCmdSetScissor(cmd, 0, 1, ref scissor);
+                vkCmdDraw(CurrentDrawCMD, (uint)block.Vertexs.Count, 1, currentBlockFirstVertex, 0);
 
-                dymoffets[0] = 0;
-                dymoffets[1] = fragOffset;
-                Device.BindDescriptorSet(cmd, drawNoBlend, drawDescriptorSet, dymoffets);
+                var span = CollectionsMarshal.AsSpan(block.Vertexs);
+                foreach (ref Vertex vertex in span)
+                {
+                    vertex.u_drawOpaquePixels = 0;
+                    vertex.u_drawTransparentPixels = 1;
+                }
 
-                vkCmdDraw(cmd, (uint)Vertexs.Count, 1, 0, 0);
+                //Console.WriteLine($"[Vulkan GPU] UploadVertexs MODE 2, {block.Vertexs.Count} vertices，Offset {vaoOffset}");
+
+                UploadVertexs(block.Vertexs);
             }
 
             // 主绘制（处理透明或普通混合）
-            drawFrag.u_drawOpaquePixels = currentBlend.RequireDoublePass ? 0 : 1;
-            drawFrag.u_drawTransparentPixels = 1;
-            drawFrag.u_srcBlend = currentBlend.SrcFactor;
-            drawFrag.u_destBlend = currentBlend.DstFactor;
-            UpdateFrag();
+            Device.BindGraphicsPipeline(CurrentDrawCMD, block.Blend.Pipeline, false);
 
-            Device.BindGraphicsPipeline(cmd, currentBlend.Pipeline, false);
+            Device.BindDescriptorSet(CurrentDrawCMD, block.Blend.Pipeline, drawDescriptorSet);
 
-            vkCmdSetViewport(cmd, 0, 1, ref viewport);
-            vkCmdSetScissor(cmd, 0, 1, ref scissor);
-
-            dymoffets[0] = 0;
-            dymoffets[1] = 0;
-            Device.BindDescriptorSet(cmd, currentBlend.Pipeline, drawDescriptorSet, dymoffets);
-
-            vkCmdDraw(cmd, (uint)Vertexs.Count, 1, 0, 0);
-
-            vkCmdEndRenderPass(cmd);
-
-            //if (!bSubmit)
-            //{
-            //    Device.EndCommandBuffer(cmd);
-
-            //    submitCmdQueue.Enqueue(cmd);
-            //} else
-            //{
-            //    Device.EndAndWaitCommandBuffer(cmd);
-            //}
-
-            //queueEvent.Set();
-
-            Device.EndAndWaitCommandBuffer(cmd);
-
-            Vertexs.Clear();
+            vkCmdDraw(CurrentDrawCMD, (uint)block.Vertexs.Count, 1, currentBlockFirstVertex, 0);
         }
 
         public void DrawLineBatch(bool isDithered, bool SemiTransparency)
         {
             glTexPage tp = new glTexPage();
+
             tp.TextureDisable = true;
+
             SetDrawMode(tp.Value, 0, isDithered);
 
             EnableSemiTransparency(SemiTransparency);
@@ -1960,22 +2027,40 @@ namespace ScePSX
                     //    vertices[i].v_pos_high = new Vector3((float)HighPos.x, (float)HighPos.y, (float)HighPos.z);
                     //}
                 }
+
+                vertices[i].u_srcBlend = CurrentBlend.SrcFactor;
+                vertices[i].u_destBlend = CurrentBlend.DstFactor;
+                vertices[i].u_setMaskBit = setMaskBit;
+                if (CurrentBlend.RequireDoublePass && !m_TexPage.TextureDisable && m_semiTransparencyEnabled)
+                {
+                    vertices[i].u_drawOpaquePixels = 1;
+                    vertices[i].u_drawTransparentPixels = 0;
+                } else
+                {
+                    vertices[i].u_drawOpaquePixels = CurrentBlend.RequireDoublePass ? 0 : 1;
+                    vertices[i].u_drawTransparentPixels = 1;
+                }
+                vertices[i].u_texWindowMask.X = TextureWindowXMask;
+                vertices[i].u_texWindowMask.Y = TextureWindowYMask;
+                vertices[i].u_texWindowOffset.X = TextureWindowXOffset;
+                vertices[i].u_texWindowOffset.Y = TextureWindowYOffset;
+                vertices[i].BlendMode = (int)CurrentBlendMode;
             }
 
-            if (Vertexs.Count + 6 > VRAM_WIDTH)
-                DrawBatch();
+            CurrentBlock.Vertexs.Add(vertices[0]);
+            CurrentBlock.Vertexs.Add(vertices[1]);
+            CurrentBlock.Vertexs.Add(vertices[2]);
 
-            Vertexs.Add(vertices[0]);
-            Vertexs.Add(vertices[1]);
-            Vertexs.Add(vertices[2]);
-
-            Vertexs.Add(vertices[1]);
-            Vertexs.Add(vertices[2]);
-            Vertexs.Add(vertices[3]);
+            CurrentBlock.Vertexs.Add(vertices[1]);
+            CurrentBlock.Vertexs.Add(vertices[2]);
+            CurrentBlock.Vertexs.Add(vertices[3]);
         }
 
         public void DrawRect(Point2D origin, Point2D size, TextureData texture, uint bgrColor, Primitive primitive)
         {
+            if (!IsDrawAreaValid())
+                return;
+
             if (primitive.IsTextured && primitive.IsRawTextured)
             {
                 bgrColor = 0x808080;
@@ -1984,11 +2069,6 @@ namespace ScePSX
             {
                 primitive.texpage = (ushort)(primitive.texpage | (1 << 11));
             }
-
-            SetDrawMode(primitive.texpage, primitive.clut, false);
-
-            if (!IsDrawAreaValid())
-                return;
 
             var color = vkColor.FromUInt32(bgrColor);
 
@@ -2011,6 +2091,10 @@ namespace ScePSX
             vertices[1].v_color = color;
             vertices[2].v_color = color;
             vertices[3].v_color = color;
+
+            SetDrawMode(primitive.texpage, primitive.clut, false);
+
+            EnableSemiTransparency(primitive.IsSemiTransparent);
 
             if (primitive.IsTextured)
             {
@@ -2049,11 +2133,6 @@ namespace ScePSX
                 vertices[3].v_texCoord.v = v2;
             }
 
-            if (Vertexs.Count + 6 > VRAM_WIDTH)
-                DrawBatch();
-
-            EnableSemiTransparency(primitive.IsSemiTransparent);
-
             for (var i = 0; i < vertices.Length; i++)
             {
                 m_dirtyArea.Grow(vertices[i].v_pos.x, vertices[i].v_pos.y);
@@ -2075,19 +2154,39 @@ namespace ScePSX
                         vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
                     }
                 }
+
+                vertices[i].u_srcBlend = CurrentBlend.SrcFactor;
+                vertices[i].u_destBlend = CurrentBlend.DstFactor;
+                vertices[i].u_setMaskBit = setMaskBit;
+                if (CurrentBlend.RequireDoublePass && !m_TexPage.TextureDisable && m_semiTransparencyEnabled)
+                {
+                    vertices[i].u_drawOpaquePixels = 1;
+                    vertices[i].u_drawTransparentPixels = 0;
+                } else
+                {
+                    vertices[i].u_drawOpaquePixels = CurrentBlend.RequireDoublePass ? 0 : 1;
+                    vertices[i].u_drawTransparentPixels = 1;
+                }
+                vertices[i].u_texWindowMask.X = TextureWindowXMask;
+                vertices[i].u_texWindowMask.Y = TextureWindowYMask;
+                vertices[i].u_texWindowOffset.X = TextureWindowXOffset;
+                vertices[i].u_texWindowOffset.Y = TextureWindowYOffset;
+                vertices[i].BlendMode = (int)CurrentBlendMode;
             }
 
-            Vertexs.Add(vertices[0]);
-            Vertexs.Add(vertices[1]);
-            Vertexs.Add(vertices[2]);
+            CurrentBlock.Vertexs.Add(vertices[0]);
+            CurrentBlock.Vertexs.Add(vertices[1]);
+            CurrentBlock.Vertexs.Add(vertices[2]);
 
-            Vertexs.Add(vertices[1]);
-            Vertexs.Add(vertices[2]);
-            Vertexs.Add(vertices[3]);
+            CurrentBlock.Vertexs.Add(vertices[1]);
+            CurrentBlock.Vertexs.Add(vertices[2]);
+            CurrentBlock.Vertexs.Add(vertices[3]);
         }
 
         public void DrawTriangle(Point2D v0, Point2D v1, Point2D v2, TextureData t0, TextureData t1, TextureData t2, uint c0, uint c1, uint c2, Primitive primitive)
         {
+            if (!IsDrawAreaValid())
+                return;
 
             if (PGXPT)
             {
@@ -2105,11 +2204,6 @@ namespace ScePSX
                 primitive.texpage = (ushort)(primitive.texpage | (1 << 11));
             }
 
-            SetDrawMode(primitive.texpage, primitive.clut, primitive.isDithered);
-
-            if (!IsDrawAreaValid())
-                return;
-
             if (primitive.IsTextured && primitive.IsRawTextured)
             {
                 c0 = c1 = c2 = 0x808080;
@@ -2117,6 +2211,10 @@ namespace ScePSX
             {
                 c1 = c2 = c0;
             }
+
+            SetDrawMode(primitive.texpage, primitive.clut, primitive.isDithered);
+
+            EnableSemiTransparency(primitive.IsSemiTransparent);
 
             Vertex[] vertices = new Vertex[3];
 
@@ -2142,11 +2240,6 @@ namespace ScePSX
             vertices[1].v_color = vkColor.FromUInt32(c1);
             vertices[2].v_color = vkColor.FromUInt32(c2);
 
-            if (Vertexs.Count + 3 > VRAM_WIDTH)
-                DrawBatch();
-
-            EnableSemiTransparency(primitive.IsSemiTransparent);
-
             for (var i = 0; i < vertices.Length; i++)
             {
                 m_dirtyArea.Grow(vertices[i].v_pos.x, vertices[i].v_pos.y);
@@ -2168,9 +2261,27 @@ namespace ScePSX
                         vertices[i].v_pos_high = new Vector3((float)vertices[i].v_pos.x, (float)vertices[i].v_pos.y, (float)vertices[i].v_pos.z);
                     }
                 }
+
+                vertices[i].u_srcBlend = CurrentBlend.SrcFactor;
+                vertices[i].u_destBlend = CurrentBlend.DstFactor;
+                vertices[i].u_setMaskBit = setMaskBit;
+                if (CurrentBlend.RequireDoublePass && !m_TexPage.TextureDisable && m_semiTransparencyEnabled)
+                {
+                    vertices[i].u_drawOpaquePixels = 1;
+                    vertices[i].u_drawTransparentPixels = 0;
+                } else
+                {
+                    vertices[i].u_drawOpaquePixels = CurrentBlend.RequireDoublePass ? 0 : 1;
+                    vertices[i].u_drawTransparentPixels = 1;
+                }
+                vertices[i].u_texWindowMask.X = TextureWindowXMask;
+                vertices[i].u_texWindowMask.Y = TextureWindowYMask;
+                vertices[i].u_texWindowOffset.X = TextureWindowXOffset;
+                vertices[i].u_texWindowOffset.Y = TextureWindowYOffset;
+                vertices[i].BlendMode = (int)CurrentBlendMode;
             }
 
-            Vertexs.AddRange(vertices);
+            CurrentBlock.Vertexs.AddRange(vertices);
         }
 
         private int GetVRamTextureWidth()
@@ -2188,6 +2299,14 @@ namespace ScePSX
             return DrawingAreaTopLeft.X <= DrawingAreaBottomRight.X && DrawingAreaTopLeft.Y <= DrawingAreaBottomRight.Y;
         }
 
+        private bool InDrawArea(int x, int y)
+        {
+            return x >= DrawingAreaTopLeft.X &&
+                   x <= DrawingAreaBottomRight.X &&
+                   y >= DrawingAreaTopLeft.Y &&
+                   y <= DrawingAreaBottomRight.Y;
+        }
+
         private float GetNormalizedDepth()
         {
             return (float)m_currentDepth / (float)short.MaxValue;
@@ -2198,15 +2317,22 @@ namespace ScePSX
             if (m_semiTransparencyMode == semiTransparencyMode)
                 return;
 
-            if (m_semiTransparencyEnabled || !m_TexPage.TextureDisable)
-            {
-                DrawBatch();
-            }
-
             m_semiTransparencyMode = semiTransparencyMode;
 
             if (m_semiTransparencyEnabled)
             {
+                UpdateBlendMode();
+            }
+        }
+
+        private void EnableSemiTransparency(bool enabled)
+        {
+            if (m_semiTransparencyEnabled != enabled)
+            {
+                m_semiTransparencyEnabled = enabled;
+
+                CurrentBlock.semiTransparencyEnabled = enabled;
+
                 UpdateBlendMode();
             }
         }
@@ -2234,29 +2360,20 @@ namespace ScePSX
                 }
             }
 
-            currentBlend = blendPresets[mode];
+            CurrentBlend = blendPresets[mode];
 
-            //Console.WriteLine($"[Vulkan GPU] UpdateBlendMode mode {m_semiTransparencyMode} {mode.ToString()}");
-        }
+            CurrentBlendMode = mode;
 
-        private void EnableSemiTransparency(bool enabled)
-        {
-            if (m_semiTransparencyEnabled != enabled)
-            {
-                DrawBatch();
+            if (mode == CurrentBlock.mode)
+                return;
 
-                m_semiTransparencyEnabled = enabled;
-
-                UpdateBlendMode();
-            }
+            SubmitRecord();
         }
 
         private void UpdateReadTexture()
         {
             if (m_dirtyArea.Empty())
                 return;
-
-            DrawBatch();
 
             ResetDirtyArea();
         }
@@ -2269,6 +2386,7 @@ namespace ScePSX
             int clutBaseY = m_clut.Y * ClutBaseYMult;
             int clutWidth = ColorModeClutWidths[m_TexPage.TexturePageColors];
             int clutHeight = 1;
+
             m_clutArea = vkRectangle<int>.FromExtents(clutBaseX, clutBaseY, clutWidth, clutHeight);
         }
 
@@ -2306,14 +2424,16 @@ namespace ScePSX
         private void GrowDirtyArea(vkRectangle<int> bounds)
         {
             // 检查 bounds 是否需要覆盖待处理的批处理多边形
-            if (m_dirtyArea.Intersects(bounds))
-                DrawBatch();
+            //if (m_dirtyArea.Intersects(bounds))
+            //    DrawBatch();
 
             m_dirtyArea.Grow(bounds);
 
             // 检查 bounds 是否会覆盖当前的纹理数据
             if (IntersectsTextureData(bounds))
-                DrawBatch();
+            {
+                Console.WriteLine($"[Vulkan GPU] GrowDirtyArea IntersectsTextureData {bounds} - Drawing texture data.");
+            }
         }
 
         private unsafe void CopyTexture(vkTexture srcTexture, vkTexture dstTexture, int srcWidth, int srcHeight, int dstWidth, int dstHeight)

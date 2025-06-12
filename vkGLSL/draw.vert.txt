@@ -1,18 +1,36 @@
 #version 450
 
+// 顶点输入
 layout(location = 0) in vec4 v_pos;          // 顶点位置
 layout(location = 1) in vec3 v_pos_high;     // 高精度坐标 (PGXP)
-layout(location = 2) in vec2 v_texCoord;     // 纹理坐标
-layout(location = 3) in vec3 v_color;        // 顶点颜色
-layout(location = 4) in int v_clut;          // CLUT 属性
+layout(location = 2) in vec2 v_texCoord;      // 纹理坐标
+layout(location = 3) in vec3 v_color;         // 顶点颜色
+layout(location = 4) in int v_clut;           // CLUT 属性
 layout(location = 5) in int v_texPage;        // 纹理页属性
 
-layout(location = 0) out vec3 BlendColor;    // 混合颜色
-layout(location = 1) out vec2 TexCoord;      // 纹理坐标
-layout(location = 2) out vec3 Position;      // 顶点位置
-layout(location = 3) flat out ivec2 TexPageBase; // 纹理页基地址
-layout(location = 4) flat out ivec2 ClutBase;    // CLUT 基地址
-layout(location = 5) flat out int TexPage;       // 纹理页原始值
+layout(location = 6) in float u_srcBlend;
+layout(location = 7) in float u_destBlend;
+layout(location = 8) in int u_setMaskBit;
+layout(location = 9) in int u_drawOpaquePixels;
+layout(location = 10) in int u_drawTransparentPixels;
+
+layout(location = 11) in ivec2 u_texWindowMask;
+layout(location = 12) in ivec2 u_texWindowOffset;
+
+layout(location = 13) in int u_blendmode;
+
+// 输出给片段着色器
+layout(location = 0) out vec3 out_Blend; //x = u_srcBlend;, y =u_destBlend, z = Blendmode;
+layout(location = 1) flat out ivec3 out_mask_draw; //x = setMaskBit, y =drawOpaquePixels, z = drawTransparentPixels
+layout(location = 2) flat out ivec2 out_texWindowMask; //x,y
+layout(location = 3) flat out ivec2 out_texWindowOffset; //x,y
+
+layout(location = 4) out vec3 BlendColor;    // 混合颜色
+layout(location = 5) out vec2 TexCoord;      // 纹理坐标
+layout(location = 6) out vec3 Position;      // 顶点位置
+layout(location = 7) flat out ivec2 TexPageBase; // 纹理页基地址
+layout(location = 8) flat out ivec2 ClutBase;    // CLUT 基地址
+layout(location = 9) flat out int TexPage;       // 纹理页原始值
 
 layout(set = 0, binding = 0) uniform VertexUniforms {
     float u_resolutionScale;
@@ -24,23 +42,38 @@ void main()
 {
     if (uniforms.u_pgxp)
     {
-        // 应用 MVP 矩阵
-        gl_Position = uniforms.u_mvp * vec4(v_pos_high, 1.0);
+        float vertexOffset = 0.5;
+        float x = (v_pos_high.x + vertexOffset) / 512.0 - 1.0;
+        float y = (v_pos_high.y + vertexOffset) / 256.0 - 1.0;
+        float z = v_pos.z / 32767.0;
+
+        Position = vec3(v_pos_high.xy, z);
+
+        gl_Position = vec4(x, y, z, 1.0);
     }
     else
     {
-        // 计算顶点位置
-float vertexOffset = 0.5; // 不再除以 u_resolutionScale
-
-float x = (v_pos.x + vertexOffset) / 512.0 - 1.0;
-float y = (v_pos.y + vertexOffset) / 256.0 - 1.0;
-
+        float vertexOffset = 0.5;
+        float x = (v_pos.x + vertexOffset) / 512.0 - 1.0;
+        float y = (v_pos.y + vertexOffset) / 256.0 - 1.0;
         float z = v_pos.z / 32767.0;
 
         Position = vec3(v_pos.xy, z);
 
         gl_Position = vec4(x, y, z, 1.0);
     }
+
+    // 输出用于片段着色器的参数
+    out_Blend.x= u_srcBlend;
+    out_Blend.y= u_destBlend;
+    out_Blend.z = u_blendmode;
+
+    out_mask_draw.x = u_setMaskBit;
+    out_mask_draw.y = u_drawOpaquePixels;
+    out_mask_draw.z = u_drawTransparentPixels;
+
+    out_texWindowMask = u_texWindowMask;
+    out_texWindowOffset = u_texWindowOffset;
 
     // 计算纹理页基地址
     TexPageBase = ivec2(
@@ -55,8 +88,6 @@ float y = (v_pos.y + vertexOffset) / 256.0 - 1.0;
     );
 
     BlendColor = v_color;
-
     TexCoord = v_texCoord;
-
     TexPage = v_texPage;
 }

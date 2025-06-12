@@ -154,7 +154,11 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan Device] VulkanDevice Initialization....");
 
+
             CreateInstance();
+
+            //CreateDebugInstance();
+
             CreateSurface(hinst, hwnd);
             SelectPhysicalDevice();
             vkGetPhysicalDeviceProperties(physicalDevice, out deviceProperties);
@@ -663,15 +667,31 @@ namespace ScePSX
 
             };
 
+            //var dependency = new VkSubpassDependency
+            //{
+            //    srcSubpass = unchecked((uint)-1),
+            //    dstSubpass = 0,
+
+            //    srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
+            //    dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
+            //    srcAccessMask = VkAccessFlags.ColorAttachmentWrite,
+            //    dstAccessMask = VkAccessFlags.ColorAttachmentRead,
+            //    dependencyFlags = VkDependencyFlags.ByRegion
+            //};
+
             var dependency = new VkSubpassDependency
             {
                 srcSubpass = unchecked((uint)-1),
                 dstSubpass = 0,
 
+                // 修复1：源阶段+访问掩码
                 srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
-                dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
                 srcAccessMask = VkAccessFlags.ColorAttachmentWrite,
-                dstAccessMask = VkAccessFlags.ColorAttachmentRead,
+
+                // 修复2：目标阶段+访问掩码
+                dstStageMask = VkPipelineStageFlags.FragmentShader,
+                dstAccessMask = VkAccessFlags.InputAttachmentRead,
+
                 dependencyFlags = VkDependencyFlags.ByRegion
             };
 
@@ -1880,7 +1900,6 @@ namespace ScePSX
 
             vkQueueSubmit(graphicsQueue, 1, ref submitInfo, fence);
 
-            //这个vulkan后端，性能最大的消耗就在这里，不解决这里其他地方无需优化，没有意义
             vkWaitForFences(device, 1, ref fence, VkBool32.True, ulong.MaxValue);
             vkDestroyFence(device, fence, null);
 

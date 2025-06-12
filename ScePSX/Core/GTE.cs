@@ -1351,7 +1351,7 @@ namespace ScePSX
                     break;
                 case 12:
                     SXY[0].val = v;
-                    if(PGXPVector.use_pgxp_memcap)
+                    if (PGXPVector.use_pgxp_memcap)
                         AddPGXPCache(SXY[0].x, SXY[0].y);
                     break;
                 case 13:

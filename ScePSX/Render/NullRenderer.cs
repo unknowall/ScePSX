@@ -53,6 +53,7 @@ namespace ScePSX.Render
             resizeTimer = new Timer();
             resizeTimer.Interval = 200;
             resizeTimer.Tick += ResizeTimer_Tick;
+            resizeTimer.Stop();
 
             InitializeComponent();
         }
@@ -117,15 +118,19 @@ namespace ScePSX.Render
         private void ResizeTimer_Tick(object sender, EventArgs e)
         {
             resizeTimer.Stop();
-            isResizeed = true;
+
+            if (ClientWidth != this.ClientSize.Width || ClientHeight != this.ClientSize.Height)
+            {
+                ClientWidth = this.ClientSize.Width;
+                ClientHeight = this.ClientSize.Height;
+
+                isResizeed = true;
+            }
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-
-            ClientWidth = this.ClientSize.Width;
-            ClientHeight = this.ClientSize.Height;
 
             resizeTimer.Stop();
             resizeTimer.Start();

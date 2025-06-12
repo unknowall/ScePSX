@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.IO;
 using System.Windows.Forms;
 
 namespace ScePSX.UI
@@ -17,7 +15,7 @@ namespace ScePSX.UI
         public static void Show(Control parent, string message, int displayTime = 3000, Color BgColor = default)
         {
             _parent = parent;
-            
+
             foreach (Control control in _parent.Controls)
             {
                 if (control is SimpleOSD existingOsd)
