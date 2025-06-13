@@ -16,6 +16,7 @@ using ScePSX.Core.GPU;
 using ScePSX.Render;
 
 using Vulkan;
+using static System.Windows.Forms.AxHost;
 using static ScePSX.VulkanDevice;
 using static Vulkan.VulkanNative;
 
@@ -139,7 +140,7 @@ namespace ScePSX
         vkSwapchain renderChain;
 
         vkBuffer VaoBuffer, vertexUBO, fragmentUBO;
-        vkTexture samplerTexture, drawTexture;
+        vkTexture samplerTexture, drawTexture, depthTexture;
         VkFramebuffer drawFramebuff;
         vkCMDS renderCmd, DrawCMD;
 
@@ -283,7 +284,8 @@ namespace ScePSX
                 Device.ChooseSurfaceFormat().format,
                 VkAttachmentLoadOp.Load,
                 VkImageLayout.ColorAttachmentOptimal,
-                VkImageLayout.ColorAttachmentOptimal
+                VkImageLayout.ColorAttachmentOptimal,
+                true
                 );
 
             renderChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
@@ -294,7 +296,7 @@ namespace ScePSX
 
             DrawCMD = Device.CreateCommandBuffers(2);
 
-            VaoBuffer = Device.CreateBuffer((ulong)(2048 * 10 * sizeof(Vertex)), VkBufferUsageFlags.VertexBuffer | VkBufferUsageFlags.TransferDst);
+            VaoBuffer = Device.CreateBuffer((ulong)(8192 * 10 * sizeof(Vertex)), VkBufferUsageFlags.VertexBuffer | VkBufferUsageFlags.TransferDst);
 
             void* mappedData;
             vkMapMemory(Device.device, VaoBuffer.stagingMemory, 0, WholeSize, 0, &mappedData);
@@ -316,7 +318,7 @@ namespace ScePSX
             vkMapMemory(Device.device, samplerTexture.imagememory, 0, WholeSize, 0, &samplerdataptr);
             samplerData = samplerdataptr;
 
-            Console.WriteLine($"[Vulkan GPU] samplerTexture 0x{samplerTexture.image.Handle:X}");
+            Console.WriteLine($"[Vulkan GPU] SamplerTexture 0x{samplerTexture.image.Handle:X}");
 
             Device.BeginCommandBuffer(DrawCMD.CMD[0]);
 
@@ -343,7 +345,7 @@ namespace ScePSX
 
             Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
 
-            (drawTexture, drawFramebuff) = CreateDrawTexture();
+            (drawTexture, depthTexture, drawFramebuff) = CreateDrawTexture();
 
             var vertexType = typeof(Vertex);
             VkVertexInputAttributeDescription[] drawAttributes = new VkVertexInputAttributeDescription[]
@@ -603,6 +605,8 @@ namespace ScePSX
             var drawVertbytes = Device.LoadShaderFile("./Shaders/draw.vert.spv");
             var drawFragbytes = Device.LoadShaderFile("./Shaders/draw.frag.spv");
 
+            Device.PipeLineHasDepth = true;
+
             // 主绘制管线（无混合）
             drawNoBlend = Device.CreateGraphicsPipeline(
                 drawPass,
@@ -683,6 +687,8 @@ namespace ScePSX
                 VkPrimitiveTopology.TriangleList,
                 new float[] { 0.25f, 0.25f, 0.25f, 0.25f } // 所有通道使用 0.25
             );
+
+            Device.PipeLineHasDepth = false;
 
             ///////////////////////////////////////////////////////
 
@@ -866,7 +872,7 @@ namespace ScePSX
                     break;
 
                 case 1: // 平均混合（Blend Mode 1）
-                    blendAttachment.srcColorBlendFactor = VkBlendFactor.ConstantColor; // 值为 0.5
+                    blendAttachment.srcColorBlendFactor = VkBlendFactor.ConstantAlpha; // 值为 0.5
                     blendAttachment.dstColorBlendFactor = VkBlendFactor.ConstantColor; // 值为 0.5
                     blendAttachment.colorBlendOp = VkBlendOp.Add;
                     break;
@@ -902,7 +908,7 @@ namespace ScePSX
             return blendAttachment;
         }
 
-        private (vkTexture tex, VkFramebuffer fb) CreateDrawTexture()
+        private (vkTexture tex, vkTexture dep, VkFramebuffer fb) CreateDrawTexture()
         {
             var tex = Device.CreateTexture(
                 VRAM_WIDTH * resolutionScale, VRAM_HEIGHT * resolutionScale,
@@ -916,7 +922,21 @@ namespace ScePSX
                 VkImageTiling.Linear
                 );
 
-            Console.WriteLine($"[Vulkan GPU] drawTexture 0x{tex.image.Handle:X}");
+            Console.WriteLine($"[Vulkan GPU] DrawTexture 0x{tex.image.Handle:X}");
+
+            var dep = Device.CreateTexture(
+                VRAM_WIDTH * resolutionScale, VRAM_HEIGHT * resolutionScale,
+                VkFormat.D16Unorm,
+                VkImageAspectFlags.Depth,
+                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.DepthStencilAttachment | VkImageUsageFlags.TransferSrc,
+                VkFilter.Nearest,
+                VkSamplerAddressMode.ClampToBorder,
+                VkSamplerMipmapMode.Nearest,
+                VkMemoryPropertyFlags.DeviceLocal,
+                VkImageTiling.Optimal
+                );
+
+            Console.WriteLine($"[Vulkan GPU] DepthTexture 0x{dep.image.Handle:X}");
 
             Device.BeginCommandBuffer(DrawCMD.CMD[0]);
 
@@ -927,11 +947,21 @@ namespace ScePSX
                 VkImageLayout.ColorAttachmentOptimal
             );
 
+            dep.layout = Device.TransitionImageLayout(
+                DrawCMD.CMD[0],
+                dep,
+                dep.layout,
+                VkImageLayout.DepthStencilAttachmentOptimal,
+                VkPipelineStageFlags.TopOfPipe,
+                VkPipelineStageFlags.Transfer,
+                VkImageAspectFlags.Depth
+            );
+
             Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
 
-            var fb = Device.CreateFramebuffer(drawPass, tex.imageview, (uint)(VRAM_WIDTH * resolutionScale), (uint)(VRAM_HEIGHT * resolutionScale));
+            var fb = Device.CreateFramebuffer(drawPass, tex.imageview, dep.imageview, (uint)(VRAM_WIDTH * resolutionScale), (uint)(VRAM_HEIGHT * resolutionScale));
 
-            return (tex, fb);
+            return (tex, dep, fb);
         }
 
         private void CreateSyncObjects()
@@ -989,6 +1019,7 @@ namespace ScePSX
             Device.DestroyGraphicsPipeline(drawAddBlend);
 
             Device.DestroyTexture(drawTexture);
+            Device.DestroyTexture(depthTexture);
             Device.DestroyTexture(samplerTexture);
 
             Device.DestoryBuffer(VaoBuffer);
@@ -1049,17 +1080,25 @@ namespace ScePSX
 
             resolutionScale = scale;
 
-            vkTexture newDrawTexture;
+            vkTexture newDrawTexture, newDepthTexture;
             VkFramebuffer newDrawFramebuffer;
-            (newDrawTexture, newDrawFramebuffer) = CreateDrawTexture();
+            (newDrawTexture, newDepthTexture, newDrawFramebuffer) = CreateDrawTexture();
 
-            CopyTexture(drawTexture, newDrawTexture, oldWidth, oldHeight, newWidth, newHeight);
+            Device.BeginCommandBuffer(DrawCMD.CMD[0]);
+
+            CopyTexture(DrawCMD.CMD[0], drawTexture, newDrawTexture, oldWidth, oldHeight, newWidth, newHeight);
+
+            Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
 
             Device.DestroyFramebuffer(drawFramebuff);
+
+            Device.DestroyTexture(depthTexture);
 
             Device.DestroyTexture(drawTexture);
 
             drawTexture = newDrawTexture;
+
+            depthTexture = newDepthTexture;
 
             drawFramebuff = newDrawFramebuffer;
 
@@ -1101,7 +1140,12 @@ namespace ScePSX
 
             WriteTexture(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
-            CopyTexture(samplerTexture, drawTexture, VRAM_WIDTH, VRAM_HEIGHT, VRAM_WIDTH, VRAM_HEIGHT);
+            Device.BeginCommandBuffer(DrawCMD.CMD[0]);
+
+            CopyTexture(DrawCMD.CMD[0], samplerTexture, drawTexture, VRAM_WIDTH, VRAM_HEIGHT, VRAM_WIDTH, VRAM_HEIGHT);
+
+            Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
+
         }
 
         public unsafe byte[] GetRam()
@@ -1356,9 +1400,14 @@ namespace ScePSX
             int width = Math.Max(DrawingAreaBottomRight.X - DrawingAreaTopLeft.X + 0, 0);
             int height = Math.Max(DrawingAreaBottomRight.Y - DrawingAreaTopLeft.Y + 0, 0);
 
+            if (width == 0 || height == 0)
+                return;
+
             SetScissor(x, y, width, height);
 
-            //CurrentBlock.Scissor = scissor;
+            //Console.WriteLine($"UpdateScissor mask {x},{y} - {width},{height}");
+
+            SubmitRecord();
         }
 
         private unsafe void SetScissor(int x, int y, int width, int height)
@@ -1482,6 +1531,10 @@ namespace ScePSX
 
             ushort texpage = (ushort)(1 << 11);
 
+            //PipelineDrawBlock oldblock = CurrentBlock;
+
+            SubmitRecord();
+
             SetDrawMode(texpage, 0, false);
 
             EnableSemiTransparency(false);
@@ -1518,6 +1571,8 @@ namespace ScePSX
             CurrentBlock.Vertexs.Add(vertices[3]);
 
             SubmitRecord();
+
+            //CurrentBlock = oldblock;
 
             //Console.WriteLine($"[Vulkan GPU] FillRectVRAM {left + width},{top + height}");
         }
@@ -1764,6 +1819,8 @@ namespace ScePSX
             //    UpdateFrag();
             //}
 
+            m_currentDepth++;
+
             if (m_TexPage.Value != vtexPage)
             {
                 m_TexPage.Value = vtexPage;
@@ -1797,19 +1854,23 @@ namespace ScePSX
 
             vaoOffset = 0;
 
+            m_currentDepth = 1;
+
+            SetScissor(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
+
             CurrentBlock.Blend = CurrentBlend;
             CurrentBlock.mode = CurrentBlendMode;
             CurrentBlock.Scissor = scissor;
             CurrentBlock.semiTransparencyEnabled = m_semiTransparencyEnabled;
             CurrentBlock.Vertexs = new List<Vertex>();
 
-            SetScissor(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-
             CurrentDrawCMD = DrawCMD.CMD[1];
 
             Device.BeginCommandBuffer(CurrentDrawCMD);
 
-            Device.BeginRenderPass(CurrentDrawCMD, drawPass, drawFramebuff, drawTexture.width, drawTexture.height, false);
+            //CopyTexture(CurrentDrawCMD, samplerTexture, drawTexture, VRAM_WIDTH, VRAM_HEIGHT, drawTexture.width, drawTexture.height);
+
+            Device.BeginRenderPass(CurrentDrawCMD, drawPass, drawFramebuff, drawTexture.width, drawTexture.height, true);
 
             vkCmdBindVertexBuffers(CurrentDrawCMD, 0, 1, ref VaoBuffer.stagingBuffer, ref vaoOffset);
 
@@ -1822,12 +1883,21 @@ namespace ScePSX
         {
             vkCmdEndRenderPass(CurrentDrawCMD);
 
+            //CopyTexture(CurrentDrawCMD, drawTexture, samplerTexture, drawTexture.width, drawTexture.height, VRAM_WIDTH, VRAM_HEIGHT);
+
             Device.EndAndWaitCommandBuffer(CurrentDrawCMD);
         }
 
         public void SubmitRecord()
         {
             //Console.WriteLine($"[Vulkan GPU] SubmitRecord mode {m_semiTransparencyMode}, {CurrentBlock.mode.ToString()}, {CurrentBlock.Vertexs.Count} Vertexs, {CurrentBlock.HasTexture}");
+
+            if (CurrentBlock.Vertexs.Count >= 8192)
+            {
+                Console.WriteLine($"[Vulkan GPU] SubmitRecord Vertexs Overflow {CurrentBlock.Vertexs.Count}");
+                CurrentBlock.Vertexs.Clear();
+                return;
+            }
 
             RecordCMD(CurrentBlock);
 
@@ -2424,24 +2494,20 @@ namespace ScePSX
         private void GrowDirtyArea(vkRectangle<int> bounds)
         {
             // 检查 bounds 是否需要覆盖待处理的批处理多边形
-            //if (m_dirtyArea.Intersects(bounds))
-            //    DrawBatch();
+            if (m_dirtyArea.Intersects(bounds))
+                SubmitRecord();
 
             m_dirtyArea.Grow(bounds);
 
             // 检查 bounds 是否会覆盖当前的纹理数据
             if (IntersectsTextureData(bounds))
             {
-                Console.WriteLine($"[Vulkan GPU] GrowDirtyArea IntersectsTextureData {bounds} - Drawing texture data.");
+                //Console.WriteLine($"[Vulkan GPU] GrowDirtyArea IntersectsTextureData {bounds} - Drawing texture data.");
             }
         }
 
-        private unsafe void CopyTexture(vkTexture srcTexture, vkTexture dstTexture, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
+        private unsafe void CopyTexture(VkCommandBuffer cmd, vkTexture srcTexture, vkTexture dstTexture, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
         {
-            VkCommandBuffer cmd = DrawCMD.CMD[0];
-
-            Device.BeginCommandBuffer(cmd);
-
             var blitRegion = new VkImageBlit
             {
                 srcSubresource = new VkImageSubresourceLayers
@@ -2466,14 +2532,14 @@ namespace ScePSX
             };
 
             srcTexture.layout = Device.TransitionImageLayout(
-                DrawCMD.CMD[0],
+                cmd,
                 srcTexture,
                 srcTexture.layout,
                 VkImageLayout.TransferSrcOptimal
             );
 
             dstTexture.layout = Device.TransitionImageLayout(
-                DrawCMD.CMD[0],
+                cmd,
                 dstTexture,
                 dstTexture.layout,
                 VkImageLayout.TransferDstOptimal
@@ -2491,13 +2557,11 @@ namespace ScePSX
             );
 
             dstTexture.layout = Device.TransitionImageLayout(
-                DrawCMD.CMD[0],
+                cmd,
                 dstTexture,
                 dstTexture.layout,
                 VkImageLayout.ColorAttachmentOptimal
             );
-
-            Device.EndAndWaitCommandBuffer(cmd);
         }
 
         public unsafe void UpdateVert()

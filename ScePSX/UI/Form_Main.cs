@@ -12,6 +12,8 @@ using static SDL2.SDL;
 
 namespace ScePSX.UI
 {
+    //UI 部分的代码相当的随便，别在意，等核心功能稳定后整个重写
+    //The code for the UI part is quite rough and casual — don't worry about it. It will be completely rewritten once the core functionality is stable. 
     public partial class FrmMain : Form, IAudioHandler, IRenderHandler, IRumbleHandler
     {
         [DllImport("kernel32.dll")]
@@ -19,7 +21,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.8.0";
+        public static string version = "ScePSX Beta 0.1.7.5";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");

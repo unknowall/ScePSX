@@ -151,4 +151,9 @@ void main()
     }
 
     FragColor = vec4(color.rgb, color.a); 
+
+    if ( color.a == 0.0 )
+        gl_FragDepth = 1.0;
+    else
+        gl_FragDepth = Position.z;
 }

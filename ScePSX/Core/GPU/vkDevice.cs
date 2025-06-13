@@ -637,9 +637,12 @@ namespace ScePSX
         public unsafe VkRenderPass CreateRenderPass(VkFormat format,
             VkAttachmentLoadOp loadop = VkAttachmentLoadOp.DontCare,
             VkImageLayout initialLayout = VkImageLayout.Undefined,
-            VkImageLayout finalLayout = VkImageLayout.ShaderReadOnlyOptimal
+            VkImageLayout finalLayout = VkImageLayout.ShaderReadOnlyOptimal,
+            bool Depth = false
             )
         {
+            int attachcount = Depth ? 2 : 1;
+
             var colorAttachment = new VkAttachmentDescription
             {
                 format = format,
@@ -652,10 +655,28 @@ namespace ScePSX
                 finalLayout = finalLayout
             };
 
+            var depthAttachment = new VkAttachmentDescription
+            {
+                format = VkFormat.D16Unorm,
+                samples = VkSampleCountFlags.Count1,
+                loadOp = VkAttachmentLoadOp.Clear,
+                storeOp = VkAttachmentStoreOp.Store,
+                stencilLoadOp = VkAttachmentLoadOp.DontCare,
+                stencilStoreOp = VkAttachmentStoreOp.DontCare,
+                initialLayout = VkImageLayout.DepthStencilAttachmentOptimal,
+                finalLayout = VkImageLayout.DepthStencilAttachmentOptimal
+            };
+
             var colorAttachmentRef = new VkAttachmentReference
             {
                 attachment = 0,
                 layout = VkImageLayout.ColorAttachmentOptimal
+            };
+
+            var depthAttachmentRef = new VkAttachmentReference
+            {
+                attachment = 1,
+                layout = VkImageLayout.DepthStencilAttachmentOptimal
             };
 
             var subpass = new VkSubpassDescription
@@ -663,43 +684,29 @@ namespace ScePSX
                 pipelineBindPoint = VkPipelineBindPoint.Graphics,
                 colorAttachmentCount = 1,
                 pColorAttachments = &colorAttachmentRef,
-                pResolveAttachments = null
-
+                pResolveAttachments = null,
+                pDepthStencilAttachment = Depth ? &depthAttachmentRef : null,
             };
-
-            //var dependency = new VkSubpassDependency
-            //{
-            //    srcSubpass = unchecked((uint)-1),
-            //    dstSubpass = 0,
-
-            //    srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
-            //    dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
-            //    srcAccessMask = VkAccessFlags.ColorAttachmentWrite,
-            //    dstAccessMask = VkAccessFlags.ColorAttachmentRead,
-            //    dependencyFlags = VkDependencyFlags.ByRegion
-            //};
 
             var dependency = new VkSubpassDependency
             {
                 srcSubpass = unchecked((uint)-1),
                 dstSubpass = 0,
 
-                // 修复1：源阶段+访问掩码
                 srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
+                dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
                 srcAccessMask = VkAccessFlags.ColorAttachmentWrite,
-
-                // 修复2：目标阶段+访问掩码
-                dstStageMask = VkPipelineStageFlags.FragmentShader,
-                dstAccessMask = VkAccessFlags.InputAttachmentRead,
-
+                dstAccessMask = VkAccessFlags.ColorAttachmentRead,
                 dependencyFlags = VkDependencyFlags.ByRegion
             };
+
+            var attachments = stackalloc VkAttachmentDescription[2] { colorAttachment, depthAttachment };
 
             var renderPassInfo = new VkRenderPassCreateInfo
             {
                 sType = VkStructureType.RenderPassCreateInfo,
-                attachmentCount = 1,
-                pAttachments = &colorAttachment,
+                attachmentCount = (uint)attachcount,
+                pAttachments = attachments,
                 subpassCount = 1,
                 pSubpasses = &subpass,
                 dependencyCount = 1,
@@ -826,6 +833,8 @@ namespace ScePSX
             return System.IO.File.ReadAllBytes(filename);
         }
 
+        public bool PipeLineHasDepth = false;
+
         public unsafe vkGraphicsPipeline CreateGraphicsPipeline(
             VkRenderPass pass, VkExtent2D ext, VkDescriptorSetLayout layout,
             byte[] vert, byte[] frag,
@@ -933,6 +942,16 @@ namespace ScePSX
 
             };
 
+            var depthAttachment = new VkPipelineDepthStencilStateCreateInfo
+            {
+                sType = VkStructureType.PipelineDepthStencilStateCreateInfo,
+                depthTestEnable = VkBool32.True,
+                depthWriteEnable = VkBool32.True,
+                depthCompareOp = VkCompareOp.Always,
+                depthBoundsTestEnable = VkBool32.False,
+                stencilTestEnable = VkBool32.False,
+            };
+
             var colorBlending = new VkPipelineColorBlendStateCreateInfo
             {
                 sType = VkStructureType.PipelineColorBlendStateCreateInfo,
@@ -1037,7 +1056,8 @@ namespace ScePSX
                 subpass = 0,
                 basePipelineHandle = VkPipeline.Null,
                 basePipelineIndex = -1,
-                pDynamicState = &dyn
+                pDynamicState = &dyn,
+                pDepthStencilState = PipeLineHasDepth ? &depthAttachment : null
             };
 
             VkResult result = vkCreateGraphicsPipelines(device, VkPipelineCache.Null, 1, &pipelineInfo, null, out pipeline.pipeline);
@@ -1094,7 +1114,10 @@ namespace ScePSX
             float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f
             )
         {
-            VkClearValue clearValue = new VkClearValue { color = new VkClearColorValue(r, g, b, a) };
+            VkClearValue clr1 = new VkClearValue { color = new VkClearColorValue(r, g, b, a) };
+            VkClearValue clr2 = new VkClearValue { depthStencil = new VkClearDepthStencilValue(1.0f, 0) };
+
+            var clearValue = stackalloc VkClearValue[2] { clr1, clr2 };
 
             VkRenderPassBeginInfo renderPassInfo = new VkRenderPassBeginInfo
             {
@@ -1106,8 +1129,8 @@ namespace ScePSX
                     offset = new VkOffset2D(0, 0),
                     extent = new VkExtent2D(width, height)
                 },
-                clearValueCount = clear ? (uint)1 : 0,
-                pClearValues = clear ? &clearValue : null,
+                clearValueCount = clear ? (uint)2 : 0,
+                pClearValues = clear ? clearValue : null,
 
             };
             vkCmdBeginRenderPass(cmd, &renderPassInfo, VkSubpassContents.Inline);
@@ -1969,7 +1992,8 @@ namespace ScePSX
         public unsafe VkImageLayout TransitionImageLayout(
             VkCommandBuffer commandBuffer, vkTexture texture, VkImageLayout oldLayout, VkImageLayout newLayout,
             VkPipelineStageFlags stage1 = VkPipelineStageFlags.TopOfPipe,
-            VkPipelineStageFlags stage2 = VkPipelineStageFlags.Transfer
+            VkPipelineStageFlags stage2 = VkPipelineStageFlags.Transfer,
+            VkImageAspectFlags aspectMask = VkImageAspectFlags.Color
             )
         {
             //Console.WriteLine($"[TransitionImageLayout] vkTexture Image 0x{texture.image.Handle:X}: {oldLayout} → {newLayout} ");
@@ -1992,7 +2016,7 @@ namespace ScePSX
                 image = texture.image,
                 subresourceRange = new VkImageSubresourceRange
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = aspectMask,
                     baseMipLevel = 0,
                     levelCount = 1,
                     baseArrayLayer = 0,
