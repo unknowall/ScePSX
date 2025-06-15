@@ -154,7 +154,6 @@ namespace ScePSX
 
             Console.WriteLine($"[Vulkan Device] VulkanDevice Initialization....");
 
-
             CreateInstance();
 
             //CreateDebugInstance();
@@ -422,6 +421,7 @@ namespace ScePSX
 
             VkPhysicalDeviceFeatures enabledFeatures = new VkPhysicalDeviceFeatures();
             enabledFeatures.samplerAnisotropy = VkBool32.True;
+            enabledFeatures.dualSrcBlend = VkBool32.True;
 
             var timelineFeaturesEnable = new VkPhysicalDeviceTimelineSemaphoreFeatures
             {
@@ -700,6 +700,14 @@ namespace ScePSX
                 dependencyFlags = VkDependencyFlags.ByRegion
             };
 
+            if (Depth)
+            {
+                dependency.srcStageMask |= VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests;
+                dependency.dstStageMask |= VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests;
+                dependency.srcAccessMask |= VkAccessFlags.DepthStencilAttachmentWrite;
+                dependency.dstAccessMask |= VkAccessFlags.DepthStencilAttachmentRead;
+            }
+
             var attachments = stackalloc VkAttachmentDescription[2] { colorAttachment, depthAttachment };
 
             var renderPassInfo = new VkRenderPassCreateInfo
@@ -756,11 +764,13 @@ namespace ScePSX
                 attachment = 0,
                 layout = VkImageLayout.ColorAttachmentOptimal
             };
+
             var resolveReference = new VkAttachmentReference
             {
                 attachment = 1,
                 layout = VkImageLayout.ColorAttachmentOptimal
             };
+
             var subpass = new VkSubpassDescription
             {
                 pipelineBindPoint = VkPipelineBindPoint.Graphics,
@@ -833,12 +843,11 @@ namespace ScePSX
             return System.IO.File.ReadAllBytes(filename);
         }
 
-        public bool PipeLineHasDepth = false;
-
         public unsafe vkGraphicsPipeline CreateGraphicsPipeline(
             VkRenderPass pass, VkExtent2D ext, VkDescriptorSetLayout layout,
             byte[] vert, byte[] frag,
             int width, int height,
+            bool HasDepth,
             VkSampleCountFlags count = VkSampleCountFlags.Count1,
             VkVertexInputBindingDescription bindingDescription = default,
             VkVertexInputAttributeDescription[] VertexInput = default,
@@ -1057,7 +1066,7 @@ namespace ScePSX
                 basePipelineHandle = VkPipeline.Null,
                 basePipelineIndex = -1,
                 pDynamicState = &dyn,
-                pDepthStencilState = PipeLineHasDepth ? &depthAttachment : null
+                pDepthStencilState = HasDepth ? &depthAttachment : null
             };
 
             VkResult result = vkCreateGraphicsPipelines(device, VkPipelineCache.Null, 1, &pipelineInfo, null, out pipeline.pipeline);

@@ -17,7 +17,9 @@ layout(location = 7) flat in ivec2 TexPageBase; // 纹理页基地址
 layout(location = 8) flat in ivec2 ClutBase;    // CLUT 基地址
 layout(location = 9) flat in int TexPage;       // 纹理页原始值
 
-layout(location = 0) out highp vec4 FragColor;
+//layout(location = 0) out highp vec4 FragColor;
+layout(location = 0, index = 0) out highp vec4 FragColor0; // src0
+layout(location = 0, index = 1) out highp vec4 FragColor1; // src1
 
 layout(set = 0, binding = 1) uniform FragmentUniforms {
     bool u_dither;
@@ -150,7 +152,9 @@ void main()
         color.a = 1.0;
     }
 
-    FragColor = vec4(color.rgb, color.a); 
+    //FragColor0 = vec4(color.rgb, color.a); 
+    FragColor0 = color;
+    FragColor1 = vec4(destBlend, destBlend, destBlend, srcBlend);
 
     if ( color.a == 0.0 )
         gl_FragDepth = 1.0;

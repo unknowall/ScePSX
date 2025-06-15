@@ -8,6 +8,7 @@ layout(set = 0, binding = 0) uniform sampler2D u_vram;
 
 layout(push_constant) uniform PushConstants {
     ivec4 u_srcRect;
+    bool is24bit;
 } pc;
 
 uint FloatTo5bit(float value) {
@@ -43,12 +44,22 @@ vec3 SampleVRAM24(ivec2 base, ivec2 offset) {
     return vec3(r, g, b) / 255.0;
 }
 
-void main() {
-    ivec2 base = pc.u_srcRect.xy;
-    ivec2 offset = ivec2(
-        TexCoord * vec2(pc.u_srcRect.zw) + vec2(0.5)
-    );
+void main()
+{
+    if(pc.is24bit)
+    {
+        ivec2 base = pc.u_srcRect.xy;
+        ivec2 offset = ivec2(
+            TexCoord * vec2(pc.u_srcRect.zw) + vec2(0.5)
+        );
+        vec3 colorResult = SampleVRAM24(base, offset);
+        FragColor = vec4(colorResult, 1.0);
 
-    vec3 colorResult = SampleVRAM24(base, offset);
-    FragColor = vec4(colorResult, 1.0);
+    }else{
+
+        ivec2 textureSize = textureSize(u_vram, 0);
+        vec2 texCoord = vec2(pc.u_srcRect.xy) + TexCoord * vec2(pc.u_srcRect.zw);
+        vec4 texel = texture(u_vram, texCoord / vec2(textureSize));
+        FragColor = texel;
+    }
 }
