@@ -638,7 +638,8 @@ namespace ScePSX
             VkAttachmentLoadOp loadop = VkAttachmentLoadOp.DontCare,
             VkImageLayout initialLayout = VkImageLayout.Undefined,
             VkImageLayout finalLayout = VkImageLayout.ShaderReadOnlyOptimal,
-            bool Depth = false
+            bool Depth = false,
+            bool HasSubpass = false
             )
         {
             int attachcount = Depth ? 2 : 1;
@@ -673,10 +674,23 @@ namespace ScePSX
                 layout = VkImageLayout.ColorAttachmentOptimal
             };
 
+            var inputRef = new VkAttachmentReference
+            {
+                attachment = 0,
+                layout = VkImageLayout.ShaderReadOnlyOptimal
+            };
+
             var depthAttachmentRef = new VkAttachmentReference
             {
                 attachment = 1,
                 layout = VkImageLayout.DepthStencilAttachmentOptimal
+            };
+
+            var subpass1 = new VkSubpassDescription
+            {
+                pipelineBindPoint = VkPipelineBindPoint.Graphics,
+                inputAttachmentCount = 1,
+                pInputAttachments = &inputRef
             };
 
             var subpass = new VkSubpassDescription
@@ -690,8 +704,8 @@ namespace ScePSX
 
             var dependency = new VkSubpassDependency
             {
-                srcSubpass = unchecked((uint)-1),
-                dstSubpass = 0,
+                srcSubpass = (uint)(HasSubpass ? 0 : unchecked((uint)-1)),
+                dstSubpass = (uint)(HasSubpass ? 1 : 0),
 
                 srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
                 dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
@@ -710,13 +724,15 @@ namespace ScePSX
 
             var attachments = stackalloc VkAttachmentDescription[2] { colorAttachment, depthAttachment };
 
+            var mulitsubpas = stackalloc VkSubpassDescription[2] { subpass, subpass1 };
+
             var renderPassInfo = new VkRenderPassCreateInfo
             {
                 sType = VkStructureType.RenderPassCreateInfo,
                 attachmentCount = (uint)attachcount,
                 pAttachments = attachments,
-                subpassCount = 1,
-                pSubpasses = &subpass,
+                subpassCount = (uint)(HasSubpass ? 2 : 1),
+                pSubpasses = HasSubpass ? mulitsubpas : &subpass,
                 dependencyCount = 1,
                 pDependencies = &dependency
             };

@@ -1,5 +1,4 @@
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) in vec2 TexCoord;
 layout(location = 0) out vec4 FragColor;
@@ -12,54 +11,54 @@ layout(push_constant) uniform PushConstants {
 } pc;
 
 uint FloatTo5bit(float value) {
-    return uint(round(clamp(value, 0.0, 1.0) * 31.0));
+    return uint(round(value * 31.0));
 }
 
-uint SampleVRAM16(ivec2 pos) {
-    vec4 c = texture(u_vram, vec2(pos) / vec2(1024.0, 512.0));
-    return (uint(ceil(c.a)) << 15) 
-         | (FloatTo5bit(c.b) << 10) 
-         | (FloatTo5bit(c.g) << 5) 
-         | FloatTo5bit(c.r);
+uint SampleVRam16(vec2 pos) {
+    ivec2 textureSize = textureSize(u_vram, 0);
+    vec4 c = texture(u_vram, pos / vec2(textureSize));
+    uint red = FloatTo5bit(c.r);
+    uint green = FloatTo5bit(c.g);
+    uint blue = FloatTo5bit(c.b);
+    uint maskBit = uint(ceil(c.a));
+    return (maskBit << 15) | (blue << 10) | (green << 5) | red;
 }
 
-vec3 SampleVRAM24(ivec2 base, ivec2 offset) {
-    int x = base.x + (offset.x * 3) / 2;
-    int y = base.y + offset.y;
-
-    uint sample1 = SampleVRAM16(ivec2(x, y));
-    uint sample2 = SampleVRAM16(ivec2(x + 1, y));
+vec3 SampleVRam24(ivec2 base, ivec2 offset) {
+    ivec2 textureSize = textureSize(u_vram, 0);
+    vec2 scale = vec2(textureSize) / vec2(1024.0, 512.0);
+    
+    vec2 originalPos = vec2(base + offset) / scale;
+    
+    ivec2 packedPos = ivec2(int(originalPos.x) * 3 / 2, int(originalPos.y));
+    
+    vec2 samplePos = (vec2(packedPos) + 0.5) * scale;
+    
+    uint sample1 = SampleVRam16(samplePos);
+    uint sample2 = SampleVRam16(samplePos + vec2(scale.x, 0));
 
     uint r, g, b;
-    if ((offset.x & 1) == 0) {
-        r = sample1 & 0xFFu;
-        g = (sample1 >> 8) & 0xFFu;
-        b = sample2 & 0xFFu;
+    if ((int(originalPos.x) & 1) == 0) {
+        r = sample1 & 0xFF;
+        g = (sample1 >> 8) & 0xFF;
+        b = sample2 & 0xFF;
     } else {
-        r = (sample1 >> 8) & 0xFFu;
-        g = sample2 & 0xFFu;
-        b = (sample2 >> 8) & 0xFFu;
+        r = (sample1 >> 8) & 0xFF;
+        g = sample2 & 0xFF;
+        b = (sample2 >> 8) & 0xFF;
     }
 
-    return vec3(r, g, b) / 255.0;
+    return vec3(r/255.0, g/255.0, b/255.0);
 }
 
-void main()
-{
-    if(pc.is24bit)
-    {
-        ivec2 base = pc.u_srcRect.xy;
-        ivec2 offset = ivec2(
-            TexCoord * vec2(pc.u_srcRect.zw) + vec2(0.5)
-        );
-        vec3 colorResult = SampleVRAM24(base, offset);
-        FragColor = vec4(colorResult, 1.0);
-
-    }else{
-
+void main() {
+    if (pc.is24bit) {
+        ivec2 offset = ivec2(floor(TexCoord * vec2(pc.u_srcRect.zw)));
+        vec3 color = SampleVRam24(pc.u_srcRect.xy, offset);
+        FragColor = vec4(color, 1.0);
+    } else {
         ivec2 textureSize = textureSize(u_vram, 0);
         vec2 texCoord = vec2(pc.u_srcRect.xy) + TexCoord * vec2(pc.u_srcRect.zw);
-        vec4 texel = texture(u_vram, texCoord / vec2(textureSize));
-        FragColor = texel;
+        FragColor = texture(u_vram, texCoord / vec2(textureSize));
     }
 }
