@@ -620,7 +620,7 @@ namespace ScePSX
             _VRAMTransfer.W = 1024;
             _VRAMTransfer.H = 512;
 
-            TransferBasePtr = VRAM;
+            //TransferBasePtr = VRAM;
 
             CopyRectCPUtoVRAM(0, 0, 1024, 512);
 
@@ -641,7 +641,7 @@ namespace ScePSX
             _VRAMTransfer.W = 1024;
             _VRAMTransfer.H = 512;
 
-            TransferBasePtr = VRAM;
+            //TransferBasePtr = VRAM;
 
             CopyRectVRAMtoCPU(0, 0, 1024, 512);
 
@@ -983,15 +983,9 @@ namespace ScePSX
                 UpdateReadTexture();
         }
 
-        unsafe ushort* TransferBasePtr;
-
         public unsafe void SetVRAMTransfer(VRAMTransfer val)
         {
             _VRAMTransfer = val;
-            _VRAMTransfer.X = 0;
-            _VRAMTransfer.Y = 0;
-
-            TransferBasePtr = VRAM + _VRAMTransfer.OriginX + _VRAMTransfer.OriginY * VRAM_WIDTH;
 
             if (_VRAMTransfer.isRead)
             {
@@ -1001,7 +995,7 @@ namespace ScePSX
 
         public unsafe void WriteToVRAM(ushort value)
         {
-            *(ushort*)(TransferBasePtr + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W) = value;
+            *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W) = value;
 
             _VRAMTransfer.X++;
 
@@ -1014,9 +1008,9 @@ namespace ScePSX
 
         public unsafe uint ReadFromVRAM()
         {
-            ushort Data0 = *(ushort*)(TransferBasePtr + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W);
+            ushort Data0 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
             _VRAMTransfer.X++;
-            ushort Data1 = *(ushort*)(TransferBasePtr + _VRAMTransfer.X + _VRAMTransfer.Y * _VRAMTransfer.W);
+            ushort Data1 = *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH);
             _VRAMTransfer.X++;
 
             if (_VRAMTransfer.X == _VRAMTransfer.OriginX + _VRAMTransfer.W)
@@ -1193,15 +1187,15 @@ namespace ScePSX
             // 解包像素数据到 vram 数组
             m_vramTransferFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
             Gl.PixelStore(PixelStoreParameter.PackAlignment, GetPixelStoreAlignment(left, width));
-            //Gl.PixelStore(PixelStoreParameter.PackRowLength, VRAM_WIDTH);
-            Gl.PixelStore(PixelStoreParameter.PackRowLength, _VRAMTransfer.W);
+            Gl.PixelStore(PixelStoreParameter.PackRowLength, VRAM_WIDTH);
+            //Gl.PixelStore(PixelStoreParameter.PackRowLength, _VRAMTransfer.W);
 
             Gl.ReadPixels(
                 0, 0,
                 readWidth, readHeight,
                 PixelFormat.Rgba,
                 PixelType.UnsignedShort1555Rev,
-                (IntPtr)(TransferBasePtr)
+                (IntPtr)(VRAM + readBounds.Left + readBounds.Top * VRAM_WIDTH)
             );
 
             // 恢复渲染状态
@@ -1237,7 +1231,7 @@ namespace ScePSX
                     (int)height,
                     PixelFormat.Rgba,
                     PixelType.UnsignedShort1555Rev,
-                    (IntPtr)(TransferBasePtr)
+                    (IntPtr)(VRAM + left + top * width)
                 );
 
                 ResetDepthBuffer();
@@ -1253,7 +1247,7 @@ namespace ScePSX
                     (int)height,
                     PixelFormat.Rgba,
                     PixelType.UnsignedShort1555Rev,
-                    (IntPtr)(TransferBasePtr)
+                    (IntPtr)(VRAM + left + top * width)
                 );
 
                 // 计算宽度和高度的分段

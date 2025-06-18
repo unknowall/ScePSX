@@ -17,6 +17,7 @@ using ScePSX.Render;
 
 using Vulkan;
 using static ScePSX.VulkanDevice;
+using static ScePSX.VulkanGPU;
 using static Vulkan.VulkanNative;
 
 namespace ScePSX
@@ -129,10 +130,9 @@ namespace ScePSX
         DisplayArea m_vramDisplayArea;
 
         unsafe ushort* VRAM;
-        //unsafe ushort* TransferBasePtr;
         unsafe int* convertedData;
         unsafe byte* drawFragData;
-        unsafe void* samplerData;
+        unsafe void* samplerData, readTextureData;
 
         VulkanDevice Device;
 
@@ -141,7 +141,7 @@ namespace ScePSX
         vkSwapchain renderChain;
 
         vkBuffer VaoBuffer, vertexUBO, fragmentUBO;
-        vkTexture samplerTexture, drawTexture, depthTexture;
+        vkTexture samplerTexture, readTexture, drawTexture, depthTexture;
         VkFramebuffer drawFramebuff;
         vkCMDS renderCmd, DrawCMD;
 
@@ -380,8 +380,17 @@ namespace ScePSX
             InitLayoutAndSet();
 
             //Calc Vram write alignment
+            VkImageSubresource subresource = new VkImageSubresource();
+            subresource.aspectMask = VkImageAspectFlags.Color;
+            subresource.mipLevel = 0;
+            subresource.arrayLayer = 0;
+
+            VkSubresourceLayout layout;
+            vkGetImageSubresourceLayout(Device.device, samplerTexture.image, &subresource, &layout);
+            alignedRowPitch = (int)layout.rowPitch;
+
             minAlignment = (uint)Device.deviceProperties.limits.minMemoryMapAlignment;
-            alignedRowPitch = (VRAM_WIDTH * 4 + (int)minAlignment - 1) & ~((int)minAlignment - 1);
+            //alignedRowPitch = (VRAM_WIDTH * 4 + (int)minAlignment - 1) & ~((int)minAlignment - 1);
 
             viewport = new VkViewport { width = VRAM_WIDTH, height = VRAM_HEIGHT, maxDepth = 1.0f };
             scissor = new VkRect2D { extent = new VkExtent2D(VRAM_WIDTH, VRAM_HEIGHT) };
@@ -738,6 +747,13 @@ namespace ScePSX
                 VkImageLayout.ShaderReadOnlyOptimal
             );
 
+            readTexture.layout = Device.TransitionImageLayout(
+                DrawCMD.CMD[0],
+                readTexture,
+                readTexture.layout,
+                VkImageLayout.ShaderReadOnlyOptimal
+            );
+
             Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
         }
 
@@ -755,9 +771,24 @@ namespace ScePSX
                 VkImageTiling.Linear
                 );
 
-            void* samplerdataptr;
-            vkMapMemory(Device.device, samplerTexture.imagememory, 0, WholeSize, 0, &samplerdataptr);
-            samplerData = samplerdataptr;
+            void* dataptr;
+            vkMapMemory(Device.device, samplerTexture.imagememory, 0, WholeSize, 0, &dataptr);
+            samplerData = dataptr;
+
+            readTexture = Device.CreateTexture(
+                VRAM_WIDTH, VRAM_HEIGHT,
+                VkFormat.R8g8b8a8Unorm,
+                VkImageAspectFlags.Color,
+                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferSrc,
+                VkFilter.Nearest,
+                VkSamplerAddressMode.ClampToEdge,
+                VkSamplerMipmapMode.Linear,
+                VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent,
+                VkImageTiling.Linear
+                );
+
+            vkMapMemory(Device.device, readTexture.imagememory, 0, WholeSize, 0, &dataptr);
+            readTextureData = dataptr;
 
             Console.WriteLine($"[Vulkan GPU] SamplerTexture 0x{samplerTexture.image.Handle:X}");
         }
@@ -773,7 +804,7 @@ namespace ScePSX
                 VkSamplerAddressMode.ClampToEdge,
                 VkSamplerMipmapMode.Linear,
                 VkMemoryPropertyFlags.DeviceLocal,
-                VkImageTiling.Linear
+                VkImageTiling.Optimal
                 );
 
             Console.WriteLine($"[Vulkan GPU] DrawTexture 0x{tex.image.Handle:X}");
@@ -843,6 +874,7 @@ namespace ScePSX
 
             vkUnmapMemory(Device.device, fragmentUBO.stagingMemory);
             vkUnmapMemory(Device.device, samplerTexture.imagememory);
+            vkUnmapMemory(Device.device, readTexture.imagememory);
             vkUnmapMemory(Device.device, VaoBuffer.stagingMemory);
 
             foreach (var frame in frameFences)
@@ -870,6 +902,7 @@ namespace ScePSX
             Device.DestroyTexture(drawTexture);
             Device.DestroyTexture(depthTexture);
             Device.DestroyTexture(samplerTexture);
+            Device.DestroyTexture(readTexture);
 
             Device.DestoryBuffer(VaoBuffer);
             Device.DestoryBuffer(vertexUBO);
@@ -991,6 +1024,8 @@ namespace ScePSX
         public unsafe byte[] GetRam()
         {
             byte[] data = new byte[(VRAM_WIDTH * VRAM_HEIGHT) * 2];
+
+            //CopyRectVRAMtoCPU(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
             Marshal.Copy((IntPtr)VRAM, data, 0, data.Length);
 
@@ -1352,7 +1387,6 @@ namespace ScePSX
 
             if (m_dirtyArea.Intersects(srcBounds))
             {
-                //Console.WriteLine($"[Vulkan GPU] UpdateReadTexture");
                 UpdateReadTexture();
                 m_dirtyArea.Grow(destBounds);
             } else
@@ -1360,17 +1394,23 @@ namespace ScePSX
                 GrowDirtyArea(destBounds);
             }
 
-            Console.WriteLine($"[Vulkan GPU] CopyRectVRAMtoVRAM {srcX},{srcY} -> {destX},{destY} [{width},{height}]");
+            //Console.WriteLine($"[Vulkan GPU] CopyRectVRAMtoVRAM {srcX},{srcY} -> {destX},{destY} [{width},{height}]");
+
+            RecordVertexs();
+            EndRenderPass();
+
+            CopyTextureRect(drawTexture,
+                srcX * resolutionScale, srcY * resolutionScale,
+                destX * resolutionScale, destY * resolutionScale,
+                width * resolutionScale, height * resolutionScale);
 
             ushort* src = VRAM + srcX + srcY * VRAM_WIDTH;
-
             ushort* dst = VRAM + destX + destY * VRAM_WIDTH;
-
             int RowPitch = width * 2;
             for (int row = 0; row < height; row++)
             {
-                ushort* srcPtr = src + row * width;
-                ushort* dstPtr = dst + row * width;
+                ushort* srcPtr = src + row * VRAM_WIDTH;
+                ushort* dstPtr = dst + row * VRAM_WIDTH;
 
                 Buffer.MemoryCopy(
                     srcPtr,
@@ -1380,59 +1420,52 @@ namespace ScePSX
                 );
             }
 
-            //CopyRectCPUtoVRAM(destX, destY, width, height);
+            StartRenderPass();
         }
 
         public unsafe void CopyRectVRAMtoCPU(int left, int top, int width, int height)
         {
-            var readBounds = GetWrappedBounds(left, top, width, height);
-
-            if (m_dirtyArea.Intersects(readBounds))
+            if (m_dirtyArea.Intersects(GetWrappedBounds(left, top, width, height)))
             {
+                //Console.WriteLine($"[Vulkan GPU] CopyRectVRAMtoCPU {left},{top} [{width},{height}]");
 
-            }
+                RecordVertexs();
+                EndRenderPass();
 
-            int readWidth = readBounds.GetWidth();
-            int readHeight = readBounds.GetHeight();
+                CopyTexture(drawTexture, readTexture, drawTexture.width, drawTexture.height, VRAM_WIDTH, VRAM_HEIGHT);
 
-            //Console.WriteLine($"[Vulkan GPU] CopyRectVRAMtoCPU {left},{top} [{width},{height}]");
-
-            vkGetImageMemoryRequirements(Device.device, samplerTexture.image, out var memRequirements);
-            uint minAlignment = (uint)memRequirements.alignment;
-
-            int srcBytesPerPixel = 4;
-            uint srcRowPitch = (uint)((readWidth * srcBytesPerPixel + minAlignment - 1) & ~((int)minAlignment - 1));
-
-            int destBytesPerPixel = 2;
-            byte* destBasePtr = (byte*)VRAM + (readBounds.Left + readBounds.Top * VRAM_WIDTH) * destBytesPerPixel;
-
-            for (int row = 0; row < readHeight; row++)
-            {
-                byte* srcRowStart = (byte*)samplerData + row * srcRowPitch;
-                byte* destRowStart = destBasePtr + row * width * destBytesPerPixel;
-
-                for (int col = 0; col < readWidth; col++)
+                byte* srcBase = (byte*)readTextureData;
+                int srcRowBytes = width * 4;
+                for (int y = 0; y < height; y++)
                 {
-                    uint* srcPixel = (uint*)(srcRowStart + col * srcBytesPerPixel);
-                    uint color = *srcPixel;
-
-                    uint a = (color >> 24) & 0xFFU;
-                    uint r = (color >> 16) & 0xFFU;
-                    uint g = (color >> 8) & 0xFFU;
-                    uint b = color & 0xFFU;
-
-                    ushort pixel = (ushort)(
-                        ((a > 0x80U ? 1U : 0U) << 15) |
-                        ((r >> 3) << 10) |
-                        ((g >> 3) << 5) |
-                        (b >> 3)
-                    );
-
-                    byte* destPixel = destRowStart + col * destBytesPerPixel;
-                    //destPixel[0] = (byte)(pixel & 0xFF);
-                    //destPixel[1] = (byte)(pixel >> 8);
-                    *(ushort*)destPixel = pixel;
+                    byte* srcRow = srcBase + ((top + y) * alignedRowPitch) + (left * 4);
+                    byte* dstRow = (byte*)convertedData + y * srcRowBytes;
+                    Buffer.MemoryCopy(srcRow, dstRow, srcRowBytes, srcRowBytes);
                 }
+
+                ushort rgb8888to1555(int color)
+                {
+                    byte m = (byte)((color & 0xFF000000) >> 24);
+                    byte r = (byte)((color & 0x00FF0000) >> 16 + 3);
+                    byte g = (byte)((color & 0x0000FF00) >> 8 + 3);
+                    byte b = (byte)((color & 0x000000FF) >> 3);
+
+                    return (ushort)(m << 15 | r << 10 | g << 5 | b);
+                }
+
+                ushort* dst = VRAM + left + top * VRAM_WIDTH;
+                int srcidx = 0;
+                for (int row = 0; row < height; row++)
+                {
+                    ushort* dstPtr = dst + row * VRAM_WIDTH;
+                    for (int i = 0; i < width; i++)
+                    {
+                        int color = convertedData[srcidx++];
+                        dstPtr[i] = rgb8888to1555(color);
+                    }
+                }
+
+                StartRenderPass();
             }
         }
 
@@ -1472,31 +1505,30 @@ namespace ScePSX
                 }
             }
 
-            ulong rawByteOffset = (ulong)(y * VRAM_WIDTH + x) * 4;
-            ulong byteOffset = rawByteOffset / minAlignment * minAlignment;
-            ulong bufferSize = (ulong)(alignedRowPitch * height) + (rawByteOffset - byteOffset);
-            bufferSize = Math.Min(bufferSize, 0x200000 - byteOffset);
-
-            //void* mappedData;
-            //vkMapMemory(Device.device, samplerTexture.imagememory, byteOffset, bufferSize, 0, &mappedData);
-
-            int offsetDelta = (int)(rawByteOffset - byteOffset);
-            byte* alignedDstStart = (byte*)samplerData + byteOffset + offsetDelta;
-
-            int srcRowPitch = width * 4;
+            byte* dstBase = (byte*)samplerData;
+            int srcRowBytes = width * 4;
             for (int row = 0; row < height; row++)
             {
-                byte* srcPtr = (byte*)convertedData + row * srcRowPitch;
-                byte* dstPtr = alignedDstStart + row * alignedRowPitch;
+                byte* srcRow = (byte*)convertedData + row * srcRowBytes;
+                byte* dstRow = dstBase + (y + row) * alignedRowPitch + x * 4;
 
-                Buffer.MemoryCopy(
-                    srcPtr,
-                    dstPtr,
-                    srcRowPitch,
-                    srcRowPitch
-                );
+                Buffer.MemoryCopy(srcRow, dstRow, srcRowBytes, srcRowBytes);
             }
-            //vkUnmapMemory(Device.device, samplerTexture.imagememory);
+
+            //ulong startOffset = (ulong)(y * VRAM_WIDTH + x) * 4;
+            //ulong endOffset = startOffset + (ulong)(height * alignedRowPitch);
+
+            //ulong flushStart = (startOffset / minAlignment) * minAlignment;
+            //ulong flushEnd = ((endOffset + minAlignment - 1) / minAlignment) * minAlignment;
+            //ulong flushSize = flushEnd - flushStart;
+
+            //VkMappedMemoryRange range = new VkMappedMemoryRange();
+            //range.sType = VkStructureType.MappedMemoryRange;
+            //range.memory = samplerTexture.imagememory;
+            //range.offset = flushStart;
+            //range.size = flushSize;
+
+            //vkFlushMappedMemoryRanges(Device.device, 1, &range);
         }
 
         public unsafe void CopyRectCPUtoVRAM(int originX, int originY, int width, int height)
@@ -1549,10 +1581,11 @@ namespace ScePSX
         public unsafe void SetVRAMTransfer(VRAMTransfer val)
         {
             _VRAMTransfer = val;
-            //_VRAMTransfer.X = 0;
-            //_VRAMTransfer.Y = 0;
 
-            //TransferBasePtr = VRAM + _VRAMTransfer.OriginX + _VRAMTransfer.OriginY * VRAM_WIDTH;
+            if (_VRAMTransfer.isRead)
+            {
+                CopyRectVRAMtoCPU(_VRAMTransfer.OriginX, _VRAMTransfer.OriginY, _VRAMTransfer.W, _VRAMTransfer.H);
+            }
         }
 
         public unsafe uint ReadFromVRAM()
@@ -1573,6 +1606,9 @@ namespace ScePSX
 
         public unsafe void WriteToVRAM(ushort value)
         {
+            if (_VRAMTransfer.Y > VRAM_HEIGHT)
+                _VRAMTransfer.Y -= VRAM_HEIGHT;
+
             *(ushort*)(VRAM + _VRAMTransfer.X + _VRAMTransfer.Y * VRAM_WIDTH) = value;
 
             _VRAMTransfer.X++;
@@ -1636,6 +1672,8 @@ namespace ScePSX
 
             m_currentDepth = 1;
 
+            CurrentDrawCMD = DrawCMD.CMD[1];
+
             if (CurrentPipeline.pipeline.Handle == 0)
             {
                 SrcBlend = 1.0f;
@@ -1644,9 +1682,8 @@ namespace ScePSX
             }
 
             SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
-            SetScissor(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
-            CurrentDrawCMD = DrawCMD.CMD[1];
+            SetScissor(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
             Device.BeginCommandBuffer(CurrentDrawCMD);
 
@@ -2267,10 +2304,11 @@ namespace ScePSX
             {
                 if (Vertexs.Count > 0)
                 {
+                    //10fps损失
                     RecordVertexs();
                     EndRenderPass();
                     StartRenderPass();
-                    Console.WriteLine($"[Vulkan GPU] GrowDirtyArea Intersects {bounds} - Update Texture.");
+                    //Console.WriteLine($"[Vulkan GPU] GrowDirtyArea Intersects {bounds} - Update Texture.");
                 }
             }
         }
@@ -2371,6 +2409,61 @@ namespace ScePSX
             //Console.WriteLine($"[Vulkan GPU] Texture Sample TO Draw {regions.Count}");
         }
 
+        private unsafe void CopyTextureRect(vkTexture srcTexture, int srcx, int srcy, int dstx, int dsty, int width, int height)
+        {
+            VkCommandBuffer cmd = DrawCMD.CMD[0];
+
+            Device.BeginCommandBuffer(cmd);
+
+            VkImageCopy copyRegion = new VkImageCopy
+            {
+                srcSubresource = new VkImageSubresourceLayers
+                {
+                    aspectMask = VkImageAspectFlags.Color,
+                    mipLevel = 0,
+                    baseArrayLayer = 0,
+                    layerCount = 1
+                },
+                dstSubresource = new VkImageSubresourceLayers
+                {
+                    aspectMask = VkImageAspectFlags.Color,
+                    mipLevel = 0,
+                    baseArrayLayer = 0,
+                    layerCount = 1
+                },
+                srcOffset = new VkOffset3D { x = srcx, y = srcy, z = 0 },
+                dstOffset = new VkOffset3D { x = dstx, y = dsty, z = 0 },
+                extent = new VkExtent3D { width = (uint)width, height = (uint)height, depth = 1 }
+            };
+
+            VkImageLayout oldsrclayout = srcTexture.layout;
+
+            srcTexture.layout = Device.TransitionImageLayout(
+                cmd,
+                srcTexture,
+                srcTexture.layout,
+                VkImageLayout.TransferDstOptimal
+            );
+
+            vkCmdCopyImage(
+                cmd,
+                srcTexture.image,
+                VkImageLayout.TransferDstOptimal,
+                srcTexture.image,
+                VkImageLayout.TransferDstOptimal,
+                1,
+                &copyRegion);
+
+            srcTexture.layout = Device.TransitionImageLayout(
+                cmd,
+                srcTexture,
+                srcTexture.layout,
+                oldsrclayout
+            );
+
+            Device.EndAndWaitCommandBuffer(cmd);
+        }
+
         private unsafe void CopyTexture(vkTexture srcTexture, vkTexture dstTexture, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
         {
             VkCommandBuffer cmd = DrawCMD.CMD[0];
@@ -2400,6 +2493,9 @@ namespace ScePSX
                 dstOffsets_1 = new VkOffset3D { x = dstWidth, y = dstHeight, z = 1 }
             };
 
+            VkImageLayout oldsrclayout = srcTexture.layout;
+            VkImageLayout olddstlayout = dstTexture.layout;
+
             srcTexture.layout = Device.TransitionImageLayout(
                 cmd,
                 srcTexture,
@@ -2422,16 +2518,22 @@ namespace ScePSX
                 VkImageLayout.TransferDstOptimal,
                 1,
                 &blitRegion,
-                VkFilter.Linear
+                VkFilter.Nearest
+            );
+
+            srcTexture.layout = Device.TransitionImageLayout(
+                cmd,
+                srcTexture,
+                srcTexture.layout,
+                oldsrclayout
             );
 
             dstTexture.layout = Device.TransitionImageLayout(
                 cmd,
                 dstTexture,
                 dstTexture.layout,
-                VkImageLayout.ColorAttachmentOptimal
+                olddstlayout
             );
-
 
             Device.EndAndWaitCommandBuffer(cmd);
         }
