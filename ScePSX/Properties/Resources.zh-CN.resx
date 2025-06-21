@@ -483,4 +483,10 @@
   <data name="Form_Set_InitializeComponent_GPUResolution" xml:space="preserve">
     <value>内部分辨率</value>
   </data>
+  <data name="FrmMain_FrmMain_recommend" xml:space="preserve">
+    <value> (推荐)</value>
+  </data>
+  <data name="FrmAbout_FrmAbout_support" xml:space="preserve">
+    <value>如果您愿意，可以请我喝一杯咖啡!</value>
+  </data>
 </root>

@@ -17,7 +17,6 @@ using ScePSX.Render;
 
 using Vulkan;
 using static ScePSX.VulkanDevice;
-using static ScePSX.VulkanGPU;
 using static Vulkan.VulkanNative;
 
 namespace ScePSX
@@ -1343,6 +1342,7 @@ namespace ScePSX
             byte r = (byte)(colorval);
             byte g = (byte)(colorval >> 8);
             byte b = (byte)(colorval >> 16);
+
             VkClearAttachment colorAttachment = new VkClearAttachment
             {
                 aspectMask = VkImageAspectFlags.Color,
@@ -1374,7 +1374,17 @@ namespace ScePSX
 
             vkCmdClearAttachments(CurrentDrawCMD, 1, &colorAttachment, 1, &clearRect);
 
-            WriteTexture(left, top, width, height, true, (int)colorval);
+            ushort* dst = VRAM + left + top * VRAM_WIDTH;
+            for (int row = 0; row < height; row++)
+            {
+                ushort* srcPtr = dst + row * VRAM_WIDTH;
+                for (int i = 0; i < width; i++)
+                {
+                    srcPtr[i] = (ushort)colorval;
+                }
+            }
+
+            WriteTexture(left, top, width, height);
         }
 
         public unsafe void CopyRectVRAMtoVRAM(ushort srcX, ushort srcY, ushort destX, ushort destY, ushort width, ushort height)
@@ -1472,36 +1482,23 @@ namespace ScePSX
         //这里是在裸写显存，不要随便改
         // Direct VRAM memory write for performance. Handle with care.
         // Yes, I'm writing mapped VRAM directly. It's faster. Don't "fix" it.
-        public unsafe void WriteTexture(int x, int y, int width, int height, bool fill = false, int fillcolor = 0)
+        public unsafe void WriteTexture(int x, int y, int width, int height)
         {
-            if (!fill)
+            ushort* src = VRAM + x + y * VRAM_WIDTH;
+            int dstidx = 0;
+            for (int row = 0; row < height; row++)
             {
-                ushort* src = VRAM + x + y * VRAM_WIDTH;
-                int dstidx = 0;
-                for (int row = 0; row < height; row++)
-                {
-                    ushort* srcPtr = src + row * VRAM_WIDTH;
+                ushort* srcPtr = src + row * VRAM_WIDTH;
 
-                    for (int i = 0; i < width; i++)
-                    {
-                        ushort color = srcPtr[i];
-                        byte m = (byte)(color >> 15);
-                        byte r = LookupTable1555to8888[color & 0x1F];
-                        byte g = LookupTable1555to8888[(color >> 5) & 0x1F];
-                        byte b = LookupTable1555to8888[(color >> 10) & 0x1F];
-
-                        convertedData[dstidx++] = (m << 24) | (b << 16) | (g << 8) | r;
-                    }
-                }
-            } else
-            {
-                int dstidx = 0;
-                for (int row = 0; row < height; row++)
+                for (int i = 0; i < width; i++)
                 {
-                    for (int i = 0; i < width; i++)
-                    {
-                        convertedData[dstidx++] = fillcolor;
-                    }
+                    ushort color = srcPtr[i];
+                    byte m = (byte)(color >> 15);
+                    byte r = LookupTable1555to8888[color & 0x1F];
+                    byte g = LookupTable1555to8888[(color >> 5) & 0x1F];
+                    byte b = LookupTable1555to8888[(color >> 10) & 0x1F];
+
+                    convertedData[dstidx++] = (m << 24) | (b << 16) | (g << 8) | r;
                 }
             }
 

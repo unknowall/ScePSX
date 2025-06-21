@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using ScePSX.Core.GPU;
+using ScePSX.Properties;
 using ScePSX.Render;
 using static ScePSX.Controller;
 using static SDL2.SDL;
@@ -159,7 +161,7 @@ namespace ScePSX.UI
             gpumnu = AddMenu("gpumode", $"GPU: {gputype.ToString()}", 88, RenderToolStripMenuItem);
             gpumnu.Enabled = false;
 
-            VulkanRenderMnu.Text = VulkanRenderMnu.Text + " (Not recommended)";
+            openGLRender.Text = openGLRender.Text + Resources.FrmMain_FrmMain_recommend;
         }
 
         private void MainForm_Load(object sender, EventArgs e)

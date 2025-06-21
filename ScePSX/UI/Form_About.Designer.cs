@@ -33,6 +33,8 @@
             textBox1 = new System.Windows.Forms.TextBox();
             label3 = new System.Windows.Forms.Label();
             linkLabel1 = new System.Windows.Forms.LinkLabel();
+            SupportLink = new System.Windows.Forms.LinkLabel();
+            labSupport = new System.Windows.Forms.Label();
             SuspendLayout();
             // 
             // labver
@@ -48,7 +50,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(26, 141);
+            label2.Location = new System.Drawing.Point(26, 179);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(70, 17);
             label2.TabIndex = 1;
@@ -56,11 +58,11 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new System.Drawing.Point(34, 161);
+            textBox1.Location = new System.Drawing.Point(34, 199);
             textBox1.Multiline = true;
             textBox1.Name = "textBox1";
             textBox1.ReadOnly = true;
-            textBox1.Size = new System.Drawing.Size(254, 58);
+            textBox1.Size = new System.Drawing.Size(254, 44);
             textBox1.TabIndex = 2;
             textBox1.Text = "unknowall - sgfree@hotmail.com";
             // 
@@ -82,11 +84,33 @@
             linkLabel1.Text = "https://github.com/unknowall/ScePSX";
             linkLabel1.LinkClicked += Link_LinkClicked;
             // 
+            // SupportLink
+            // 
+            SupportLink.AutoSize = true;
+            SupportLink.Location = new System.Drawing.Point(35, 156);
+            SupportLink.Name = "SupportLink";
+            SupportLink.Size = new System.Drawing.Size(168, 17);
+            SupportLink.TabIndex = 5;
+            SupportLink.TabStop = true;
+            SupportLink.Text = "https://ko-fi.com/unknowall";
+            SupportLink.LinkClicked += SupportLink_Click;
+            // 
+            // labSupport
+            // 
+            labSupport.AutoSize = true;
+            labSupport.Location = new System.Drawing.Point(35, 135);
+            labSupport.Name = "labSupport";
+            labSupport.Size = new System.Drawing.Size(188, 17);
+            labSupport.TabIndex = 6;
+            labSupport.Text = "如果您愿意，可以请我喝一杯咖啡";
+            // 
             // FrmAbout
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(318, 239);
+            ClientSize = new System.Drawing.Size(318, 251);
+            Controls.Add(labSupport);
+            Controls.Add(SupportLink);
             Controls.Add(linkLabel1);
             Controls.Add(label3);
             Controls.Add(textBox1);
@@ -108,5 +132,7 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.LinkLabel linkLabel1;
+        private System.Windows.Forms.LinkLabel SupportLink;
+        private System.Windows.Forms.Label labSupport;
     }
 }

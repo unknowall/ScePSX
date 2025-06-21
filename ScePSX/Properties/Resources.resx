@@ -483,4 +483,10 @@
   <data name="Form_Set_InitializeComponent_GPUResolution" xml:space="preserve">
     <value>IR Scale</value>
   </data>
+  <data name="FrmMain_FrmMain_recommend" xml:space="preserve">
+    <value> (recommended)</value>
+  </data>
+  <data name="FrmAbout_FrmAbout_support" xml:space="preserve">
+    <value>If you'd like, you can buy me a coffee!</value>
+  </data>
 </root>

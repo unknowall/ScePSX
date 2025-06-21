@@ -736,6 +736,15 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 If you&apos;d like, you can buy me a coffee! 的本地化字符串。
+        /// </summary>
+        internal static string FrmAbout_FrmAbout_support {
+            get {
+                return ResourceManager.GetString("FrmAbout_FrmAbout_support", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 PS1 emulator released under the MIT License 的本地化字符串。
         /// </summary>
         internal static string FrmAbout_InitializeComponent_read {
@@ -795,6 +804,15 @@ namespace ScePSX.Properties {
         internal static string FrmInput_InitializeComponent_按键设置 {
             get {
                 return ResourceManager.GetString("FrmInput_InitializeComponent_按键设置", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似  (recommended) 的本地化字符串。
+        /// </summary>
+        internal static string FrmMain_FrmMain_recommend {
+            get {
+                return ResourceManager.GetString("FrmMain_FrmMain_recommend", resourceCulture);
             }
         }
         
