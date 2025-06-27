@@ -60,6 +60,12 @@
             toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
+            HelpMnu = new System.Windows.Forms.ToolStripMenuItem();
+            gitHubMnu = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
+            supportKoficomMnu = new System.Windows.Forms.ToolStripMenuItem();
+            supportWeChatMnu = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem9 = new System.Windows.Forms.ToolStripSeparator();
             AboutMnu = new System.Windows.Forms.ToolStripMenuItem();
             StatusBar = new System.Windows.Forms.StatusStrip();
             toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -78,7 +84,7 @@
             // MainMenu
             // 
             MainMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
-            MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, RenderToolStripMenuItem, NetPlayMnu, AboutMnu });
+            MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, RenderToolStripMenuItem, NetPlayMnu, HelpMnu });
             MainMenu.Location = new System.Drawing.Point(0, 0);
             MainMenu.Name = "MainMenu";
             MainMenu.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
@@ -312,10 +318,48 @@
             NetPlaySetMnu.Text = Properties.Resources.netplayset;
             NetPlaySetMnu.Click += NetPlaySetMnu_Click;
             // 
+            // HelpMnu
+            // 
+            HelpMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { gitHubMnu, toolStripMenuItem8, supportKoficomMnu, supportWeChatMnu, toolStripMenuItem9, AboutMnu });
+            HelpMnu.Name = "HelpMnu";
+            HelpMnu.Size = new System.Drawing.Size(64, 21);
+            HelpMnu.Text = Properties.Resources.FrmMain_InitializeComponent_Help;
+            // 
+            // gitHubMnu
+            // 
+            gitHubMnu.Name = "gitHubMnu";
+            gitHubMnu.Size = new System.Drawing.Size(192, 22);
+            gitHubMnu.Text = "GitHub(&G)";
+            gitHubMnu.Click += gitHubMnu_Click;
+            // 
+            // toolStripMenuItem8
+            // 
+            toolStripMenuItem8.Name = "toolStripMenuItem8";
+            toolStripMenuItem8.Size = new System.Drawing.Size(189, 6);
+            // 
+            // supportKoficomMnu
+            // 
+            supportKoficomMnu.Name = "supportKoficomMnu";
+            supportKoficomMnu.Size = new System.Drawing.Size(192, 22);
+            supportKoficomMnu.Text = Properties.Resources.FrmMain_InitializeComponent_SupportViaKoFi;
+            supportKoficomMnu.Click += supportKoficomMnu_Click;
+            // 
+            // supportWeChatMnu
+            // 
+            supportWeChatMnu.Name = "supportWeChatMnu";
+            supportWeChatMnu.Size = new System.Drawing.Size(192, 22);
+            supportWeChatMnu.Text = Properties.Resources.FrmMain_InitializeComponent_SupportViaWeChat;
+            supportWeChatMnu.Click += supportWeChatMnu_Click;
+            // 
+            // toolStripMenuItem9
+            // 
+            toolStripMenuItem9.Name = "toolStripMenuItem9";
+            toolStripMenuItem9.Size = new System.Drawing.Size(189, 6);
+            // 
             // AboutMnu
             // 
             AboutMnu.Name = "AboutMnu";
-            AboutMnu.Size = new System.Drawing.Size(71, 21);
+            AboutMnu.Size = new System.Drawing.Size(192, 22);
             AboutMnu.Text = Properties.Resources.about;
             AboutMnu.Click += AboutMnu_Click;
             // 
@@ -438,7 +482,7 @@
         private System.Windows.Forms.ToolStripMenuItem SysSetMnu;
         private System.Windows.Forms.ToolStripMenuItem NetPlayMnu;
         private System.Windows.Forms.ToolStripMenuItem NetPlaySetMnu;
-        private System.Windows.Forms.ToolStripMenuItem AboutMnu;
+        private System.Windows.Forms.ToolStripMenuItem HelpMnu;
         private System.Windows.Forms.ToolStripMenuItem CloseRomMnu;
         private System.Windows.Forms.ToolStripMenuItem SearchMnu;
         private System.Windows.Forms.StatusStrip StatusBar;
@@ -454,5 +498,11 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem7;
         private System.Windows.Forms.ToolStripMenuItem fullScreenF2;
         private System.Windows.Forms.Panel panel;
+        private System.Windows.Forms.ToolStripMenuItem gitHubMnu;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem8;
+        private System.Windows.Forms.ToolStripMenuItem supportKoficomMnu;
+        private System.Windows.Forms.ToolStripMenuItem supportWeChatMnu;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem9;
+        private System.Windows.Forms.ToolStripMenuItem AboutMnu;
     }
 }

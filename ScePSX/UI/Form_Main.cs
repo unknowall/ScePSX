@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.Win32;
 using ScePSX.Core.GPU;
 using ScePSX.Properties;
 using ScePSX.Render;
@@ -823,6 +823,57 @@ namespace ScePSX.UI
             ShowFrom(new FrmInput());
         }
 
+        private string GetDefaultBrowserPath()
+        {
+            using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"HTTP\shell\open\command", false))
+            {
+                if (key != null)
+                {
+                    string command = key.GetValue(null) as string;
+                    if (!string.IsNullOrEmpty(command))
+                    {
+                        int firstQuote = command.IndexOf('"');
+                        int secondQuote = command.IndexOf('"', firstQuote + 1);
+                        if (firstQuote >= 0 && secondQuote > firstQuote)
+                        {
+                            return command.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+                        }
+                    }
+                }
+                return null;
+            }
+        }
+
+        private void gitHubMnu_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(GetDefaultBrowserPath(), Resources.FrmMain_gitHubMnu);
+            } catch
+            {
+            }
+        }
+
+        private void supportKoficomMnu_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(GetDefaultBrowserPath(), "https://ko-fi.com/unknowall");
+            } catch
+            {
+            }
+        }
+
+        private void supportWeChatMnu_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(GetDefaultBrowserPath(), "https://gitee.com/unknowall/ScePSX/Others/support_via_wechat,PNG");
+            } catch
+            {
+            }
+        }
+
         private void AboutMnu_Click(object sender, EventArgs e)
         {
             ShowFrom(new FrmAbout());
@@ -1293,6 +1344,14 @@ namespace ScePSX.UI
                 if (controller1 != 0)
                 {
                     HasRumble1 = SDL_GameControllerHasRumble(controller1) == SDL_bool.SDL_TRUE;
+
+                    if (Core != null)
+                    {
+                        SimpleOSD.Show(Render._currentRenderer as UserControl, $"{SDL_JoystickNameForIndex(0)} Connected");
+                    } else
+                    {
+                        SimpleOSD.Show(romList, $"{SDL_JoystickNameForIndex(0)} Connected");
+                    }
                     Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected, Rumble: {HasRumble1}");
                     if (HasRumble1)
                         if (SDL_GameControllerRumble(controller1, 0, 0, 0) != 0)

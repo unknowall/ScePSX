@@ -489,4 +489,16 @@
   <data name="FrmAbout_FrmAbout_support" xml:space="preserve">
     <value>如果您愿意，可以请我喝一杯咖啡!</value>
   </data>
+  <data name="FrmMain_InitializeComponent_SupportViaKoFi" xml:space="preserve">
+    <value>通过Ko-Fi支持本项目</value>
+  </data>
+  <data name="FrmMain_InitializeComponent_SupportViaWeChat" xml:space="preserve">
+    <value>通过微信支持本项目</value>
+  </data>
+  <data name="FrmMain_InitializeComponent_Help" xml:space="preserve">
+    <value>帮助(&amp;H)</value>
+  </data>
+  <data name="FrmMain_gitHubMnu" xml:space="preserve">
+    <value>https://gitee.com/unknowall/ScePSX</value>
+  </data>
 </root>

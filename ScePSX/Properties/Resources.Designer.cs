@@ -817,11 +817,47 @@ namespace ScePSX.Properties {
         }
         
         /// <summary>
+        ///   查找类似 https://github.com/unknowall/ScePSX 的本地化字符串。
+        /// </summary>
+        internal static string FrmMain_gitHubMnu {
+            get {
+                return ResourceManager.GetString("FrmMain_gitHubMnu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Full Screen (F2) 的本地化字符串。
         /// </summary>
         internal static string FrmMain_InitializeComponent_FullScreenF2 {
             get {
                 return ResourceManager.GetString("FrmMain_InitializeComponent_FullScreenF2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Help(&amp;H) 的本地化字符串。
+        /// </summary>
+        internal static string FrmMain_InitializeComponent_Help {
+            get {
+                return ResourceManager.GetString("FrmMain_InitializeComponent_Help", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Support via Ko-Fi 的本地化字符串。
+        /// </summary>
+        internal static string FrmMain_InitializeComponent_SupportViaKoFi {
+            get {
+                return ResourceManager.GetString("FrmMain_InitializeComponent_SupportViaKoFi", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Support via WeChat 的本地化字符串。
+        /// </summary>
+        internal static string FrmMain_InitializeComponent_SupportViaWeChat {
+            get {
+                return ResourceManager.GetString("FrmMain_InitializeComponent_SupportViaWeChat", resourceCulture);
             }
         }
         

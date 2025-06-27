@@ -489,4 +489,16 @@
   <data name="FrmAbout_FrmAbout_support" xml:space="preserve">
     <value>If you'd like, you can buy me a coffee!</value>
   </data>
+  <data name="FrmMain_InitializeComponent_SupportViaKoFi" xml:space="preserve">
+    <value>Support via Ko-Fi</value>
+  </data>
+  <data name="FrmMain_InitializeComponent_SupportViaWeChat" xml:space="preserve">
+    <value>Support via WeChat</value>
+  </data>
+  <data name="FrmMain_InitializeComponent_Help" xml:space="preserve">
+    <value>Help(&amp;H)</value>
+  </data>
+  <data name="FrmMain_gitHubMnu" xml:space="preserve">
+    <value>https://github.com/unknowall/ScePSX</value>
+  </data>
 </root>
