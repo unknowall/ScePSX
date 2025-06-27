@@ -868,7 +868,7 @@ namespace ScePSX.UI
         {
             try
             {
-                System.Diagnostics.Process.Start(GetDefaultBrowserPath(), "https://gitee.com/unknowall/ScePSX/Others/support_via_wechat,PNG");
+                System.Diagnostics.Process.Start(GetDefaultBrowserPath(), "https://gitee.com/unknowall/ScePSX/raw/master/Others/support_via_wechat,PNG");
             } catch
             {
             }
