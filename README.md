@@ -139,7 +139,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 - **网络对战**: 支持联机对战，重温经典游戏乐趣。
 - **存档管理**: 方便管理多个游戏存档。
 
-**项目已同步至 Gitee 以及 Gitcode 国内用户可优先访问以加速下载。镜像仓库自动同步更新，确保内容一致**
+**简短演示视频：[BiliBili平台](https://www.bilibili.com/video/BV1sUKCzcEWg )**
 
 ## 性能表现 🚀
 
