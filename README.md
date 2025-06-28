@@ -15,6 +15,8 @@
 - **Online Multiplayer**: Supports networked gameplay to relive classic gaming experiences.
 - **Save Management**: Easily manage multiple save files.
 
+**Short demo video: [Bilibili](https://www.bilibili.com/video/BV1sUKCzcEWg)**
+
 ## Performance Overview 🚀
 
 | Rendering Mode | Memory Usage | Recommended Hardware | Backend Mode          |
