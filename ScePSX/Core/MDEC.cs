@@ -39,16 +39,16 @@ namespace ScePSX
 
         private Queue<ushort> inBuffer = new Queue<ushort>(1024);
 
-        private IMemoryOwner<byte> outBuffer = MemoryPool<byte>.Shared.Rent(0x60000); //MGS FMV 0ver 0x41000
+        private IMemoryOwner<byte> outBuffer = MemoryPool<byte>.Shared.Rent(0x200000); //2MB
         private int outBufferPos = 0;
 
         private int yuvToRgbBlockPos = 0;
 
-        public MDEC()
+        public unsafe MDEC()
         {
         }
 
-        public void Dispose()
+        public unsafe void Dispose()
         {
             outBuffer?.Dispose();
         }
@@ -188,7 +188,7 @@ namespace ScePSX
                     rgb[2] = (byte)B;
 
                     int position = ((x + xx + ((y + yy) * 16)) * 3) + yuvToRgbBlockPos;
-                    var dest = outBuffer.Memory.Span.Slice(position, 3);
+                    Span<byte> dest = outBuffer.Memory.Span.Slice(position, 3);
                     rgb.CopyTo(dest);
                 }
             }

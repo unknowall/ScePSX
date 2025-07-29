@@ -255,7 +255,7 @@ namespace ScePSX
             // 内存控制1：0x1F80_0400 - 0x1F80_1040  
             AddReadHandler(0x1F800400, 0x1F801040, addr => ReadMemoryControl1(addr));
 
-            // 内存控制2：0x1F80_1060 - 0x1F80_1070  
+            // 内存控制2：0x1F80_1060 - 0x1F80_1070  RamSize
             AddReadHandler(0x1F801060, 0x1F801070, addr => ReadMemoryControl2(addr));
 
             // 中断控制器：0x1F80_1070 - 0x1F80_1080  
@@ -311,7 +311,7 @@ namespace ScePSX
             // 内存控制1写入：0x1F80_0400 - 0x1F80_1040  
             AddWriteHandler(0x1F800400, 0x1F801040, (addr, value) => WriteMemoryContro1_32(addr, value));
 
-            // 内存控制2写入：0x1F80_1060 - 0x1F80_1070  
+            // 内存控制2写入：0x1F80_1060 - 0x1F80_1070  RamSize
             AddWriteHandler(0x1F801060, 0x1F801070, (addr, value) => WriteMemoryContro2_32(addr, value));
 
             // 中断控制器写入：0x1F80_1070 - 0x1F80_1080  
@@ -697,7 +697,15 @@ namespace ScePSX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe Span<uint> DmaFromRam(uint addr, uint size)
         {
-            return new Span<uint>(ramPtr + (addr & 0x1F_FFFF), (int)size);
+            uint[] buffer = new uint[size];
+            uint readAddr = addr;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = ReadRam(readAddr & 0x1F_FFFC);
+                readAddr += sizeof(uint);
+            }
+            return buffer.AsSpan();
+            //return new Span<uint>(ramPtr + (addr & 0x1F_FFFF), (int)size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

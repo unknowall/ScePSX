@@ -211,7 +211,7 @@ namespace ScePSX
             }
         }
 
-        private void CDP()
+        private void CDP_0()
         {
             Vector<int> bkVec = new Vector<int>(new int[]
             {
@@ -230,6 +230,33 @@ namespace ScePSX
             IR[1] = setIR(1, MAC1, lm);
             IR[2] = setIR(2, MAC2, lm);
             IR[3] = setIR(3, MAC3, lm);
+        }
+
+        private void CDP()
+        {
+            // [IR1, IR2, IR3] = [MAC1, MAC2, MAC3] = (BK * 1000h + LCM * IR) SAR(sf * 12)
+            MAC1 = (int)(setMAC(1, setMAC(1, setMAC(1, (long)RBK * 0x1000 + LRGB.v1.x * IR[1]) + (long)LRGB.v1.y * IR[2]) + (long)LRGB.v1.z * IR[3]) >> sf);
+            MAC2 = (int)(setMAC(2, setMAC(2, setMAC(2, (long)GBK * 0x1000 + LRGB.v2.x * IR[1]) + (long)LRGB.v2.y * IR[2]) + (long)LRGB.v2.z * IR[3]) >> sf);
+            MAC3 = (int)(setMAC(3, setMAC(3, setMAC(3, (long)BBK * 0x1000 + LRGB.v3.x * IR[1]) + (long)LRGB.v3.y * IR[2]) + (long)LRGB.v3.z * IR[3]) >> sf);
+
+            IR[1] = setIR(1, MAC1, lm);
+            IR[2] = setIR(2, MAC2, lm);
+            IR[3] = setIR(3, MAC3, lm);
+
+            MAC1 = (int)(setMAC(1, (long)RGBC.r * IR[1]) << 4);
+            MAC2 = (int)(setMAC(2, (long)RGBC.g * IR[2]) << 4);
+            MAC3 = (int)(setMAC(3, (long)RGBC.b * IR[3]) << 4);
+
+            interpolateColor(MAC1, MAC2, MAC3);
+
+            // Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE]
+            RGB[0] = RGB[1];
+            RGB[1] = RGB[2];
+
+            RGB[2].r = setRGB(1, MAC1 >> 4);
+            RGB[2].g = setRGB(2, MAC2 >> 4);
+            RGB[2].b = setRGB(3, MAC3 >> 4);
+            RGB[2].c = RGBC.c;
         }
 
         private void CC()

@@ -182,7 +182,7 @@ namespace ScePSX
                 // HACK:
                 // GPUIn: Bypass blocks to elude mdec/gpu desync as MDEC is actually too fast decoding blocks
                 // MdecIn: GranTurismo produces some artifacts that still needs to be checked otherwise it's ok on other games i've checked
-                if (channelNumber == 2 && transferDirection == 1 || channelNumber == 0)
+                if ((channelNumber == 2 && transferDirection == 1) || channelNumber == 0)
                 {
                     blockCopy(blockSize * blockCount);
                     finishDMA();
@@ -239,7 +239,7 @@ namespace ScePSX
             } else
             { //From Ram
 
-                var dma = bus.DmaFromRam(baseAddress & 0x1F_FFFC, size);
+                var dma = bus.DmaFromRam(baseAddress, size); //baseAddress & 0x1F_FFFC
 
                 switch (channelNumber)
                 {
