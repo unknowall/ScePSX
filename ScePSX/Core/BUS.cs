@@ -442,6 +442,44 @@ namespace ScePSX
             return *(uint*)(scrathpadPtr + (address & 0x3FF));
         }
 
+        public unsafe uint FixedMemoryControlAddress(uint address)
+        {
+            const uint EXPANSION1_BASE = 0x1F801000;
+            const uint EXPANSION2_BASE = 0x1F801004;
+            const uint EXPANSION1_DELAY = 0x1F801008;
+            const uint EXPANSION3_DELAY = 0x1F80100C;
+            const uint BIOS_ROM = 0x1F801010;
+            const uint SPU_DELAY = 0x1F801014;
+            const uint CDROM_DELAY = 0x1F801018;
+            const uint EXPANSION2_DELAY = 0x1F80101C;
+            const uint COMMON_DELAY = 0x1F801020;
+
+            switch (address)
+            {
+                case EXPANSION1_BASE:
+                    return 0x1F000000;
+                case EXPANSION2_BASE:
+                    return 0x1F802000;
+                case EXPANSION1_DELAY:
+                    return 0x0013243F;
+                case EXPANSION3_DELAY:
+                    return 0x00003022;
+                case BIOS_ROM:
+                    return 0x0013243F;
+                case SPU_DELAY:
+                    return 0x200931E1;
+                case CDROM_DELAY:
+                    return 0x00020843;
+                case EXPANSION2_DELAY:
+                    return 0x00070777;
+                case COMMON_DELAY:
+                    return 0x00031125;
+                default:
+                    Console.WriteLine($"[BUS] Memory Control load at address: {address:X}");
+                    return *(uint*)(memoryControl1 + (address & 0x3F));
+            }
+        }
+
         private unsafe uint ReadMemoryControl1(uint address)
         {
             return *(uint*)(memoryControl1 + (address & 0x3F));
