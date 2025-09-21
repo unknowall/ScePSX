@@ -6,7 +6,7 @@ namespace ScePSX
     public abstract class DMAChannel
     {
         public abstract void write(uint register, uint value);
-        public abstract uint read(uint regiter);
+        public abstract uint read(uint register);
     }
 
     [Serializable]

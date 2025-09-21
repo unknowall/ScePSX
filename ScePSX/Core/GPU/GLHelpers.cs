@@ -958,7 +958,7 @@ namespace ScePSX
 
     public class GLShaderStrings
     {
-        public static string ClutVertix = @"
+        public static string DrawVertix = @"
         #version 330
 
         in vec4 v_pos;
@@ -1033,7 +1033,7 @@ namespace ScePSX
 	        TexPage = v_texPage;
         }";
 
-        public static string ClutFragment = @"
+        public static string DrawFragment = @"
         #version 330
 
         in vec3 BlendColor;

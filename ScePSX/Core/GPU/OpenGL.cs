@@ -226,8 +226,8 @@ namespace ScePSX
             DrawVAO = new glVAO();
 
             ClutShader = new GlShader(
-                GLShaderStrings.ClutVertix.Split(new string[] { "\r" }, StringSplitOptions.None),
-                GLShaderStrings.ClutFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
+                GLShaderStrings.DrawVertix.Split(new string[] { "\r" }, StringSplitOptions.None),
+                GLShaderStrings.DrawFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
                 );
 
             RamViewShader = new GlShader(
@@ -588,10 +588,6 @@ namespace ScePSX
                 );
         }
 
-        private void SetPGXP(bool pgxp, bool pgxpt)
-        {
-        }
-
         public void THREADCHANGE()
         {
             if (_ThreadID != Thread.CurrentThread.ManagedThreadId)
@@ -935,6 +931,8 @@ namespace ScePSX
 
                 Gl.Uniform2(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
                 Gl.Uniform2(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
+
+                //Console.WriteLine($"[OpenGL GPU] TextureWindow set: Mask=({TextureWindowXMask},{TextureWindowYMask}) Offset=({TextureWindowXOffset},{TextureWindowYOffset})");
             }
         }
 
@@ -946,7 +944,6 @@ namespace ScePSX
             if (m_dither != dither)
             {
                 DrawBatch();
-
                 m_dither = dither;
                 Gl.Uniform1(m_ditherLoc, dither ? 1 : 0);
             }
@@ -954,9 +951,7 @@ namespace ScePSX
             if (m_TexPage.Value != vtexPage)
             {
                 DrawBatch();
-
                 m_TexPage.Value = vtexPage;
-
                 SetSemiTransparencyMode(m_TexPage.SemiTransparencymode);
 
                 if (!m_TexPage.TextureDisable)
@@ -974,7 +969,6 @@ namespace ScePSX
             else if (m_clut.Value != vclut && !m_TexPage.TextureDisable && m_TexPage.TexturePageColors < 2)
             {
                 DrawBatch();
-
                 UpdateClut(vclut);
             }
 
@@ -1490,6 +1484,7 @@ namespace ScePSX
             {
                 bgrColor = 0x808080;
             }
+
             if (!primitive.IsTextured)
             {
                 primitive.texpage = (ushort)(primitive.texpage | (1 << 11));
