@@ -14,8 +14,16 @@ using static SDL2.SDL;
 
 namespace ScePSX.UI
 {
+    //如果您想深入了解本项目的代码实现，建议使用AI辅助阅读，例如GitHub Copilot、ChatGPT、doubao、DeepSeek等
+    //推荐使用 https://www.doubao.com/chat/ 的 开源仓库解读 功能
+
+    // If you want to gain an in-depth understanding of the code implementation of this project,
+    // it is recommended to use AI-assisted reading tools such as GitHub Copilot, ChatGPT, Doubao, DeepSeek, etc.
+    // It is recommended to use the "Open Source Repository Interpretation" function of https://www.doubao.com/chat/
+
     //UI 部分的代码相当的随便，别在意，等核心功能稳定后整个重写
     //The code for the UI part is quite rough and casual — don't worry about it. It will be completely rewritten once the core functionality is stable. 
+
     public partial class FrmMain : Form, IAudioHandler, IRenderHandler, IRumbleHandler
     {
         [DllImport("kernel32.dll")]
@@ -23,7 +31,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.7.7";
+        public static string version = "ScePSX Beta 0.1.7.8";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");

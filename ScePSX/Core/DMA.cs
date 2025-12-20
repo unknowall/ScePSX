@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ScePSX
 {
@@ -162,44 +163,68 @@ namespace ScePSX
             if (!enable)
                 pendingBlocks = 0;
 
-            handleDMA();
+            HandleTransfer();
         }
 
-        private void handleDMA()
+        private void HandleTransfer()
         {
             if (!isActive() || !interrupt.isDMAControlMasterEnabled(channelNumber))
                 return;
-            if (syncMode == 0)
-            {
-                //if (choppingEnable == 1) {
-                //    Console.WriteLine($"[DMA] Chopping Syncmode 0 not supported. DmaWindow: {choppingDMAWindowSize} CpuWindow: {choppingCPUWindowSize}");
-                //}
-                blockCopy(blockSize == 0 ? 0x10_000 : blockSize);
-                finishDMA();
 
-            } else if (syncMode == 1)
-            {
-                // HACK:
-                // GPUIn: Bypass blocks to elude mdec/gpu desync as MDEC is actually too fast decoding blocks
-                // MdecIn: GranTurismo produces some artifacts that still needs to be checked otherwise it's ok on other games i've checked
-                if ((channelNumber == 2 && transferDirection == 1) || channelNumber == 0)
-                {
-                    blockCopy(blockSize * blockCount);
-                    finishDMA();
-                    return;
-                }
+            //if (syncMode == 0)
+            //{
+            //    //if (choppingEnable == 1) {
+            //    //    Console.WriteLine($"[DMA] Chopping Syncmode 0 not supported. DmaWindow: {choppingDMAWindowSize} CpuWindow: {choppingCPUWindowSize}");
+            //    //}
+            //    blockCopy(blockSize == 0 ? 0x10_000 : blockSize);
+            //    finishDMA();
 
-                trigger = false;
-                pendingBlocks = blockCount;
-                transferBlockIfPending();
-            } else if (syncMode == 2)
+            //} else if (syncMode == 1)
+            //{
+            //    // HACK:
+            //    // GPUIn: Bypass blocks to elude mdec/gpu desync as MDEC is actually too fast decoding blocks
+            //    // MdecIn: GranTurismo produces some artifacts that still needs to be checked otherwise it's ok on other games i've checked
+            //    if ((channelNumber == 2 && transferDirection == 1) || channelNumber == 0)
+            //    {
+            //        blockCopy(blockSize * blockCount);
+            //        finishDMA();
+            //        return;
+            //    }
+
+            //    trigger = false;
+            //    pendingBlocks = blockCount;
+            //    transferBlockIfPending();
+            //} else if (syncMode == 2)
+            //{
+            //    linkedList();
+            //    finishDMA();
+            //}
+
+            switch (syncMode)
             {
-                linkedList();
-                finishDMA();
+                case 0: // Immediate transfer
+                    blockCopy(blockSize == 0 ? 0x10000 : blockSize);
+                    FinishTransfer();
+                    break;
+                case 1: // Block transfer
+                    if ((channelNumber == 2 && transferDirection == 1) || channelNumber == 0)
+                    {
+                        blockCopy(blockSize * blockCount);
+                        FinishTransfer();
+                        return;
+                    }
+                    trigger = false;
+                    pendingBlocks = blockCount;
+                    transferBlockIfPending();
+                    break;
+                case 2: // Linked list transfer
+                    LinkedListTransfer();
+                    FinishTransfer();
+                    break;
             }
         }
 
-        private void finishDMA()
+        private void FinishTransfer()
         {
             enable = false;
             trigger = false;
@@ -262,7 +287,35 @@ namespace ScePSX
 
         }
 
-        private void linkedList()
+        // OTC-specific handling: Generate ordered table and cache
+        //private readonly Queue<uint> otcCache = new Queue<uint>();
+
+        //private void ProcessOtcToRam(uint size)
+        //{
+        //    if (otcCache.Count == 0)
+        //        GenerateOtcEntries((int)size);
+
+        //    var address = baseAddress;
+        //    for (var i = 0; i < size; i++)
+        //    {
+        //        if (otcCache.Count == 0)
+        //            break;
+        //        bus.WriteRam(address, otcCache.Dequeue());
+        //        address = (uint)((int)address + memoryStep) & 0xFFFFFF;
+        //    }
+        //}
+
+        //private void GenerateOtcEntries(int count)
+        //{
+        //    var current = baseAddress + (uint)(count * 4);
+        //    for (var i = 0; i < count; i++)
+        //    {
+        //        current -= 4;
+        //        otcCache.Enqueue(i == count - 1 ? 0xFFFFFF : current);
+        //    }
+        //}
+
+        private void LinkedListTransfer()
         {
             uint header = 0;
             uint linkedListHardStop = 0xFFFF; //an arbitrary value to avoid infinity linked lists as we don't run the cpu in between blocks
@@ -275,7 +328,13 @@ namespace ScePSX
 
                 if (size > 0)
                 {
+                    //if (channelNumber == 6) //OTC for ProcessOtcToRam
+                    //    baseAddress = baseAddress & 0x1ffffc;
+                    //else
+                    //    baseAddress = baseAddress + 4 & 0x1ffffc;
+
                     baseAddress = baseAddress + 4 & 0x1ffffc;
+
                     var load = bus.DmaFromRam(baseAddress, size);
                     //Console.WriteLine($"[DMA] [LinkedList] DMAtoGPU size: {load.Length}");
                     bus.DmaToGpu(load);
@@ -283,6 +342,11 @@ namespace ScePSX
 
                 if (baseAddress == (header & 0x1ffffc))
                     break; //Tekken2 hangs here if not handling this posible forever loop
+
+                if (channelNumber == 6) //OTC
+                    if (baseAddress == 0xFFFFFF || baseAddress == (header & 0x1ffffc))
+                        break;
+
                 baseAddress = header & 0x1ffffc;
             }
 
@@ -302,7 +366,7 @@ namespace ScePSX
 
                 if (pendingBlocks == 0)
                 {
-                    finishDMA();
+                    FinishTransfer();
                 }
             }
         }

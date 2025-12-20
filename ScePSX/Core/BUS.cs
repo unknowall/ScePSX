@@ -490,17 +490,17 @@ namespace ScePSX
             return *(uint*)(memoryControl2 + (address & 0xF));
         }
 
-        private unsafe void WriteRam(uint address, uint value)
+        public unsafe void WriteRam(uint address, uint value)
         {
             *(uint*)(ramPtr + (address & 0x1F_FFFF)) = value;
         }
 
-        private unsafe void WriteRam16(uint addr, ushort value)
+        public unsafe void WriteRam16(uint addr, ushort value)
         {
             *(ushort*)(ramPtr + (addr & 0x1F_FFFF)) = value;
         }
 
-        private unsafe void WriteRam8(uint addr, byte value)
+        public unsafe void WriteRam8(uint addr, byte value)
         {
             *(byte*)(ramPtr + (addr & 0x1F_FFFF)) = value;
         }

@@ -134,7 +134,7 @@ namespace ScePSX
         glVAO BlankVAO, DrawVAO;
         glBuffer VAOBuff;
 
-        GlShader ClutShader, RamViewShader, Out24Shader, Out16Shader, ResetDepthShader, DisplayShader;
+        GlShader DrawShader, RamViewShader, Out24Shader, Out16Shader, ResetDepthShader, DisplayShader;
         GlShader GetPixelsShader, UserShader;
         GLCopyShader vRamCopyShader;
 
@@ -225,7 +225,7 @@ namespace ScePSX
             BlankVAO = new glVAO();
             DrawVAO = new glVAO();
 
-            ClutShader = new GlShader(
+            DrawShader = new GlShader(
                 GLShaderStrings.DrawVertix.Split(new string[] { "\r" }, StringSplitOptions.None),
                 GLShaderStrings.DrawFragment.Split(new string[] { "\r" }, StringSplitOptions.None)
                 );
@@ -262,18 +262,18 @@ namespace ScePSX
 
             vRamCopyShader = new GLCopyShader();
 
-            m_srcBlendLoc = ClutShader.GetUniformLocation("u_srcBlend");
-            m_destBlendLoc = ClutShader.GetUniformLocation("u_destBlend");
-            m_setMaskBitLoc = ClutShader.GetUniformLocation("u_setMaskBit");
-            m_drawOpaquePixelsLoc = ClutShader.GetUniformLocation("u_drawOpaquePixels");
-            m_drawTransparentPixelsLoc = ClutShader.GetUniformLocation("u_drawTransparentPixels");
-            m_ditherLoc = ClutShader.GetUniformLocation("u_dither");
-            m_realColorLoc = ClutShader.GetUniformLocation("u_realColor");
-            m_texWindowMaskLoc = ClutShader.GetUniformLocation("u_texWindowMask");
-            m_texWindowOffsetLoc = ClutShader.GetUniformLocation("u_texWindowOffset");
-            resolutionScaleLoc = ClutShader.GetUniformLocation("u_resolutionScale");
-            pgxpLoc = ClutShader.GetUniformLocation("u_pgxp");
-            mvpLoc = ClutShader.GetUniformLocation("u_mvp");
+            m_srcBlendLoc = DrawShader.GetUniformLocation("u_srcBlend");
+            m_destBlendLoc = DrawShader.GetUniformLocation("u_destBlend");
+            m_setMaskBitLoc = DrawShader.GetUniformLocation("u_setMaskBit");
+            m_drawOpaquePixelsLoc = DrawShader.GetUniformLocation("u_drawOpaquePixels");
+            m_drawTransparentPixelsLoc = DrawShader.GetUniformLocation("u_drawTransparentPixels");
+            m_ditherLoc = DrawShader.GetUniformLocation("u_dither");
+            m_realColorLoc = DrawShader.GetUniformLocation("u_realColor");
+            m_texWindowMaskLoc = DrawShader.GetUniformLocation("u_texWindowMask");
+            m_texWindowOffsetLoc = DrawShader.GetUniformLocation("u_texWindowOffset");
+            resolutionScaleLoc = DrawShader.GetUniformLocation("u_resolutionScale");
+            pgxpLoc = DrawShader.GetUniformLocation("u_pgxp");
+            mvpLoc = DrawShader.GetUniformLocation("u_mvp");
 
             m_srcRect24Loc = Out24Shader.GetUniformLocation("u_srcRect");
             m_srcRect16Loc = Out16Shader.GetUniformLocation("u_srcRect");
@@ -285,7 +285,7 @@ namespace ScePSX
 
             VAOBuff = glBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
 
-            ClutShader.Bind();
+            DrawShader.Bind();
 
             DrawVAO.Bind();
 
@@ -297,12 +297,12 @@ namespace ScePSX
             int texPageOffset = Marshal.OffsetOf(typeof(Vertex), "v_texPage").ToInt32();
             int pgxpOffset = Marshal.OffsetOf(typeof(Vertex), "v_pos_high").ToInt32();
 
-            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos"), 4, VertexAttribPointerType.Short, false, Stride, 0);
-            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_color"), 3, VertexAttribPointerType.UnsignedByte, true, Stride, colorOffset);
-            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_texCoord"), 2, VertexAttribPointerType.Short, false, Stride, texCoordOffset);
-            DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_clut"), 1, VertexAttribIType.UnsignedShort, Stride, clutOffset);
-            DrawVAO.AddIntAttribute((uint)ClutShader.GetAttributeLocation("v_texPage"), 1, VertexAttribIType.UnsignedShort, Stride, texPageOffset);
-            DrawVAO.AddFloatAttribute((uint)ClutShader.GetAttributeLocation("v_pos_high"), 3, VertexAttribPointerType.Float, false, Stride, pgxpOffset);
+            DrawVAO.AddFloatAttribute((uint)DrawShader.GetAttributeLocation("v_pos"), 4, VertexAttribPointerType.Short, false, Stride, 0);
+            DrawVAO.AddFloatAttribute((uint)DrawShader.GetAttributeLocation("v_color"), 3, VertexAttribPointerType.UnsignedByte, true, Stride, colorOffset);
+            DrawVAO.AddFloatAttribute((uint)DrawShader.GetAttributeLocation("v_texCoord"), 2, VertexAttribPointerType.Short, false, Stride, texCoordOffset);
+            DrawVAO.AddIntAttribute((uint)DrawShader.GetAttributeLocation("v_clut"), 1, VertexAttribIType.UnsignedShort, Stride, clutOffset);
+            DrawVAO.AddIntAttribute((uint)DrawShader.GetAttributeLocation("v_texPage"), 1, VertexAttribIType.UnsignedShort, Stride, texPageOffset);
+            DrawVAO.AddFloatAttribute((uint)DrawShader.GetAttributeLocation("v_pos_high"), 3, VertexAttribPointerType.Float, false, Stride, pgxpOffset);
 
             CreateVRamFramebuffers();
 
@@ -458,7 +458,7 @@ namespace ScePSX
             Out16Shader.Dispose();
             Out24Shader.Dispose();
             RamViewShader.Dispose();
-            ClutShader.Dispose();
+            DrawShader.Dispose();
             GetPixelsShader.Dispose();
 
             //m_computeShader.Dispose();
@@ -1695,7 +1695,7 @@ namespace ScePSX
             DrawVAO.Bind();
             m_vramDrawFramebuffer.Bind();
             m_vramReadTexture.Bind();
-            ClutShader.Bind();
+            DrawShader.Bind();
 
             Gl.Disable(EnableCap.CullFace);
             Gl.Enable(EnableCap.ScissorTest);
