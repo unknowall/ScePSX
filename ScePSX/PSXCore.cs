@@ -137,6 +137,24 @@ namespace ScePSX
             }
         }
 
+        public void WaitPausedAndSync()
+        {
+            if (GPU.type == GPUType.OpenGL)
+            {
+                ((OpenglGPU)GPU).SyncVram = true;
+                while (((OpenglGPU)GPU).SyncVram)
+                {
+                    Thread.Sleep(20);
+                }
+            }
+            Pauseing = true;
+            while (!Pauseed)
+            {
+                Thread.Sleep(20);
+                Pauseing = true;
+            }
+        }
+
         public void Stop()
         {
             if (Running)
@@ -297,12 +315,7 @@ namespace ScePSX
             //    }
             //}
 
-            Pauseing = true;
-            while (!Pauseed)
-            {
-                Thread.Sleep(20);
-                Pauseing = true;
-            }
+            WaitPausedAndSync();
 
             string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
@@ -421,8 +434,10 @@ namespace ScePSX
                     }
                     ApplyCheats();
                 } else
+                {
                     Pauseed = true;
-
+                }
+                    
                 if (Boost)
                     continue;
 

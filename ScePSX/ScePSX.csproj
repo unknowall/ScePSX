@@ -56,9 +56,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="OpenGL">
-      <HintPath>..\OpenGL.dll</HintPath>
-    </Reference>
     <Reference Include="vk">
       <HintPath>..\vk.dll</HintPath>
     </Reference>

@@ -31,7 +31,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX Beta 0.1.7.8";
+        public static string version = "ScePSX Beta 0.1.7.9";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -103,6 +103,11 @@ namespace ScePSX.UI
                 Directory.CreateDirectory("./Shaders");
             if (!Path.Exists("./Icons"))
                 Directory.CreateDirectory("./Icons");
+
+            if (File.Exists("./opengl32.dll"))
+            {
+                File.Copy("./opengl32.dll","./ReShader.dll");
+            }
 
             CloseRomMnu_Click(null, null);
 
@@ -570,7 +575,7 @@ namespace ScePSX.UI
 
             if (Core != null && Core.Running)
             {
-                Core.WaitPaused();
+                Core.WaitPausedAndSync();
 
                 if (mode == RenderMode.OpenGL && (gpumode == GPUType.OpenGL || gpumode == GPUType.Advite))
                 {

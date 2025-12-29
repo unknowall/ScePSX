@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-using static OpenGL.Wgl;
+//using ScePSX.GL.Windows;
 
 namespace ScePSX.Render
 {
@@ -12,7 +12,7 @@ namespace ScePSX.Render
         public RenderMode Mode => RenderMode.Null;
 
         public static IntPtr hwnd;
-        public static IntPtr hdc;
+        //public static IntPtr hdc;
         public static IntPtr hinstance;
 
         public static int MSAA;
@@ -88,7 +88,7 @@ namespace ScePSX.Render
             base.OnHandleCreated(e);
 
             hwnd = this.Handle;
-            hdc = GetDC(this.Handle);
+            //hdc = GetDC(this.Handle);
 
             if (IntPtr.Size == 8)
             {
@@ -98,9 +98,8 @@ namespace ScePSX.Render
                 hinstance = GetWindowLong32(hwnd, -6);
             }
 
-            PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR(32);
-
-            DescribePixelFormat(hdc, 1, (uint)sizeof(PIXELFORMATDESCRIPTOR), ref pfd);
+            //PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR(32);
+            //DescribePixelFormat(hdc, 1, (uint)sizeof(PIXELFORMATDESCRIPTOR), ref pfd);
 
             ClientWidth = this.ClientSize.Width;
             ClientHeight = this.ClientSize.Height;
@@ -138,15 +137,16 @@ namespace ScePSX.Render
 
         protected override void Dispose(bool disposing)
         {
-            if (hdc != IntPtr.Zero)
-            {
-                ReleaseDC(hwnd, hdc);
-                SetWindowLongPtr(hwnd, -6, IntPtr.Zero);
+            //if (hdc != IntPtr.Zero)
+            //{
+            //    ReleaseDC(hwnd, hdc);
+            //    hdc = IntPtr.Zero;
+            //}
 
-                hdc = IntPtr.Zero;
-                hwnd = IntPtr.Zero;
-                hinstance = IntPtr.Zero;
-            }
+            SetWindowLongPtr(hwnd, -6, IntPtr.Zero);
+            hwnd = IntPtr.Zero;
+            hinstance = IntPtr.Zero;
+
             base.Dispose(disposing);
         }
 

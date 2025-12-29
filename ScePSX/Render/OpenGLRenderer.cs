@@ -3,47 +3,37 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using OpenGL;
+
+using ScePSX.GL;
+using ScePSX.GL.Utils;
 
 namespace ScePSX.Render
 {
-    class OpenGLRenderer : GlControl, IRenderer
+    class OpenGLRenderer : GLControl, IRenderer
     {
         private int[] Pixels = new int[1024 * 512];
-        private uint _textureId;
         public int iWidth = 1024;
         public int iHeight = 512;
         private ScaleParam scale;
 
         public string ShadreName = "";
 
-        private uint programID;
-        private uint vertexShaderID;
-        private uint fragmentShaderID;
-        private uint vboID;
-
         public RenderMode Mode => RenderMode.OpenGL;
 
         public OpenGLRenderer()
         {
             Load += OpenGLRenderer_Load;
-            Render += OpenGLRenderer_Render;
+            RenderFrame += OpenGLRenderer_Render;
             Resize += OpenGLRenderer_Resize;
-            programID = 0;
-
-            this.MultisampleBits = 4;
-            //this.StencilBits = 8;
-            //this.DepthBits = 24;
-            //this.ColorBits = 32;
         }
 
         private bool CheckReShadeInjection()
         {
             var modules = Process.GetCurrentProcess().Modules;
-            return modules.Cast<ProcessModule>()
-                   .Any(m => m.ModuleName.Contains("ReShade"));
+            return modules.Cast<ProcessModule>().Any(m => m.ModuleName.Contains("ReShade"));
         }
 
         public void Initialize(Control parent)
@@ -57,7 +47,7 @@ namespace ScePSX.Render
 
         public void SetParam(int Param)
         {
-            MultisampleBits = (uint)Param;
+
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -65,37 +55,53 @@ namespace ScePSX.Render
             base.OnHandleCreated(e);
         }
 
-        private void OpenGLRenderer_Load(object sender, EventArgs e)
+        GLShader Shader;
+        GLBuffer VertexBuffer;
+        GLTexture PixelsTexture;
+        GLTextureUnit TextureUnit;
+        public class ShaderInfoClass
         {
-            //Gl.Enable(EnableCap.DepthTest);
-            Gl.Enable(EnableCap.Multisample);
-            Gl.Enable(EnableCap.Texture2d);
+            public GlAttribute vertexPosition = null;
+            public GlAttribute vertexTexCoord = null;
+            public GlUniform textureSampler = null;
+        }
+        ShaderInfoClass ShaderInfo = new ShaderInfoClass();
+
+        float[] vertices = {
+                -1.0f,  1.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f,
+                 1.0f, -1.0f, 1.0f, 0.0f,
+                 1.0f,  1.0f, 1.0f, 1.0f
+            };
+
+        private unsafe void OpenGLRenderer_Load(object sender, EventArgs e)
+        {
+            Gl.Viewport(0, 0, this.ClientSize.Width, this.ClientSize.Height);
+
             Gl.ClearColor(Color.Gray.R / 255.0f, Color.Gray.G / 255.0f, Color.Gray.B / 255.0f, 0);
 
-            CreateVBO();
+            if (DesignMode)
+                return;
 
-            _textureId = Gl.GenTexture();
-            Gl.BindTexture(TextureTarget.Texture2d, _textureId);
+            VertexBuffer = GLBuffer.Create().SetData(vertices);
 
-            Gl.TextureParameterEXT(_textureId, TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, Gl.LINEAR);
-            Gl.TextureParameterEXT(_textureId, TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, Gl.LINEAR);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            PixelsTexture = GLTexture.Create().SetFormat(TextureFormat.BGRA);
+
+            TextureUnit = GLTextureUnit.CreateAtIndex(0).SetFiltering(GLScaleFilter.Nearest).SetWrap(GLWrap.ClampToEdge).SetTexture(PixelsTexture);
+
+            TextureUnit.SetFiltering(GLScaleFilter.Linear, GLScaleFilter.Linear);
+
+            TextureUnit.MakeCurrent();
 
             OpenGLRenderer_Resize(sender, e);
         }
 
         private void OpenGLRenderer_Resize(object sender, EventArgs e)
         {
-            Gl.MatrixMode(MatrixMode.Projection);
-            Gl.LoadIdentity();
             Gl.Viewport(0, 0, this.ClientSize.Width, this.ClientSize.Height);
-            Gl.Ortho(0d, 1d, 0d, 1d, -1d, 1d);
-            Gl.MatrixMode(MatrixMode.Modelview);
-            Gl.LoadIdentity();
         }
 
-        private void OpenGLRenderer_Render(object sender, GlControlEventArgs e)
+        private unsafe void OpenGLRenderer_Render()
         {
             if (this.Visible == false || DesignMode)
                 return;
@@ -108,17 +114,10 @@ namespace ScePSX.Render
                 iHeight = iHeight * scale.scale;
             }
 
-            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            Gl.UseProgram(programID);
-
-            Gl.ActiveTexture(TextureUnit.Texture0);
-            Gl.BindTexture(TextureTarget.Texture2d, _textureId);
-
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, iWidth, iHeight, 0, PixelFormat.Bgra, PixelType.UnsignedByte, Pixels);
-
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, vboID);
-            Gl.DrawArrays(PrimitiveType.Quads, 0, 4);
+            Shader.Draw(GLGeometry.GL_QUADS, 4, () =>
+            {
+                PixelsTexture.SetData<int>(Pixels).SetSize(iWidth, iHeight);
+            });
         }
 
         public void RenderBuffer(int[] pixels, int width, int height, ScaleParam scale)
@@ -137,7 +136,7 @@ namespace ScePSX.Render
             Invalidate();
         }
 
-        public void LoadShaders(string ShaderDir)
+        public unsafe void LoadShaders(string ShaderDir)
         {
             DirectoryInfo dir = new DirectoryInfo(ShaderDir);
 
@@ -147,120 +146,35 @@ namespace ScePSX.Render
                 return;
             }
 
-            string[] vertexShaderSource = null;
-            string[] fragmentShaderSource = null;
+            string vertexShaderSource = "";
+            string fragmentShaderSource = "";
 
             foreach (FileInfo f in dir.GetFiles("*.VS", SearchOption.TopDirectoryOnly))
             {
-                vertexShaderSource = File.ReadAllLines(f.FullName);
-                //Console.WriteLine($"vertexShaderSource load: {f.FullName}\n");
+                vertexShaderSource = File.ReadAllText(f.FullName);
                 break;
             }
-
             foreach (FileInfo f in dir.GetFiles("*.FS", SearchOption.TopDirectoryOnly))
             {
-                fragmentShaderSource = File.ReadAllLines(f.FullName);
+                fragmentShaderSource = File.ReadAllText(f.FullName);
                 ShadreName = Path.GetFileNameWithoutExtension(f.FullName);
-                //Console.WriteLine($"fragmentShaderSource load: {f.FullName}\n");
                 break;
             }
-
-            if (vertexShaderSource == null || fragmentShaderSource == null)
+            if (vertexShaderSource == "" || fragmentShaderSource == "")
             {
                 Console.WriteLine("[OPENGL] Missing shader files in directory");
                 return;
             }
 
-            // 创建着色器程序
-            programID = Gl.CreateProgram();
+            Shader = new GLShader(vertexShaderSource, fragmentShaderSource);
 
-            // 编译顶点着色器
-            vertexShaderID = Gl.CreateShader(ShaderType.VertexShader);
-            Gl.ShaderSource(vertexShaderID, vertexShaderSource);
-            Gl.CompileShader(vertexShaderID);
-            CheckShaderCompileStatus(vertexShaderID, "Vertex Shader");
+            Shader.BindUniformsAndAttributes(ShaderInfo);
 
-            // 编译片段着色器
-            fragmentShaderID = Gl.CreateShader(ShaderType.FragmentShader);
-            Gl.ShaderSource(fragmentShaderID, fragmentShaderSource);
-            Gl.CompileShader(fragmentShaderID);
-            CheckShaderCompileStatus(fragmentShaderID, "Fragment Shader");
+            ShaderInfo.textureSampler.Set(TextureUnit);
+            ShaderInfo.vertexPosition.SetData<float>(VertexBuffer, 2, 0, 4 * sizeof(float));
+            ShaderInfo.vertexTexCoord.SetData<float>(VertexBuffer, 2, 8, 4 * sizeof(float));
 
-            // 附加着色器并链接程序
-            Gl.AttachShader(programID, vertexShaderID);
-            Gl.AttachShader(programID, fragmentShaderID);
-            Gl.LinkProgram(programID);
-            CheckProgramLinkStatus();
-
-            // 清理着色器对象
-            Gl.DetachShader(programID, vertexShaderID);
-            Gl.DetachShader(programID, fragmentShaderID);
-            Gl.DeleteShader(vertexShaderID);
-            Gl.DeleteShader(fragmentShaderID);
-
-            // 绑定Uniform和属性
-            Gl.UseProgram(programID);
-            int samplerLoc = Gl.GetUniformLocation(programID, "textureSampler");
-            Gl.Uniform1(samplerLoc, 0); // 对应TextureUnit.Texture0
-
-            // 设置顶点属性
-            int vertexPositionLocation = Gl.GetAttribLocation(programID, "vertexPosition");
-            Gl.EnableVertexAttribArray((uint)vertexPositionLocation);
-            Gl.VertexAttribPointer((uint)vertexPositionLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), IntPtr.Zero);
-
-            int vertexTexCoordLocation = Gl.GetAttribLocation(programID, "vertexTexCoord");
-            Gl.EnableVertexAttribArray((uint)vertexTexCoordLocation);
-            Gl.VertexAttribPointer((uint)vertexTexCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (IntPtr)(2 * sizeof(float)));
-
-            Console.WriteLine($"[OPENGL] {ShadreName} Shader, {this.MultisampleBits}xMSAA");
-        }
-
-        private void CheckShaderCompileStatus(uint shaderId, string shaderName)
-        {
-            Gl.GetShader(shaderId, ShaderParameterName.CompileStatus, out int status);
-            if (status == 0)
-            {
-                Gl.GetShader(shaderId, ShaderParameterName.InfoLogLength, out int logLength);
-                if (logLength <= 0)
-                    return;
-
-                StringBuilder infoLog = new StringBuilder(logLength);
-                Gl.GetShaderInfoLog(shaderId, logLength, out int actualLength, infoLog);
-
-                string log = infoLog.ToString();
-                Console.WriteLine($"[OPENGL] {shaderName} compile error:\n{log}");
-            }
-        }
-
-        private void CheckProgramLinkStatus()
-        {
-            Gl.GetProgram(programID, ProgramProperty.LinkStatus, out int status);
-            if (status == 0)
-            {
-                Gl.GetProgram(programID, ProgramProperty.InfoLogLength, out int logLength);
-                if (logLength <= 0)
-                    return;
-
-                StringBuilder infoLog = new StringBuilder(logLength);
-                Gl.GetProgramInfoLog(programID, logLength, out int actualLength, infoLog);
-
-                string log = infoLog.ToString();
-                Console.WriteLine($"[OPENGL] Program link error:\n{log}");
-            }
-        }
-
-        private void CreateVBO()
-        {
-            float[] vertices = {
-                -1.0f,  1.0f, 0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f, 0.0f,
-                 1.0f, -1.0f, 1.0f, 0.0f,
-                 1.0f,  1.0f, 1.0f, 1.0f
-            };
-
-            vboID = Gl.GenBuffer();
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, vboID);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(sizeof(float) * vertices.Length), vertices, BufferUsage.StaticDraw);
+            Console.WriteLine($"[OPENGL] {ShadreName} Shader");
         }
 
         private void InitializeComponent()
@@ -272,13 +186,13 @@ namespace ScePSX.Render
 
         }
 
-        protected override void Dispose(bool disposing)
+        protected unsafe override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                Gl.DeleteTextures(_textureId);
-                Gl.DeleteBuffers(vboID);
-                Gl.DeleteProgram(programID);
+                Shader.Dispose();
+                VertexBuffer.Dispose();
+                PixelsTexture.Dispose();
             }
             base.Dispose(disposing);
         }

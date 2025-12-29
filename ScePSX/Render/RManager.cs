@@ -66,7 +66,7 @@ namespace ScePSX.Render
                     if (glRenderer.ShadreName == "" && oglShaderPath != "")
                         glRenderer.LoadShaders(oglShaderPath);
 
-                    glRenderer.MultisampleBits = (uint)oglMSAA;
+                    //glRenderer.MultisampleBits = (uint)oglMSAA;
                 }
 
                 if (_currentRenderer is NullRenderer nullRenderer)
