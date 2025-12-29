@@ -9,13 +9,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using ScePSX.Core.GPU;
-using ScePSX.GL;
+using LightGL;
 using ScePSX.Render;
 using static ScePSX.Core.GPU.PGXPVector;
 
@@ -248,15 +247,15 @@ namespace ScePSX
             m_displayFramebuffer.AttachTexture(FramebufferAttachment.ColorAttachment0, m_displayTexture);
             m_displayFramebuffer.Unbind();
 
-            Gl.Disable((int)EnableCap.ScissorTest);
-            Gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            Gl.ClearDepthf(1.0f);
+            GL.Disable((int)EnableCap.ScissorTest);
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            GL.ClearDepthf(1.0f);
 
             m_vramReadFramebuffer.Bind();
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
 
             m_vramDrawFramebuffer.Bind();
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
 
             ResetDirtyArea();
 
@@ -417,7 +416,7 @@ namespace ScePSX
             if (m_realColor != realColor)
             {
                 m_realColor = realColor;
-                Gl.Uniform1i(m_realColorLoc, realColor ? 1 : 0);
+                GL.Uniform1i(m_realColorLoc, realColor ? 1 : 0);
             }
         }
 
@@ -426,7 +425,7 @@ namespace ScePSX
             if (m_pgxp != pgxp)
             {
                 m_pgxp = pgxp;
-                Gl.Uniform1i(pgxpLoc, m_pgxp ? 1 : 0);
+                GL.Uniform1i(pgxpLoc, m_pgxp ? 1 : 0);
             }
         }
 
@@ -457,12 +456,12 @@ namespace ScePSX
             CreateVRamFramebuffers();
 
             // 将旧的 VRAM 数据复制到新的帧缓冲区
-            Gl.Disable((int)EnableCap.ScissorTest);
+            GL.Disable((int)EnableCap.ScissorTest);
 
             oldFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
 
             m_vramDrawFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
-            Gl.BlitFramebuffer(
+            GL.BlitFramebuffer(
                 0, 0, oldWidth, oldHeight,
                 0, 0, newWidth, newHeight,
                 (int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit,
@@ -470,7 +469,7 @@ namespace ScePSX
             );
 
             m_vramReadFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
-            Gl.BlitFramebuffer(
+            GL.BlitFramebuffer(
                 0, 0, oldWidth, oldHeight,
                 0, 0, newWidth, newHeight,
                 (int)ClearBufferMask.ColorBufferBit,
@@ -643,9 +642,9 @@ namespace ScePSX
 
             // 重置渲染状态
             m_vramDrawFramebuffer.Unbind();
-            Gl.Disable((int)EnableCap.ScissorTest);
-            Gl.Disable((int)EnableCap.Blend);
-            Gl.Disable((int)EnableCap.DepthTest);
+            GL.Disable((int)EnableCap.ScissorTest);
+            GL.Disable((int)EnableCap.Blend);
+            GL.Disable((int)EnableCap.DepthTest);
 
             BlankVAO.Bind();
 
@@ -684,21 +683,21 @@ namespace ScePSX
 
             // 清除显示纹理
             m_displayFramebuffer.Bind();
-            Gl.Viewport(0, 0, (int)targetWidth, (int)targetHeight);
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit);
+            GL.Viewport(0, 0, (int)targetWidth, (int)targetHeight);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit);
 
             // 渲染到显示纹理
             m_vramDrawTexture.Bind();
             if (ViewVRam)
             {
                 RamViewShader.Bind();
-                Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+                GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
 
             } else if (DisplayEnable)
             {
                 void SetDisplayAreaUniform(int uniform)
                 {
-                    Gl.Uniform4i(uniform, m_vramDisplayArea.x, m_vramDisplayArea.y, m_vramDisplayArea.width, m_vramDisplayArea.height);
+                    GL.Uniform4i(uniform, m_vramDisplayArea.x, m_vramDisplayArea.y, m_vramDisplayArea.width, m_vramDisplayArea.height);
                 }
 
                 if (is24bit)
@@ -712,14 +711,14 @@ namespace ScePSX
                 }
 
                 m_vramDrawTexture.Bind();
-                Gl.Viewport(
+                GL.Viewport(
                     //m_targetDisplayArea.x * resolutionScale,
                     //m_targetDisplayArea.y * resolutionScale,
                     0, 0,
                     (int)srcWidth,
                     (int)srcHeight
                 );
-                Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+                GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
             }
             m_displayFramebuffer.Unbind();
 
@@ -736,9 +735,9 @@ namespace ScePSX
             if (winWidth == 0 || winHeight == 0)
                 return (0, -1);
 
-            Gl.Viewport(0, 0, winWidth, winHeight);
-            Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit);
+            GL.Viewport(0, 0, winWidth, winHeight);
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit);
 
             if (UserShader != null && UserShader.isAlive())
                 UserShader.Bind();
@@ -767,10 +766,10 @@ namespace ScePSX
                 int renderX = (winWidth - renderWidth) / 2;
                 int renderY = (winHeight - renderHeight) / 2;
 
-                Gl.Viewport(renderX, renderY, renderWidth, renderHeight);
+                GL.Viewport(renderX, renderY, renderWidth, renderHeight);
             }
 
-            Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+            GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
 
             _DeviceContext.SwapBuffers();
 
@@ -877,8 +876,8 @@ namespace ScePSX
                 TextureWindowXOffset = (int)((value >> 10) & 0x1f);
                 TextureWindowYOffset = (int)((value >> 15) & 0x1f);
 
-                Gl.Uniform2i(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
-                Gl.Uniform2i(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
+                GL.Uniform2i(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
+                GL.Uniform2i(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
 
                 //Console.WriteLine($"[OpenGL GPU] TextureWindow set: Mask=({TextureWindowXMask},{TextureWindowYMask}) Offset=({TextureWindowXOffset},{TextureWindowYOffset})");
             }
@@ -893,7 +892,7 @@ namespace ScePSX
             {
                 DrawBatch();
                 m_dither = dither;
-                Gl.Uniform1i(m_ditherLoc, dither ? 1 : 0);
+                GL.Uniform1i(m_ditherLoc, dither ? 1 : 0);
             }
 
             if (m_TexPage.Value != vtexPage)
@@ -993,8 +992,8 @@ namespace ScePSX
             const float MaskBitAlpha = 0.0f;
             const float MaskBitDepth = 1.0f;
 
-            Gl.ClearColor(rF, gF, bF, MaskBitAlpha);
-            Gl.ClearDepthf(MaskBitDepth);
+            GL.ClearColor(rF, gF, bF, MaskBitAlpha);
+            GL.ClearDepthf(MaskBitDepth);
 
             bool wrapX = left + width > VRAM_WIDTH;
             bool wrapY = top + height > VRAM_HEIGHT;
@@ -1006,27 +1005,27 @@ namespace ScePSX
 
             // 清除第一部分（右下角）
             SetScissor(left, top, width1, height1);
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
 
             // 如果需要水平环绕
             if (wrapX)
             {
                 SetScissor(0, top, width2, height1);
-                Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+                GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
             }
 
             // 如果需要垂直环绕
             if (wrapY)
             {
                 SetScissor(left, 0, width1, height2);
-                Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+                GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
             }
 
             // 如果同时需要水平和垂直环绕
             if (wrapX && wrapY)
             {
                 SetScissor(0, 0, width2, height2);
-                Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+                GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
             }
 
             // 恢复剪裁区域
@@ -1073,11 +1072,11 @@ namespace ScePSX
                 ForceSetMaskBit
             );
 
-            Gl.Disable((int)EnableCap.Blend);
-            Gl.Disable((int)EnableCap.ScissorTest);
+            GL.Disable((int)EnableCap.Blend);
+            GL.Disable((int)EnableCap.ScissorTest);
 
             SetViewport((int)destX, (int)destY, (int)width, (int)height);
-            Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+            GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
 
             RestoreRenderState();
         }
@@ -1115,11 +1114,11 @@ namespace ScePSX
             m_vramTransferFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
             m_vramDrawFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
 
-            Gl.Disable((int)EnableCap.ScissorTest);
+            GL.Disable((int)EnableCap.ScissorTest);
 
             var srcArea = readBounds.Scale(resolutionScale);
 
-            Gl.BlitFramebuffer(
+            GL.BlitFramebuffer(
                 srcArea.Left, srcArea.Top,
                 srcArea.Right, srcArea.Bottom,
                 0, 0,
@@ -1131,11 +1130,11 @@ namespace ScePSX
             // 解包像素数据到 vram 数组
             m_vramTransferFramebuffer.Bind(FramebufferTarget.ReadFramebuffer);
 
-            Gl.PixelStorei((int)PixelStoreParameter.PackAlignment, GetPixelStoreAlignment(left, width));
-            Gl.PixelStorei((int)PixelStoreParameter.PackRowLength, VRAM_WIDTH);
+            GL.PixelStorei((int)PixelStoreParameter.PackAlignment, GetPixelStoreAlignment(left, width));
+            GL.PixelStorei((int)PixelStoreParameter.PackRowLength, VRAM_WIDTH);
             //Gl.PixelStore(PixelStoreParameter.PackRowLength, _VRAMTransfer.W);
 
-            Gl.ReadPixels(
+            GL.ReadPixels(
                 0, 0,
                 readWidth, readHeight,
                 (int)PixelFormat.Rgba,
@@ -1146,10 +1145,10 @@ namespace ScePSX
             // 恢复渲染状态
             m_vramDrawFramebuffer.Bind();
 
-            Gl.Enable((int)EnableCap.ScissorTest);
+            GL.Enable((int)EnableCap.ScissorTest);
 
-            Gl.PixelStorei((int)PixelStoreParameter.PackAlignment, 4);
-            Gl.PixelStorei((int)PixelStoreParameter.PackRowLength, 0);
+            GL.PixelStorei((int)PixelStoreParameter.PackAlignment, 4);
+            GL.PixelStorei((int)PixelStoreParameter.PackRowLength, 0);
         }
 
         public unsafe void CopyRectCPUtoVRAM(int left, int top, int width, int height)
@@ -1163,7 +1162,7 @@ namespace ScePSX
             //    Console.WriteLine($"[OpenGL GPU] CopyRectCPUtoVRAM: PGXP Vector found src ({left}, {top}) Position {highsrc}");
             //}
 
-            Gl.PixelStorei((int)PixelStoreParameter.UnpackAlignment, GetPixelStoreAlignment(left, width));
+            GL.PixelStorei((int)PixelStoreParameter.UnpackAlignment, GetPixelStoreAlignment(left, width));
 
             bool wrapX = (left + width) > VRAM_WIDTH;
             bool wrapY = (top + height) > VRAM_HEIGHT;
@@ -1208,8 +1207,8 @@ namespace ScePSX
                 float width2f = (float)width2 / width;
                 float height2f = (float)height2 / height;
 
-                Gl.Disable((int)EnableCap.Blend);
-                Gl.Disable((int)EnableCap.ScissorTest);
+                GL.Disable((int)EnableCap.Blend);
+                GL.Disable((int)EnableCap.ScissorTest);
 
                 BlankVAO.Bind();
                 vRamCopyShader.Use(0, 0, width1f, height1f, GetNormalizedDepth(), ForceSetMaskBit);
@@ -1217,14 +1216,14 @@ namespace ScePSX
 
                 // 右下角
                 SetViewport((int)left, (int)top, (int)width1, (int)height1);
-                Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+                GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
 
                 // 左下角
                 if (wrapX)
                 {
                     vRamCopyShader.SetSourceArea(width1f, 0, width2f, height1f);
                     SetViewport(0, (int)top, (int)width2, (int)height1);
-                    Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+                    GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
                 }
 
                 // 右上角
@@ -1232,7 +1231,7 @@ namespace ScePSX
                 {
                     vRamCopyShader.SetSourceArea(0, height1f, width1f, height2f);
                     SetViewport((int)left, 0, (int)width1, (int)height2);
-                    Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+                    GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
                 }
 
                 // 左上角
@@ -1240,13 +1239,13 @@ namespace ScePSX
                 {
                     vRamCopyShader.SetSourceArea(width1f, height1f, width2f, height2f);
                     SetViewport(0, 0, (int)width2, (int)height2);
-                    Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+                    GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
                 }
 
                 RestoreRenderState();
             }
 
-            Gl.PixelStorei((int)PixelStoreParameter.UnpackAlignment, 4);
+            GL.PixelStorei((int)PixelStoreParameter.UnpackAlignment, 4);
         }
 
         private void DrawBatch()
@@ -1258,9 +1257,9 @@ namespace ScePSX
 
             if (PGXP)
             {
-                Gl.Enable((int)EnableCap.DepthTest);
-                Gl.DepthFunc((int)DepthFunction.Always); //Less
-                Gl.DepthMask(true);
+                GL.Enable((int)EnableCap.DepthTest);
+                GL.DepthFunc((int)DepthFunction.Always); //Less
+                GL.DepthMask(true);
 
                 //Gl.UniformMatrix4(mvpLoc, false, mvpArray);
             }
@@ -1270,20 +1269,20 @@ namespace ScePSX
                 // 必须对带有纹理的背景和前景进行两次渲染，因为透明度可以逐像素禁用
 
                 // 仅绘制不透明像素
-                Gl.Disable((int)EnableCap.Blend);
-                Gl.Uniform1i(m_drawTransparentPixelsLoc, 0);
-                Gl.DrawArrays((int)PrimitiveType.Triangles, 0, Vertexs.Count);
+                GL.Disable((int)EnableCap.Blend);
+                GL.Uniform1i(m_drawTransparentPixelsLoc, 0);
+                GL.DrawArrays((int)PrimitiveType.Triangles, 0, Vertexs.Count);
 
                 // 仅绘制透明像素
-                Gl.Enable((int)EnableCap.Blend);
-                Gl.Uniform1i(m_drawOpaquePixelsLoc, 0);
-                Gl.Uniform1i(m_drawTransparentPixelsLoc, 1);
-                Gl.DrawArrays((int)PrimitiveType.Triangles, 0, Vertexs.Count);
+                GL.Enable((int)EnableCap.Blend);
+                GL.Uniform1i(m_drawOpaquePixelsLoc, 0);
+                GL.Uniform1i(m_drawTransparentPixelsLoc, 1);
+                GL.DrawArrays((int)PrimitiveType.Triangles, 0, Vertexs.Count);
 
-                Gl.Uniform1i(m_drawOpaquePixelsLoc, 1);
+                GL.Uniform1i(m_drawOpaquePixelsLoc, 1);
             } else
             {
-                Gl.DrawArrays((int)PrimitiveType.Triangles, 0, Vertexs.Count);
+                GL.DrawArrays((int)PrimitiveType.Triangles, 0, Vertexs.Count);
             }
             //Gl.CheckError();
             Vertexs.Clear();
@@ -1638,8 +1637,8 @@ namespace ScePSX
 
         private void CheckRenderErrors(int tag = 0)
         {
-            var error = Gl.GetError();
-            if (error != Gl.GL_NO_ERROR)
+            var error = GL.GetError();
+            if (error != GL.GL_NO_ERROR)
                 Console.WriteLine($"OpenGL {tag} Error: {error}");
         }
 
@@ -1650,21 +1649,21 @@ namespace ScePSX
             m_vramReadTexture.Bind();
             DrawShader.Bind();
 
-            Gl.Disable((int)EnableCap.CullFace);
-            Gl.Enable((int)EnableCap.ScissorTest);
-            Gl.Enable((int)EnableCap.DepthTest);
+            GL.Disable((int)EnableCap.CullFace);
+            GL.Enable((int)EnableCap.ScissorTest);
+            GL.Enable((int)EnableCap.DepthTest);
 
             UpdateScissorRect();
             UpdateBlendMode();
             UpdateMaskBits();
 
-            Gl.Uniform1i(m_drawOpaquePixelsLoc, 1);
-            Gl.Uniform1i(m_drawTransparentPixelsLoc, 1);
-            Gl.Uniform1i(m_ditherLoc, m_dither ? 1 : 0);
-            Gl.Uniform1i(m_realColorLoc, m_realColor ? 1 : 0);
-            Gl.Uniform2i(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
-            Gl.Uniform2i(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
-            Gl.Uniform1f(resolutionScaleLoc, (float)resolutionScale);
+            GL.Uniform1i(m_drawOpaquePixelsLoc, 1);
+            GL.Uniform1i(m_drawTransparentPixelsLoc, 1);
+            GL.Uniform1i(m_ditherLoc, m_dither ? 1 : 0);
+            GL.Uniform1i(m_realColorLoc, m_realColor ? 1 : 0);
+            GL.Uniform2i(m_texWindowMaskLoc, TextureWindowXMask, TextureWindowYMask);
+            GL.Uniform2i(m_texWindowOffsetLoc, TextureWindowXOffset, TextureWindowYOffset);
+            GL.Uniform1f(resolutionScaleLoc, (float)resolutionScale);
 
             SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
         }
@@ -1698,7 +1697,7 @@ namespace ScePSX
 
         private void SetViewport(int left, int top, int width, int height)
         {
-            Gl.Viewport(
+            GL.Viewport(
                 (left * resolutionScale),
                 (top * resolutionScale),
                 (width * resolutionScale),
@@ -1708,7 +1707,7 @@ namespace ScePSX
 
         private void SetScissor(int left, int top, int width, int height)
         {
-            Gl.Scissor(
+            GL.Scissor(
                 (left * resolutionScale),
                 (top * resolutionScale),
                 (width * resolutionScale),
@@ -1720,7 +1719,7 @@ namespace ScePSX
         {
             if (m_semiTransparencyEnabled)
             {
-                Gl.Enable((int)EnableCap.Blend);
+                GL.Enable((int)EnableCap.Blend);
 
                 BlendEquationMode rgbEquation = BlendEquationMode.FuncAdd;
                 float srcBlend = 1.0f;
@@ -1742,21 +1741,21 @@ namespace ScePSX
                         break;
                 }
 
-                Gl.BlendEquationSeparate((int)rgbEquation, (int)BlendEquationMode.FuncAdd);
-                Gl.BlendFuncSeparate((int)BlendingFactor.Src1Alpha, (int)BlendingFactor.Src1Color, (int)BlendingFactor.One, (int)BlendingFactor.Zero);
+                GL.BlendEquationSeparate((int)rgbEquation, (int)BlendEquationMode.FuncAdd);
+                GL.BlendFuncSeparate((int)BlendingFactor.Src1Alpha, (int)BlendingFactor.Src1Color, (int)BlendingFactor.One, (int)BlendingFactor.Zero);
 
-                Gl.Uniform1f(m_srcBlendLoc, srcBlend);
-                Gl.Uniform1f(m_destBlendLoc, destBlend);
+                GL.Uniform1f(m_srcBlendLoc, srcBlend);
+                GL.Uniform1f(m_destBlendLoc, destBlend);
             } else
             {
-                Gl.Disable((int)EnableCap.Blend);
+                GL.Disable((int)EnableCap.Blend);
             }
         }
 
         private void UpdateMaskBits()
         {
-            Gl.Uniform1i(m_setMaskBitLoc, ForceSetMaskBit ? 1 : 0);
-            Gl.DepthFunc(CheckMaskBit ? (int)DepthFunction.Lequal : (int)DepthFunction.Always);
+            GL.Uniform1i(m_setMaskBitLoc, ForceSetMaskBit ? 1 : 0);
+            GL.DepthFunc(CheckMaskBit ? (int)DepthFunction.Lequal : (int)DepthFunction.Always);
         }
 
         private void UpdateReadTexture()
@@ -1768,13 +1767,13 @@ namespace ScePSX
 
             // 绑定读取帧缓冲区
             m_vramReadFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
-            Gl.Disable((int)EnableCap.ScissorTest);
+            GL.Disable((int)EnableCap.ScissorTest);
 
             // 计算缩放后的脏区域
             var blitArea = m_dirtyArea.Scale(resolutionScale);
 
             // 将脏区域的内容从绘制帧缓冲区复制到读取帧缓冲区
-            Gl.BlitFramebuffer(
+            GL.BlitFramebuffer(
                 blitArea.Left, blitArea.Top, blitArea.Right, blitArea.Bottom,
                 blitArea.Left, blitArea.Top, blitArea.Right, blitArea.Bottom,
                 (int)ClearBufferMask.ColorBufferBit,
@@ -1784,7 +1783,7 @@ namespace ScePSX
             // 恢复绘制帧缓冲区绑定，并重新启用剪裁测试
             m_vramDrawFramebuffer.Bind(FramebufferTarget.DrawFramebuffer);
 
-            Gl.Enable((int)EnableCap.ScissorTest);
+            GL.Enable((int)EnableCap.ScissorTest);
 
             ResetDirtyArea();
         }
@@ -1795,18 +1794,18 @@ namespace ScePSX
 
             m_currentDepth = 1;
 
-            Gl.Disable((int)EnableCap.ScissorTest);
-            Gl.Disable((int)EnableCap.Blend);
-            Gl.ColorMask(false, false, false, false);
-            Gl.DepthFunc((int)DepthFunction.Always);
+            GL.Disable((int)EnableCap.ScissorTest);
+            GL.Disable((int)EnableCap.Blend);
+            GL.ColorMask(false, false, false, false);
+            GL.DepthFunc((int)DepthFunction.Always);
 
             m_vramDrawTexture.Bind();
             ResetDepthShader.Bind();
             BlankVAO.Bind();
 
-            Gl.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
+            GL.DrawArrays((int)PrimitiveType.TriangleStrip, 0, 4);
 
-            Gl.ColorMask(true, true, true, true);
+            GL.ColorMask(true, true, true, true);
 
             RestoreRenderState();
         }
@@ -1915,15 +1914,15 @@ namespace ScePSX
 
         private void Reset()
         {
-            Gl.Disable((int)EnableCap.ScissorTest);
-            Gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            Gl.ClearDepthf(1.0f);
+            GL.Disable((int)EnableCap.ScissorTest);
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            GL.ClearDepthf(1.0f);
 
             m_vramReadFramebuffer.Bind();
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
 
             m_vramDrawFramebuffer.Bind();
-            Gl.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
+            GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
 
             m_semiTransparencyMode = 0;
             m_semiTransparencyEnabled = false;

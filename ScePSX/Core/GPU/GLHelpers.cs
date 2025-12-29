@@ -3,7 +3,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using ScePSX.GL;
+
+using LightGL;
 
 namespace ScePSX
 {
@@ -32,7 +33,7 @@ namespace ScePSX
             fixed (byte* _SourceBytesPtr = SourceBytes)
             {
                 byte* SourceBytesPtr = _SourceBytesPtr;
-                Gl.ShaderSource(Shader, 1, &SourceBytesPtr, &SourceLength);
+                GL.ShaderSource(Shader, 1, &SourceBytesPtr, &SourceLength);
             }
         }
 
@@ -42,7 +43,7 @@ namespace ScePSX
             var Data = new byte[1024];
             fixed (byte* DataPtr = Data)
             {
-                Gl.GetShaderInfoLog(Shader, Data.Length, &Length, DataPtr);
+                GL.GetShaderInfoLog(Shader, Data.Length, &Length, DataPtr);
                 return Marshal.PtrToStringAnsi(new IntPtr(DataPtr), Length);
             }
         }
@@ -53,7 +54,7 @@ namespace ScePSX
             var Data = new byte[1024];
             fixed (byte* DataPtr = Data)
             {
-                Gl.GetProgramInfoLog(Program, Data.Length, &Length, DataPtr);
+                GL.GetProgramInfoLog(Program, Data.Length, &Length, DataPtr);
                 return Marshal.PtrToStringAnsi(new IntPtr(DataPtr), Length);
             }
         }
@@ -62,42 +63,42 @@ namespace ScePSX
         {
             uint vertexShader = 0;
             uint fragmentShader = 0;
-            int type = Gl.GL_VERTEX_SHADER;
+            int type = GL.GL_VERTEX_SHADER;
 
             if (frag.Length == 0)
-                type = Gl.GL_COMPUTE_SHADER;
+                type = GL.GL_COMPUTE_SHADER;
 
-            Program = Gl.CreateProgram();
+            Program = GL.CreateProgram();
 
-            vertexShader = Gl.CreateShader(type);
+            vertexShader = GL.CreateShader(type);
             ShaderSource(vertexShader, vert);
             CompileShader(vertexShader);
-            Gl.AttachShader(Program, vertexShader);
+            GL.AttachShader(Program, vertexShader);
 
             if (frag.Length > 0)
             {
-                fragmentShader = Gl.CreateShader(Gl.GL_FRAGMENT_SHADER);
+                fragmentShader = GL.CreateShader(GL.GL_FRAGMENT_SHADER);
                 ShaderSource(fragmentShader, frag);
                 CompileShader(fragmentShader);
-                Gl.AttachShader(Program, fragmentShader);
+                GL.AttachShader(Program, fragmentShader);
             }
 
             int code;
-            Gl.LinkProgram(Program);
-            Gl.GetProgramiv(Program, Gl.GL_LINK_STATUS, &code);
+            GL.LinkProgram(Program);
+            GL.GetProgramiv(Program, GL.GL_LINK_STATUS, &code);
             if (code != 1)
             {
                 Console.WriteLine($"[OpenGL GPU] Error occurred linking Program({Program})");
             }
 
-            Gl.DetachShader(Program, vertexShader);
+            GL.DetachShader(Program, vertexShader);
 
             if (frag.Length > 0)
             {
-                Gl.DetachShader(Program, fragmentShader);
-                Gl.DeleteShader(fragmentShader);
+                GL.DetachShader(Program, fragmentShader);
+                GL.DeleteShader(fragmentShader);
             }
-            Gl.DeleteShader(vertexShader);
+            GL.DeleteShader(vertexShader);
 
             Console.WriteLine($"[OpenGL GPU] LinkProgram Done!");
         }
@@ -106,13 +107,13 @@ namespace ScePSX
         {
             int status;
 
-            Gl.CompileShader(shader);
+            GL.CompileShader(shader);
 
-            Gl.GetShaderiv(shader, Gl.GL_COMPILE_STATUS, &status);
+            GL.GetShaderiv(shader, GL.GL_COMPILE_STATUS, &status);
             if (status == 0)
             {
                 int logLength;
-                Gl.GetShaderiv(shader, Gl.GL_SHADER_INFOLENGTH, &logLength);
+                GL.GetShaderiv(shader, GL.GL_SHADER_INFOLENGTH, &logLength);
                 if (logLength <= 0)
                     return;
 
@@ -127,36 +128,36 @@ namespace ScePSX
             Unbind();
 
             if (Program > 0)
-                Gl.DeleteProgram(Program);
+                GL.DeleteProgram(Program);
 
             GC.SuppressFinalize(this);
         }
 
         public void Bind()
         {
-            Gl.UseProgram(Program);
+            GL.UseProgram(Program);
         }
 
         public void Unbind()
         {
-            Gl.UseProgram(0);
+            GL.UseProgram(0);
         }
 
         public int GetAttributeLocation(string name)
         {
-            return Gl.GetAttribLocation(Program, name);
+            return GL.GetAttribLocation(Program, name);
         }
 
         public int GetUniformLocation(string name)
         {
-            return Gl.GetUniformLocation(Program, name);
+            return GL.GetUniformLocation(Program, name);
         }
 
         public void BindUniformBlock(string name, uint block)
         {
-            uint index = Gl.GetUniformBlockIndex(Program, name);
+            uint index = GL.GetUniformBlockIndex(Program, name);
 
-            Gl.UniformBlockBinding(Program, index, block);
+            GL.UniformBlockBinding(Program, index, block);
         }
 
     }
@@ -185,14 +186,14 @@ namespace ScePSX
         public void Use(float srcX, float srcY, float srcW, float srcH, float depth, bool forceMaskBit)
         {
             m_program.Bind();
-            Gl.Uniform4f(m_srcRectLoc, srcX, srcY, srcW, srcH);
-            Gl.Uniform1i(m_forceMaskBitLoc, forceMaskBit ? 1 : 0);
-            Gl.Uniform1f(m_depthLoc, depth);
+            GL.Uniform4f(m_srcRectLoc, srcX, srcY, srcW, srcH);
+            GL.Uniform1i(m_forceMaskBitLoc, forceMaskBit ? 1 : 0);
+            GL.Uniform1f(m_depthLoc, depth);
         }
 
         public void SetSourceArea(float srcX, float srcY, float srcW, float srcH)
         {
-            Gl.Uniform4f(m_srcRectLoc, srcX, srcY, srcW, srcH);
+            GL.Uniform4f(m_srcRectLoc, srcX, srcY, srcW, srcH);
         }
     }
 
@@ -217,15 +218,15 @@ namespace ScePSX
 
         public void SetParameters(int textureHeight, float threshold, float maxBlackBarRatio)
         {
-            Gl.Uniform1i(m_program.GetUniformLocation("u_textureHeight"), textureHeight);
-            Gl.Uniform1f(m_program.GetUniformLocation("u_threshold"), threshold);
-            Gl.Uniform1f(m_program.GetUniformLocation("u_maxBlackBarRatio"), maxBlackBarRatio);
+            GL.Uniform1i(m_program.GetUniformLocation("u_textureHeight"), textureHeight);
+            GL.Uniform1f(m_program.GetUniformLocation("u_threshold"), threshold);
+            GL.Uniform1f(m_program.GetUniformLocation("u_maxBlackBarRatio"), maxBlackBarRatio);
         }
 
         public void Dispatch(uint groupsX, uint groupsY, uint groupsZ)
         {
-            Gl.DispatchCompute(groupsX, groupsY, groupsZ);
-            Gl.MemoryBarrier(Gl.GL_SHADER_STORAGE_BARRIER_BIT);
+            GL.DispatchCompute(groupsX, groupsY, groupsZ);
+            GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT);
         }
 
         public void Dispose()
@@ -252,7 +253,7 @@ namespace ScePSX
         {
             uint vao = 0;
 
-            Gl.GenVertexArrays(1, &vao);
+            GL.GenVertexArrays(1, &vao);
 
             return new glVAO(vao);
         }
@@ -267,7 +268,7 @@ namespace ScePSX
             if (m_vao != 0)
             {
                 Unbind();
-                fixed (uint* ptr = &m_vao) Gl.DeleteVertexArrays(1, ptr);
+                fixed (uint* ptr = &m_vao) GL.DeleteVertexArrays(1, ptr);
                 m_vao = 0;
             }
         }
@@ -275,15 +276,15 @@ namespace ScePSX
         public unsafe void AddFloatAttribute(uint location, int size, VertexAttribPointerType type, bool normalized, int stride = 0, int offset = 0)
         {
             Bind();
-            Gl.VertexAttribPointer(location, size, (int)type, normalized, stride, (void*)offset);
-            Gl.EnableVertexAttribArray(location);
+            GL.VertexAttribPointer(location, size, (int)type, normalized, stride, (void*)offset);
+            GL.EnableVertexAttribArray(location);
         }
 
         public unsafe void AddIntAttribute(uint location, int size, VertexAttribIType type, int stride = 0, int offset = 0)
         {
             Bind();
-            Gl.VertexAttribIPointer(location, size, (int)type, stride, (void*)offset);
-            Gl.EnableVertexAttribArray(location);
+            GL.VertexAttribIPointer(location, size, (int)type, stride, (void*)offset);
+            GL.EnableVertexAttribArray(location);
         }
 
         public void Bind()
@@ -311,7 +312,7 @@ namespace ScePSX
 
         private static void Bind(uint vao)
         {
-            Gl.BindVertexArray(vao);
+            GL.BindVertexArray(vao);
             s_bound = vao;
         }
     }
@@ -334,7 +335,7 @@ namespace ScePSX
         public unsafe static glBuffer Create(BufferTarget target)
         {
             var buffer = new glBuffer(target);
-            fixed (uint* ptr = &buffer.m_buffer) Gl.GenBuffers(1, ptr);
+            fixed (uint* ptr = &buffer.m_buffer) GL.GenBuffers(1, ptr);
             //CheckRenderErrors();
             return buffer;
         }
@@ -354,7 +355,7 @@ namespace ScePSX
                 if (m_buffer == s_bound)
                     Bind(0);
 
-                fixed (uint* ptr = &m_buffer) Gl.DeleteBuffers(1, ptr);
+                fixed (uint* ptr = &m_buffer) GL.DeleteBuffers(1, ptr);
 
                 m_buffer = 0;
             }
@@ -381,11 +382,11 @@ namespace ScePSX
             {
                 fixed (void* ptr = data)
                 {
-                    Gl.BufferData((int)m_target, (uint)(size * sizeof(T)), ptr, (int)usage);
+                    GL.BufferData((int)m_target, (uint)(size * sizeof(T)), ptr, (int)usage);
                 }
             } else
             {
-                Gl.BufferData((int)m_target, (uint)(size * sizeof(T)), null, (int)usage);
+                GL.BufferData((int)m_target, (uint)(size * sizeof(T)), null, (int)usage);
             }
             //CheckRenderErrors();
         }
@@ -395,21 +396,21 @@ namespace ScePSX
             Bind();
             fixed (void* ptr = data)
             {
-                Gl.BufferSubData((int)m_target, IntPtr.Zero, (uint)(size * sizeof(T)), ptr);
+                GL.BufferSubData((int)m_target, 0, (uint)(size * sizeof(T)), ptr);
             }
             //CheckRenderErrors();
         }
 
         private void Bind(uint buffer)
         {
-            Gl.BindBuffer((int)m_target, buffer);
+            GL.BindBuffer((int)m_target, buffer);
             s_bound = buffer;
         }
 
         private static void CheckRenderErrors()
         {
-            var error = Gl.GetError();
-            if (error != Gl.GL_NO_ERROR)
+            var error = GL.GetError();
+            if (error != GL.GL_NO_ERROR)
                 Console.WriteLine($"OpenGL glBuffer Error: {error}");
         }
     }
@@ -429,7 +430,7 @@ namespace ScePSX
         public unsafe static glTexture2D Create()
         {
             var texture = new glTexture2D();
-            fixed (uint* ptr = &texture.m_texture) Gl.GenTextures(1, ptr);
+            fixed (uint* ptr = &texture.m_texture) GL.GenTextures(1, ptr);
             texture.Bind();
             texture.SetLinearFiltering(false);
             texture.SetTextureWrap(false);
@@ -458,7 +459,7 @@ namespace ScePSX
         public unsafe void UpdateImage(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, void* pixels, int mipmapLevel = 0)
         {
             Bind();
-            Gl.TexImage2D(Gl.GL_TEXTURE_2D, mipmapLevel, (int)internalColorFormat, width, height, 0, (int)pixelFormat, (int)pixelType, pixels);
+            GL.TexImage2D(GL.GL_TEXTURE_2D, mipmapLevel, (int)internalColorFormat, width, height, 0, (int)pixelFormat, (int)pixelType, pixels);
             //CheckRenderErrors();
             m_width = width;
             m_height = height;
@@ -468,13 +469,13 @@ namespace ScePSX
         {
             Bind();
             //Console.WriteLine($"OpenGL glTexture2D SubImage: {x}, {y} - {width} x {height}");
-            Gl.TexSubImage2D(Gl.GL_TEXTURE_2D, mipmapLevel, x, y, width, height, (int)pixelFormat, (int)pixelType, pixels);
+            GL.TexSubImage2D(GL.GL_TEXTURE_2D, mipmapLevel, x, y, width, height, (int)pixelFormat, (int)pixelType, pixels);
             //CheckRenderErrors();
         }
 
         protected static void Bind(uint texture)
         {
-            Gl.BindTexture(Gl.GL_TEXTURE_2D, texture);
+            GL.BindTexture(GL.GL_TEXTURE_2D, texture);
             s_bound = texture;
         }
 
@@ -497,7 +498,7 @@ namespace ScePSX
                 if (m_texture == s_bound)
                     Bind(0);
 
-                fixed (uint* TexturePtr = &m_texture) Gl.DeleteTextures(1, TexturePtr);
+                fixed (uint* TexturePtr = &m_texture) GL.DeleteTextures(1, TexturePtr);
                 m_texture = 0;
             }
 
@@ -508,15 +509,15 @@ namespace ScePSX
         public void SetLinearFiltering(bool linear)
         {
             TextureMinFilter value = linear ? TextureMinFilter.Linear : TextureMinFilter.Nearest;
-            Gl.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureMinFilter, (int)value);
-            Gl.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureMagFilter, (int)value);
+            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureMinFilter, (int)value);
+            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureMagFilter, (int)value);
         }
 
         public void SetTextureWrap(bool wrap)
         {
             TextureWrapMode value = wrap ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-            Gl.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureWrapS, (int)value);
-            Gl.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureWrapT, (int)value);
+            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureWrapS, (int)value);
+            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureWrapT, (int)value);
         }
 
         public int GetWidth() => m_width;
@@ -525,14 +526,14 @@ namespace ScePSX
 
         private static void CheckRenderErrors()
         {
-            int error = Gl.GetError();
-            if (error != Gl.GL_NO_ERROR)
+            int error = GL.GetError();
+            if (error != GL.GL_NO_ERROR)
                 Console.WriteLine($"[OpenGL GPU] glTexture2D Error: {error}");
         }
 
         public static int GetMaxTextureSize()
         {
-            int maxSize = Gl.GetInteger(Gl.GL_MAX_TEXTURE_SIZE);
+            int maxSize = GL.GetInteger(GL.GL_MAX_TEXTURE_SIZE);
             return maxSize;
         }
     }
@@ -568,7 +569,7 @@ namespace ScePSX
         public unsafe static glFramebuffer Create()
         {
             uint frameBuffer;
-            Gl.GenFramebuffers(1, &frameBuffer);
+            GL.GenFramebuffers(1, &frameBuffer);
             //CheckRenderErrors();
             return new glFramebuffer(frameBuffer);
         }
@@ -576,15 +577,15 @@ namespace ScePSX
         public int AttachTexture(FramebufferAttachment type, glTexture2D texture, int mipmapLevel = 0)
         {
             Bind();
-            Gl.FramebufferTexture2D((int)FramebufferTarget.Framebuffer, (int)type, (int)TextureTarget.Texture2d, texture.TextureID(), mipmapLevel);
+            GL.FramebufferTexture2D((int)FramebufferTarget.Framebuffer, (int)type, (int)TextureTarget.Texture2d, texture.TextureID(), mipmapLevel);
             //CheckRenderErrors();
-            return Gl.CheckFramebufferStatus((int)FramebufferTarget.Framebuffer);
+            return GL.CheckFramebufferStatus((int)FramebufferTarget.Framebuffer);
         }
 
         public bool IsComplete()
         {
             Bind();
-            return Gl.CheckFramebufferStatus((int)FramebufferTarget.Framebuffer) == (int)FramebufferStatus.Complete;
+            return GL.CheckFramebufferStatus((int)FramebufferTarget.Framebuffer) == (int)FramebufferStatus.Complete;
         }
 
         public bool Valid() => m_frameBuffer != 0;
@@ -594,7 +595,7 @@ namespace ScePSX
             if (m_frameBuffer != 0)
             {
                 Unbind();
-                fixed (uint* FrameBufferPtr = &m_frameBuffer) Gl.DeleteFramebuffers(1, FrameBufferPtr);
+                fixed (uint* FrameBufferPtr = &m_frameBuffer) GL.DeleteFramebuffers(1, FrameBufferPtr);
                 m_frameBuffer = 0;
             }
         }
@@ -621,7 +622,7 @@ namespace ScePSX
                 case FramebufferTarget.ReadFramebuffer:
                     if (s_boundRead != frameBuffer)
                     {
-                        Gl.BindFramebuffer((int)binding, frameBuffer);
+                        GL.BindFramebuffer((int)binding, frameBuffer);
                         s_boundRead = frameBuffer;
                     }
                     break;
@@ -629,7 +630,7 @@ namespace ScePSX
                 case FramebufferTarget.DrawFramebuffer:
                     if (s_boundDraw != frameBuffer)
                     {
-                        Gl.BindFramebuffer((int)binding, frameBuffer);
+                        GL.BindFramebuffer((int)binding, frameBuffer);
                         s_boundDraw = frameBuffer;
                     }
                     break;
@@ -637,7 +638,7 @@ namespace ScePSX
                 case FramebufferTarget.Framebuffer:
                     if (s_boundRead != frameBuffer || s_boundDraw != frameBuffer)
                     {
-                        Gl.BindFramebuffer((int)binding, frameBuffer);
+                        GL.BindFramebuffer((int)binding, frameBuffer);
                         s_boundRead = frameBuffer;
                         s_boundDraw = frameBuffer;
                     }
@@ -650,13 +651,13 @@ namespace ScePSX
         {
             if (s_boundRead == frameBuffer)
             {
-                Gl.BindFramebuffer((int)FramebufferTarget.ReadFramebuffer, 0);
+                GL.BindFramebuffer((int)FramebufferTarget.ReadFramebuffer, 0);
                 s_boundRead = 0;
             }
 
             if (s_boundDraw == frameBuffer)
             {
-                Gl.BindFramebuffer((int)FramebufferTarget.DrawFramebuffer, 0);
+                GL.BindFramebuffer((int)FramebufferTarget.DrawFramebuffer, 0);
                 s_boundDraw = 0;
             }
             //CheckRenderErrors();
@@ -664,8 +665,8 @@ namespace ScePSX
 
         private static void CheckRenderErrors()
         {
-            var error = Gl.GetError();
-            if (error != Gl.GL_NO_ERROR)
+            var error = GL.GetError();
+            if (error != GL.GL_NO_ERROR)
             {
                 Console.WriteLine($"[OpenGL GPU] glFramebuffer Error: {error}");
             }

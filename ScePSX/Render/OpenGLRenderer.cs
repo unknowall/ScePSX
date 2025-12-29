@@ -3,12 +3,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 
-using ScePSX.GL;
-using ScePSX.GL.Utils;
+using LightGL;
+using LightGL.Windows;
 
 namespace ScePSX.Render
 {
@@ -57,7 +55,7 @@ namespace ScePSX.Render
 
         GLShader Shader;
         GLBuffer VertexBuffer;
-        GLTexture PixelsTexture;
+        GLTexture2D PixelsTexture;
         GLTextureUnit TextureUnit;
         public class ShaderInfoClass
         {
@@ -76,29 +74,25 @@ namespace ScePSX.Render
 
         private unsafe void OpenGLRenderer_Load(object sender, EventArgs e)
         {
-            Gl.Viewport(0, 0, this.ClientSize.Width, this.ClientSize.Height);
+            OpenGLRenderer_Resize(sender, e);
 
-            Gl.ClearColor(Color.Gray.R / 255.0f, Color.Gray.G / 255.0f, Color.Gray.B / 255.0f, 0);
+            GL.ClearColor(Color.Gray.R / 255.0f, Color.Gray.G / 255.0f, Color.Gray.B / 255.0f, 0);
 
             if (DesignMode)
                 return;
 
             VertexBuffer = GLBuffer.Create().SetData(vertices);
 
-            PixelsTexture = GLTexture.Create().SetFormat(TextureFormat.BGRA);
+            PixelsTexture = GLTexture2D.Create().SetFormat(TextureFormat.BGRA);
 
-            TextureUnit = GLTextureUnit.CreateAtIndex(0).SetFiltering(GLScaleFilter.Nearest).SetWrap(GLWrap.ClampToEdge).SetTexture(PixelsTexture);
-
-            TextureUnit.SetFiltering(GLScaleFilter.Linear, GLScaleFilter.Linear);
+            TextureUnit = GLTextureUnit.CreateAtIndex(0).SetFiltering(GLScaleFilter.Linear).SetWrap(GLWrap.ClampToEdge).SetTexture(PixelsTexture);
 
             TextureUnit.MakeCurrent();
-
-            OpenGLRenderer_Resize(sender, e);
         }
 
         private void OpenGLRenderer_Resize(object sender, EventArgs e)
         {
-            Gl.Viewport(0, 0, this.ClientSize.Width, this.ClientSize.Height);
+            GL.Viewport(0, 0, this.ClientSize.Width, this.ClientSize.Height);
         }
 
         private unsafe void OpenGLRenderer_Render()
