@@ -107,10 +107,9 @@ A: Currently, only Windows is supported. Future plans include Linux/macOS suppor
 ## How to Build
 1. The project is based on .NET 8.0 framework.
 2. SDL declarations are included in the code. Place the SDL2 DLL in the build directory.
-3. For OpenGL, install the OpenGL.NET NuGet package (.NET 4.7 framework, may have compatibility issues) or manually add dependencies using OpenGL.dll (.NET 8.0 compiled).
-4. For Vulkan, use the vk NuGet package or manually add dependencies using vk.dll.
-5. If using a framework below .NET 8.0, modify the project file manually.
-6. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
+3. For Vulkan, use the vk NuGet package or manually add dependencies using vk.dll.
+4. If using a framework below .NET 8.0, modify the project file manually.
+5. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
 
 ## How to Contribute 🤝
 We welcome contributions to ScePSX, including code submissions, issue reporting, or documentation improvements. Here’s how you can participate:
@@ -119,8 +118,8 @@ We welcome contributions to ScePSX, including code submissions, issue reporting,
 - **Translation Support**: If you’re fluent in other languages, help translate README or UI text.
 
 # Downloads 📥
-- **Lightweight Version (1.51 MB)**: Core features only, ideal for quick testing.
-- **Full Version (8.02 MB)**: Includes all features (e.g., ReShade integration).
+- **Lightweight Version (1.05 MB)**: Core features only, ideal for quick testing.
+- **Full Version (5.63 MB)**: Includes all features (e.g., ReShade integration).
 - **GameDB Database**: Optional download for automatic game configuration recognition.
 - **ControllerDB Database**: Optional download for extended controller support.
 
@@ -241,11 +240,9 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 ## 如何编译
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
-3. OpenGL 可以安装 OpenGL.NET NuGet包(.net 4.7 框架，存在兼容性问题)<br>
-   或手动添加依赖项使用 OpenGL.dll (.net 8.0 编译)
-5. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
-6. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-7. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+3. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
+4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+5. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
 
 ## 如何贡献 🤝
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
@@ -260,8 +257,8 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 # 下载 📥
 
-- **轻量版 (1.51 MB)**: 仅包含核心功能，适合快速体验。
-- **完整版 (8.02 MB)**: 包含所有功能（如 ReShade 集成）。
+- **轻量版 (1.05 MB)**: 仅包含核心功能，适合快速体验。
+- **完整版 (5.63 MB)**: 包含所有功能（如 ReShade 集成）。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
