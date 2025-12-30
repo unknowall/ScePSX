@@ -16,7 +16,10 @@
     public class GLTextureUnit
     {
         internal int Index;
-        public GLTexture2D GLTexture { get; private set; }
+        public GLTexture2D GLTexture
+        {
+            get; private set;
+        }
         internal GLWrap WrapS = GLWrap.ClampToEdge;
         internal GLWrap WrapT = GLWrap.ClampToEdge;
         internal GLScaleFilter Min = GLScaleFilter.Linear;

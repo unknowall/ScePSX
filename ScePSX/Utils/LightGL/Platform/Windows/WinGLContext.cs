@@ -3,8 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
-
-using LightGL;
 using LightGL.DynamicLibrary;
 using static LightGL.GlContextFactory;
 
@@ -170,7 +168,7 @@ namespace LightGL.Windows
             _dc = GetDC(_hWnd);
             if (_dc == 0)
             {
-                Console.WriteLine($"Error GetDC HWND {_hWnd}");
+                throw new Exception($"Error GetDC HWND {_hWnd}");
             }
 
             var pfd = new PixelFormatDescriptor();
@@ -187,11 +185,11 @@ namespace LightGL.Windows
 
             var pf = ChoosePixelFormat(_dc, &pfd);
 
-            Console.WriteLine($"[OpenGL] SetPixelFormat {pf}");
+            //Console.WriteLine($"[OpenGL] SetPixelFormat {pf}");
 
             if (!SetPixelFormat(_dc, pf, &pfd))
             {
-                Console.WriteLine("Error SetPixelFormat failed.");
+                throw new Exception("Error SetPixelFormat failed.");
             }
 
             _context = Wgl.wglCreateContext(_dc);

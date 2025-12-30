@@ -188,7 +188,7 @@ namespace ScePSX
         {
         }
 
-        public void WriteDone()
+        public void TransferDone()
         {
         }
 
@@ -278,7 +278,7 @@ namespace ScePSX
             return (uint)((pixel1 << 16) | pixel0);
         }
 
-        public void SetVRAMTransfer(VRAMTransfer val)
+        public void TransferStart(VRAMTransfer val)
         {
             _VRAMTransfer = val;
         }

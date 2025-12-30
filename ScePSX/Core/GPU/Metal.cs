@@ -43,7 +43,7 @@
             return new VRAMTransfer();
         }
 
-        public void WriteDone()
+        public void TransferDone()
         {
         }
 
@@ -61,7 +61,7 @@
             return 0;
         }
 
-        public void SetVRAMTransfer(VRAMTransfer val)
+        public void TransferStart(VRAMTransfer val)
         {
         }
 

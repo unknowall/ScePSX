@@ -110,7 +110,7 @@ namespace ScePSX.Render
 
             Shader.Draw(GLGeometry.GL_QUADS, 4, () =>
             {
-                PixelsTexture.SetData<int>(Pixels).SetSize(iWidth, iHeight);
+                PixelsTexture.SetData<int>(Pixels, PixelFormat.Bgra).SetSize(iWidth, iHeight);
             });
         }
 

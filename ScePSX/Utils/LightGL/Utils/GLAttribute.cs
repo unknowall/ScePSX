@@ -9,7 +9,10 @@ namespace LightGL
         protected GLShader Shader;
         protected string Name;
         protected int Location;
-        public int ArrayLength { get; }
+        public int ArrayLength
+        {
+            get;
+        }
         protected GLValueType ValueType;
 
         protected GlUniformAttribute(GLShader shader, string name, int location, int arrayLength, GLValueType valueType)
@@ -34,8 +37,10 @@ namespace LightGL
 
         protected bool CheckValid()
         {
-            if (IsValid) return true;
-            if (!ShowWarnings) return false;
+            if (IsValid)
+                return true;
+            if (!ShowWarnings)
+                return false;
             Console.WriteLine("WARNING: Trying to set value to undefined {0}: {1}, {2}", typeof(T).Name, Name, ShowWarnings);
             throw new Exception("INVALID!");
         }
@@ -59,14 +64,16 @@ namespace LightGL
         [DebuggerHidden]
         public void Set(bool value)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             Set(value ? 1 : 0);
         }
 
         [DebuggerHidden]
         public void Set(int value)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             PrepareUsing();
             GL.Uniform1i(Location, value);
         }
@@ -119,7 +126,8 @@ namespace LightGL
         [DebuggerHidden]
         public void Set(GLTextureUnit TextureUnit)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             TextureUnit.MakeCurrent();
             if (ValueType != GLValueType.GL_SAMPLER_2D)
                 throw new Exception($"Trying to bind a TextureUnit to something not a Sampler2D : {ValueType}");
@@ -129,14 +137,16 @@ namespace LightGL
         [DebuggerHidden]
         public void Set(Vector4 vector)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             Set(new[] { vector });
         }
 
         [DebuggerHidden]
         public void Set(Vector4[] vectors)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             if (ValueType != GLValueType.GL_FLOAT_VEC4)
                 throw new InvalidOperationException("this.ValueType != GLValueType.GL_FLOAT_VEC4");
             if (ArrayLength != vectors.Length)
@@ -151,14 +161,16 @@ namespace LightGL
         [DebuggerHidden]
         public void Set(Matrix4x4 matrix)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             Set(new[] { matrix });
         }
 
         [DebuggerHidden]
         unsafe public void Set(Matrix4x4[] matrices)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             if (ValueType != GLValueType.GL_FLOAT_MAT4)
                 throw new InvalidOperationException("this.ValueType != GLValueType.GL_FLOAT_MAT4");
             if (ArrayLength != matrices.Length)
@@ -186,16 +198,23 @@ namespace LightGL
 
         public void SetData<TType>(GLBuffer buffer, int elementSize = 4, int offset = 0, int stride = 0, bool normalize = false)
         {
-            if (!CheckValid()) return;
+            if (!CheckValid())
+                return;
             PrepareUsing();
             int glType;
             var type = typeof(TType);
-            if (type == typeof(float)) glType = GL.GL_FLOAT;
-            else if (type == typeof(short)) glType = GL.GL_SHORT;
-            else if (type == typeof(ushort)) glType = GL.GL_UNSIGNED_SHORT;
-            else if (type == typeof(sbyte)) glType = GL.GL_BYTE;
-            else if (type == typeof(byte)) glType = GL.GL_UNSIGNED_BYTE;
-            else throw new Exception("Invalid type " + type);
+            if (type == typeof(float))
+                glType = GL.GL_FLOAT;
+            else if (type == typeof(short))
+                glType = GL.GL_SHORT;
+            else if (type == typeof(ushort))
+                glType = GL.GL_UNSIGNED_SHORT;
+            else if (type == typeof(sbyte))
+                glType = GL.GL_BYTE;
+            else if (type == typeof(byte))
+                glType = GL.GL_UNSIGNED_BYTE;
+            else
+                throw new Exception("Invalid type " + type);
 
             buffer.Bind();
             GL.VertexAttribPointer(
@@ -203,6 +222,38 @@ namespace LightGL
                 elementSize,
                 glType,
                 normalize,
+                stride,
+                (void*)offset
+            );
+            buffer.Unbind();
+            Enable();
+        }
+
+        public void SetIntData<TType>(GLBuffer buffer, int elementSize = 4, int offset = 0, int stride = 0)
+        {
+            if (!CheckValid())
+                return;
+            PrepareUsing();
+            int glType;
+            var type = typeof(TType);
+            if (type == typeof(float))
+                glType = GL.GL_FLOAT;
+            else if (type == typeof(short))
+                glType = GL.GL_SHORT;
+            else if (type == typeof(ushort))
+                glType = GL.GL_UNSIGNED_SHORT;
+            else if (type == typeof(sbyte))
+                glType = GL.GL_BYTE;
+            else if (type == typeof(byte))
+                glType = GL.GL_UNSIGNED_BYTE;
+            else
+                throw new Exception("Invalid type " + type);
+
+            buffer.Bind();
+            GL.VertexAttribIPointer(
+                (uint)Location,
+                elementSize,
+                glType,
                 stride,
                 (void*)offset
             );

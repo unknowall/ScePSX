@@ -115,8 +115,7 @@ namespace LightGL
             if (VertexShaderCompileStatus == 0 || FragmentShaderCompileStatus == 0)
             {
                 Console.WriteLine("Shader ERROR: {0}, {1}", VertexShaderInfo, FragmentShaderInfo);
-            }
-            else
+            } else
             {
                 Console.WriteLine("OpenGL Shader Compiled.");
             }
@@ -141,7 +140,8 @@ namespace LightGL
 
         public GlUniform GetUniform(string Name)
         {
-            if (_Uniforms.ContainsKey(Name + "[0]")) Name = Name + "[0]";
+            if (_Uniforms.ContainsKey(Name + "[0]"))
+                Name = Name + "[0]";
             return _Uniforms.TryGetValue(Name, out var uniform) ? uniform : new GlUniform(this, Name, -1, 0, GLValueType.GL_BYTE);
         }
 
@@ -298,8 +298,7 @@ namespace LightGL
                 if (Field.FieldType == typeof(GlAttribute))
                 {
                     Field.SetValue(Object, GetAttribute(Field.Name));
-                }
-                else if (Field.FieldType == typeof(GlUniform))
+                } else if (Field.FieldType == typeof(GlUniform))
                 {
                     Field.SetValue(Object, GetUniform(Field.Name));
                 }

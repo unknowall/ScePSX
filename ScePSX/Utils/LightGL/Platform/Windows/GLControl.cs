@@ -2,8 +2,6 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-using LightGL;
-
 namespace LightGL.Windows
 {
     unsafe public class GLControl : UserControl

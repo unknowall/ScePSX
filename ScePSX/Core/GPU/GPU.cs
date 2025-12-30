@@ -172,7 +172,7 @@ namespace ScePSX
                 Backend.SelectMode(type);
             }
 
-            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
+            Backend.GPU.TransferStart(_VRAMTransfer);
 
             Backend.GPU.SetMaskBit(SetMaskBit_value);
 
@@ -518,7 +518,7 @@ namespace ScePSX
 
             if (--_VRAMTransfer.HalfWords == 0)
             {
-                Backend.GPU.WriteDone();
+                Backend.GPU.TransferDone();
                 _Mode = GPMode.COMMAND;
                 return;
             }
@@ -527,7 +527,7 @@ namespace ScePSX
 
             if (--_VRAMTransfer.HalfWords == 0)
             {
-                Backend.GPU.WriteDone();
+                Backend.GPU.TransferDone();
                 _Mode = GPMode.COMMAND;
             }
         }
@@ -881,7 +881,7 @@ namespace ScePSX
             _VRAMTransfer.currentpos = 0;
             _VRAMTransfer.isRead = false;
 
-            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
+            Backend.GPU.TransferStart(_VRAMTransfer);
 
             _Mode = GPMode.VRAM;
         }
@@ -908,7 +908,7 @@ namespace ScePSX
             _VRAMTransfer.currentpos = 0;
             _VRAMTransfer.isRead = true;
 
-            Backend.GPU.SetVRAMTransfer(_VRAMTransfer);
+            Backend.GPU.TransferStart(_VRAMTransfer);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

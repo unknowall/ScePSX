@@ -39,11 +39,11 @@ namespace ScePSX
 
         void WriteToVRAM(ushort value);
 
-        void WriteDone();
+        void TransferDone();
 
         void SetMaskBit(uint val);
 
-        void SetVRAMTransfer(VRAMTransfer val);
+        void TransferStart(VRAMTransfer val);
 
         void SetDrawingAreaTopLeft(TDrawingArea value);
 

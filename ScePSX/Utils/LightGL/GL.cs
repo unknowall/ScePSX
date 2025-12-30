@@ -453,6 +453,7 @@ namespace LightGL
         public const int GL_RGB = 0x1907;
         public const int GL_RGBA = 0x1908;
         public const int GL_BGRA = 0x80E1;
+        public const int GL_RGBA8 = 0x8058;
         public const int GL_LUMINANCE = 0x1909;
         public const int GL_LUMINANCE_ALPHA = 0x190A;
         public const int GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033;
@@ -679,8 +680,10 @@ namespace LightGL
 
         public static void GetDepthRange(float near, float far)
         {
-            if (DepthRangef != null) DepthRangef(near, far);
-            else DepthRange(near, far);
+            if (DepthRangef != null)
+                DepthRangef(near, far);
+            else
+                DepthRange(near, far);
         }
 
         public static readonly glDetachShader DetachShader;
@@ -836,9 +839,9 @@ namespace LightGL
             try
             {
                 var Error = GetError();
-                if (Error != GL_NO_ERROR) throw new Exception($"{prefix} glError: 0x{Error:X4}");
-            }
-            finally
+                if (Error != GL_NO_ERROR)
+                    throw new Exception($"{prefix} glError: 0x{Error:X4}");
+            } finally
             {
                 ClearError();
             }
@@ -849,8 +852,7 @@ namespace LightGL
             if (EnableDisable)
             {
                 Enable(EnableCap);
-            }
-            else
+            } else
             {
                 Disable(EnableCap);
             }

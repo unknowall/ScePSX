@@ -1,11 +1,9 @@
 ﻿using System;
-
 using LightGL.Android;
+using LightGL.DynamicLibrary;
 using LightGL.Linux;
 using LightGL.Mac;
 using LightGL.Windows;
-
-using LightGL.DynamicLibrary;
 
 namespace LightGL
 {
@@ -22,7 +20,7 @@ namespace LightGL
         public static IGlContext CreateWindowless() => CreateFromWindowHandle(IntPtr.Zero);
 
         public static IGlContext CreateFromWindowHandle(
-            IntPtr windowHandle, int Major = 3, int Minor = 3, 
+            IntPtr windowHandle, int Major = 3, int Minor = 3,
             GlProfile arbProfile = GlProfile.Compatibility) =>
             Platform.OS switch
             {

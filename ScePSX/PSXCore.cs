@@ -437,7 +437,7 @@ namespace ScePSX
                 {
                     Pauseed = true;
                 }
-                    
+
                 if (Boost)
                     continue;
 

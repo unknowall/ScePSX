@@ -10,9 +10,12 @@ namespace LightGL.DynamicLibrary
 
         public static IDynamicLibrary CreateForLibrary(string nameWindows, string nameLinux = null, string nameMac = null, string nameAndroid = null)
         {
-            if (nameLinux == null) nameLinux = nameWindows;
-            if (nameMac == null) nameMac = nameLinux;
-            if (nameAndroid == null) nameAndroid = nameLinux;
+            if (nameLinux == null)
+                nameLinux = nameWindows;
+            if (nameMac == null)
+                nameMac = nameLinux;
+            if (nameAndroid == null)
+                nameAndroid = nameLinux;
 
             switch (Platform.OS)
             {
@@ -42,7 +45,8 @@ namespace LightGL.DynamicLibrary
                     return new DynamicLibraryWindows(name);
                 case OS.Mac:
                     return new DynamicLibraryMac(name);
-                default: return new DynamicLibraryPosix(name);
+                default:
+                    return new DynamicLibraryPosix(name);
             }
         }
 
@@ -51,14 +55,15 @@ namespace LightGL.DynamicLibrary
             var type = typeof(TType);
             foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
             {
-                if (!field.FieldType.IsSubclassOf(typeof(Delegate))) continue;
-                if (field.GetValue(null) != null) continue;
-                var method = dynamicLibrary.GetMethod(prefix+field.Name);
+                if (!field.FieldType.IsSubclassOf(typeof(Delegate)))
+                    continue;
+                if (field.GetValue(null) != null)
+                    continue;
+                var method = dynamicLibrary.GetMethod(prefix + field.Name);
                 if (method != nint.Zero)
                 {
                     field.SetValue(null, Marshal.GetDelegateForFunctionPointer(method, field.FieldType));
-                }
-                else
+                } else
                 {
                     Console.WriteLine($"GetProcAddress {name} Not Found {field.Name} : {method}");
                 }

@@ -44,8 +44,7 @@ namespace LightGL.DynamicLibrary
                     if (OS == OS.Windows)
                     {
                         _Architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
-                    }
-                    else
+                    } else
                     {
                         try
                         {
@@ -53,8 +52,7 @@ namespace LightGL.DynamicLibrary
                             //_Architecture = Result.OutputString;
                             //_Architecture = Environment.GetEnvironmentVariable("HOSTTYPE");
                             //_Architecture = Environment.GetEnvironmentVariable("MACHTYPE");
-                        }
-                        catch
+                        } catch
                         {
                             _Architecture = "Can't get arch";
                         }
@@ -62,7 +60,8 @@ namespace LightGL.DynamicLibrary
                 }
                 switch (_Architecture)
                 {
-                    case "AMD64": return Architecture.x64;
+                    case "AMD64":
+                        return Architecture.x64;
                 }
                 return (Architecture)Enum.Parse(typeof(Architecture), _Architecture);
             }
@@ -87,8 +86,7 @@ namespace LightGL.DynamicLibrary
                     if (IsRunningOnMac())
                     {
                         OS = OS.Mac;
-                    }
-                    else
+                    } else
                     {
                         OS = OS.Linux;
                     }
@@ -276,7 +274,10 @@ namespace LightGL.DynamicLibrary
             InternalWindows.ShowWindow(hwnd, SW_HIDE);
         }
 
-        public static bool IsMono { get; private set; }
+        public static bool IsMono
+        {
+            get; private set;
+        }
 
         [DllImport("libc")]
         static extern int uname(nint buf);
@@ -294,11 +295,9 @@ namespace LightGL.DynamicLibrary
                     if (os == "Darwin")
                         return true;
                 }
-            }
-            catch
+            } catch
             {
-            }
-            finally
+            } finally
             {
                 if (buf != nint.Zero)
                 {

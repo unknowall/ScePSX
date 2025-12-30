@@ -61,7 +61,7 @@ namespace LightGL.Linux
 
         private LinuxGlContext(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile)
         {
-            Console.WriteLine( "InitialWindowHandle:{0:X8}", new UIntPtr(windowHandle.ToPointer()).ToUInt64());
+            Console.WriteLine("InitialWindowHandle:{0:X8}", new UIntPtr(windowHandle.ToPointer()).ToUInt64());
             const int width = 128;
             const int height = 128;
             int fbcount;
@@ -213,7 +213,8 @@ namespace LightGL.Linux
 
         public IGlContext MakeCurrent()
         {
-            if (GLX.glXMakeCurrent(Display, WindowHandle, Context)) return this;
+            if (GLX.glXMakeCurrent(Display, WindowHandle, Context))
+                return this;
             GL.CheckError();
             Console.WriteLine("glXMakeCurrent failed");
             return this;

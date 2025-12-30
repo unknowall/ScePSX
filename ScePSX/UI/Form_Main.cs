@@ -104,9 +104,9 @@ namespace ScePSX.UI
             if (!Path.Exists("./Icons"))
                 Directory.CreateDirectory("./Icons");
 
-            if (File.Exists("./opengl32.dll"))
+            if (File.Exists("./opengl32.dll") && !File.Exists("./ReShader.dll"))
             {
-                File.Copy("./opengl32.dll","./ReShader.dll");
+                File.Copy("./opengl32.dll", "./ReShader.dll");
             }
 
             CloseRomMnu_Click(null, null);

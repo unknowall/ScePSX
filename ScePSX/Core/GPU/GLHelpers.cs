@@ -1,226 +1,78 @@
 ﻿
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows.Forms;
 
 using LightGL;
 
 namespace ScePSX
 {
-    public class GlShader : IDisposable
-    {
-        public uint Program;
-
-        public GlShader()
-        {
-        }
-
-        public GlShader(string vert, string frag)
-        {
-            LoadShader(vert, frag);
-        }
-
-        public bool isAlive()
-        {
-            return Program > 0;
-        }
-
-        private unsafe void ShaderSource(uint Shader, string Source)
-        {
-            var SourceBytes = new UTF8Encoding(false, true).GetBytes(Source);
-            var SourceLength = SourceBytes.Length;
-            fixed (byte* _SourceBytesPtr = SourceBytes)
-            {
-                byte* SourceBytesPtr = _SourceBytesPtr;
-                GL.ShaderSource(Shader, 1, &SourceBytesPtr, &SourceLength);
-            }
-        }
-
-        private unsafe string GetShaderInfoLog(uint Shader)
-        {
-            int Length;
-            var Data = new byte[1024];
-            fixed (byte* DataPtr = Data)
-            {
-                GL.GetShaderInfoLog(Shader, Data.Length, &Length, DataPtr);
-                return Marshal.PtrToStringAnsi(new IntPtr(DataPtr), Length);
-            }
-        }
-
-        private unsafe string GetProgramInfoLog(uint Program)
-        {
-            int Length;
-            var Data = new byte[1024];
-            fixed (byte* DataPtr = Data)
-            {
-                GL.GetProgramInfoLog(Program, Data.Length, &Length, DataPtr);
-                return Marshal.PtrToStringAnsi(new IntPtr(DataPtr), Length);
-            }
-        }
-
-        private unsafe void LoadShader(string vert, string frag)
-        {
-            uint vertexShader = 0;
-            uint fragmentShader = 0;
-            int type = GL.GL_VERTEX_SHADER;
-
-            if (frag.Length == 0)
-                type = GL.GL_COMPUTE_SHADER;
-
-            Program = GL.CreateProgram();
-
-            vertexShader = GL.CreateShader(type);
-            ShaderSource(vertexShader, vert);
-            CompileShader(vertexShader);
-            GL.AttachShader(Program, vertexShader);
-
-            if (frag.Length > 0)
-            {
-                fragmentShader = GL.CreateShader(GL.GL_FRAGMENT_SHADER);
-                ShaderSource(fragmentShader, frag);
-                CompileShader(fragmentShader);
-                GL.AttachShader(Program, fragmentShader);
-            }
-
-            int code;
-            GL.LinkProgram(Program);
-            GL.GetProgramiv(Program, GL.GL_LINK_STATUS, &code);
-            if (code != 1)
-            {
-                Console.WriteLine($"[OpenGL GPU] Error occurred linking Program({Program})");
-            }
-
-            GL.DetachShader(Program, vertexShader);
-
-            if (frag.Length > 0)
-            {
-                GL.DetachShader(Program, fragmentShader);
-                GL.DeleteShader(fragmentShader);
-            }
-            GL.DeleteShader(vertexShader);
-
-            Console.WriteLine($"[OpenGL GPU] LinkProgram Done!");
-        }
-
-        private unsafe void CompileShader(uint shader)
-        {
-            int status;
-
-            GL.CompileShader(shader);
-
-            GL.GetShaderiv(shader, GL.GL_COMPILE_STATUS, &status);
-            if (status == 0)
-            {
-                int logLength;
-                GL.GetShaderiv(shader, GL.GL_SHADER_INFOLENGTH, &logLength);
-                if (logLength <= 0)
-                    return;
-
-                var infoLog = GetShaderInfoLog(shader);
-
-                Console.WriteLine($"[OpenGL GPU] Compile error:\r\n{infoLog}\r\n");
-            }
-        }
-
-        public void Dispose()
-        {
-            Unbind();
-
-            if (Program > 0)
-                GL.DeleteProgram(Program);
-
-            GC.SuppressFinalize(this);
-        }
-
-        public void Bind()
-        {
-            GL.UseProgram(Program);
-        }
-
-        public void Unbind()
-        {
-            GL.UseProgram(0);
-        }
-
-        public int GetAttributeLocation(string name)
-        {
-            return GL.GetAttribLocation(Program, name);
-        }
-
-        public int GetUniformLocation(string name)
-        {
-            return GL.GetUniformLocation(Program, name);
-        }
-
-        public void BindUniformBlock(string name, uint block)
-        {
-            uint index = GL.GetUniformBlockIndex(Program, name);
-
-            GL.UniformBlockBinding(Program, index, block);
-        }
-
-    }
-
     public class GLCopyShader : IDisposable
     {
-        private GlShader m_program;
-        private int m_srcRectLoc;
-        private int m_forceMaskBitLoc;
-        private int m_depthLoc;
+        private GLShader Shader;
+
+        public class ShaderInfo
+        {
+            public GlUniform u_srcRect = null;
+            public GlUniform u_forceMaskBit = null;
+            public GlUniform u_maskedDepth = null;
+        }
+        ShaderInfo shaderInfo = new ShaderInfo();
 
         public GLCopyShader()
         {
-            m_program = new GlShader(GLShaderStrings.VRamCopyVertex,GLShaderStrings.VRamCopyFragment);
-
-            m_srcRectLoc = m_program.GetUniformLocation("u_srcRect");
-            m_forceMaskBitLoc = m_program.GetUniformLocation("u_forceMaskBit");
-            m_depthLoc = m_program.GetUniformLocation("u_maskedDepth");
+            Shader = new GLShader(GLShaderStrings.VRamCopyVertex, GLShaderStrings.VRamCopyFragment);
+            Shader.BindUniformsAndAttributes(shaderInfo);
         }
 
         public void Dispose()
         {
-            m_program.Dispose();
+            Shader.Dispose();
         }
 
         public void Use(float srcX, float srcY, float srcW, float srcH, float depth, bool forceMaskBit)
         {
-            m_program.Bind();
-            GL.Uniform4f(m_srcRectLoc, srcX, srcY, srcW, srcH);
-            GL.Uniform1i(m_forceMaskBitLoc, forceMaskBit ? 1 : 0);
-            GL.Uniform1f(m_depthLoc, depth);
+            Shader.Use();
+            shaderInfo.u_srcRect.Set(srcX, srcY, srcW, srcH);
+            shaderInfo.u_forceMaskBit.Set(forceMaskBit ? 1 : 0);
+            shaderInfo.u_maskedDepth.Set(depth);
         }
 
         public void SetSourceArea(float srcX, float srcY, float srcW, float srcH)
         {
-            GL.Uniform4f(m_srcRectLoc, srcX, srcY, srcW, srcH);
+            shaderInfo.u_srcRect.Set(srcX, srcY, srcW, srcH);
         }
     }
 
     public class GLComputeShader : IDisposable
     {
-        private GlShader m_program;
-        private int m_topCropLoc;
-        private int m_bottomCropLoc;
+        private GLShader Shader;
+
+        public class ShaderInfo
+        {
+            public GlUniform u_topCrop = null;
+            public GlUniform u_bottomCrop = null;
+            public GlUniform u_textureHeight = null;
+            public GlUniform u_threshold = null;
+            public GlUniform u_maxBlackBarRatio = null;
+        }
+        ShaderInfo shaderInfo = new ShaderInfo();
 
         public GLComputeShader()
         {
-            m_program = new GlShader(GLShaderStrings.ComputeCropShader,"");
-
-            m_topCropLoc = m_program.GetUniformLocation("u_topCrop");
-            m_bottomCropLoc = m_program.GetUniformLocation("u_bottomCrop");
+            Shader = new GLShader(GLShaderStrings.ComputeCropShader);
+            Shader.BindUniformsAndAttributes(shaderInfo);
         }
 
-        public void Bind()
+        public void Use()
         {
-            m_program.Bind();
+            Shader.Use();
         }
 
         public void SetParameters(int textureHeight, float threshold, float maxBlackBarRatio)
         {
-            GL.Uniform1i(m_program.GetUniformLocation("u_textureHeight"), textureHeight);
-            GL.Uniform1f(m_program.GetUniformLocation("u_threshold"), threshold);
-            GL.Uniform1f(m_program.GetUniformLocation("u_maxBlackBarRatio"), maxBlackBarRatio);
+            shaderInfo.u_textureHeight.Set(textureHeight);
+            shaderInfo.u_threshold.Set(threshold);
+            shaderInfo.u_maxBlackBarRatio.Set(maxBlackBarRatio);
         }
 
         public void Dispatch(uint groupsX, uint groupsY, uint groupsZ)
@@ -231,445 +83,7 @@ namespace ScePSX
 
         public void Dispose()
         {
-            m_program.Dispose();
-        }
-    }
-
-    public class glVAO : IDisposable
-    {
-        private uint m_vao = 0;
-        private static uint s_bound = 0;
-
-        public glVAO()
-        {
-        }
-
-        private glVAO(uint vao)
-        {
-            m_vao = vao;
-        }
-
-        public unsafe static glVAO Create()
-        {
-            uint vao = 0;
-
-            GL.GenVertexArrays(1, &vao);
-
-            return new glVAO(vao);
-        }
-
-        public bool Valid()
-        {
-            return m_vao != 0;
-        }
-
-        public unsafe void Reset()
-        {
-            if (m_vao != 0)
-            {
-                Unbind();
-                fixed (uint* ptr = &m_vao) GL.DeleteVertexArrays(1, ptr);
-                m_vao = 0;
-            }
-        }
-
-        public unsafe void AddFloatAttribute(uint location, int size, VertexAttribPointerType type, bool normalized, int stride = 0, int offset = 0)
-        {
-            Bind();
-            GL.VertexAttribPointer(location, size, (int)type, normalized, stride, (void*)offset);
-            GL.EnableVertexAttribArray(location);
-        }
-
-        public unsafe void AddIntAttribute(uint location, int size, VertexAttribIType type, int stride = 0, int offset = 0)
-        {
-            Bind();
-            GL.VertexAttribIPointer(location, size, (int)type, stride, (void*)offset);
-            GL.EnableVertexAttribArray(location);
-        }
-
-        public void Bind()
-        {
-            if (m_vao != s_bound)
-            {
-                Bind(m_vao);
-            }
-        }
-
-        public static void Unbind()
-        {
-            if (s_bound != 0)
-            {
-                Bind(0);
-            }
-        }
-
-        public void Dispose()
-        {
-            Reset();
-
-            GC.SuppressFinalize(this);
-        }
-
-        private static void Bind(uint vao)
-        {
-            GL.BindVertexArray(vao);
-            s_bound = vao;
-        }
-    }
-
-    public class glBuffer : IDisposable
-    {
-        public uint m_buffer = 0;
-        private static uint s_bound;
-        private readonly BufferTarget m_target;
-
-        public glBuffer(BufferTarget target) => m_target = target;
-
-        public void Dispose()
-        {
-            Reset();
-
-            GC.SuppressFinalize(this);
-        }
-
-        public unsafe static glBuffer Create(BufferTarget target)
-        {
-            var buffer = new glBuffer(target);
-            fixed (uint* ptr = &buffer.m_buffer) GL.GenBuffers(1, ptr);
-            //CheckRenderErrors();
-            return buffer;
-        }
-
-        public static glBuffer Create<T>(BufferTarget target, BufferUsage usage, int size, T[] data = null) where T : unmanaged
-        {
-            var buffer = Create(target);
-            buffer.SetData(usage, size, data);
-            //CheckRenderErrors();
-            return buffer;
-        }
-
-        public unsafe void Reset()
-        {
-            if (m_buffer != 0)
-            {
-                if (m_buffer == s_bound)
-                    Bind(0);
-
-                fixed (uint* ptr = &m_buffer) GL.DeleteBuffers(1, ptr);
-
-                m_buffer = 0;
-            }
-        }
-
-        public unsafe bool Valid() => m_buffer != 0;
-
-        public unsafe void Bind()
-        {
-            if (m_buffer != s_bound)
-                Bind(m_buffer);
-        }
-
-        public unsafe void Unbind()
-        {
-            if (s_bound != 0)
-                Bind(0);
-        }
-
-        public unsafe void SetData<T>(BufferUsage usage, int size, T[] data = null) where T : unmanaged
-        {
-            Bind();
-            if (data != null)
-            {
-                fixed (void* ptr = data)
-                {
-                    GL.BufferData((int)m_target, (uint)(size * sizeof(T)), ptr, (int)usage);
-                }
-            } else
-            {
-                GL.BufferData((int)m_target, (uint)(size * sizeof(T)), null, (int)usage);
-            }
-            //CheckRenderErrors();
-        }
-
-        public unsafe void SubData<T>(int size, T[] data) where T : unmanaged
-        {
-            Bind();
-            fixed (void* ptr = data)
-            {
-                GL.BufferSubData((int)m_target, 0, (uint)(size * sizeof(T)), ptr);
-            }
-            //CheckRenderErrors();
-        }
-
-        private void Bind(uint buffer)
-        {
-            GL.BindBuffer((int)m_target, buffer);
-            s_bound = buffer;
-        }
-
-        private static void CheckRenderErrors()
-        {
-            var error = GL.GetError();
-            if (error != GL.GL_NO_ERROR)
-                Console.WriteLine($"OpenGL glBuffer Error: {error}");
-        }
-    }
-
-    public class glTexture2D : IDisposable
-    {
-        private int m_width = 0;
-        private int m_height = 0;
-
-        protected uint m_texture = 0;
-        protected static uint s_bound = 0;
-
-        public glTexture2D()
-        {
-        }
-
-        public unsafe static glTexture2D Create()
-        {
-            var texture = new glTexture2D();
-            fixed (uint* ptr = &texture.m_texture) GL.GenTextures(1, ptr);
-            texture.Bind();
-            texture.SetLinearFiltering(false);
-            texture.SetTextureWrap(false);
-            //CheckRenderErrors();
-            return texture;
-        }
-
-        public uint TextureID()
-        {
-            return m_texture;
-        }
-
-        public void Dispose()
-        {
-            Reset();
-            GC.SuppressFinalize(this);
-        }
-
-        public unsafe static glTexture2D Create(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, void* pixels, int mipmapLevel = 0)
-        {
-            var texture = Create();
-            texture.UpdateImage(internalColorFormat, width, height, pixelFormat, pixelType, pixels, mipmapLevel);
-            return texture;
-        }
-
-        public unsafe void UpdateImage(InternalFormat internalColorFormat, int width, int height, PixelFormat pixelFormat, PixelType pixelType, void* pixels, int mipmapLevel = 0)
-        {
-            Bind();
-            GL.TexImage2D(GL.GL_TEXTURE_2D, mipmapLevel, (int)internalColorFormat, width, height, 0, (int)pixelFormat, (int)pixelType, pixels);
-            //CheckRenderErrors();
-            m_width = width;
-            m_height = height;
-        }
-
-        public unsafe void SubImage(int x, int y, int width, int height, PixelFormat pixelFormat, PixelType pixelType, void* pixels, int mipmapLevel = 0)
-        {
-            Bind();
-            //Console.WriteLine($"OpenGL glTexture2D SubImage: {x}, {y} - {width} x {height}");
-            GL.TexSubImage2D(GL.GL_TEXTURE_2D, mipmapLevel, x, y, width, height, (int)pixelFormat, (int)pixelType, pixels);
-            //CheckRenderErrors();
-        }
-
-        protected static void Bind(uint texture)
-        {
-            GL.BindTexture(GL.GL_TEXTURE_2D, texture);
-            s_bound = texture;
-        }
-
-        public void Bind()
-        {
-            if (m_texture != s_bound)
-                Bind(m_texture);
-        }
-
-        public static void Unbind()
-        {
-            if (s_bound != 0)
-                Bind(0);
-        }
-
-        public unsafe void Reset()
-        {
-            if (m_texture != 0)
-            {
-                if (m_texture == s_bound)
-                    Bind(0);
-
-                fixed (uint* TexturePtr = &m_texture) GL.DeleteTextures(1, TexturePtr);
-                m_texture = 0;
-            }
-
-            m_width = 0;
-            m_height = 0;
-        }
-
-        public void SetLinearFiltering(bool linear)
-        {
-            TextureMinFilter value = linear ? TextureMinFilter.Linear : TextureMinFilter.Nearest;
-            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureMinFilter, (int)value);
-            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureMagFilter, (int)value);
-        }
-
-        public void SetTextureWrap(bool wrap)
-        {
-            TextureWrapMode value = wrap ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureWrapS, (int)value);
-            GL.TexParameteri((int)TextureTarget.Texture2d, (int)TextureParameterName.TextureWrapT, (int)value);
-        }
-
-        public int GetWidth() => m_width;
-
-        public int GetHeight() => m_height;
-
-        private static void CheckRenderErrors()
-        {
-            int error = GL.GetError();
-            if (error != GL.GL_NO_ERROR)
-                Console.WriteLine($"[OpenGL GPU] glTexture2D Error: {error}");
-        }
-
-        public static int GetMaxTextureSize()
-        {
-            int maxSize = GL.GetInteger(GL.GL_MAX_TEXTURE_SIZE);
-            return maxSize;
-        }
-    }
-
-    public class glFramebuffer : IDisposable
-    {
-        private uint m_frameBuffer = 0;
-
-        private static uint s_boundRead = 0;
-        private static uint s_boundDraw = 0;
-
-        public glFramebuffer()
-        {
-
-        }
-
-        public glFramebuffer(glFramebuffer other) : this(other.m_frameBuffer)
-        {
-            other.m_frameBuffer = 0;
-        }
-
-        private glFramebuffer(uint frameBuffer)
-        {
-            m_frameBuffer = frameBuffer;
-        }
-
-        public void Dispose()
-        {
-            Reset();
-            GC.SuppressFinalize(this);
-        }
-
-        public unsafe static glFramebuffer Create()
-        {
-            uint frameBuffer;
-            GL.GenFramebuffers(1, &frameBuffer);
-            //CheckRenderErrors();
-            return new glFramebuffer(frameBuffer);
-        }
-
-        public int AttachTexture(FramebufferAttachment type, glTexture2D texture, int mipmapLevel = 0)
-        {
-            Bind();
-            GL.FramebufferTexture2D((int)FramebufferTarget.Framebuffer, (int)type, (int)TextureTarget.Texture2d, texture.TextureID(), mipmapLevel);
-            //CheckRenderErrors();
-            return GL.CheckFramebufferStatus((int)FramebufferTarget.Framebuffer);
-        }
-
-        public bool IsComplete()
-        {
-            Bind();
-            return GL.CheckFramebufferStatus((int)FramebufferTarget.Framebuffer) == (int)FramebufferStatus.Complete;
-        }
-
-        public bool Valid() => m_frameBuffer != 0;
-
-        public unsafe void Reset()
-        {
-            if (m_frameBuffer != 0)
-            {
-                Unbind();
-                fixed (uint* FrameBufferPtr = &m_frameBuffer) GL.DeleteFramebuffers(1, FrameBufferPtr);
-                m_frameBuffer = 0;
-            }
-        }
-
-        public void Bind(FramebufferTarget binding = FramebufferTarget.Framebuffer)
-        {
-            BindImp(binding, m_frameBuffer);
-        }
-
-        public void Unbind()
-        {
-            UnbindImp(m_frameBuffer);
-        }
-
-        public static void Unbind(FramebufferTarget binding)
-        {
-            BindImp(binding, 0);
-        }
-
-        private static void BindImp(FramebufferTarget binding, uint frameBuffer)
-        {
-            switch (binding)
-            {
-                case FramebufferTarget.ReadFramebuffer:
-                    if (s_boundRead != frameBuffer)
-                    {
-                        GL.BindFramebuffer((int)binding, frameBuffer);
-                        s_boundRead = frameBuffer;
-                    }
-                    break;
-
-                case FramebufferTarget.DrawFramebuffer:
-                    if (s_boundDraw != frameBuffer)
-                    {
-                        GL.BindFramebuffer((int)binding, frameBuffer);
-                        s_boundDraw = frameBuffer;
-                    }
-                    break;
-
-                case FramebufferTarget.Framebuffer:
-                    if (s_boundRead != frameBuffer || s_boundDraw != frameBuffer)
-                    {
-                        GL.BindFramebuffer((int)binding, frameBuffer);
-                        s_boundRead = frameBuffer;
-                        s_boundDraw = frameBuffer;
-                    }
-                    break;
-            }
-            //CheckRenderErrors();
-        }
-
-        private static void UnbindImp(uint frameBuffer)
-        {
-            if (s_boundRead == frameBuffer)
-            {
-                GL.BindFramebuffer((int)FramebufferTarget.ReadFramebuffer, 0);
-                s_boundRead = 0;
-            }
-
-            if (s_boundDraw == frameBuffer)
-            {
-                GL.BindFramebuffer((int)FramebufferTarget.DrawFramebuffer, 0);
-                s_boundDraw = 0;
-            }
-            //CheckRenderErrors();
-        }
-
-        private static void CheckRenderErrors()
-        {
-            var error = GL.GetError();
-            if (error != GL.GL_NO_ERROR)
-            {
-                Console.WriteLine($"[OpenGL GPU] glFramebuffer Error: {error}");
-            }
+            Shader.Dispose();
         }
     }
 

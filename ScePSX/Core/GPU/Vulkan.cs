@@ -1575,7 +1575,7 @@ namespace ScePSX
             textureBlocks.Add(new TextureBlock { x = originX, y = originY, width = width, height = height });
         }
 
-        public unsafe void SetVRAMTransfer(VRAMTransfer val)
+        public unsafe void TransferStart(VRAMTransfer val)
         {
             _VRAMTransfer = val;
 
@@ -1617,7 +1617,7 @@ namespace ScePSX
             _VRAMTransfer.Y++;
         }
 
-        public void WriteDone()
+        public void TransferDone()
         {
             CopyRectCPUtoVRAM(_VRAMTransfer.OriginX, _VRAMTransfer.OriginY, _VRAMTransfer.W, _VRAMTransfer.H);
         }

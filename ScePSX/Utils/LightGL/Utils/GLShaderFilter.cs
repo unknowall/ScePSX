@@ -5,7 +5,7 @@ namespace LightGL
 {
     public class GLShaderFilter : IDisposable
     {
-        private GLFrameBuffer RenderTarget;
+        private GLRenderTarget RenderTarget;
         private GLBuffer PositionBuffer;
         private GLBuffer TexcoordsBuffer;
         private GLShader Shader;
@@ -72,7 +72,7 @@ namespace LightGL
             {
                 //Console.WriteLine("{0}x{1}", Width, Height);
                 RenderTarget?.Dispose();
-                RenderTarget = GLFrameBuffer.Create(Width, Height, TargetLayers.Color);
+                RenderTarget = GLRenderTarget.Create(Width, Height, TargetLayers.Color);
                 //this.RenderTarget = GLRenderTarget.Create(Width, Height);
             }
 
