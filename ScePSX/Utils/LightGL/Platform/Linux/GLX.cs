@@ -58,7 +58,10 @@ namespace LightGL.Linux
 
         public static string QueryExtensionsString(IntPtr dpy, int screen)
         {
-            return Marshal.PtrToStringAnsi(glXQueryExtensionsString(dpy, screen));
+            var ret = Marshal.PtrToStringAnsi(glXQueryExtensionsString(dpy, screen));
+            if (ret == null)
+                return string.Empty;
+            return ret;
         }
 
         public static void DestroyContext(IntPtr dpy, ContextHandle context)

@@ -140,20 +140,20 @@ namespace ScePSX
         bool m_semiTransparencyEnabled = false;
         byte m_semiTransparencyMode = 0;
 
-        glTexPage m_TexPage;
+        PsTexPage m_TexPage;
 
-        glClutAttribute m_clut;
+        PsClutAttribute m_clut;
 
-        glRectangle<int> m_dirtyArea, m_clutArea, m_textureArea;
+        PsRectangle<int> m_dirtyArea, m_clutArea, m_textureArea;
 
         [StructLayout(LayoutKind.Sequential)]
         struct Vertex
         {
-            public glPosition v_pos;
-            public glColor v_color;
-            public glTexCoord v_texCoord;
-            public glClutAttribute v_clut;
-            public glTexPage v_texPage;
+            public PsPosition v_pos;
+            public PsColor v_color;
+            public PsTexCoord v_texCoord;
+            public PsClutAttribute v_clut;
+            public PsTexPage v_texPage;
             public Vector3 v_pos_high;
         }
 
@@ -821,7 +821,7 @@ namespace ScePSX
                     int texBaseX = m_TexPage.TexturePageBaseX * TexturePageBaseXMult;
                     int texBaseY = m_TexPage.TexturePageBaseY * TexturePageBaseYMult;
                     int texSize = ColorModeTexturePageWidths[m_TexPage.TexturePageColors];
-                    m_textureArea = glRectangle<int>.FromExtents(texBaseX, texBaseY, texSize, texSize);
+                    m_textureArea = PsRectangle<int>.FromExtents(texBaseX, texBaseY, texSize, texSize);
 
                     if (m_TexPage.TexturePageColors < 2)
                         UpdateClut(vclut);
@@ -952,8 +952,8 @@ namespace ScePSX
             if (srcX == destX && srcY == destY)
                 return;
 
-            var srcBounds = glRectangle<int>.FromExtents(srcX, srcY, width, height);
-            var destBounds = glRectangle<int>.FromExtents(destX, destY, width, height);
+            var srcBounds = PsRectangle<int>.FromExtents(srcX, srcY, width, height);
+            var destBounds = PsRectangle<int>.FromExtents(destX, destY, width, height);
 
             if (m_dirtyArea.Intersects(srcBounds))
             {
@@ -1207,7 +1207,7 @@ namespace ScePSX
 
         public void DrawLineBatch(bool isDithered, bool SemiTransparency)
         {
-            glTexPage tp = new glTexPage();
+            PsTexPage tp = new PsTexPage();
             tp.TextureDisable = true;
             SetDrawMode(tp.Value, 0, isDithered);
 
@@ -1223,11 +1223,11 @@ namespace ScePSX
 
             Vertex[] vertices = new Vertex[4];
 
-            glPosition p1 = new glPosition();
+            PsPosition p1 = new PsPosition();
             p1.x = (short)v1;
             p1.y = (short)(v1 >> 16);
 
-            glPosition p2 = new glPosition();
+            PsPosition p2 = new PsPosition();
             p2.x = (short)v2;
             p2.y = (short)(v2 >> 16);
 
@@ -1250,9 +1250,9 @@ namespace ScePSX
             {
                 // 渲染一个点，使用第一个颜色
                 vertices[0].v_pos = p1;
-                vertices[1].v_pos = new glPosition((short)(p1.x + 1), p1.y);
-                vertices[2].v_pos = new glPosition(p1.x, (short)(p1.y + 1));
-                vertices[3].v_pos = new glPosition((short)(p1.x + 1), (short)(p1.y + 1));
+                vertices[1].v_pos = new PsPosition((short)(p1.x + 1), p1.y);
+                vertices[2].v_pos = new PsPosition(p1.x, (short)(p1.y + 1));
+                vertices[3].v_pos = new PsPosition((short)(p1.x + 1), (short)(p1.y + 1));
 
                 vertices[0].v_color.Value = c1;
                 vertices[1].v_color.Value = c1;
@@ -1304,10 +1304,10 @@ namespace ScePSX
                 short x2 = (short)(p2.x + padX2);
                 short y2 = (short)(p2.y + padY2);
 
-                vertices[0].v_pos = new glPosition(x1, y1);
-                vertices[1].v_pos = new glPosition((short)(x1 + fillDx), (short)(y1 + fillDy));
-                vertices[2].v_pos = new glPosition(x2, y2);
-                vertices[3].v_pos = new glPosition((short)(x2 + fillDx), (short)(y2 + fillDy));
+                vertices[0].v_pos = new PsPosition(x1, y1);
+                vertices[1].v_pos = new PsPosition((short)(x1 + fillDx), (short)(y1 + fillDy));
+                vertices[2].v_pos = new PsPosition(x2, y2);
+                vertices[3].v_pos = new PsPosition((short)(x2 + fillDx), (short)(y2 + fillDy));
 
                 vertices[0].v_color.Value = c1;
                 vertices[1].v_color.Value = c1;
@@ -1779,16 +1779,16 @@ namespace ScePSX
             int clutBaseY = m_clut.Y * ClutBaseYMult;
             int clutWidth = ColorModeClutWidths[m_TexPage.TexturePageColors];
             int clutHeight = 1;
-            m_clutArea = glRectangle<int>.FromExtents(clutBaseX, clutBaseY, clutWidth, clutHeight);
+            m_clutArea = PsRectangle<int>.FromExtents(clutBaseX, clutBaseY, clutWidth, clutHeight);
         }
 
-        private bool IntersectsTextureData(glRectangle<int> bounds)
+        private bool IntersectsTextureData(PsRectangle<int> bounds)
         {
             return !m_TexPage.TextureDisable &&
                    (m_textureArea.Intersects(bounds) || (m_TexPage.TexturePageColors < 2 && m_clutArea.Intersects(bounds)));
         }
 
-        private glRectangle<int> GetWrappedBounds(int left, int top, int width, int height)
+        private PsRectangle<int> GetWrappedBounds(int left, int top, int width, int height)
         {
             if (left + width > VRAM_WIDTH)
             {
@@ -1802,7 +1802,7 @@ namespace ScePSX
                 height = VRAM_HEIGHT;
             }
 
-            return glRectangle<int>.FromExtents(left, top, width, height);
+            return PsRectangle<int>.FromExtents(left, top, width, height);
         }
 
         private void ResetDirtyArea()
@@ -1813,7 +1813,7 @@ namespace ScePSX
             m_dirtyArea.Bottom = 0;
         }
 
-        private void GrowDirtyArea(glRectangle<int> bounds)
+        private void GrowDirtyArea(PsRectangle<int> bounds)
         {
             // 检查 bounds 是否需要覆盖待处理的批处理多边形
             if (m_dirtyArea.Intersects(bounds))
@@ -1852,9 +1852,9 @@ namespace ScePSX
 
             ResetDirtyArea();
 
-            m_textureArea = new glRectangle<int>();
+            m_textureArea = new PsRectangle<int>();
 
-            m_clutArea = new glRectangle<int>();
+            m_clutArea = new PsRectangle<int>();
 
             m_currentDepth = 1;
 

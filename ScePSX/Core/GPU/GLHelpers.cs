@@ -87,7 +87,7 @@ namespace ScePSX
         }
     }
 
-    public struct glRectangle<T> where T : struct, IComparable<T>
+    public struct PsRectangle<T> where T : struct, IComparable<T>
     {
         public T Left
         {
@@ -106,7 +106,7 @@ namespace ScePSX
             get; set;
         }
 
-        public glRectangle(T left, T top, T right, T bottom)
+        public PsRectangle(T left, T top, T right, T bottom)
         {
             Left = left;
             Top = top;
@@ -126,13 +126,13 @@ namespace ScePSX
             return (int)(dBottom - dTop);
         }
 
-        public static glRectangle<T> FromExtents(T left, T top, T width, T height)
+        public static PsRectangle<T> FromExtents(T left, T top, T width, T height)
         {
             dynamic dLeft = left, dTop = top, dWidth = width, dHeight = height;
-            return new glRectangle<T>(left, top, dLeft + dWidth, dTop + dHeight);
+            return new PsRectangle<T>(left, top, dLeft + dWidth, dTop + dHeight);
         }
 
-        public bool Intersects(glRectangle<T> other)
+        public bool Intersects(PsRectangle<T> other)
         {
             return Left.CompareTo(other.Right) < 0 &&
                    Right.CompareTo(other.Left) > 0 &&
@@ -140,7 +140,7 @@ namespace ScePSX
                    Bottom.CompareTo(other.Top) > 0;
         }
 
-        public void Grow(glRectangle<T> bounds)
+        public void Grow(PsRectangle<T> bounds)
         {
             if (bounds.Left.CompareTo(Left) < 0)
                 Left = bounds.Left;
@@ -169,9 +169,9 @@ namespace ScePSX
             Bottom = (T)(object)(Convert.ToInt32(Bottom) * scale);
         }
 
-        public glRectangle<int> Scale(float scale)
+        public PsRectangle<int> Scale(float scale)
         {
-            return new glRectangle<int>(
+            return new PsRectangle<int>(
                 (int)(Convert.ToInt32(Left) * scale),
                 (int)(Convert.ToInt32(Top) * scale),
                 (int)(Convert.ToInt32(Right) * scale),
@@ -191,14 +191,14 @@ namespace ScePSX
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct glPosition
+    public struct PsPosition
     {
         public short x;
         public short y;
         public short z;
         public short w;
 
-        public glPosition()
+        public PsPosition()
         {
             x = 0;
             y = 0;
@@ -206,7 +206,7 @@ namespace ScePSX
             w = 1;
         }
 
-        public glPosition(short x_, short y_)
+        public PsPosition(short x_, short y_)
         {
             x = x_;
             y = y_;
@@ -214,7 +214,7 @@ namespace ScePSX
             w = 1;
         }
 
-        public glPosition(uint param)
+        public PsPosition(uint param)
         {
             x = (short)((param << 5) >> 5);
             y = (short)((param >> 11) >> 5);
@@ -222,14 +222,14 @@ namespace ScePSX
             w = 1;
         }
 
-        public static glPosition operator +(glPosition lhs, glPosition rhs)
+        public static PsPosition operator +(PsPosition lhs, PsPosition rhs)
         {
-            return new glPosition((short)(lhs.x + rhs.x), (short)(lhs.y + rhs.y));
+            return new PsPosition((short)(lhs.x + rhs.x), (short)(lhs.y + rhs.y));
         }
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct glColor
+    public struct PsColor
     {
         private uint value;
 
@@ -266,7 +266,7 @@ namespace ScePSX
             set => this.value = value;
         }
 
-        public glColor(byte r, byte g, byte b)
+        public PsColor(byte r, byte g, byte b)
         {
             value = 0;
             R = r;
@@ -275,7 +275,7 @@ namespace ScePSX
             Command = 0;
         }
 
-        public glColor(uint gpuParam)
+        public PsColor(uint gpuParam)
         {
             value = gpuParam;
         }
@@ -287,24 +287,24 @@ namespace ScePSX
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct glTexCoord
+    public struct PsTexCoord
     {
         public short u;
         public short v;
 
-        public glTexCoord()
+        public PsTexCoord()
         {
             u = 0;
             v = 0;
         }
 
-        public glTexCoord(short u_, short v_)
+        public PsTexCoord(short u_, short v_)
         {
             u = u_;
             v = v_;
         }
 
-        public glTexCoord(uint gpuParam)
+        public PsTexCoord(uint gpuParam)
         {
             u = (short)(gpuParam & 0xff);
             v = (short)((gpuParam >> 8) & 0xff);
@@ -312,7 +312,7 @@ namespace ScePSX
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct glClutAttribute
+    public struct PsClutAttribute
     {
         public const ushort WriteMask = 0x7FFF; // 低 15 位
 
@@ -338,7 +338,7 @@ namespace ScePSX
             set => this.value = (ushort)((this.value & ~(0x1FF << 6)) | ((value & 0x1FF) << 6)); // 设置第 6-14 位
         }
 
-        public glClutAttribute(ushort v)
+        public PsClutAttribute(ushort v)
         {
             value = (ushort)(v & WriteMask);
         }
@@ -350,7 +350,7 @@ namespace ScePSX
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct glTexPage
+    public struct PsTexPage
     {
         public const ushort WriteMask = 0x09FF; //低 12 位
 
@@ -397,7 +397,7 @@ namespace ScePSX
             set => this.value = (ushort)((this.value & ~(1 << 11)) | ((value ? 1 : 0) << 11)); // 设置第 11 位
         }
 
-        public glTexPage(ushort v)
+        public PsTexPage(ushort v)
         {
             value = (ushort)(v & WriteMask);
         }

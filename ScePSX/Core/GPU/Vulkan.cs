@@ -1775,7 +1775,7 @@ namespace ScePSX
 
         public void DrawLineBatch(bool isDithered, bool SemiTransparency)
         {
-            glTexPage tp = new glTexPage();
+            PsTexPage tp = new PsTexPage();
 
             tp.TextureDisable = true;
 

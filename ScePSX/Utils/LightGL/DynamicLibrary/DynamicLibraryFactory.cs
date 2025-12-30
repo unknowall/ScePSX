@@ -8,7 +8,7 @@ namespace LightGL.DynamicLibrary
     {
         static string name;
 
-        public static IDynamicLibrary CreateForLibrary(string nameWindows, string nameLinux = null, string nameMac = null, string nameAndroid = null)
+        public static IDynamicLibrary CreateForLibrary(string nameWindows, string nameLinux = "", string nameMac = "", string nameAndroid = "")
         {
             if (nameLinux == null)
                 nameLinux = nameWindows;

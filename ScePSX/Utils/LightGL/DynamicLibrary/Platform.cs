@@ -43,13 +43,17 @@ namespace LightGL.DynamicLibrary
                     //Environment.OSVersion
                     if (OS == OS.Windows)
                     {
+#pragma warning disable CS8601
                         _Architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+#pragma warning restore CS8601
+                        if (_Architecture == null)
+                            _Architecture = "Can't get arch";
                     } else
                     {
                         try
                         {
-                            //var Result = ProcessUtils.ExecuteCommand("uname", "-m");
-                            //_Architecture = Result.OutputString;
+                            var Result = ProcessUtils.ExecuteCommand("uname", "-m");
+                            _Architecture = Result.OutputString;
                             //_Architecture = Environment.GetEnvironmentVariable("HOSTTYPE");
                             //_Architecture = Environment.GetEnvironmentVariable("MACHTYPE");
                         } catch
@@ -122,7 +126,10 @@ namespace LightGL.DynamicLibrary
             private static extern nint _strerror(int errno);
             public static string strerror(int errno)
             {
-                return Marshal.PtrToStringAnsi(_strerror(errno));
+                var ret = Marshal.PtrToStringAnsi(_strerror(errno));
+                if (ret == null)
+                    return string.Empty;
+                return ret;
             }
 #endif
 

@@ -310,7 +310,9 @@ namespace LightGL
                     {
                         if (Field.FieldType == typeof(int))
                         {
+#pragma warning disable CS8605
                             Constants[(int)Field.GetValue(null)] = Field.Name;
+#pragma warning restore CS8605
                         }
                     }
                 }
@@ -718,7 +720,12 @@ namespace LightGL
         }
 
         //public static string GetString(int Name) => Marshal.PtrToStringAnsi(new intptr(glGetString(Name)));
-        public static string GetStringStr(int Name) => Marshal.PtrToStringAnsi(GetString(Name));
+        public static string GetStringStr(int Name)
+        {
+            var str = Marshal.PtrToStringAnsi(GetString(Name));
+            if (str == null) return "";
+            return str;
+        }
 
         public static readonly glGenTextures GenTextures;
         public static readonly glGetActiveAttrib GetActiveAttrib;
