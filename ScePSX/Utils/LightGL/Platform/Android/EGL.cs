@@ -86,6 +86,86 @@ namespace LightGL.Android
             return eglGetErrorString(eglGetError());
         }
 
+        public readonly struct EGLDisplay
+        {
+            public readonly IntPtr Handle;
+            public EGLDisplay(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLDisplay d) => d.Handle;
+            public static implicit operator EGLDisplay(IntPtr p) => new EGLDisplay(p);
+            public static implicit operator EGLDisplay(int v) => new EGLDisplay((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLContext
+        {
+            public readonly IntPtr Handle;
+            public EGLContext(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLContext c) => c.Handle;
+            public static implicit operator EGLContext(IntPtr p) => new EGLContext(p);
+            public static implicit operator EGLContext(int v) => new EGLContext((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLConfig
+        {
+            public readonly IntPtr Handle;
+            public EGLConfig(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLConfig c) => c.Handle;
+            public static implicit operator EGLConfig(IntPtr p) => new EGLConfig(p);
+            public static implicit operator EGLConfig(int v) => new EGLConfig((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLSurface
+        {
+            public readonly IntPtr Handle;
+            public EGLSurface(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLSurface s) => s.Handle;
+            public static implicit operator EGLSurface(IntPtr p) => new EGLSurface(p);
+            public static implicit operator EGLSurface(int v) => new EGLSurface((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLNativeDisplayType
+        {
+            public readonly IntPtr Handle;
+            public EGLNativeDisplayType(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLNativeDisplayType d) => d.Handle;
+            public static implicit operator EGLNativeDisplayType(IntPtr p) => new EGLNativeDisplayType(p);
+            public static implicit operator EGLNativeDisplayType(int v) => new EGLNativeDisplayType((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLNativeWindowType
+        {
+            public readonly IntPtr Handle;
+            public EGLNativeWindowType(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLNativeWindowType w) => w.Handle;
+            public static implicit operator EGLNativeWindowType(IntPtr p) => new EGLNativeWindowType(p);
+            public static implicit operator EGLNativeWindowType(int v) => new EGLNativeWindowType((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLNativePixmapType
+        {
+            public readonly IntPtr Handle;
+            public EGLNativePixmapType(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLNativePixmapType p) => p.Handle;
+            public static implicit operator EGLNativePixmapType(IntPtr p) => new EGLNativePixmapType(p);
+            public static implicit operator EGLNativePixmapType(int v) => new EGLNativePixmapType((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
+        public readonly struct EGLClientBuffer
+        {
+            public readonly IntPtr Handle;
+            public EGLClientBuffer(IntPtr handle) => Handle = handle;
+            public static implicit operator IntPtr(EGLClientBuffer b) => b.Handle;
+            public static implicit operator EGLClientBuffer(IntPtr p) => new EGLClientBuffer(p);
+            public static implicit operator EGLClientBuffer(int v) => new EGLClientBuffer((IntPtr)v);
+            public override string ToString() => Handle.ToString();
+        }
+
         public const int EGL_BUFFER_SIZE = 0x3020;
         public const int EGL_ALPHA_SIZE = 0x3021;
         public const int EGL_BLUE_SIZE = 0x3022;

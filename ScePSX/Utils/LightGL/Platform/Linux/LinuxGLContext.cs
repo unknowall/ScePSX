@@ -15,6 +15,9 @@ namespace LightGL.Linux
 
         //static public IntPtr DefaultRootWindow;
         private static IntPtr _sharedContext;
+        private static readonly object _sharedLock = new object();
+        private static readonly object s_makeCurrentLock = new object();
+        private static int _sharedRefCount = 0;
 
         private IntPtr Display;
         private int _screen;
@@ -158,16 +161,31 @@ namespace LightGL.Linux
             this.WindowHandle = windowHandle;
 
             //XMapWindow(Display, WindowHandle);
-
-
             //var Info = (XVisualInfo*)GLX.ChooseVisual(Display, Screen, visualAttributes.ToArray()).ToPointer();
 
-            //GLX.glXCreateContextAttribsARB(
+            IntPtr sharePtr;
+            bool setAsSharedRoot = false;
+            lock (_sharedLock)
+            {
+                if (_sharedContext == IntPtr.Zero)
+                {
+                    sharePtr = IntPtr.Zero;
+                    setAsSharedRoot = true;
+                }
+                else
+                {
+                    sharePtr = _sharedContext;
+                    _sharedRefCount++;
+                }
+            }
+
+            //GLX.glXCreateContextAttribsARB
             Context = GLX.glXCreateContext(Display, &info, _sharedContext, false);
             GL.CheckError();
 
-
-            var CreateContextAttribsARB = (CreateContextAttribsARB)Marshal.GetDelegateForFunctionPointer(GLX.glXGetProcAddress("glXCreateContextAttribsARB"), typeof(CreateContextAttribsARB));
+            var CreateContextAttribsARB = (CreateContextAttribsARB)Marshal.GetDelegateForFunctionPointer(
+                GLX.glXGetProcAddress("glXCreateContextAttribsARB"), typeof(CreateContextAttribsARB)
+                );
 
             List<int> attributes = new List<int>();
             attributes.AddRange(new int[] { (int)ArbCreateContext.MajorVersion, Major });
@@ -188,6 +206,32 @@ namespace LightGL.Linux
 
                 GLX.glXDestroyContext(Display, this.Context);
                 this.Context = CreateContextAttribsARB(Display, *fbconfigs, _sharedContext, false, attributesPtr);
+            }
+
+            lock (_sharedLock)
+            {
+                if (setAsSharedRoot)
+                {
+                    if (_sharedContext == IntPtr.Zero && this.Context != IntPtr.Zero)
+                    {
+                        _sharedContext = this.Context;
+                        _sharedRefCount = 1;
+                    }
+                    else
+                    {
+                        if (_sharedContext != IntPtr.Zero)
+                        {
+                            _sharedRefCount++;
+                        }
+                    }
+                }
+                else
+                {
+                    if (this.Context == IntPtr.Zero)
+                    {
+                        _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
+                    }
+                }
             }
 
             if (_sharedContext == IntPtr.Zero)
@@ -233,7 +277,94 @@ namespace LightGL.Linux
             return this;
         }
 
-        public void Dispose() => GLX.glXDestroyContext(Display, Context);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GlXSwapIntervalEXTDelegate(IntPtr dpy, IntPtr drawable, int interval);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int GlXSwapIntervalSGIDelegate(int interval);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int GlXSwapIntervalMESADelegate(int interval);
+
+        public IGlContext SetVSync(int vsync)
+        {
+            IntPtr proc;
+
+            proc = GLX.glXGetProcAddress("glXSwapIntervalEXT");
+            if (proc != IntPtr.Zero)
+            {
+                try
+                {
+                    var del = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalEXTDelegate>(proc);
+                    del(Display, WindowHandle, vsync);
+                    return this;
+                }
+                catch { }
+            }
+            proc = GLX.glXGetProcAddress("glXSwapIntervalSGI");
+            if (proc != IntPtr.Zero)
+            {
+                try
+                {
+                    var del = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalSGIDelegate>(proc);
+                    del(vsync);
+                    return this;
+                }
+                catch { }
+            }
+
+            proc = GLX.glXGetProcAddress("glXSwapIntervalMESA");
+            if (proc != IntPtr.Zero)
+            {
+                try
+                {
+                    var del = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalMESADelegate>(proc);
+                    del(vsync);
+                    return this;
+                }
+                catch { }
+            }
+
+            return this;
+        }
+
+        public void Dispose()
+        {
+            if (Context != IntPtr.Zero)
+            {
+                bool destroyed = false;
+                lock (_sharedLock)
+                {
+                    if (_sharedContext != IntPtr.Zero && Context == _sharedContext)
+                    {
+                        _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
+                        if (_sharedRefCount == 0)
+                        {
+                            GLX.glXDestroyContext(Display, Context);
+                            _sharedContext = IntPtr.Zero;
+                            destroyed = true;
+                        }
+                    }
+                    else
+                    {
+                        GLX.glXDestroyContext(Display, Context);
+                        destroyed = true;
+                        if (_sharedContext != IntPtr.Zero && _sharedRefCount > 0)
+                        {
+                            _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
+                        }
+                    }
+                }
+
+                if (destroyed)
+                {
+                    // nothing else required
+                }
+
+                Context = IntPtr.Zero;
+            }
+        }
+
     }
 
     [StructLayout(LayoutKind.Sequential)]

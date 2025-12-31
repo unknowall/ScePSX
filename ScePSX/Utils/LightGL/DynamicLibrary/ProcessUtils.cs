@@ -57,7 +57,7 @@ namespace LightGL.DynamicLibrary
 
             var OutputString = "";
             var ErrorString = "";
-            Exception exception = null;
+            Exception? exception = null;
             // Wait that the process exits
             try
             {

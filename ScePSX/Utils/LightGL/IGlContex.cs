@@ -20,5 +20,6 @@ namespace LightGL
         IGlContext MakeCurrent();
         IGlContext ReleaseCurrent();
         IGlContext SwapBuffers();
+        IGlContext SetVSync(int vsync);
     }
 }

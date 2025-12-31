@@ -10,6 +10,11 @@ namespace LightGL.Mac
         private IntPtr _pixelFormat;
         private bool _releaseWindow;
 
+        private static readonly object _sharedLock = new object();
+        private static readonly object s_makeCurrentLock = new object();
+        private static IntPtr _sharedContext;
+        private static int _sharedRefCount;
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
         private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector);
 
@@ -54,8 +59,27 @@ namespace LightGL.Mac
                 var clsOpenGLContext = Class.Get("NSOpenGLContext");
                 var allocSel = Selector.Get("alloc");
 
-                _glContext = objc_msgSend(clsOpenGLContext, allocSel);
-                _glContext = objc_msgSend(_glContext, selInitWithFormat, _pixelFormat, IntPtr.Zero);
+                IntPtr ctxAlloc = objc_msgSend(clsOpenGLContext, allocSel);
+                IntPtr sharePtr = IntPtr.Zero;
+                lock (_sharedLock)
+                {
+                    if (_sharedContext != IntPtr.Zero)
+                    {
+                        sharePtr = _sharedContext;
+                        _sharedRefCount++;
+                    }
+                }
+
+                // initWithFormat:shareContext:
+                _glContext = objc_msgSend(ctxAlloc, selInitWithFormat, _pixelFormat, sharePtr);
+                lock (_sharedLock)
+                {
+                    if (_sharedContext == IntPtr.Zero && _glContext != IntPtr.Zero)
+                    {
+                        _sharedContext = _glContext;
+                        _sharedRefCount = Math.Max(1, _sharedRefCount);
+                    }
+                }
 
                 if (_glContext != IntPtr.Zero && _nsWindow != IntPtr.Zero)
                 {
@@ -73,7 +97,8 @@ namespace LightGL.Mac
             {
                 windowHandle = CreateHiddenNSWindow(512, 512);
                 return new MacGLContext(windowHandle, true);
-            } else
+            }
+            else
             {
                 return new MacGLContext(windowHandle, false);
             }
@@ -103,7 +128,8 @@ namespace LightGL.Mac
 
                 IntPtr pixelFormat = objc_msgSend(clsPixelFormat, allocSel);
                 return objc_msgSend(pixelFormat, selInit, attrPtr);
-            } finally
+            }
+            finally
             {
                 handle.Free();
             }
@@ -140,7 +166,8 @@ namespace LightGL.Mac
                 objc_msgSend_void(window, selSetHidesOnDeactivate, (IntPtr)1);
 
                 return window;
-            } finally
+            }
+            finally
             {
                 Marshal.FreeHGlobal(rectPtr);
             }
@@ -175,7 +202,36 @@ namespace LightGL.Mac
                 objc_msgSend_void(_glContext, selClearCurrent);
 
                 var selRelease = Selector.Get("release");
-                objc_msgSend_void(_glContext, selRelease);
+
+                bool releasedThisContext = false;
+
+                lock (_sharedLock)
+                {
+                    // 如果这个实例是共享根（即等于_static shared pointer），不要立即对它调用 release，
+                    if (_sharedContext != IntPtr.Zero && _glContext == _sharedContext)
+                    {
+                        _sharedRefCount--;
+                        if (_sharedRefCount <= 0)
+                        {
+                            objc_msgSend_void(_sharedContext, selRelease);
+                            _sharedContext = IntPtr.Zero;
+                        }
+                        releasedThisContext = true;
+                    }
+                    else
+                    {
+                        if (_sharedContext != IntPtr.Zero && _sharedRefCount > 0)
+                        {
+                            _sharedRefCount--;
+                        }
+                    }
+                }
+
+                if (!releasedThisContext)
+                {
+                    objc_msgSend_void(_glContext, selRelease);
+                }
+
                 _glContext = IntPtr.Zero;
             }
 
@@ -199,20 +255,26 @@ namespace LightGL.Mac
 
         public IGlContext MakeCurrent()
         {
-            if (_glContext != IntPtr.Zero)
+            lock (s_makeCurrentLock)
             {
-                var selMakeCurrentContext = Selector.Get("makeCurrentContext");
-                objc_msgSend_void(_glContext, selMakeCurrentContext);
+                if (_glContext != IntPtr.Zero)
+                {
+                    var selMakeCurrentContext = Selector.Get("makeCurrentContext");
+                    objc_msgSend_void(_glContext, selMakeCurrentContext);
+                }
             }
             return this;
         }
 
         public IGlContext ReleaseCurrent()
         {
-            if (_glContext != IntPtr.Zero)
+            lock (s_makeCurrentLock)
             {
-                var selClearCurrent = Selector.Get("clearCurrentContext");
-                objc_msgSend_void(_glContext, selClearCurrent);
+                if (_glContext != IntPtr.Zero)
+                {
+                    var selClearCurrent = Selector.Get("clearCurrentContext");
+                    objc_msgSend_void(_glContext, selClearCurrent);
+                }
             }
             return this;
         }
@@ -224,6 +286,30 @@ namespace LightGL.Mac
                 var selFlushBuffer = Selector.Get("flushBuffer");
                 objc_msgSend_void(_glContext, selFlushBuffer);
             }
+            return this;
+        }
+
+        public IGlContext SetVSync(int vsync)
+        {
+            if (_glContext == IntPtr.Zero)
+                return this;
+
+            // NSOpenGLCPSwapInterval == 222 (NSInteger). Use -[NSOpenGLContext setValues:forParameter:]
+            var selSetValues = Selector.Get("setValues:forParameter:");
+            int param = 222; // NSOpenGLCPSwapInterval
+
+            int[] values = new[] { vsync };
+            GCHandle handle = GCHandle.Alloc(values, GCHandleType.Pinned);
+            IntPtr valuesPtr = handle.AddrOfPinnedObject();
+            try
+            {
+                objc_msgSend(_glContext, selSetValues, valuesPtr, new IntPtr(param));
+            }
+            finally
+            {
+                handle.Free();
+            }
+
             return this;
         }
 
