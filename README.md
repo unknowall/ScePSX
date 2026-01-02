@@ -107,9 +107,8 @@ A: Currently, only Windows is supported. Future plans include Linux/macOS suppor
 ## How to Build
 1. The project is based on .NET 8.0 framework.
 2. SDL declarations are included in the code. Place the SDL2 DLL in the build directory.
-3. For Vulkan, use the vk NuGet package or manually add dependencies using vk.dll.
-4. If using a framework below .NET 8.0, modify the project file manually.
-5. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
+3. If using a framework below .NET 8.0, modify the project file manually.
+4. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
 
 ## How to Contribute 🤝
 We welcome contributions to ScePSX, including code submissions, issue reporting, or documentation improvements. Here’s how you can participate:
@@ -240,9 +239,8 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 ## 如何编译
 1. 项目是.net 8.0 框架
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
-3. Vulkan 使用 vk NuGet包，或手动添加依赖项使用 vk.dll
-4. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-5. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+3. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+4. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
 
 ## 如何贡献 🤝
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
