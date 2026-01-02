@@ -5,11 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ScePSX.Render
+namespace LightVK
 {
     public static class vkStrings
     {
-        public static FixedUtf8String AppName { get; } = "ScePSX";
+        public static FixedUtf8String AppName { get; } = "LightVK";
         public static FixedUtf8String EngineName { get; } = "VulkanRenderer";
         public static FixedUtf8String VK_KHR_SURFACE_EXTENSION_NAME { get; } = "VK_KHR_surface";
         public static FixedUtf8String VK_KHR_WIN32_SURFACE_EXTENSION_NAME { get; } = "VK_KHR_win32_surface";
@@ -35,7 +35,7 @@ namespace ScePSX.Render
                 throw new ArgumentNullException(nameof(s));
             }
 
-            byte[] text = Encoding.UTF8.GetBytes(s);
+            var text = Encoding.UTF8.GetBytes(s);
             _handle = GCHandle.Alloc(text, GCHandleType.Pinned);
             _numBytes = (uint)text.Length;
         }
@@ -48,7 +48,7 @@ namespace ScePSX.Render
             }
 
             _handle.Free();
-            byte[] text = Encoding.UTF8.GetBytes(s);
+            var text = Encoding.UTF8.GetBytes(s);
             _handle = GCHandle.Alloc(text, GCHandleType.Pinned);
             _numBytes = (uint)text.Length;
         }
@@ -64,7 +64,7 @@ namespace ScePSX.Render
         }
 
         public static implicit operator byte*(FixedUtf8String utf8String) => utf8String.StringPtr;
-        public static implicit operator IntPtr(FixedUtf8String utf8String) => new IntPtr(utf8String.StringPtr);
+        public static implicit operator nint(FixedUtf8String utf8String) => new nint(utf8String.StringPtr);
         public static implicit operator FixedUtf8String(string s) => new FixedUtf8String(s);
         public static implicit operator string(FixedUtf8String utf8String) => utf8String.GetString();
     }
@@ -265,7 +265,7 @@ namespace ScePSX.Render
 
         public void AddRange(T[] items)
         {
-            int requiredSize = (int)(_count + items.Length);
+            var requiredSize = (int)(_count + items.Length);
             if (requiredSize > _items.Length)
             {
                 Array.Resize(ref _items, (int)(requiredSize * GrowthFactor));
@@ -277,7 +277,7 @@ namespace ScePSX.Render
 
         public void AddRange(IEnumerable<T> items)
         {
-            foreach (T item in items)
+            foreach (var item in items)
             {
                 Add(item);
             }
@@ -299,7 +299,7 @@ namespace ScePSX.Render
 
         public bool Remove(ref T item)
         {
-            bool contained = GetIndex(item, out uint index);
+            var contained = GetIndex(item, out var index);
             if (contained)
             {
                 CoreRemoveAt(index);
@@ -311,7 +311,7 @@ namespace ScePSX.Render
 
         public bool Remove(T item)
         {
-            bool contained = GetIndex(item, out uint index);
+            var contained = GetIndex(item, out var index);
             if (contained)
             {
                 CoreRemoveAt(index);
@@ -333,7 +333,7 @@ namespace ScePSX.Render
 
         public bool GetIndex(T item, out uint index)
         {
-            int signedIndex = Array.IndexOf(_items, item);
+            var signedIndex = Array.IndexOf(_items, item);
             index = (uint)signedIndex;
             return signedIndex != -1;
         }
@@ -347,7 +347,7 @@ namespace ScePSX.Render
 
         public void TransformAll(Func<T, T> transformation)
         {
-            for (int i = 0; i < _count; i++)
+            for (var i = 0; i < _count; i++)
             {
                 _items[i] = transformation(_items[i]);
             }
@@ -358,7 +358,7 @@ namespace ScePSX.Render
         {
             _count -= 1;
             Array.Copy(_items, (int)index + 1, _items, (int)index, (int)(_count - index));
-            _items[_count] = default(T);
+            _items[_count] = default;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

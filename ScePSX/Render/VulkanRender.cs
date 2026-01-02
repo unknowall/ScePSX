@@ -2,9 +2,8 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-using Vulkan;
-using Vulkan.Win32;
-using static Vulkan.VulkanNative;
+using LightVK;
+using static LightVK.VulkanNative;
 
 namespace ScePSX.Render
 {
@@ -197,17 +196,22 @@ namespace ScePSX.Render
 
             vkResetCommandBuffer(commandBuffer, 0);
 
-            vkBeginCommandBuffer(commandBuffer, ref drawbegininfo);
+            fixed (VkCommandBufferBeginInfo* pdrawbegininfo = &drawbegininfo)
+                vkBeginCommandBuffer(commandBuffer, pdrawbegininfo);
 
-            vkCmdSetViewport(commandBuffer, 0, 1, ref viewport);
+            fixed (VkViewport* pviewport = &viewport)
+                vkCmdSetViewport(commandBuffer, 0, 1, pviewport);
 
-            vkCmdSetScissor(commandBuffer, 0, 1, ref scissor);
+            fixed (VkRect2D* pscissor = &scissor)
+                vkCmdSetScissor(commandBuffer, 0, 1, pscissor);
 
-            vkCmdBeginRenderPass(commandBuffer, ref renderPassInfo, VkSubpassContents.Inline);
+            fixed (VkRenderPassBeginInfo* prendinfo = &renderPassInfo)
+                vkCmdBeginRenderPass(commandBuffer, prendinfo, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
 
-            vkCmdBindPipeline(commandBuffer, VkPipelineBindPoint.Graphics, graphicsPipeline);
+            vkCmdBindPipeline(commandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-            vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.Graphics, pipelineLayout, 0, 1, ref descriptorSet, 0, null);
+            fixed (VkDescriptorSet* pDescriptorSet = &descriptorSet)
+                vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, pDescriptorSet, 0, null);
 
             if (currentWidth > 0 && currentHeight > 0)
                 vkCmdDraw(commandBuffer, 4, 1, 0, 0);
@@ -219,20 +223,25 @@ namespace ScePSX.Render
 
         public unsafe void Present()
         {
-            vkWaitForFences(device, 1, ref inFlightFences[currentFrame], true, ulong.MaxValue);
-            vkResetFences(device, 1, ref inFlightFences[currentFrame]);
+            fixed (VkFence* pinFence = &inFlightFences[currentFrame])
+            {
+                vkWaitForFences(device, 1, pinFence, true, ulong.MaxValue);
+                vkResetFences(device, 1, pinFence);
+            }
 
             VkCommandBuffer cb = commandBuffers[currentFrame];
             submitInfo.pCommandBuffers = &cb;
 
-            vkQueueSubmit(graphicsQueue, 1, ref submitInfo, VkFence.Null);
+            fixed (VkSubmitInfo* psubmitInfo = &submitInfo)
+                vkQueueSubmit(graphicsQueue, 1, psubmitInfo, VkFence.Null);
 
             uint idx = (uint)currentFrame;
             VkSwapchainKHR _swapchain = swapChain;
             presentInfo.pSwapchains = &_swapchain;
             presentInfo.pImageIndices = &idx;
 
-            vkQueuePresentKHR(presentQueue, ref presentInfo);
+            fixed (VkPresentInfoKHR* ppresentInfo = &presentInfo)
+                vkQueuePresentKHR(presentQueue, ppresentInfo);
 
             currentFrame = (currentFrame + 1) % (int)swapChainImages.Count;
         }
@@ -254,20 +263,21 @@ namespace ScePSX.Render
             CreateFramebuffers();
             CreateCommandBuffers();
 
-            renderPassInfo = VkRenderPassBeginInfo.New();
+            renderPassInfo = new VkRenderPassBeginInfo();
+            renderPassInfo.sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             renderPassInfo.clearValueCount = 0;
             renderPassInfo.renderPass = renderPass;
 
-            drawbegininfo = VkCommandBufferBeginInfo.New();
-            drawbegininfo.sType = VkStructureType.CommandBufferBeginInfo;
-            drawbegininfo.flags = VkCommandBufferUsageFlags.OneTimeSubmit;
+            drawbegininfo = new VkCommandBufferBeginInfo();
+            drawbegininfo.sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            drawbegininfo.flags = VkCommandBufferUsageFlags.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-            submitInfo = VkSubmitInfo.New();
-            submitInfo.sType = VkStructureType.SubmitInfo;
+            submitInfo = new VkSubmitInfo();
+            submitInfo.sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.commandBufferCount = 1;
 
-            presentInfo = VkPresentInfoKHR.New();
-            presentInfo.sType = VkStructureType.PresentInfoKHR;
+            presentInfo = new VkPresentInfoKHR();
+            presentInfo.sType = VkStructureType.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             presentInfo.swapchainCount = 1;
 
             Console.WriteLine($"[VULKAN] Initializationed...");
@@ -279,17 +289,17 @@ namespace ScePSX.Render
         {
             CleanupResources();
 
-            vkDestroyPipeline(device, graphicsPipeline, IntPtr.Zero);
-            vkDestroyPipelineLayout(device, pipelineLayout, IntPtr.Zero);
-            vkDestroyRenderPass(device, renderPass, IntPtr.Zero);
+            vkDestroyPipeline(device, graphicsPipeline, null);
+            vkDestroyPipelineLayout(device, pipelineLayout, null);
+            vkDestroyRenderPass(device, renderPass, null);
             foreach (var framebuffer in framebuffers)
-                vkDestroyFramebuffer(device, framebuffer, IntPtr.Zero);
+                vkDestroyFramebuffer(device, framebuffer, null);
             foreach (var imageView in swapChainImageViews)
-                vkDestroyImageView(device, imageView, IntPtr.Zero);
-            vkDestroySwapchainKHR(device, swapChain, IntPtr.Zero);
-            vkDestroyDevice(device, IntPtr.Zero);
-            vkDestroySurfaceKHR(instance, surface, IntPtr.Zero);
-            vkDestroyInstance(instance, IntPtr.Zero);
+                vkDestroyImageView(device, imageView, null);
+            vkDestroySwapchainKHR(device, swapChain, null);
+            vkDestroyDevice(device, null);
+            vkDestroySurfaceKHR(instance, surface, null);
+            vkDestroyInstance(instance, null);
         }
 
         private unsafe void CleanupSwapChain()
@@ -338,14 +348,14 @@ namespace ScePSX.Render
         {
             var appInfo = new VkApplicationInfo
             {
-                sType = VkStructureType.ApplicationInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
                 pApplicationName = vkStrings.AppName,
                 applicationVersion = VK_MAKE_VERSION(1, 0, 0),
                 pEngineName = vkStrings.EngineName,
                 engineVersion = VK_MAKE_VERSION(1, 0, 0),
                 apiVersion = VK_MAKE_VERSION(1, 0, 0)
             };
-            var instanceCreateInfo = VkInstanceCreateInfo.New();
+            var instanceCreateInfo = new VkInstanceCreateInfo();
             instanceCreateInfo.pApplicationInfo = &appInfo;
 
             vkRawList<IntPtr> Extensions = new vkRawList<IntPtr>();
@@ -359,8 +369,12 @@ namespace ScePSX.Render
                 instanceCreateInfo.enabledExtensionCount = Extensions.Count;
                 instanceCreateInfo.ppEnabledExtensionNames = (byte**)extensionsBase;
 
-                VkResult result = vkCreateInstance(ref instanceCreateInfo, null, out instance);
-                if (result != VkResult.Success)
+                VkResult result;
+                fixed (VkInstance* pinstance = &instance)
+                {
+                    result = vkCreateInstance(&instanceCreateInfo, null, pinstance);
+                }
+                if (result != VkResult.VK_SUCCESS)
                 {
                     throw new Exception("Failed to create Vulkan instance!");
                 }
@@ -369,7 +383,7 @@ namespace ScePSX.Render
 
         private unsafe void CreateSurface(IntPtr hwnd)
         {
-            HINSTANCE hinstance;
+            IntPtr hinstance;
 
             if (IntPtr.Size == 8)
             {
@@ -381,21 +395,22 @@ namespace ScePSX.Render
 
             var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
             {
-                sType = VkStructureType.Win32SurfaceCreateInfoKHR,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
                 hinstance = hinstance,
                 hwnd = hwnd
             };
 
-            if (vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, null, out surface) != VkResult.Success)
-            {
-                throw new Exception("Failed to create Vulkan surface!");
-            }
+            fixed(VkSurfaceKHR* psurface = &surface)
+                if (vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, null, psurface) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create Vulkan surface!");
+                }
         }
 
         private unsafe void SelectPhysicalDevice()
         {
             uint deviceCount = 0;
-            vkEnumeratePhysicalDevices(instance, ref deviceCount, null);
+            vkEnumeratePhysicalDevices(instance, &deviceCount, null);
 
             if (deviceCount == 0)
             {
@@ -407,11 +422,13 @@ namespace ScePSX.Render
 
             foreach (var device in physicalDevices)
             {
-                vkGetPhysicalDeviceProperties(device, out var deviceProperties);
-                vkGetPhysicalDeviceFeatures(device, out var deviceFeatures);
+                VkPhysicalDeviceProperties deviceProperties;
+                VkPhysicalDeviceFeatures deviceFeatures;
+                vkGetPhysicalDeviceProperties(device, &deviceProperties);
+                vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
                 uint queueFamilyCount = 0;
-                vkGetPhysicalDeviceQueueFamilyProperties(device, ref queueFamilyCount, null);
+                vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, null);
 
                 var queueFamilies = new VkQueueFamilyProperties[queueFamilyCount];
                 vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, (VkQueueFamilyProperties*)Marshal.UnsafeAddrOfPinnedArrayElement(queueFamilies, 0));
@@ -419,7 +436,7 @@ namespace ScePSX.Render
                 bool hasGraphicsQueue = false;
                 for (int i = 0; i < queueFamilies.Length; i++)
                 {
-                    if ((queueFamilies[i].queueFlags & VkQueueFlags.Graphics) != 0)
+                    if ((queueFamilies[i].queueFlags & VkQueueFlags.VK_QUEUE_GRAPHICS_BIT) != 0)
                     {
                         hasGraphicsQueue = true;
                         break;
@@ -439,19 +456,20 @@ namespace ScePSX.Render
         private unsafe void CreateLogicalDevice()
         {
             uint queueFamilyCount = 0;
-            vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, ref queueFamilyCount, null);
+            vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, null);
 
             var queueFamilies = new VkQueueFamilyProperties[queueFamilyCount];
             vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, (VkQueueFamilyProperties*)Marshal.UnsafeAddrOfPinnedArrayElement(queueFamilies, 0));
 
             for (int i = 0; i < queueFamilies.Length; i++)
             {
-                if ((queueFamilies[i].queueFlags & VkQueueFlags.Graphics) != 0)
+                if ((queueFamilies[i].queueFlags & VkQueueFlags.VK_QUEUE_GRAPHICS_BIT) != 0)
                 {
                     graphicsQueueFamilyIndex = i;
                 }
 
-                vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, (uint)i, surface, out var presentSupported);
+                VkBool32 presentSupported;
+                vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, (uint)i, surface, &presentSupported);
                 if (presentSupported)
                 {
                     presentQueueFamilyIndex = i;
@@ -471,14 +489,14 @@ namespace ScePSX.Render
             float queuePriority = 1.0f;
             var queueCreateInfo = new VkDeviceQueueCreateInfo
             {
-                sType = VkStructureType.DeviceQueueCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                 queueFamilyIndex = (uint)graphicsQueueFamilyIndex,
                 queueCount = 1,
                 pQueuePriorities = &queuePriority
             };
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
-                sType = VkStructureType.DeviceCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
                 pEnabledFeatures = null
@@ -492,14 +510,17 @@ namespace ScePSX.Render
                 deviceCreateInfo.enabledExtensionCount = instanceExtensions.Count;
                 deviceCreateInfo.ppEnabledExtensionNames = (byte**)ppEnabledExtensionNames;
 
-                if (vkCreateDevice(physicalDevice, &deviceCreateInfo, null, out device) != VkResult.Success)
-                {
-                    throw new Exception("Failed to create logical device!");
-                }
+                fixed (VkDevice* pdevice = &device)
+                    if (vkCreateDevice(physicalDevice, &deviceCreateInfo, null, pdevice) != VkResult.VK_SUCCESS)
+                    {
+                        throw new Exception("Failed to create logical device!");
+                    }
             }
 
-            vkGetDeviceQueue(device, (uint)graphicsQueueFamilyIndex, 0, out graphicsQueue);
-            vkGetDeviceQueue(device, (uint)presentQueueFamilyIndex, 0, out presentQueue);
+            fixed (VkQueue* graphicsQueue = &this.graphicsQueue)
+                vkGetDeviceQueue(device, (uint)graphicsQueueFamilyIndex, 0, graphicsQueue);
+            fixed (VkQueue* presentQueue = &this.presentQueue)
+                vkGetDeviceQueue(device, (uint)presentQueueFamilyIndex, 0, presentQueue);
         }
 
         private unsafe void CreateRenderPass()
@@ -507,24 +528,24 @@ namespace ScePSX.Render
             var colorAttachment = new VkAttachmentDescription
             {
                 format = swapChainImageFormat,
-                samples = VkSampleCountFlags.Count1,
-                loadOp = VkAttachmentLoadOp.Clear,
-                storeOp = VkAttachmentStoreOp.Store,
-                stencilLoadOp = VkAttachmentLoadOp.DontCare,
-                stencilStoreOp = VkAttachmentStoreOp.DontCare,
-                initialLayout = VkImageLayout.Undefined,
-                finalLayout = VkImageLayout.PresentSrcKHR
+                samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+                loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
+                storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_STORE,
+                stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+                finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
             };
 
             var colorAttachmentRef = new VkAttachmentReference
             {
                 attachment = 0,
-                layout = VkImageLayout.ColorAttachmentOptimal
+                layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             };
 
             var subpass = new VkSubpassDescription
             {
-                pipelineBindPoint = VkPipelineBindPoint.Graphics,
+                pipelineBindPoint = VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS,
                 colorAttachmentCount = 1,
                 pColorAttachments = &colorAttachmentRef,
                 pResolveAttachments = null
@@ -534,15 +555,15 @@ namespace ScePSX.Render
             {
                 srcSubpass = unchecked((uint)(-1)),
                 dstSubpass = 0,
-                srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
-                dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
-                srcAccessMask = VkAccessFlags.None,
-                dstAccessMask = VkAccessFlags.ColorAttachmentWrite
+                srcStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                dstStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                srcAccessMask = VkAccessFlags.VK_ACCESS_NONE,
+                dstAccessMask = VkAccessFlags.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
             };
 
             var renderPassInfo = new VkRenderPassCreateInfo
             {
-                sType = VkStructureType.RenderPassCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                 attachmentCount = 1,
                 pAttachments = &colorAttachment,
                 subpassCount = 1,
@@ -552,10 +573,11 @@ namespace ScePSX.Render
 
             };
 
-            if (vkCreateRenderPass(device, &renderPassInfo, null, out renderPass) != VkResult.Success)
-            {
-                throw new Exception("Failed to create render pass!");
-            }
+            fixed (VkRenderPass* prenderPass = &renderPass)
+                if (vkCreateRenderPass(device, &renderPassInfo, null, prenderPass) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create render pass!");
+                }
         }
 
         private unsafe void CreateDescriptorSetLayout()
@@ -563,22 +585,23 @@ namespace ScePSX.Render
             VkDescriptorSetLayoutBinding samplerLayoutBinding = new VkDescriptorSetLayoutBinding
             {
                 binding = 0,
-                descriptorType = VkDescriptorType.CombinedImageSampler,
+                descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 descriptorCount = 1,
-                stageFlags = VkShaderStageFlags.Fragment
+                stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
             };
 
             VkDescriptorSetLayoutCreateInfo layoutInfo = new VkDescriptorSetLayoutCreateInfo
             {
-                sType = VkStructureType.DescriptorSetLayoutCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
                 bindingCount = 1,
                 pBindings = &samplerLayoutBinding
             };
 
-            if (vkCreateDescriptorSetLayout(device, ref layoutInfo, null, out descriptorSetLayout) != VkResult.Success)
-            {
-                throw new Exception("Failed to create descriptor set layout!");
-            }
+            fixed (VkDescriptorSetLayout* pdescriptorSetLayout = &descriptorSetLayout)
+                if (vkCreateDescriptorSetLayout(device, &layoutInfo, null, pdescriptorSetLayout) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create descriptor set layout!");
+                }
         }
 
         private byte[] LoadShader(string filename)
@@ -596,16 +619,16 @@ namespace ScePSX.Render
 
             var vertShaderStageInfo = new VkPipelineShaderStageCreateInfo
             {
-                sType = VkStructureType.PipelineShaderStageCreateInfo,
-                stage = VkShaderStageFlags.Vertex,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                stage = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT,
                 module = vertShaderModule,
                 pName = vkStrings.main
             };
 
             var fragShaderStageInfo = new VkPipelineShaderStageCreateInfo
             {
-                sType = VkStructureType.PipelineShaderStageCreateInfo,
-                stage = VkShaderStageFlags.Fragment,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                stage = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT,
                 module = fragShaderModule,
                 pName = vkStrings.main
             };
@@ -613,7 +636,7 @@ namespace ScePSX.Render
             // 定义顶点输入信息
             var vertexInputInfo = new VkPipelineVertexInputStateCreateInfo
             {
-                sType = VkStructureType.PipelineVertexInputStateCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
                 vertexBindingDescriptionCount = 0,
                 pVertexBindingDescriptions = null,
                 vertexAttributeDescriptionCount = 0,
@@ -623,8 +646,8 @@ namespace ScePSX.Render
             // 定义输入装配信息
             var inputAssembly = new VkPipelineInputAssemblyStateCreateInfo
             {
-                sType = VkStructureType.PipelineInputAssemblyStateCreateInfo,
-                topology = VkPrimitiveTopology.TriangleStrip,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+                topology = VkPrimitiveTopology.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
                 primitiveRestartEnable = false
             };
 
@@ -647,7 +670,7 @@ namespace ScePSX.Render
 
             var viewportState = new VkPipelineViewportStateCreateInfo
             {
-                sType = VkStructureType.PipelineViewportStateCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
                 viewportCount = 1,
                 pViewports = &viewport,
                 scissorCount = 1,
@@ -657,36 +680,36 @@ namespace ScePSX.Render
             // 定义光栅化信息
             var rasterizer = new VkPipelineRasterizationStateCreateInfo
             {
-                sType = VkStructureType.PipelineRasterizationStateCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
                 depthClampEnable = false,
                 rasterizerDiscardEnable = false,
-                polygonMode = VkPolygonMode.Fill,
+                polygonMode = VkPolygonMode.VK_POLYGON_MODE_FILL,
                 lineWidth = 1,
-                cullMode = VkCullModeFlags.None,
-                frontFace = VkFrontFace.Clockwise,
+                cullMode = VkCullModeFlags.VK_CULL_MODE_NONE,
+                frontFace = VkFrontFace.VK_FRONT_FACE_CLOCKWISE,
                 depthBiasEnable = false
             };
 
             // 定义多重采样信息
             var multisampling = new VkPipelineMultisampleStateCreateInfo
             {
-                sType = VkStructureType.PipelineMultisampleStateCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
                 sampleShadingEnable = false,
-                rasterizationSamples = VkSampleCountFlags.Count1
+                rasterizationSamples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT
             };
 
             // 定义颜色混合信息
             var colorBlendAttachment = new VkPipelineColorBlendAttachmentState
             {
-                colorWriteMask = VkColorComponentFlags.R | VkColorComponentFlags.G | VkColorComponentFlags.B | VkColorComponentFlags.A,
+                colorWriteMask = VkColorComponentFlags.VK_COLOR_COMPONENT_R_BIT | VkColorComponentFlags.VK_COLOR_COMPONENT_G_BIT | VkColorComponentFlags.VK_COLOR_COMPONENT_B_BIT | VkColorComponentFlags.VK_COLOR_COMPONENT_A_BIT,
                 blendEnable = false
             };
 
             var colorBlending = new VkPipelineColorBlendStateCreateInfo
             {
-                sType = VkStructureType.PipelineColorBlendStateCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
                 logicOpEnable = false,
-                logicOp = VkLogicOp.Copy,
+                logicOp = VkLogicOp.VK_LOGIC_OP_COPY,
                 attachmentCount = 1,
                 pAttachments = &colorBlendAttachment,
                 blendConstants_0 = 0,
@@ -701,24 +724,25 @@ namespace ScePSX.Render
             VkDescriptorSetLayout dsl = descriptorSetLayout;
             var pipelineLayoutInfo = new VkPipelineLayoutCreateInfo
             {
-                sType = VkStructureType.PipelineLayoutCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                 setLayoutCount = 1,
                 pSetLayouts = &dsl,
                 pushConstantRangeCount = 0,
                 pPushConstantRanges = null
             };
 
-            if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, null, out pipelineLayout) != VkResult.Success)
-            {
-                throw new Exception("Failed to create pipeline layout!");
-            }
+            fixed (VkPipelineLayout* ppipelineLayout = &pipelineLayout)
+                if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, null, ppipelineLayout) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create pipeline layout!");
+                }
 
             // 创建图形管线
             vkFixedArray2<VkDynamicState> dynstate;
-            dynstate.First = VkDynamicState.Viewport;
-            dynstate.Second = VkDynamicState.Scissor;
+            dynstate.First = VkDynamicState.VK_DYNAMIC_STATE_VIEWPORT;
+            dynstate.Second = VkDynamicState.VK_DYNAMIC_STATE_SCISSOR;
 
-            VkPipelineDynamicStateCreateInfo dyn = VkPipelineDynamicStateCreateInfo.New();
+            VkPipelineDynamicStateCreateInfo dyn = new VkPipelineDynamicStateCreateInfo();
             dyn.dynamicStateCount = dynstate.Count;
             dyn.pDynamicStates = &dynstate.First;
 
@@ -728,7 +752,7 @@ namespace ScePSX.Render
 
             var pipelineInfo = new VkGraphicsPipelineCreateInfo
             {
-                sType = VkStructureType.GraphicsPipelineCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                 stageCount = shaderStages.Count,
                 pStages = &shaderStages.First,
                 pVertexInputState = &vertexInputInfo,
@@ -745,8 +769,11 @@ namespace ScePSX.Render
                 pDynamicState = &dyn
             };
 
-            VkResult result = vkCreateGraphicsPipelines(device, VkPipelineCache.Null, 1, &pipelineInfo, null, out graphicsPipeline);
-            if (result != VkResult.Success)
+            VkResult result;
+            fixed (VkPipeline* pgraphicsPipeline = &graphicsPipeline)
+                result = vkCreateGraphicsPipelines(device, VkPipelineCache.Null, 1, &pipelineInfo, null, pgraphicsPipeline);
+
+            if (result != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create graphics pipeline!");
             }
@@ -762,12 +789,13 @@ namespace ScePSX.Render
         {
             var createInfo = new VkShaderModuleCreateInfo
             {
-                sType = VkStructureType.ShaderModuleCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
                 codeSize = (nuint)code.Length,
                 pCode = (uint*)Marshal.UnsafeAddrOfPinnedArrayElement(code, 0)
             };
 
-            if (vkCreateShaderModule(device, &createInfo, null, out var shaderModule) != VkResult.Success)
+            VkShaderModule shaderModule;
+            if (vkCreateShaderModule(device, &createInfo, null, &shaderModule) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create shader module!");
             }
@@ -784,30 +812,32 @@ namespace ScePSX.Render
             uint imageCount = GetSwapChainImageCount();
             var swapChainCreateInfo = new VkSwapchainCreateInfoKHR
             {
-                sType = VkStructureType.SwapchainCreateInfoKHR,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                 surface = surface,
                 minImageCount = imageCount,
                 imageFormat = surfaceFormat.format,
                 imageColorSpace = surfaceFormat.colorSpace,
                 imageExtent = extent,
                 imageArrayLayers = 1,
-                imageUsage = VkImageUsageFlags.ColorAttachment,
-                preTransform = VkSurfaceTransformFlagsKHR.InheritKHR,
-                compositeAlpha = VkCompositeAlphaFlagsKHR.OpaqueKHR,
+                imageUsage = VkImageUsageFlags.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                preTransform = VkSurfaceTransformFlagsKHR.VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR,
+                compositeAlpha = VkCompositeAlphaFlagsKHR.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                 presentMode = presentMode,
                 clipped = true
             };
 
-            if (vkCreateSwapchainKHR(device, ref swapChainCreateInfo, null, out swapChain) != VkResult.Success)
-            {
-                throw new Exception("Failed to create swap chain!");
-            }
+            fixed (VkSwapchainKHR* pswapChain = &swapChain)
+                if (vkCreateSwapchainKHR(device, &swapChainCreateInfo, null, pswapChain) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create swap chain!");
+                }
 
             vkGetSwapchainImagesKHR(device, swapChain, &imageCount, null);
 
             swapChainImages.Resize(imageCount);
 
-            vkGetSwapchainImagesKHR(device, swapChain, &imageCount, out swapChainImages[0]);
+            fixed (VkImage* pswapChainImages = &swapChainImages[0])
+                vkGetSwapchainImagesKHR(device, swapChain, &imageCount, pswapChainImages);
 
             swapChainImageFormat = surfaceFormat.format;
             swapChainExtent = extent;
@@ -818,17 +848,18 @@ namespace ScePSX.Render
             swapChainImageViews.Resize(swapChainImages.Count);
             for (int i = 0; i < swapChainImages.Count; i++)
             {
-                VkImageViewCreateInfo imageViewCI = VkImageViewCreateInfo.New();
+                VkImageViewCreateInfo imageViewCI = new VkImageViewCreateInfo();
                 imageViewCI.image = swapChainImages[i];
-                imageViewCI.viewType = VkImageViewType.Image2D;
+                imageViewCI.viewType = VkImageViewType.VK_IMAGE_VIEW_TYPE_2D;
                 imageViewCI.format = swapChainImageFormat;
-                imageViewCI.subresourceRange.aspectMask = VkImageAspectFlags.Color;
+                imageViewCI.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT;
                 imageViewCI.subresourceRange.baseMipLevel = 0;
                 imageViewCI.subresourceRange.levelCount = 1;
                 imageViewCI.subresourceRange.baseArrayLayer = 0;
                 imageViewCI.subresourceRange.layerCount = 1;
 
-                if (vkCreateImageView(device, ref imageViewCI, null, out swapChainImageViews[i]) != VkResult.Success)
+                fixed (VkImageView* pimageView = &swapChainImageViews[i])
+                    if (vkCreateImageView(device, &imageViewCI, null, pimageView) != VkResult.VK_SUCCESS)
                 {
                     throw new Exception("Failed to create image view!");
                 }
@@ -841,7 +872,7 @@ namespace ScePSX.Render
             for (uint i = 0; i < framebuffers.Count; i++)
             {
                 VkImageView attachment = swapChainImageViews[i];
-                VkFramebufferCreateInfo framebufferCI = VkFramebufferCreateInfo.New();
+                VkFramebufferCreateInfo framebufferCI = new VkFramebufferCreateInfo();
                 framebufferCI.renderPass = renderPass;
                 framebufferCI.attachmentCount = 1;
                 framebufferCI.pAttachments = &attachment;
@@ -849,7 +880,8 @@ namespace ScePSX.Render
                 framebufferCI.height = swapChainExtent.height;
                 framebufferCI.layers = 1;
 
-                vkCreateFramebuffer(device, ref framebufferCI, null, out framebuffers[i]);
+                fixed (VkFramebuffer* pframebuffer = &framebuffers[i])
+                    vkCreateFramebuffer(device, &framebufferCI, null, pframebuffer);
             }
         }
 
@@ -859,40 +891,43 @@ namespace ScePSX.Render
 
             var poolInfo = new VkCommandPoolCreateInfo
             {
-                sType = VkStructureType.CommandPoolCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 queueFamilyIndex = (uint)graphicsQueueFamilyIndex,
-                flags = VkCommandPoolCreateFlags.ResetCommandBuffer
+                flags = VkCommandPoolCreateFlags.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
             };
 
-            if (vkCreateCommandPool(device, &poolInfo, null, out commandPool) != VkResult.Success)
+            fixed (VkCommandPool* commandPool = &this.commandPool)
+                if (vkCreateCommandPool(device, &poolInfo, null, commandPool) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create command pool!");
             }
 
             var allocInfo = new VkCommandBufferAllocateInfo
             {
-                sType = VkStructureType.CommandBufferAllocateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                 commandPool = commandPool,
-                level = VkCommandBufferLevel.Primary,
+                level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                 commandBufferCount = framebuffers.Count
             };
 
             var buffers = new VkCommandBuffer[framebuffers.Count];
-            if (vkAllocateCommandBuffers(device, &allocInfo, out commandBuffers[0]) != VkResult.Success)
+            fixed (VkCommandBuffer* pcommandBuffers = &commandBuffers[0])
+                if (vkAllocateCommandBuffers(device, &allocInfo, pcommandBuffers) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to allocate command buffers!");
             }
 
             VkFenceCreateInfo fenceInfo = new VkFenceCreateInfo
             {
-                sType = VkStructureType.FenceCreateInfo,
-                flags = VkFenceCreateFlags.Signaled
+                sType = VkStructureType.VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                flags = VkFenceCreateFlags.VK_FENCE_CREATE_SIGNALED_BIT
             };
 
             inFlightFences.Resize(framebuffers.Count);
             for (int i = 0; i < inFlightFences.Count; i++)
             {
-                if (vkCreateFence(device, ref fenceInfo, null, out inFlightFences[i]) != VkResult.Success)
+                fixed (VkFence* pinFlightFence = &inFlightFences[i])
+                    if (vkCreateFence(device, &fenceInfo, null, pinFlightFence) != VkResult.VK_SUCCESS)
                     throw new Exception("Failed to create fence!");
             }
         }
@@ -900,15 +935,16 @@ namespace ScePSX.Render
         private unsafe void CreateDescriptorPool()
         {
             vkFixedArray2<VkDescriptorPoolSize> poolSizes;
-            poolSizes.First.type = VkDescriptorType.CombinedImageSampler;
+            poolSizes.First.type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             poolSizes.First.descriptorCount = 1;
 
-            VkDescriptorPoolCreateInfo poolInfo = VkDescriptorPoolCreateInfo.New();
+            VkDescriptorPoolCreateInfo poolInfo = new VkDescriptorPoolCreateInfo();
             poolInfo.poolSizeCount = 1;
             poolInfo.pPoolSizes = &poolSizes.First;
             poolInfo.maxSets = 1;
 
-            if (vkCreateDescriptorPool(device, ref poolInfo, null, out descriptorPool) != VkResult.Success)
+            fixed (VkDescriptorPool* pdescriptorPool = &descriptorPool)
+                if (vkCreateDescriptorPool(device, &poolInfo, null, pdescriptorPool) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create descriptor pool!");
             }
@@ -917,12 +953,13 @@ namespace ScePSX.Render
         private unsafe void CreateDescriptorSet()
         {
             VkDescriptorSetLayout dsl = descriptorSetLayout;
-            VkDescriptorSetAllocateInfo allocInfo = VkDescriptorSetAllocateInfo.New();
+            VkDescriptorSetAllocateInfo allocInfo = new VkDescriptorSetAllocateInfo();
             allocInfo.descriptorPool = descriptorPool;
             allocInfo.pSetLayouts = &dsl;
             allocInfo.descriptorSetCount = 1;
 
-            if (vkAllocateDescriptorSets(device, ref allocInfo, out descriptorSet) != VkResult.Success)
+            fixed (VkDescriptorSet* pdescriptorSet = &descriptorSet)
+                if (vkAllocateDescriptorSets(device, &allocInfo, pdescriptorSet) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to allocate descriptor set!");
             }
@@ -930,24 +967,24 @@ namespace ScePSX.Render
             // 创建采样器
             VkSamplerCreateInfo samplerInfo = new VkSamplerCreateInfo
             {
-                sType = VkStructureType.SamplerCreateInfo,
-                magFilter = VkFilter.Linear,
-                minFilter = VkFilter.Linear,
-                addressModeU = VkSamplerAddressMode.ClampToEdge,
-                addressModeV = VkSamplerAddressMode.ClampToEdge,
-                addressModeW = VkSamplerAddressMode.ClampToEdge,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                magFilter = VkFilter.VK_FILTER_LINEAR,
+                minFilter = VkFilter.VK_FILTER_LINEAR,
+                addressModeU = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                addressModeV = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                addressModeW = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 anisotropyEnable = false,
-                borderColor = VkBorderColor.IntOpaqueBlack,
+                borderColor = VkBorderColor.VK_BORDER_COLOR_INT_OPAQUE_BLACK,
                 unnormalizedCoordinates = false,
                 compareEnable = false,
-                compareOp = VkCompareOp.Always,
+                compareOp = VkCompareOp.VK_COMPARE_OP_ALWAYS,
                 mipLodBias = 0,
                 minLod = 0,
                 maxLod = 0
             };
 
             VkSampler textureSampler;
-            if (vkCreateSampler(device, &samplerInfo, null, out textureSampler) != VkResult.Success)
+            if (vkCreateSampler(device, &samplerInfo, null, &textureSampler) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create texture sampler!");
             }
@@ -955,13 +992,13 @@ namespace ScePSX.Render
             // 创建图像视图
             VkImageViewCreateInfo viewInfo = new VkImageViewCreateInfo
             {
-                sType = VkStructureType.ImageViewCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 image = image,
-                viewType = VkImageViewType.Image2D,
-                format = VkFormat.B8g8r8a8Unorm,
+                viewType = VkImageViewType.VK_IMAGE_VIEW_TYPE_2D,
+                format = VkFormat.VK_FORMAT_B8G8R8A8_UNORM,
                 subresourceRange = new VkImageSubresourceRange
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                     baseMipLevel = 0,
                     levelCount = 1,
                     baseArrayLayer = 0,
@@ -970,7 +1007,7 @@ namespace ScePSX.Render
             };
 
             VkImageView textureImageView;
-            if (vkCreateImageView(device, &viewInfo, null, out textureImageView) != VkResult.Success)
+            if (vkCreateImageView(device, &viewInfo, null, &textureImageView) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create texture image view!");
             }
@@ -978,18 +1015,18 @@ namespace ScePSX.Render
             // 更新描述符集
             VkDescriptorImageInfo imageInfo = new VkDescriptorImageInfo
             {
-                imageLayout = VkImageLayout.ShaderReadOnlyOptimal,
+                imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                 imageView = textureImageView,
                 sampler = textureSampler
             };
 
             VkWriteDescriptorSet descriptorWrite = new VkWriteDescriptorSet
             {
-                sType = VkStructureType.WriteDescriptorSet,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 dstSet = descriptorSet,
                 dstBinding = 0,
                 dstArrayElement = 0,
-                descriptorType = VkDescriptorType.CombinedImageSampler,
+                descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 descriptorCount = 1,
                 pImageInfo = &imageInfo
             };
@@ -1000,7 +1037,7 @@ namespace ScePSX.Render
         private unsafe VkSurfaceFormatKHR ChooseSurfaceFormat()
         {
             uint formatCount = 0;
-            vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, ref formatCount, null);
+            vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, null);
             if (formatCount == 0)
             {
                 throw new Exception("No surface formats found!");
@@ -1008,15 +1045,16 @@ namespace ScePSX.Render
 
             vkRawList<VkSurfaceFormatKHR> formats = new vkRawList<VkSurfaceFormatKHR>(formatCount);
 
-            vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, out formats[0]);
+            fixed (VkSurfaceFormatKHR* pformats = &formats[0])
+                vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, pformats);
 
-            if (formats.Count == 1 && formats[0].format == VkFormat.Undefined)
+            if (formats.Count == 1 && formats[0].format == VkFormat.VK_FORMAT_UNDEFINED)
             {
-                return new VkSurfaceFormatKHR { format = VkFormat.B8g8r8a8Unorm, colorSpace = VkColorSpaceKHR.SrgbNonlinearKHR };
+                return new VkSurfaceFormatKHR { format = VkFormat.VK_FORMAT_B8G8R8A8_UNORM, colorSpace = VkColorSpaceKHR.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
             }
             foreach (var format in formats)
             {
-                if (format.format == VkFormat.B8g8r8a8Unorm && format.colorSpace == VkColorSpaceKHR.SrgbNonlinearKHR)
+                if (format.format == VkFormat.VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VkColorSpaceKHR.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
                 {
                     return format;
                 }
@@ -1027,7 +1065,7 @@ namespace ScePSX.Render
         private unsafe VkPresentModeKHR ChoosePresentMode()
         {
             uint presentModeCount = 0;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, ref presentModeCount, null);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, null);
             if (presentModeCount == 0)
             {
                 throw new Exception("No present modes found!");
@@ -1035,22 +1073,24 @@ namespace ScePSX.Render
 
             vkRawList<VkPresentModeKHR> presentModes = new vkRawList<VkPresentModeKHR>(presentModeCount);
 
-            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, out presentModes[0]);
+            fixed (VkPresentModeKHR* ppresentModes = &presentModes[0])
+                vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, ppresentModes);
             foreach (var presentMode in presentModes)
             {
-                if (presentMode == VkPresentModeKHR.MailboxKHR)
+                if (presentMode == VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
                 {
                     return presentMode;
                 }
             }
-            return VkPresentModeKHR.FifoKHR;
+            return VkPresentModeKHR.VK_PRESENT_MODE_FIFO_KHR;
         }
 
-        private uint GetSwapChainImageCount()
+        private unsafe uint GetSwapChainImageCount()
         {
             vkRawList<VkSurfaceCapabilitiesKHR> capabilities = new vkRawList<VkSurfaceCapabilitiesKHR>(1);
 
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, out capabilities[0]);
+            fixed(VkSurfaceCapabilitiesKHR* pcapabilities = &capabilities[0])
+                vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, pcapabilities);
             uint imageCount = capabilities[0].minImageCount + 1;
             if (capabilities[0].maxImageCount > 0 && imageCount > capabilities[0].maxImageCount)
             {
@@ -1075,34 +1115,39 @@ namespace ScePSX.Render
 
             CopyBufferToImage(stagingBuffer, image, width, height);
 
-            TransitionImageLayout(image, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal);
+            TransitionImageLayout(image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
 
         public unsafe void InitializeImage(int width, int height)
         {
             stagingBuffer = CreateStagingBuffer(width * height * 4);
-            vkGetBufferMemoryRequirements(device, stagingBuffer, out var memRequirements);
+
+            VkMemoryRequirements memRequirements;
+            vkGetBufferMemoryRequirements(device, stagingBuffer, &memRequirements);
             var allocInfo = new VkMemoryAllocateInfo
             {
-                sType = VkStructureType.MemoryAllocateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                 allocationSize = memRequirements.size,
-                memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent)
+                memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
             };
-            vkAllocateMemory(device, ref allocInfo, null, out stagingBufferMemory);
+            fixed (VkDeviceMemory* pstagingBufferMemory = &stagingBufferMemory)
+                vkAllocateMemory(device, &allocInfo, null, pstagingBufferMemory);
             vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
 
-            image = CreateImage(width, height, VkFormat.B8g8r8a8Unorm);
-            vkGetImageMemoryRequirements(device, image, out memRequirements);
+            image = CreateImage(width, height, VkFormat.VK_FORMAT_B8G8R8A8_UNORM);
+
+            vkGetImageMemoryRequirements(device, image, &memRequirements);
             allocInfo = new VkMemoryAllocateInfo
             {
-                sType = VkStructureType.MemoryAllocateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                 allocationSize = memRequirements.size,
-                memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VkMemoryPropertyFlags.DeviceLocal)
+                memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
             };
-            vkAllocateMemory(device, ref allocInfo, null, out imageMemory);
+            fixed (VkDeviceMemory* pimageMemory = &imageMemory)
+                vkAllocateMemory(device, &allocInfo, null, pimageMemory);
             vkBindImageMemory(device, image, imageMemory, 0);
 
-            TransitionImageLayout(image, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
+            TransitionImageLayout(image, VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         }
 
         private void InitializeResources(int width, int height)
@@ -1151,13 +1196,14 @@ namespace ScePSX.Render
         {
             var bufferInfo = new VkBufferCreateInfo
             {
-                sType = VkStructureType.BufferCreateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                 size = (ulong)size,
-                usage = VkBufferUsageFlags.TransferSrc,
-                sharingMode = VkSharingMode.Exclusive
+                usage = VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE
             };
 
-            if (vkCreateBuffer(device, ref bufferInfo, null, out stagingBuffer) != VkResult.Success)
+            VkBuffer stagingBuffer;
+            if (vkCreateBuffer(device, &bufferInfo, null, &stagingBuffer) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create staging buffer!");
             }
@@ -1169,34 +1215,37 @@ namespace ScePSX.Render
         {
             var imageInfo = new VkImageCreateInfo
             {
-                sType = VkStructureType.ImageCreateInfo,
-                imageType = VkImageType.Image2D,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                imageType = VkImageType.VK_IMAGE_TYPE_2D,
                 extent = new VkExtent3D { width = (uint)width, height = (uint)height, depth = 1 },
                 mipLevels = 1,
                 arrayLayers = 1,
                 format = format,
-                tiling = VkImageTiling.Optimal,
-                initialLayout = VkImageLayout.Undefined,
-                usage = VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled,
-                sharingMode = VkSharingMode.Exclusive,
-                samples = VkSampleCountFlags.Count1
+                tiling = VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
+                initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+                usage = VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
+                sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE,
+                samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT
             };
 
-            if (vkCreateImage(device, ref imageInfo, null, out image) != VkResult.Success)
+            VkImage image;
+            if (vkCreateImage(device, &imageInfo, null, &image) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to create image!");
             }
 
-            vkGetImageMemoryRequirements(device, image, out var memRequirements);
+            VkMemoryRequirements memRequirements;
+            vkGetImageMemoryRequirements(device, image, &memRequirements);
 
             var allocInfo = new VkMemoryAllocateInfo
             {
-                sType = VkStructureType.MemoryAllocateInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                 allocationSize = memRequirements.size,
-                memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VkMemoryPropertyFlags.DeviceLocal)
+                memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
             };
 
-            if (vkAllocateMemory(device, ref allocInfo, null, out imageMemory) != VkResult.Success)
+            VkDeviceMemory imageMemory;
+            if (vkAllocateMemory(device, &allocInfo, null, &imageMemory) != VkResult.VK_SUCCESS)
             {
                 throw new Exception("Failed to allocate memory for image!");
             }
@@ -1212,7 +1261,7 @@ namespace ScePSX.Render
 
             var subresource = new VkImageSubresourceLayers
             {
-                aspectMask = VkImageAspectFlags.Color,
+                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                 mipLevel = 0,
                 baseArrayLayer = 0,
                 layerCount = 1
@@ -1228,14 +1277,15 @@ namespace ScePSX.Render
                 imageExtent = new VkExtent3D { width = (uint)width, height = (uint)height, depth = 1 }
             };
 
-            vkCmdCopyBufferToImage(commandBuffer, buffer, image, VkImageLayout.TransferDstOptimal, 1, ref region);
+            vkCmdCopyBufferToImage(commandBuffer, buffer, image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
             EndSingleTimeCommands(commandBuffer);
         }
 
-        private uint FindMemoryType(uint typeFilter, VkMemoryPropertyFlags properties)
+        private unsafe uint FindMemoryType(uint typeFilter, VkMemoryPropertyFlags properties)
         {
-            vkGetPhysicalDeviceMemoryProperties(physicalDevice, out var memProperties);
+            VkPhysicalDeviceMemoryProperties memProperties;
+            vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
             for (uint i = 0; i < memProperties.memoryTypeCount; i++)
             {
@@ -1286,19 +1336,20 @@ namespace ScePSX.Render
             throw new Exception("Failed to find suitable memory type!");
         }
 
-        private VkCommandBuffer BeginSingleTimeCommands()
+        private unsafe VkCommandBuffer BeginSingleTimeCommands()
         {
-            VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.New();
+            VkCommandBufferAllocateInfo allocInfo = new VkCommandBufferAllocateInfo();
             allocInfo.commandBufferCount = 1;
             allocInfo.commandPool = commandPool;
-            allocInfo.level = VkCommandBufferLevel.Primary;
+            allocInfo.level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-            vkAllocateCommandBuffers(device, ref allocInfo, out VkCommandBuffer cb);
+            VkCommandBuffer cb;
+            vkAllocateCommandBuffers(device, &allocInfo, &cb);
 
-            VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.New();
-            beginInfo.flags = VkCommandBufferUsageFlags.OneTimeSubmit;
+            VkCommandBufferBeginInfo beginInfo = new VkCommandBufferBeginInfo();
+            beginInfo.flags = VkCommandBufferUsageFlags.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-            vkBeginCommandBuffer(cb, ref beginInfo);
+            vkBeginCommandBuffer(cb, &beginInfo);
 
             return cb;
         }
@@ -1308,13 +1359,13 @@ namespace ScePSX.Render
             vkEndCommandBuffer(commandBuffer);
             var submitInfo = new VkSubmitInfo
             {
-                sType = VkStructureType.SubmitInfo,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO,
                 commandBufferCount = 1,
                 pCommandBuffers = &commandBuffer
             };
-            vkQueueSubmit(graphicsQueue, 1, ref submitInfo, VkFence.Null);
+            vkQueueSubmit(graphicsQueue, 1, &submitInfo, VkFence.Null);
             vkQueueWaitIdle(graphicsQueue);
-            vkFreeCommandBuffers(device, commandPool, 1, ref commandBuffer);
+            vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
         }
 
         private unsafe void TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
@@ -1323,7 +1374,7 @@ namespace ScePSX.Render
             var commandBuffer = BeginSingleTimeCommands();
             var barrier = new VkImageMemoryBarrier
             {
-                sType = VkStructureType.ImageMemoryBarrier,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 oldLayout = oldLayout,
                 newLayout = newLayout,
                 srcQueueFamilyIndex = VkQueueFamilyIgnored,
@@ -1331,7 +1382,7 @@ namespace ScePSX.Render
                 image = image,
                 subresourceRange = new VkImageSubresourceRange
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                     baseMipLevel = 0,
                     levelCount = 1,
                     baseArrayLayer = 0,
@@ -1340,23 +1391,23 @@ namespace ScePSX.Render
             };
             VkPipelineStageFlags sourceStage;
             VkPipelineStageFlags destinationStage;
-            if (oldLayout == VkImageLayout.Undefined && newLayout == VkImageLayout.TransferDstOptimal)
+            if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
             {
-                barrier.srcAccessMask = 0;
-                barrier.dstAccessMask = VkAccessFlags.TransferWrite;
-                sourceStage = VkPipelineStageFlags.TopOfPipe;
-                destinationStage = VkPipelineStageFlags.Transfer;
-            } else if (oldLayout == VkImageLayout.TransferDstOptimal && newLayout == VkImageLayout.ShaderReadOnlyOptimal)
+                barrier.srcAccessMask = VkAccessFlags.VK_ACCESS_NONE;
+                barrier.dstAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
+                sourceStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                destinationStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;
+            } else if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
             {
-                barrier.srcAccessMask = VkAccessFlags.TransferWrite;
-                barrier.dstAccessMask = VkAccessFlags.ShaderRead;
-                sourceStage = VkPipelineStageFlags.Transfer;
-                destinationStage = VkPipelineStageFlags.FragmentShader;
+                barrier.srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
+                barrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
+                sourceStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;
+                destinationStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             } else
             {
                 throw new Exception("Unsupported layout transition!");
             }
-            vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, null, 0, null, 1, ref barrier);
+            vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, null, 0, null, 1, &barrier);
             EndSingleTimeCommands(commandBuffer);
         }
 

@@ -15,9 +15,9 @@ using System.Runtime.InteropServices;
 using ScePSX.Core.GPU;
 using ScePSX.Render;
 
-using Vulkan;
-using static ScePSX.VulkanDevice;
-using static Vulkan.VulkanNative;
+using LightVK;
+using static LightVK.VulkanDevice;
+using static LightVK.VulkanNative;
 
 namespace ScePSX
 {
@@ -247,20 +247,20 @@ namespace ScePSX
 
             convertedData = (int*)Marshal.AllocHGlobal((VRAM_WIDTH * VRAM_HEIGHT) * 4);
 
-            Device.VulkanInit(NullRenderer.hwnd, NullRenderer.hinstance);
+            Device.VulkanInit(NullRenderer.hwnd, NullRenderer.hinstance, false);
 
             renderPass = Device.CreateRenderPass
                 (Device.ChooseSurfaceFormat().format,
-                VkAttachmentLoadOp.Clear,
-                VkImageLayout.Undefined,
-                VkImageLayout.PresentSrcKHR
+                VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
+                VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+                VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
                 );
 
             drawPass = Device.CreateRenderPass(
                 Device.ChooseSurfaceFormat().format,
-                VkAttachmentLoadOp.Load,
-                VkImageLayout.ColorAttachmentOptimal,
-                VkImageLayout.ColorAttachmentOptimal,
+                VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_LOAD,
+                VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 true,
                 true
                 );
@@ -284,13 +284,17 @@ namespace ScePSX
             VkPipelineColorBlendAttachmentState blendAttachment = new()
             {
                 blendEnable = VkBool32.True,
-                srcColorBlendFactor = VkBlendFactor.Src1Alpha,
-                dstColorBlendFactor = VkBlendFactor.Src1Color,
-                colorBlendOp = VkBlendOp.Add,
-                srcAlphaBlendFactor = VkBlendFactor.One,
-                dstAlphaBlendFactor = VkBlendFactor.Zero,
-                alphaBlendOp = VkBlendOp.Add,
-                colorWriteMask = VkColorComponentFlags.R | VkColorComponentFlags.G | VkColorComponentFlags.B | VkColorComponentFlags.A
+                srcColorBlendFactor = VkBlendFactor.VK_BLEND_FACTOR_SRC1_ALPHA,
+                dstColorBlendFactor = VkBlendFactor.VK_BLEND_FACTOR_SRC1_COLOR,
+                colorBlendOp = VkBlendOp.VK_BLEND_OP_ADD,
+                srcAlphaBlendFactor = VkBlendFactor.VK_BLEND_FACTOR_ONE,
+                dstAlphaBlendFactor = VkBlendFactor.VK_BLEND_FACTOR_ZERO,
+                alphaBlendOp = VkBlendOp.VK_BLEND_OP_ADD,
+                colorWriteMask =
+                VkColorComponentFlags.VK_COLOR_COMPONENT_R_BIT |
+                VkColorComponentFlags.VK_COLOR_COMPONENT_G_BIT |
+                VkColorComponentFlags.VK_COLOR_COMPONENT_B_BIT |
+                VkColorComponentFlags.VK_COLOR_COMPONENT_A_BIT
             };
 
             VkVertexInputAttributeDescription[] drawAttributes = ConfigVertex();
@@ -299,7 +303,7 @@ namespace ScePSX
             {
                 binding = 0,
                 stride = (uint)Marshal.SizeOf<Vertex>(),
-                inputRate = VkVertexInputRate.Vertex
+                inputRate = VkVertexInputRate.VK_VERTEX_INPUT_RATE_VERTEX
             };
 
             var drawVertbytes = Device.LoadShaderFile("./Shaders/draw.vert.spv");
@@ -313,18 +317,18 @@ namespace ScePSX
                 drawFragbytes,
                 VRAM_WIDTH, VRAM_HEIGHT,
                 true,
-                VkSampleCountFlags.Count1,
+                VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
                 drawBinding,
                 drawAttributes,
                 blendAttachment,
                 default,
-                VkPrimitiveTopology.TriangleList,
+                VkPrimitiveTopology.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
                 new float[] { 0, 0, 0, 0 }
             );
 
-            //blendAttachment.srcColorBlendFactor = VkBlendFactor.One;
-            //blendAttachment.dstColorBlendFactor = VkBlendFactor.One;
-            blendAttachment.colorBlendOp = VkBlendOp.ReverseSubtract;
+            //blendAttachment.srcColorBlendFactor = VkBlendFactor.VK_BLEND_FACTOR_ONE;
+            //blendAttachment.dstColorBlendFactor = VkBlendFactor.VK_BLEND_FACTOR_ONE;
+            blendAttachment.colorBlendOp = VkBlendOp.VK_BLEND_OP_REVERSE_SUBTRACT;
 
             // 减法混合（Blend Mode 2）
             drawSubtract = Device.CreateGraphicsPipeline(
@@ -335,12 +339,12 @@ namespace ScePSX
                 drawFragbytes,
                 VRAM_WIDTH, VRAM_HEIGHT,
                 true,
-                VkSampleCountFlags.Count1,
+                VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
                 drawBinding,
                 drawAttributes,
                 blendAttachment,
                 default,
-                VkPrimitiveTopology.TriangleList,
+                VkPrimitiveTopology.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
                 new float[] { 1.0f, 1.0f, 1.0f, 1.0f }
             );
 
@@ -351,7 +355,7 @@ namespace ScePSX
             var pushConstantRanges = new VkPushConstantRange[1];
             pushConstantRanges[0] = new VkPushConstantRange
             {
-                stageFlags = VkShaderStageFlags.Fragment,
+                stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT,
                 offset = 0,
                 size = (uint)sizeof(SrcRectUBO)
             };
@@ -366,12 +370,12 @@ namespace ScePSX
                 outFrag,
                 VRAM_WIDTH, VRAM_HEIGHT,
                 false,
-                VkSampleCountFlags.Count1,
+                VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
                 default,
                 default,
                 default,
                 pushConstantRanges,
-                VkPrimitiveTopology.TriangleStrip
+                VkPrimitiveTopology.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
             );
 
             /////////////////////////////////////////////////////////////////////////////////////////
@@ -380,7 +384,7 @@ namespace ScePSX
 
             //Calc Vram write alignment
             VkImageSubresource subresource = new VkImageSubresource();
-            subresource.aspectMask = VkImageAspectFlags.Color;
+            subresource.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT;
             subresource.mipLevel = 0;
             subresource.arrayLayer = 0;
 
@@ -412,10 +416,11 @@ namespace ScePSX
 
         public unsafe VkVertexInputAttributeDescription[] ConfigVertex()
         {
-            VaoBuffer = Device.CreateBuffer((ulong)(8192 * 10 * sizeof(Vertex)), VkBufferUsageFlags.VertexBuffer | VkBufferUsageFlags.TransferDst);
+            VaoBuffer = Device.CreateBuffer((ulong)(8192 * 10 * sizeof(Vertex)),
+                VkBufferUsageFlags.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
             void* mappedData;
-            vkMapMemory(Device.device, VaoBuffer.stagingMemory, 0, WholeSize, 0, &mappedData);
+            vkMapMemory(Device.device, VaoBuffer.stagingMemory, 0, VK_WHOLE_SIZE, 0, &mappedData);
             VaoBuffer.mappedData = mappedData;
 
             var vertexType = typeof(Vertex);
@@ -426,7 +431,7 @@ namespace ScePSX
                 {
                     location = 0,
                     binding = 0,
-                    format = VkFormat.R16g16b16a16Sscaled,
+                    format = VkFormat.VK_FORMAT_R16G16B16A16_SSCALED,
                     offset = 0
                 },
 
@@ -435,7 +440,7 @@ namespace ScePSX
                 {
                     location = 1,
                     binding = 0,
-                    format = VkFormat.R32g32b32Sfloat,
+                    format = VkFormat.VK_FORMAT_R32G32B32A32_SFLOAT,
                     offset = 8
                 },
 
@@ -444,7 +449,7 @@ namespace ScePSX
                 {
                     location = 2,
                     binding = 0,
-                    format = VkFormat.R16g16Sscaled,
+                    format = VkFormat.VK_FORMAT_R16G16_SSCALED,
                     offset = 20
                 },
 
@@ -453,7 +458,7 @@ namespace ScePSX
                 {
                     location = 3,
                     binding = 0,
-                    format = VkFormat.R8g8b8Unorm,
+                    format = VkFormat.VK_FORMAT_R8G8B8_UNORM,
                     offset = 24
                 },
 
@@ -462,7 +467,7 @@ namespace ScePSX
                 {
                     location = 4,
                     binding = 0,
-                    format = VkFormat.R32Sint,
+                    format = VkFormat.VK_FORMAT_R32_SINT,
                     offset = 36
                 },
 
@@ -471,7 +476,7 @@ namespace ScePSX
                 {
                     location = 5,
                     binding = 0,
-                    format = VkFormat.R32Sint,
+                    format = VkFormat.VK_FORMAT_R32_SINT,
                     offset = 40
                 },
 
@@ -480,7 +485,7 @@ namespace ScePSX
                 {
                     location = 6,
                     binding = 0,
-                    format = VkFormat.R32Sfloat,
+                    format = VkFormat.VK_FORMAT_R32_SFLOAT,
                     offset = 44
                 },
 
@@ -489,7 +494,7 @@ namespace ScePSX
                 {
                     location = 7,
                     binding = 0,
-                    format = VkFormat.R32Sfloat,
+                    format = VkFormat.VK_FORMAT_R32_SFLOAT,
                     offset = 48
                 },
 
@@ -498,7 +503,7 @@ namespace ScePSX
                 {
                     location = 8,
                     binding = 0,
-                    format = VkFormat.R32Sint,
+                    format = VkFormat.VK_FORMAT_R32_SINT,
                     offset = 52
                 },
 
@@ -507,7 +512,7 @@ namespace ScePSX
                 {
                     location = 9,
                     binding = 0,
-                    format = VkFormat.R32Sint,
+                    format = VkFormat.VK_FORMAT_R32_SINT,
                     offset = 56
                 },
 
@@ -516,7 +521,7 @@ namespace ScePSX
                 {
                     location = 10,
                     binding = 0,
-                    format = VkFormat.R32Sint,
+                    format = VkFormat.VK_FORMAT_R32_SINT,
                     offset = 60
                 },
 
@@ -525,7 +530,7 @@ namespace ScePSX
                 {
                     location = 11,
                     binding = 0,
-                    format = VkFormat.R32g32Sint,
+                    format = VkFormat.VK_FORMAT_R32G32_SINT,
                     offset = 64
                 },
 
@@ -534,7 +539,7 @@ namespace ScePSX
                 {
                     location = 12,
                     binding = 0,
-                    format = VkFormat.R32g32Sint,
+                    format = VkFormat.VK_FORMAT_R32G32_SINT,
                     offset = 72
                 },
 
@@ -543,7 +548,7 @@ namespace ScePSX
                 {
                     location = 13,
                     binding = 0,
-                    format = VkFormat.R32Sint,
+                    format = VkFormat.VK_FORMAT_R32_SINT,
                     offset = 80
                 }
             };
@@ -554,13 +559,13 @@ namespace ScePSX
             minUboAlignment = (uint)Device.GetMinUniformBufferAlignment();
 
             uint uboSize = (uint)Marshal.SizeOf<drawvertUBO>();
-            vertexUBO = Device.CreateBuffer(uboSize * 2, VkBufferUsageFlags.UniformBuffer | VkBufferUsageFlags.TransferDst);
+            vertexUBO = Device.CreateBuffer(uboSize * 2, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
             uboSize = (uint)Marshal.SizeOf<drawfragUBO>();
-            fragmentUBO = Device.CreateBuffer(uboSize * 2, VkBufferUsageFlags.UniformBuffer | VkBufferUsageFlags.TransferDst);
+            fragmentUBO = Device.CreateBuffer(uboSize * 2, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
             void* mappedData;
-            vkMapMemory(Device.device, fragmentUBO.stagingMemory, 0, WholeSize, 0, &mappedData);
+            vkMapMemory(Device.device, fragmentUBO.stagingMemory, 0, VK_WHOLE_SIZE, 0, &mappedData);
             drawFragData = (byte*)mappedData;
 
             drawdescriptorPool = Device.CreateDescriptorPool(
@@ -569,12 +574,12 @@ namespace ScePSX
                 {
                     new VkDescriptorPoolSize
                     {
-                        type = VkDescriptorType.CombinedImageSampler,
+                        type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                         descriptorCount = 1
                     },
                     new VkDescriptorPoolSize
                     {
-                        type = VkDescriptorType.UniformBuffer,//UniformBufferDynamic,
+                        type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                         descriptorCount = 2
                     }
                 }
@@ -585,23 +590,23 @@ namespace ScePSX
                 // 顶点着色器的 UniformBuffer (binding=0)
                 new VkDescriptorSetLayoutBinding {
                     binding = 0,
-                    descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic,
+                    descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                     descriptorCount = 1,
-                    stageFlags = VkShaderStageFlags.Vertex
+                    stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT
                 },
                 // 片段着色器的 UniformBuffer (binding=1)
                 new VkDescriptorSetLayoutBinding {
                     binding = 1,
-                    descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic,
+                    descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                     descriptorCount = 1,
-                    stageFlags = VkShaderStageFlags.Fragment
+                    stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
                 },
                 // 片段着色器的 CombinedImageSampler (binding=2)
                 new VkDescriptorSetLayoutBinding {
                     binding = 2,
-                    descriptorType = VkDescriptorType.CombinedImageSampler,
+                    descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                     descriptorCount = 1,
-                    stageFlags = VkShaderStageFlags.Fragment
+                    stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
                 }
             });
 
@@ -620,7 +625,7 @@ namespace ScePSX
             {
                 sampler = samplerTexture.sampler,
                 imageView = samplerTexture.imageview,
-                imageLayout = VkImageLayout.ShaderReadOnlyOptimal
+                imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             };
 
             // 片段着色器的 UniformBuffer (binding=2)
@@ -636,34 +641,34 @@ namespace ScePSX
                     // 更新顶点着色器的 UniformBuffer (binding=0)
                     new VkWriteDescriptorSet
                     {
-                        sType = VkStructureType.WriteDescriptorSet,
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                         dstSet = drawDescriptorSet,
                         dstBinding = 0,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic
+                        descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                         pBufferInfo = &vertBufferInfo
                     },
                     // 更新片段着色器的 UniformBuffer (binding=1)
                     new VkWriteDescriptorSet
                     {
-                        sType = VkStructureType.WriteDescriptorSet,
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                         dstSet = drawDescriptorSet,
                         dstBinding = 1,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.UniformBuffer, //UniformBufferDynamic
+                        descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                         pBufferInfo =  &fragBufferInfo
                     },
                     // 更新片段着色器的 CombinedImageSampler (binding=2)
                     new VkWriteDescriptorSet
                     {
-                        sType = VkStructureType.WriteDescriptorSet,
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                         dstSet = drawDescriptorSet,
                         dstBinding = 2,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.CombinedImageSampler,
+                        descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                         pImageInfo =&imageInfo
                     }
                  },
@@ -679,7 +684,7 @@ namespace ScePSX
             {
                     new VkDescriptorPoolSize
                     {
-                        type = VkDescriptorType.CombinedImageSampler,
+                        type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                         descriptorCount = 1
                     }
                 }
@@ -690,8 +695,8 @@ namespace ScePSX
                 new VkDescriptorSetLayoutBinding { // CombinedImageSampler (binding=0)
                     binding = 0,
                     descriptorCount = 1,
-                    descriptorType = VkDescriptorType.CombinedImageSampler,
-                    stageFlags = VkShaderStageFlags.Fragment
+                    descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
                 }
             });
 
@@ -701,19 +706,19 @@ namespace ScePSX
             {
                 sampler = drawTexture.sampler,
                 imageView = drawTexture.imageview,
-                imageLayout = VkImageLayout.ShaderReadOnlyOptimal
+                imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             };
 
             Device.UpdateDescriptorSets(
                  new[]{
                     new VkWriteDescriptorSet
                     {
-                        sType = VkStructureType.WriteDescriptorSet,
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                         dstSet = SwapChainDescriptorSet,
                         dstBinding = 0,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.CombinedImageSampler,
+                        descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                         pImageInfo =&imageInfo
                     }
                  },
@@ -727,30 +732,30 @@ namespace ScePSX
 
             VkBufferMemoryBarrier barrier = new()
             {
-                sType = VkStructureType.BufferMemoryBarrier,
-                srcAccessMask = VkAccessFlags.TransferWrite,
-                dstAccessMask = VkAccessFlags.VertexAttributeRead,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+                srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT,
+                dstAccessMask = VkAccessFlags.VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
                 buffer = VaoBuffer.stagingBuffer,
-                size = WholeSize
+                size = VK_WHOLE_SIZE
             };
 
             vkCmdPipelineBarrier(DrawCMD.CMD[0],
-                VkPipelineStageFlags.Transfer,
-                VkPipelineStageFlags.VertexInput,
-                0, 0, null, 1, ref barrier, 0, null);
+                VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VkPipelineStageFlags.VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                0, 0, null, 1, &barrier, 0, null);
 
             samplerTexture.layout = Device.TransitionImageLayout(
                 DrawCMD.CMD[0],
                 samplerTexture,
                 samplerTexture.layout,
-                VkImageLayout.ShaderReadOnlyOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             );
 
             readTexture.layout = Device.TransitionImageLayout(
                 DrawCMD.CMD[0],
                 readTexture,
                 readTexture.layout,
-                VkImageLayout.ShaderReadOnlyOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             );
 
             Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
@@ -760,33 +765,33 @@ namespace ScePSX
         {
             samplerTexture = Device.CreateTexture(
                 VRAM_WIDTH, VRAM_HEIGHT,
-                VkFormat.R8g8b8a8Unorm,
-                VkImageAspectFlags.Color,
-                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferSrc,
-                VkFilter.Nearest,
-                VkSamplerAddressMode.ClampToEdge,
-                VkSamplerMipmapMode.Linear,
-                VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent,
-                VkImageTiling.Linear
+                VkFormat.VK_FORMAT_R8G8B8A8_UNORM,
+                VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                VkFilter.VK_FILTER_NEAREST,
+                VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                VkImageTiling.VK_IMAGE_TILING_LINEAR
                 );
 
             void* dataptr;
-            vkMapMemory(Device.device, samplerTexture.imagememory, 0, WholeSize, 0, &dataptr);
+            vkMapMemory(Device.device, samplerTexture.imagememory, 0, VK_WHOLE_SIZE, 0, &dataptr);
             samplerData = dataptr;
 
             readTexture = Device.CreateTexture(
                 VRAM_WIDTH, VRAM_HEIGHT,
-                VkFormat.R8g8b8a8Unorm,
-                VkImageAspectFlags.Color,
-                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferSrc,
-                VkFilter.Nearest,
-                VkSamplerAddressMode.ClampToEdge,
-                VkSamplerMipmapMode.Linear,
-                VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent,
-                VkImageTiling.Linear
+                VkFormat.VK_FORMAT_R8G8B8A8_UNORM,
+                VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                VkFilter.VK_FILTER_NEAREST,
+                VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                VkImageTiling.VK_IMAGE_TILING_LINEAR
                 );
 
-            vkMapMemory(Device.device, readTexture.imagememory, 0, WholeSize, 0, &dataptr);
+            vkMapMemory(Device.device, readTexture.imagememory, 0, VK_WHOLE_SIZE, 0, &dataptr);
             readTextureData = dataptr;
 
             Console.WriteLine($"[Vulkan GPU] SamplerTexture 0x{samplerTexture.image.Handle:X}");
@@ -796,28 +801,28 @@ namespace ScePSX
         {
             var tex = Device.CreateTexture(
                 VRAM_WIDTH * resolutionScale, VRAM_HEIGHT * resolutionScale,
-                VkFormat.R8g8b8a8Unorm,
-                VkImageAspectFlags.Color,
-                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.InputAttachment,
-                VkFilter.Nearest,
-                VkSamplerAddressMode.ClampToEdge,
-                VkSamplerMipmapMode.Linear,
-                VkMemoryPropertyFlags.DeviceLocal,
-                VkImageTiling.Optimal
+                VkFormat.VK_FORMAT_R8G8B8A8_UNORM,
+                VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+                VkFilter.VK_FILTER_NEAREST,
+                VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                VkImageTiling.VK_IMAGE_TILING_OPTIMAL
                 );
 
             Console.WriteLine($"[Vulkan GPU] DrawTexture 0x{tex.image.Handle:X}");
 
             var dep = Device.CreateTexture(
                 VRAM_WIDTH * resolutionScale, VRAM_HEIGHT * resolutionScale,
-                VkFormat.D16Unorm,
-                VkImageAspectFlags.Depth,
-                VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled | VkImageUsageFlags.DepthStencilAttachment | VkImageUsageFlags.TransferSrc,
-                VkFilter.Nearest,
-                VkSamplerAddressMode.ClampToBorder,
-                VkSamplerMipmapMode.Nearest,
-                VkMemoryPropertyFlags.DeviceLocal,
-                VkImageTiling.Optimal
+                VkFormat.VK_FORMAT_D16_UNORM,
+                VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT,
+                VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                VkFilter.VK_FILTER_NEAREST,
+                VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+                VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_NEAREST,
+                VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                VkImageTiling.VK_IMAGE_TILING_OPTIMAL
                 );
 
             Console.WriteLine($"[Vulkan GPU] DepthTexture 0x{dep.image.Handle:X}");
@@ -828,17 +833,17 @@ namespace ScePSX
                 DrawCMD.CMD[0],
                 tex,
                 tex.layout,
-                VkImageLayout.ColorAttachmentOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             );
 
             dep.layout = Device.TransitionImageLayout(
                 DrawCMD.CMD[0],
                 dep,
                 dep.layout,
-                VkImageLayout.DepthStencilAttachmentOptimal,
-                VkPipelineStageFlags.TopOfPipe,
-                VkPipelineStageFlags.Transfer,
-                VkImageAspectFlags.Depth
+                VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT
             );
 
             Device.EndAndWaitCommandBuffer(DrawCMD.CMD[0]);
@@ -891,8 +896,8 @@ namespace ScePSX
             vkDestroyDescriptorSetLayout(Device.device, SwapChainDescriptorLayout, null);
             vkDestroyDescriptorSetLayout(Device.device, drawDescriptorLayout, null);
 
-            vkDestroyDescriptorPool(Device.device, SwapChaindescriptorPool, 0);
-            vkDestroyDescriptorPool(Device.device, drawdescriptorPool, 0);
+            vkDestroyDescriptorPool(Device.device, SwapChaindescriptorPool, null);
+            vkDestroyDescriptorPool(Device.device, drawdescriptorPool, null);
 
             Device.DestroyGraphicsPipeline(SwapChainPipeline);
             Device.DestroyGraphicsPipeline(drawMain);
@@ -948,11 +953,11 @@ namespace ScePSX
             int newHeight = VRAM_HEIGHT * scale;
 
             VkPhysicalDeviceProperties deviceProperties = new VkPhysicalDeviceProperties();
-            vkGetPhysicalDeviceProperties(Device.physicalDevice, out deviceProperties);
+            vkGetPhysicalDeviceProperties(Device.physicalDevice, &deviceProperties);
             uint maxTextureSize = deviceProperties.limits.maxImageDimension2D;
             if (newWidth > maxTextureSize || newHeight > maxTextureSize)
             {
-                Console.WriteLine($"[VULKAN GPU] New resolution ({newWidth}x{newHeight}) exceeds maximum texture size ({maxTextureSize})");
+                Console.WriteLine($"[Vulkan GPU] New resolution ({newWidth}x{newHeight}) exceeds maximum texture size ({maxTextureSize})");
                 return;
             }
 
@@ -983,19 +988,19 @@ namespace ScePSX
             {
                 sampler = drawTexture.sampler,
                 imageView = drawTexture.imageview,
-                imageLayout = VkImageLayout.ShaderReadOnlyOptimal
+                imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             };
 
             Device.UpdateDescriptorSets(
                  new[]{
                     new VkWriteDescriptorSet
                     {
-                        sType = VkStructureType.WriteDescriptorSet,
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                         dstSet = SwapChainDescriptorSet,
                         dstBinding = 0,
                         dstArrayElement = 0,
                         descriptorCount = 1,
-                        descriptorType = VkDescriptorType.CombinedImageSampler,
+                        descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                         pImageInfo =&imageInfo
                     }
                  },
@@ -1004,7 +1009,7 @@ namespace ScePSX
 
             SetViewport(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
 
-            Console.WriteLine($"[VULKAN GPU] Resolution scale updated to {scale}x ({newWidth}x{newHeight})");
+            Console.WriteLine($"[Vulkan GPU] Resolution scale updated to {scale}x ({newWidth}x{newHeight})");
         }
 
         public void SetParams(int[] Params)
@@ -1104,7 +1109,7 @@ namespace ScePSX
                 cmd,
                 drawTexture,
                 drawTexture.layout,
-                VkImageLayout.ShaderReadOnlyOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             );
 
             m_vramDisplayArea.x = m_vramDisplayArea.x * resolutionScale;
@@ -1138,7 +1143,7 @@ namespace ScePSX
             vkCmdPushConstants(
                 cmd,
                 SwapChainPipeline.layout,
-                VkShaderStageFlags.Fragment,
+                VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT,
                 0,
                 (uint)sizeof(SrcRectUBO),
                 &u_srcRect
@@ -1177,8 +1182,8 @@ namespace ScePSX
             drawTexture.layout = Device.TransitionImageLayout(
                 cmd,
                 drawTexture,
-                VkImageLayout.ShaderReadOnlyOptimal,
-                VkImageLayout.ColorAttachmentOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             );
 
             Device.EndCommandBuffer(cmd);
@@ -1189,8 +1194,11 @@ namespace ScePSX
         {
             FrameFence currentFrame = frameFences[frameIndex];
 
-            vkWaitForFences(Device.device, 1, ref currentFrame.InFlightFence, true, ulong.MaxValue);
-            vkResetFences(Device.device, 1, ref currentFrame.InFlightFence);
+            fixed (VkFence* currentFramePtr = &currentFrame.InFlightFence)
+            {
+                vkWaitForFences(Device.device, 1, currentFramePtr, true, ulong.MaxValue);
+                vkResetFences(Device.device, 1, currentFramePtr);
+            }
 
             uint imageIndex;
             VkResult result = vkAcquireNextImageKHR(
@@ -1211,12 +1219,13 @@ namespace ScePSX
             // 提交呈现命令
             VkCommandBuffer presentCmd = renderCmd.CMD[imageIndex];
 
-            VkPipelineStageFlags waitStages = VkPipelineStageFlags.ColorAttachmentOutput;
+            VkPipelineStageFlags waitStages = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             VkSemaphore ws = currentFrame.ImageAvailable;
             VkSemaphore ss = currentFrame.RenderFinished;
             VkSwapchainKHR chain = renderChain.Chain;
 
-            VkSubmitInfo submitInfo = VkSubmitInfo.New();
+            VkSubmitInfo submitInfo = new VkSubmitInfo();
+            submitInfo.sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.waitSemaphoreCount = 1;
             submitInfo.pWaitSemaphores = &ws;
             submitInfo.pWaitDstStageMask = &waitStages;
@@ -1229,7 +1238,7 @@ namespace ScePSX
 
             VkPresentInfoKHR presentInfo = new VkPresentInfoKHR
             {
-                sType = VkStructureType.PresentInfoKHR,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                 waitSemaphoreCount = 1,
                 pWaitSemaphores = &ss,
                 swapchainCount = 1,
@@ -1345,17 +1354,11 @@ namespace ScePSX
 
             VkClearAttachment colorAttachment = new VkClearAttachment
             {
-                aspectMask = VkImageAspectFlags.Color,
+                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                 colorAttachment = 0,
                 clearValue = new VkClearValue
                 {
-                    color = new VkClearColorValue
-                    {
-                        float32_0 = r / 255.0f,
-                        float32_1 = g / 255.0f,
-                        float32_2 = b / 255.0f,
-                        float32_3 = 0//color.a / 255.0f
-                    }
+                    color = new VkClearColorValue(r / 255.0f, g / 255.0f, b / 255.0f, 0)
                 }
             };
 
@@ -1686,9 +1689,12 @@ namespace ScePSX
 
             Device.BeginRenderPass(CurrentDrawCMD, drawPass, drawFramebuff, drawTexture.width, drawTexture.height, true);
 
-            vkCmdBindVertexBuffers(CurrentDrawCMD, 0, 1, ref VaoBuffer.stagingBuffer, ref vaoOffset);
+            fixed (ulong* vaoOffset = &this.vaoOffset)
+                fixed(VkBuffer* pVaoBuffer = &VaoBuffer.stagingBuffer)
+                    vkCmdBindVertexBuffers(CurrentDrawCMD, 0, 1, pVaoBuffer, vaoOffset);
 
-            vkCmdSetViewport(CurrentDrawCMD, 0, 1, ref viewport);
+            fixed (VkViewport* pViewport = &viewport)
+                vkCmdSetViewport(CurrentDrawCMD, 0, 1, pViewport);
 
             Device.BindDescriptorSet(CurrentDrawCMD, drawMain, drawDescriptorSet);
 
@@ -1698,7 +1704,7 @@ namespace ScePSX
 
         public void EndRenderPass()
         {
-            vkCmdNextSubpass(CurrentDrawCMD, VkSubpassContents.Inline);
+            vkCmdNextSubpass(CurrentDrawCMD, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
 
             vkCmdEndRenderPass(CurrentDrawCMD);
 
@@ -1740,7 +1746,8 @@ namespace ScePSX
 
             UploadVertexs(Vertexs);
 
-            vkCmdSetScissor(CurrentDrawCMD, 0, 1, ref scissor);
+            fixed (VkRect2D* pScissor = &scissor)
+                vkCmdSetScissor(CurrentDrawCMD, 0, 1, pScissor);
 
             // 模式2需先绘制不透明部分
             if (TransparencyEnabled && BlendMode == 3 && HasTexture) //semiTransparencyMode 2
@@ -2333,7 +2340,7 @@ namespace ScePSX
                 {
                     srcSubresource = new VkImageSubresourceLayers
                     {
-                        aspectMask = VkImageAspectFlags.Color,
+                        aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                         mipLevel = 0,
                         baseArrayLayer = 0,
                         layerCount = 1
@@ -2343,7 +2350,7 @@ namespace ScePSX
 
                     dstSubresource = new VkImageSubresourceLayers
                     {
-                        aspectMask = VkImageAspectFlags.Color,
+                        aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                         mipLevel = 0,
                         baseArrayLayer = 0,
                         layerCount = 1
@@ -2365,25 +2372,25 @@ namespace ScePSX
                 cmd,
                 samplerTexture,
                 samplerTexture.layout,
-                VkImageLayout.TransferSrcOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
             );
 
             drawTexture.layout = Device.TransitionImageLayout(
                 cmd,
                 drawTexture,
                 drawTexture.layout,
-                VkImageLayout.TransferDstOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
             );
 
             fixed (VkImageBlit* pRegions = regions.ToArray())
             {
                 vkCmdBlitImage(
                     cmd,
-                    samplerTexture.image, VkImageLayout.TransferSrcOptimal,
-                    drawTexture.image, VkImageLayout.TransferDstOptimal,
+                    samplerTexture.image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    drawTexture.image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                     (uint)regions.Count,
                     pRegions,
-                    VkFilter.Nearest
+                    VkFilter.VK_FILTER_NEAREST
                 );
             }
 
@@ -2391,14 +2398,14 @@ namespace ScePSX
                 cmd,
                 samplerTexture,
                 samplerTexture.layout,
-                VkImageLayout.ShaderReadOnlyOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             );
 
             drawTexture.layout = Device.TransitionImageLayout(
                 cmd,
                 drawTexture,
                 drawTexture.layout,
-                VkImageLayout.ColorAttachmentOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             );
 
             Device.EndAndWaitCommandBuffer(cmd);
@@ -2416,14 +2423,14 @@ namespace ScePSX
             {
                 srcSubresource = new VkImageSubresourceLayers
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                     mipLevel = 0,
                     baseArrayLayer = 0,
                     layerCount = 1
                 },
                 dstSubresource = new VkImageSubresourceLayers
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                     mipLevel = 0,
                     baseArrayLayer = 0,
                     layerCount = 1
@@ -2439,15 +2446,15 @@ namespace ScePSX
                 cmd,
                 srcTexture,
                 srcTexture.layout,
-                VkImageLayout.TransferDstOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
             );
 
             vkCmdCopyImage(
                 cmd,
                 srcTexture.image,
-                VkImageLayout.TransferDstOptimal,
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 srcTexture.image,
-                VkImageLayout.TransferDstOptimal,
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &copyRegion);
 
@@ -2471,7 +2478,7 @@ namespace ScePSX
             {
                 srcSubresource = new VkImageSubresourceLayers
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                     mipLevel = 0,
                     baseArrayLayer = 0,
                     layerCount = 1
@@ -2481,7 +2488,7 @@ namespace ScePSX
 
                 dstSubresource = new VkImageSubresourceLayers
                 {
-                    aspectMask = VkImageAspectFlags.Color,
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
                     mipLevel = 0,
                     baseArrayLayer = 0,
                     layerCount = 1
@@ -2497,25 +2504,25 @@ namespace ScePSX
                 cmd,
                 srcTexture,
                 srcTexture.layout,
-                VkImageLayout.TransferSrcOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
             );
 
             dstTexture.layout = Device.TransitionImageLayout(
                 cmd,
                 dstTexture,
                 dstTexture.layout,
-                VkImageLayout.TransferDstOptimal
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
             );
 
             vkCmdBlitImage(
                 cmd,
                 srcTexture.image,
-                VkImageLayout.TransferSrcOptimal,
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 dstTexture.image,
-                VkImageLayout.TransferDstOptimal,
+                VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &blitRegion,
-                VkFilter.Nearest
+                VkFilter.VK_FILTER_NEAREST
             );
 
             srcTexture.layout = Device.TransitionImageLayout(
@@ -2539,7 +2546,7 @@ namespace ScePSX
         {
             void* mappedData;
 
-            vkMapMemory(Device.device, vertexUBO.stagingMemory, 0, WholeSize, 0, &mappedData);
+            vkMapMemory(Device.device, vertexUBO.stagingMemory, 0, VK_WHOLE_SIZE, 0, &mappedData);
 
             //Unsafe.Copy(mappedData, ref drawVert);
             var vars = drawVert;
