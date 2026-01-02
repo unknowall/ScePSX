@@ -238,6 +238,8 @@ namespace ScePSX.UI
 
             if (AutoIR)
             {
+                if (this.ClientSize.Width >= 320 && this.ClientSize.Height >= 240)
+                    IRscale = 2;
                 if (this.ClientSize.Width >= 800 && this.ClientSize.Height >= 600)
                     IRscale = 3;
                 if (this.ClientSize.Width >= 1280 && this.ClientSize.Height >= 800)
