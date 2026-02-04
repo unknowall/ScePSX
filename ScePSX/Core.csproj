@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+	<OutputType>Library</OutputType>
+	<TargetFramework>net8.0</TargetFramework>
+	<Platforms>AnyCPU</Platforms>
+	<BaseIntermediateOutputPath></BaseIntermediateOutputPath>
+	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+</PropertyGroup>
+
+<PropertyGroup>
+    <TieredCompilation>true</TieredCompilation>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Optimize>True</Optimize>
+	<DebugType>full</DebugType>
+	<NoWarn>1701;1702</NoWarn>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<DefineConstants>TRACE</DefineConstants>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Optimize>False</Optimize>
+	<DebugType>full</DebugType>
+	<NoWarn>1701;1702</NoWarn>
+</PropertyGroup>
+
+<ItemGroup>
+  <None Remove=".editorconfig" />
+</ItemGroup>
+
+<ItemGroup>
+  <EditorConfigFiles Remove=".editorconfig" />
+</ItemGroup>
+
+</Project>

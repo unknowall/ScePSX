@@ -1,6 +1,6 @@
-﻿using System;
+﻿using LightGL.DynamicLibrary;
+using System;
 using System.Runtime.InteropServices;
-using LightGL.DynamicLibrary;
 
 namespace LightGL
 {

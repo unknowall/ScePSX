@@ -1,14 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security;
-using EGLClientBuffer = System.IntPtr;
-using EGLConfig = System.IntPtr;
-using EGLContext = System.IntPtr;
-using EGLDisplay = System.IntPtr;
-using EGLNativeDisplayType = System.IntPtr;
-using EGLNativePixmapType = System.IntPtr;
-using EGLNativeWindowType = System.IntPtr;
-using EGLSurface = System.IntPtr;
 
 namespace LightGL.Android
 {

@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+	<OutputType>WinExe</OutputType>
+	<TargetFramework>net8.0-windows7.0</TargetFramework>
+	<UseWindowsForms>True</UseWindowsForms>
+	<StartupObject>ScePSX.Program</StartupObject>
+	<Platforms>AnyCPU</Platforms>
+	<BaseIntermediateOutputPath></BaseIntermediateOutputPath>
+	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+</PropertyGroup>
+
+<PropertyGroup>
+    <TieredCompilation>true</TieredCompilation>
+    <ApplicationIcon>001.ico</ApplicationIcon>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Optimize>True</Optimize>
+	<DebugType>full</DebugType>
+	<NoWarn>1701;1702</NoWarn>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<DefineConstants>TRACE</DefineConstants>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Optimize>False</Optimize>
+	<DebugType>full</DebugType>
+	<NoWarn>1701;1702</NoWarn>
+</PropertyGroup>
+
+<ItemGroup>
+  <Compile Remove="obj\**" />
+  <Compile Remove="packages\**" />
+  <EmbeddedResource Remove="obj\**" />
+  <EmbeddedResource Remove="packages\**" />
+  <None Remove="obj\**" />
+  <None Remove="packages\**" />
+</ItemGroup>
+
+<ItemGroup>
+  <None Remove=".editorconfig" />
+  <None Remove="001.ico" />
+  <None Remove="ResXManager.config.xml" />
+  <None Remove="ScePSX.ini" />
+  <None Remove="SDL2.dll" />
+</ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="001.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScePSX\Core.csproj" />
+  </ItemGroup>
+
+  </Project>

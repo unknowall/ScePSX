@@ -48,6 +48,7 @@ namespace LightGL
 
     public unsafe class GLShader : IDisposable
     {
+        private static uint _CurrentProgram = 0;
         uint Program;
         uint VertexShader;
         uint FragmentShader;
@@ -75,7 +76,8 @@ namespace LightGL
             if (ShaderCompileStatus == 0)
             {
                 Console.WriteLine("Shader ERROR: {0}", ShaderInfo);
-            } else
+            }
+            else
             {
                 Console.WriteLine("OpenGL Shader Compiled.");
             }
@@ -108,17 +110,18 @@ namespace LightGL
             var FragmentShaderInfo = GetShaderInfoLog(FragmentShader);
 
             if (!string.IsNullOrEmpty(VertexShaderInfo))
-                Console.WriteLine("{0}", VertexShaderInfo);
+                Console.WriteLine("VertexShader:\n {0}", VertexShaderInfo);
             if (!string.IsNullOrEmpty(FragmentShaderInfo))
-                Console.WriteLine("{0}", FragmentShaderInfo);
+                Console.WriteLine("FragmentShader:\n {0}", FragmentShaderInfo);
 
             if (VertexShaderCompileStatus == 0 || FragmentShaderCompileStatus == 0)
             {
                 Console.WriteLine("Shader ERROR: {0}, {1}", VertexShaderInfo, FragmentShaderInfo);
-            } else
-            {
-                Console.WriteLine("OpenGL Shader Compiled.");
             }
+            //else
+            //{
+            //    Console.WriteLine("OpenGL Shader Compiled.");
+            //}
 
             //Console.WriteLine(
             //    "Compiled Shader! : {0}, {1}",
@@ -220,7 +223,14 @@ namespace LightGL
 
         public void Use()
         {
-            GL.UseProgram(Program);
+            lock (this)
+            {
+                if (_CurrentProgram != Program)
+                {
+                    GL.UseProgram(Program);
+                    _CurrentProgram = Program;
+                }
+            }
         }
 
         private void Initialize()
@@ -300,11 +310,21 @@ namespace LightGL
                 if (Field.FieldType == typeof(GlAttribute))
                 {
                     Field.SetValue(Object, GetAttribute(Field.Name));
-                } else if (Field.FieldType == typeof(GlUniform))
+                }
+                else if (Field.FieldType == typeof(GlUniform))
                 {
                     Field.SetValue(Object, GetUniform(Field.Name));
                 }
             }
+        }
+
+        public void BindUniformBlock(string Name, uint BindSlot)
+        {
+            Use();
+
+            uint blockIndex = GL.GetUniformBlockIndex((uint)Program, Name);
+
+            GL.UniformBlockBinding(Program, blockIndex, BindSlot);
         }
     }
 }

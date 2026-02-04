@@ -54,15 +54,15 @@ namespace LightGL.Linux
         [DllImport("libX11")]
         public static extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfoMask, ref XVisualInfo template, out int nitems);
 
-        public static IGlContext FromWindowHandle(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile)
+        public static IGlContext FromWindowHandle(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
         {
             lock (Lock)
-                return new LinuxGlContext(windowHandle, Major, Minor, arbProfile);
+                return new LinuxGlContext(windowHandle, Major, Minor, arbProfile, VSync);
         }
 
         static LinuxGlContext() => XInitThreads();
 
-        private LinuxGlContext(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile)
+        private LinuxGlContext(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
         {
             Console.WriteLine("InitialWindowHandle:{0:X8}", new UIntPtr(windowHandle.ToPointer()).ToUInt64());
             const int width = 128;

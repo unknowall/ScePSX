@@ -13,7 +13,8 @@ namespace LightGL
         R = 5,
         RGB = 6,
         BGRA = 7,
-        RGBA8 = 8
+        RGBA8 = 8,
+        DEPTH24_STENCIL8 = 9,
     }
 
     public unsafe class GLTexture2D : IDisposable
@@ -79,7 +80,8 @@ namespace LightGL
             {
                 Bind();
                 Action();
-            } finally
+            }
+            finally
             {
                 GL.BindTexture(GL.GL_TEXTURE_2D, OldTexture);
             }
@@ -176,7 +178,8 @@ namespace LightGL
                 int Size = SetData.Length * Marshal.SizeOf(typeof(T));
                 Data = new byte[Size];
                 Marshal.Copy(SetDataHandle.AddrOfPinnedObject(), Data, 0, Size);
-            } finally
+            }
+            finally
             {
                 SetDataHandle.Free();
             }
@@ -220,13 +223,19 @@ namespace LightGL
                 pixelFormat = PixelFormat.DepthComponent;
                 pixelType = PixelType.Short;
             }
+            if (TextureFormat == TextureFormat.DEPTH24_STENCIL8)
+            {
+                pixelFormat = PixelFormat.depth_stencil;
+                pixelType = PixelType.int24_8;
+            }
 
             Bind();
 
             if (isPtr && Ptr != null)
             {
                 GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GLTextureFormat, Width, Height, 0, (int)pixelFormat, (int)this.pixelType, Ptr);
-            } else
+            }
+            else
             {
                 fixed (byte* DataPtr = Data)
                 {
@@ -236,6 +245,8 @@ namespace LightGL
                     //GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_DEPTH_COMPONENT, this.Width, this.Height, 0, GL.GL_DEPTH_COMPONENT, GL.GL_UNSIGNED_SHORT, DataPtr); break;
                 }
             }
+
+            Data = new byte[0];
         }
 
         private int GetOpenglFormat()
@@ -256,6 +267,8 @@ namespace LightGL
                     return GL_RG;
                 case TextureFormat.R:
                     return GL_RED;
+                case TextureFormat.DEPTH24_STENCIL8:
+                    return GL.GL_DEPTH24_STENCIL8;
                 //case TextureFormat.STENCIL: GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_DEPTH_COMPONENT, this.Width, this.Height, 0, GL.GL_DEPTH_COMPONENT, GL.GL_UNSIGNED_SHORT, DataPtr); break;
                 default:
                     throw new InvalidOperationException("Unsupported " + TextureFormat);

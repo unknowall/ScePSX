@@ -11,11 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-
-using ScePSX.Core.GPU;
-using ScePSX.Render;
-
 using LightVK;
+using ScePSX.Core.GPU;
 using static LightVK.VulkanDevice;
 using static LightVK.VulkanNative;
 
@@ -240,14 +237,14 @@ namespace ScePSX
             }
         }
 
-        public unsafe void Initialize()
+        public unsafe void Initialize(IntPtr HWND, IntPtr HiNST, int Width, int Height)
         {
 
             VRAM = (ushort*)Marshal.AllocHGlobal((VRAM_WIDTH * VRAM_HEIGHT) * 2);
 
             convertedData = (int*)Marshal.AllocHGlobal((VRAM_WIDTH * VRAM_HEIGHT) * 4);
 
-            Device.VulkanInit(NullRenderer.hwnd, NullRenderer.hinstance, false);
+            Device.VulkanInit(HWND, HiNST, false);
 
             renderPass = Device.CreateRenderPass
                 (Device.ChooseSurfaceFormat().format,
@@ -265,7 +262,7 @@ namespace ScePSX
                 true
                 );
 
-            renderChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
+            renderChain = Device.CreateSwapChain(renderPass, GPUBackend.ClientWidth, GPUBackend.ClientHeight);
 
             CreateSyncObjects();
 
@@ -1068,9 +1065,9 @@ namespace ScePSX
 
             EndRenderPass();
 
-            if (NullRenderer.isResizeed)
+            if (GPUBackend.isResizeed)
             {
-                NullRenderer.isResizeed = false;
+                GPUBackend.isResizeed = false;
 
                 vkQueueWaitIdle(Device.presentQueue);
 
@@ -1258,7 +1255,7 @@ namespace ScePSX
             vkDeviceWaitIdle(Device.device);
 
             Device.CleanupSwapChain(renderChain);
-            renderChain = Device.CreateSwapChain(renderPass, NullRenderer.ClientWidth, NullRenderer.ClientHeight);
+            renderChain = Device.CreateSwapChain(renderPass, GPUBackend.ClientWidth, GPUBackend.ClientHeight);
         }
 
         private void UpdateScissor()
@@ -1690,8 +1687,8 @@ namespace ScePSX
             Device.BeginRenderPass(CurrentDrawCMD, drawPass, drawFramebuff, drawTexture.width, drawTexture.height, true);
 
             fixed (ulong* vaoOffset = &this.vaoOffset)
-                fixed(VkBuffer* pVaoBuffer = &VaoBuffer.stagingBuffer)
-                    vkCmdBindVertexBuffers(CurrentDrawCMD, 0, 1, pVaoBuffer, vaoOffset);
+            fixed (VkBuffer* pVaoBuffer = &VaoBuffer.stagingBuffer)
+                vkCmdBindVertexBuffers(CurrentDrawCMD, 0, 1, pVaoBuffer, vaoOffset);
 
             fixed (VkViewport* pViewport = &viewport)
                 vkCmdSetViewport(CurrentDrawCMD, 0, 1, pViewport);

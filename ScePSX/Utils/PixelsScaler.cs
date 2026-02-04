@@ -17,7 +17,7 @@ namespace ScePSX
         public int scale;
     }
 
-    class PixelsScaler
+    public class PixelsScaler
     {
         private const float Threshold = 15.0f;
 

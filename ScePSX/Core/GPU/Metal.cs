@@ -1,4 +1,6 @@
-﻿namespace ScePSX
+﻿using System;
+
+namespace ScePSX
 {
     public class MetalGPU : IGPU
     {
@@ -8,7 +10,7 @@
         {
         }
 
-        public void Initialize()
+        public void Initialize(IntPtr HWND, IntPtr HiNST, int Width, int Height)
         {
         }
 

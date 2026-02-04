@@ -122,7 +122,7 @@ namespace ScePSX
             }
         }
 
-        public void Initialize()
+        public void Initialize(IntPtr HWND, IntPtr HiNST, int Width, int Height)
         {
         }
 

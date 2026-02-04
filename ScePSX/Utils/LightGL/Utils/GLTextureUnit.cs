@@ -16,6 +16,7 @@
     public class GLTextureUnit
     {
         internal int Index;
+        internal uint GLID;
         public GLTexture2D GLTexture
         {
             get; private set;
@@ -48,6 +49,12 @@
         public GLTextureUnit SetTexture(GLTexture2D GLTexture)
         {
             this.GLTexture = GLTexture;
+            return this;
+        }
+
+        public GLTextureUnit SetTexture(uint GLTexture)
+        {
+            this.GLID = GLTexture;
             return this;
         }
 

@@ -57,7 +57,7 @@ namespace LightGL.DynamicLibrary
                     "arm" or "armv7l" => Architecture.arm,
                     "aarch64" or "arm64" => Architecture.arm64,
                     "mips" => Architecture.mips,
-                    _ => Architecture.arm, 
+                    _ => Architecture.arm,
                 };
             }
         }
@@ -140,7 +140,7 @@ namespace LightGL.DynamicLibrary
 
         public static DateTime UnixStart;
 
-        public static long CurrentUnixMicroseconds => (DateTime.UtcNow - UnixStart).Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+        public static long CurrentUnixMicroseconds => (DateTime.UtcNow - Platform.UnixStart).Ticks / 10L;
 
         private const int SW_HIDE = 0;
 

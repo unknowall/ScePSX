@@ -4,7 +4,7 @@ using System.IO;
 
 namespace ScePSX
 {
-    static class SimpleYaml
+    static public class SimpleYaml
     {
         static Dictionary<string, object> yamlData = new Dictionary<string, object>();
 

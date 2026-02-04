@@ -19,7 +19,7 @@ namespace ScePSX
             get;
         }
 
-        void Initialize();
+        void Initialize(IntPtr HWND, IntPtr HiNST, int Width, int Height);
 
         void SetParams(int[] Params);
 
@@ -75,6 +75,10 @@ namespace ScePSX
 
         private readonly Dictionary<GPUType, Func<IGPU>> _Factories;
 
+        public static IntPtr HWND, HINST;
+        public static int ClientWidth, ClientHeight;
+        public static bool isResizeed;
+
         public GPUBackend()
         {
             _Factories = new Dictionary<GPUType, Func<IGPU>>
@@ -97,7 +101,7 @@ namespace ScePSX
             {
                 GPU = factory();
 
-                GPU.Initialize();
+                GPU.Initialize(HWND, HINST, ClientWidth, ClientHeight);
             }
         }
 

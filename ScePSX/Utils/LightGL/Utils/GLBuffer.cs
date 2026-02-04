@@ -6,27 +6,27 @@ namespace LightGL
     public unsafe class GLBuffer : IDisposable
     {
         uint Buffer;
-        public int BufferType = GL.GL_ARRAY_BUFFER;
         public BufferUsage BufferUsage;
         public BufferTarget target = BufferTarget.ArrayBuffer;
 
-        private GLBuffer(BufferUsage BufferUsage = BufferUsage.StaticDraw, int BufferType = GL.GL_ARRAY_BUFFER)
+        private GLBuffer(BufferTarget target = BufferTarget.ArrayBuffer, BufferUsage BufferUsage = BufferUsage.StaticDraw)
         {
+            this.target = target;
             this.BufferUsage = BufferUsage;
             Initialize();
         }
 
         public static GLBuffer Create<T>(BufferTarget target, BufferUsage usage, int size, T[] data = null) where T : unmanaged
         {
-            GLBuffer buffer = new GLBuffer(usage);
+            GLBuffer buffer = new GLBuffer(target, usage);
             buffer.target = target;
             buffer.SetData(usage, size, data);
             return buffer;
         }
 
-        public static GLBuffer Create(BufferUsage BufferUsage = BufferUsage.StaticDraw, int BufferType = GL.GL_ARRAY_BUFFER)
+        public static GLBuffer Create(BufferTarget target = BufferTarget.ArrayBuffer, BufferUsage BufferUsage = BufferUsage.StaticDraw)
         {
-            return new GLBuffer(BufferUsage);
+            return new GLBuffer(target, BufferUsage);
         }
 
         private void Initialize()
@@ -46,7 +46,8 @@ namespace LightGL
                 {
                     GL.BufferData((int)target, (uint)(size * sizeof(T)), ptr, (int)usage);
                 }
-            } else
+            }
+            else
             {
                 GL.BufferData((int)target, (uint)(size * sizeof(T)), null, (int)usage);
             }
@@ -63,9 +64,25 @@ namespace LightGL
                     Length * Marshal.SizeOf(typeof(T)),
                     (byte*)Handle.AddrOfPinnedObject().ToPointer() + Offset * Marshal.SizeOf(typeof(T))
                 );
-            } finally
+            }
+            finally
             {
                 Handle.Free();
+            }
+        }
+
+        public GLBuffer SetStructData<T>(T Data)
+        {
+            int size = Marshal.SizeOf(typeof(T));
+            IntPtr Ptr = Marshal.AllocHGlobal(size);
+            try
+            {
+                Marshal.StructureToPtr(Data, Ptr, false);
+                return SetData(size, Ptr.ToPointer());
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(Ptr);
             }
         }
 
@@ -85,9 +102,12 @@ namespace LightGL
             }
         }
 
-        public void Bind()
+        public void Bind(uint Slot = 0)
         {
             GL.BindBuffer((int)target, Buffer);
+
+            if (target == BufferTarget.UniformBuffer)
+                GL.BindBufferBase((int)target, Slot, Buffer);
         }
 
         public void Unbind()

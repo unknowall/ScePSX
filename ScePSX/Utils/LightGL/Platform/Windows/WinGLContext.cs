@@ -1,9 +1,9 @@
-﻿using System;
+﻿using LightGL.DynamicLibrary;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
-using LightGL.DynamicLibrary;
 using static LightGL.GlContextFactory;
 
 namespace LightGL.Windows
@@ -124,12 +124,12 @@ namespace LightGL.Windows
             return DefWindowProc(handle, message, wParam, lParam);
         }
 
-        public static WinGlContext FromWindowHandle(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile)
+        public static WinGlContext FromWindowHandle(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
         {
-            return new WinGlContext(windowHandle, Major, Minor, arbProfile);
+            return new WinGlContext(windowHandle, Major, Minor, arbProfile, VSync);
         }
 
-        private WinGlContext(IntPtr winHandle, int Major, int Minor, GlProfile arbProfile)
+        private WinGlContext(IntPtr winHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
         {
             _hWnd = winHandle;
 
@@ -190,7 +190,7 @@ namespace LightGL.Windows
 
             if (!SetPixelFormat(_dc, pf, &pfd))
             {
-                throw new Exception("Error SetPixelFormat failed.");
+                Console.WriteLine("Error SetPixelFormat failed.");
             }
 
             _context = Wgl.wglCreateContext(_dc);
@@ -205,7 +205,7 @@ namespace LightGL.Windows
                     while (!Wgl.wglShareLists(_sharedContext, _context))
                     {
                         var lastError = Platform.InternalWindows.GetLastError();
-                        Console.WriteLine($"Can't share lists {lastError}");
+                        //Console.WriteLine($"Can't share lists {lastError}");
                         if (lastError == 170) // ERROR_BUSY
                         {
                             attempts++;
@@ -223,9 +223,6 @@ namespace LightGL.Windows
                     if (_sharedContextRefCount >= 0 && _sharedContext != IntPtr.Zero && Wgl.wglShareLists(_sharedContext, _context))
                     {
                         _sharedContextRefCount++;
-                    }
-                    else
-                    {
                     }
                 }
             }
@@ -266,13 +263,9 @@ namespace LightGL.Windows
                     _sharedContext = _context;
                     _sharedContextRefCount = 1;
                 }
-                else
-                {
-                    _sharedContextRefCount++;
-                }
             }
 
-            SetVSync(1);
+            SetVSync(VSync);
 
         }
 
@@ -393,6 +386,7 @@ namespace LightGL.Windows
                     }
                 }
             }
+
             ReleaseDC(_hWnd, _dc);
         }
     }

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using SysNativeLibrary = System.Runtime.InteropServices.NativeLibrary;
 
 namespace LightVK
 {
-	public static unsafe partial class VulkanNative
+    public static unsafe partial class VulkanNative
     {
         private const CallingConvention CallConv = CallingConvention.StdCall;
 
@@ -28,20 +27,18 @@ namespace LightVK
             if (OperatingSystem.IsWindows())
             {
                 return "vulkan-1.dll";
-            }
-            else if (OperatingSystem.IsAndroid())
+            } else if (OperatingSystem.IsAndroid())
             {
                 return "libvulkan.so";
-            }
-            else if (OperatingSystem.IsLinux())
+            } else if (OperatingSystem.IsLinux())
             {
                 return "libvulkan.so.1";
             }
-            //else if (OperatingSystem.IsMacOS())
-            //{
-            //    return "libvulkan.dylib";
-            //}
-            else
+              //else if (OperatingSystem.IsMacOS())
+              //{
+              //    return "libvulkan.dylib";
+              //}
+              else
             {
                 throw new PlatformNotSupportedException();
             }
@@ -96,8 +93,7 @@ namespace LightVK
             if (funcPtr != IntPtr.Zero)
             {
                 field = Marshal.GetDelegateForFunctionPointer<T>(funcPtr);
-            }
-            else
+            } else
             {
                 field = default(T);
                 Debug.WriteLine($" ===> Error loading function {name}");

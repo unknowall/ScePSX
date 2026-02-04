@@ -15,7 +15,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using LightGL;
 using ScePSX.Core.GPU;
-using ScePSX.Render;
 using static ScePSX.Core.GPU.PGXPVector;
 
 namespace ScePSX
@@ -189,11 +188,11 @@ namespace ScePSX
         public int IRScale;
         public bool RealColor, PGXP, PGXPT, KEEPAR;
 
-        public unsafe void Initialize()
+        public unsafe void Initialize(IntPtr HWND, IntPtr HiNST, int Width, int Height)
         {
             VRAM = (ushort*)Marshal.AllocHGlobal((VRAM_WIDTH * VRAM_HEIGHT) * 2);
 
-            _DeviceContext = GlContextFactory.CreateFromWindowHandle(NullRenderer.hwnd);
+            _DeviceContext = GlContextFactory.CreateFromWindowHandle(HWND);
 
             VertexsBuffer = GLBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
 
@@ -653,8 +652,8 @@ namespace ScePSX
             DisplayFB.Unbind();
 
             //DrawToWindow;
-            int winWidth = NullRenderer.ClientWidth;
-            int winHeight = NullRenderer.ClientHeight;
+            int winWidth = GPUBackend.ClientWidth;
+            int winHeight = GPUBackend.ClientHeight;
 
             if (winWidth == 0 || winHeight == 0)
                 return (0, -1);

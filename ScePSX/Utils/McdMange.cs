@@ -37,24 +37,24 @@ namespace ScePSX
                 IconData[2] = new Color[256];
             }
 
-            public Bitmap GetIconBitmap(int idx)
-            {
-                int width = 16;
-                int height = 16;
-                Bitmap bitmap = new Bitmap(width, height);
+            //public Bitmap GetIconBitmap(int idx)
+            //{
+            //    int width = 16;
+            //    int height = 16;
+            //    Bitmap bitmap = new Bitmap(width, height);
 
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        int index = y * width + x;
-                        Color color = IconData[idx][index];
-                        bitmap.SetPixel(x, y, color);
-                    }
-                }
+            //    for (int y = 0; y < height; y++)
+            //    {
+            //        for (int x = 0; x < width; x++)
+            //        {
+            //            int index = y * width + x;
+            //            Color color = IconData[idx][index];
+            //            bitmap.SetPixel(x, y, color);
+            //        }
+            //    }
 
-                return bitmap;
-            }
+            //    return bitmap;
+            //}
         }
 
         public SlotData[] Slots = new SlotData[MaxSlot];
