@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -724,6 +725,13 @@ namespace ScePSX.UI
 
             infoY += 12;
             titleX = bounds.Right - infoText.Length * 6 - 20;
+            if (Translations.CurrentLangId == "zh") titleX -= 15;
+            if (Translations.CurrentLangId == "ja") titleX -= 60;
+            if (Translations.CurrentLangId == "it") titleX += 80;
+            if (Translations.CurrentLangId == "en") titleX += 70;
+            if (Translations.CurrentLangId == "ru") titleX += 55;
+            if (Translations.CurrentLangId == "fr") titleX += 80;
+            if (Translations.CurrentLangId == "de") titleX += 80;
             DrawText(e.Graphics, infoText, new Font(Font_Name, 8), Color.FromArgb(180, 180, 180), titleX, infoY);
 
             //if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)

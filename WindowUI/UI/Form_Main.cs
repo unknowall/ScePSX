@@ -138,8 +138,8 @@ namespace ScePSX.UI
             KeyFirst = ini.ReadInt("main", "keyfirst") == 1;
             isAnalog = ini.ReadInt("main", "isAnalog") == 1;
 
-            //CultureInfo.CurrentCulture = new CultureInfo("ru-RU");
-            //Translations.CurrentLangId = "ru";
+            //CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            //Translations.CurrentLangId = "de";
             Translations.DefaultLanguage = "en";
             Translations.Init();
             Translations.UpdateLang(this);
