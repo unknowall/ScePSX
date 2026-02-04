@@ -105,7 +105,7 @@ A: Because it requires extra memory to store:
 A: Currently, only Windows is supported. Future plans include Linux/macOS support via .NET MAUI or Avalonia.
 
 ## How to Build
-1. The project is based on .NET 8.0 framework.
+1. The project is built on the .NET 8.0 framework with no third-party dependencies.
 2. SDL declarations are included in the code. Place the SDL2 DLL in the build directory.
 3. If using a framework below .NET 8.0, modify the project file manually.
 4. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
@@ -237,7 +237,7 @@ A: 因为它需要额外内存来存储：
 A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
 
 ## 如何编译
-1. 项目是.net 8.0 框架
+1. 项目是.net 8.0 框架，无第三方依赖
 2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
 3. 如果使用低于 .net 8.0 框架，可手动修改项目文件
 4. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
