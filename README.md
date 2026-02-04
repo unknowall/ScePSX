@@ -4,11 +4,6 @@
 <details>
 <summary><h3> 🌐 English Version</h3></summary>
 
-> 🌟 Recommended Project<br>
-> **[ScePSP](https://github.com/unknowall/ScePSP/)** — A Next-Gen C# PSP Emulator<br>
-> The new PSP emulator ScePSP has reached the Alpha stage and is already capable of playing some PSP games normally.<br>
-> This is a 100% C# implementation that is distinct from PPSSPP and JPCSP.<br>
-
 ## Key Features 🎮
 - **Save States**: Save and load game progress at any time.
 - **PGXP**: Supported by both software and hardware backends, with all adjustments taking effect instantly without requiring a restart.
@@ -132,11 +127,6 @@ We welcome contributions to ScePSX, including code submissions, issue reporting,
 ### Legal Disclaimer ⚖️
 ScePSX is an open-source project intended solely for learning and research purposes. Ensure you have legal game ROMs and BIOS files and comply with relevant laws and regulations.
 </details>
-
-> 🌟 友情推荐<br>
-> **[ScePSP](https://github.com/unknowall/ScePSP/)** —— 新一代 C# PSP 模拟器<br>
-> 新 PSP 模拟器 ScePSP 目前已进展到 Alpha 版本，已经可以正常的游玩部分 PSP 游戏。<br>
-> 这是一个 100% C# 且不同于 PPSSPP 及 JPCSP 的实现。<br>
 
 ## 主要功能 🎮
 - **即时存档/读档**: 随时保存和加载游戏进度。
