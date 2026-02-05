@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "ScePSX\Core.csproj", "{D5B209D6-4B10-A5C9-1C7D-74897040277E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScePSX", "AvaloniaUI\ScePSX.csproj", "{A284CBA8-2FF5-4A73-9374-84F0F836E811}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5B209D6-4B10-A5C9-1C7D-74897040277E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B209D6-4B10-A5C9-1C7D-74897040277E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B209D6-4B10-A5C9-1C7D-74897040277E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B209D6-4B10-A5C9-1C7D-74897040277E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3A2E56B-76A2-48AB-9956-E37740A08775}
+	EndGlobalSection
+EndGlobal

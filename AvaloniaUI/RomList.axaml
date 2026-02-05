@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:ScePSX.UI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ScePSX.UI.RomList">
+
+    <UserControl.Styles>
+        <!-- 列表容器样式：深色背景、圆角、内边距 -->
+        <Style Selector="ListBox.GameList">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+        <!-- 列表项基础样式：分层背景、内边距、圆角 -->
+        <Style Selector="ListBoxItem.GameItem">
+            <Setter Property="Background" Value="#2C2C2C"/>
+            <Setter Property="Margin" Value="0 -2"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Height" Value="80"/>
+
+            <Setter Property="Transitions">
+                <Transitions>
+                    <!-- <CrossFade Duration="0:0:0.2"/> -->
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- 列表项悬停效果：浅高亮背景 -->
+        <Style Selector="ListBoxItem.GameItem:pointerover">
+            <Setter Property="Background" Value="#3A3A3A"/>
+        </Style>
+
+        <!-- 列表项选中效果：深色高亮+边框 -->
+        <Style Selector="ListBoxItem.GameItem:selected">
+            <Setter Property="Background" Value="#444444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#0078D7"/>
+        </Style>
+
+        <!-- 游戏名称文本样式：加粗、大字号 -->
+        <Style Selector="TextBlock.GameName">
+            <Setter Property="FontFamily" Value="Segoe UI, Arial"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Margin" Value="0 0 0 4"/>
+        </Style>
+
+        <!-- 辅助信息文本样式：浅灰色、小字号 -->
+        <Style Selector="TextBlock.GameMeta">
+            <Setter Property="FontFamily" Value="Segoe UI, Arial"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+        </Style>
+
+        <!-- 状态标识样式：小图标+对齐 -->
+        <Style Selector="Image.StatusIcon">
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Margin" Value="0 0 8 0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- 主容器：列表+数据绑定 -->
+    <ListBox x:Name="GameListBox" Classes="GameList">
+        <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:GameInfo">
+                <ListBoxItem Classes="GameItem">
+                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                        <!-- 游戏图标 -->
+                        <Image Grid.Column="0" Grid.RowSpan="2" 
+                               Source="{Binding Icon}" 
+                               Width="60" Height="60" 
+                               Margin="0 0 12 0"
+                               Stretch="UniformToFill"/>
+
+                        <!-- 游戏信息区域 -->
+                        <StackPanel Grid.Column="1" Grid.Row="0">
+                            <TextBlock Classes="GameName" Text="{Binding Name}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <TextBlock Classes="GameMeta" Text="{Binding ID}"/>
+                                <TextBlock Classes="GameMeta" Text="{Binding LastPlayed, StringFormat='最后运行: {0}'}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- 状态标识区域 -->
+                        <StackPanel Grid.Column="2" Grid.RowSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                          <!--  <Image Classes="StatusIcon" IsVisible="{Binding HasSaveState}" Source="avares://ScePSX/Assets/save_icon.png" ToolTip.Tip="有即时存档"/>
+                                <Image Classes="StatusIcon" IsVisible="{Binding HasCheats}" Source="avares://ScePSX/Assets/cheat_icon.png" ToolTip.Tip="有金手指"/> -->
+                                <TextBlock Classes="GameMeta" IsVisible="{Binding HasSaveState}" Text="StateSave: ✓"/>
+                                <TextBlock Classes="GameMeta" IsVisible="{Binding HasCheats}" Text="CheatCode: ✓"/>
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>
+</UserControl>
