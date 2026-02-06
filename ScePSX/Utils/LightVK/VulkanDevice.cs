@@ -133,7 +133,7 @@ namespace LightVK
             {
                 CreateDebugInstance();
             }
-            CreateSurface(hinst, hwnd);
+            CreateSurfaceWin(hinst, hwnd);
             SelectPhysicalDevice();
             fixed (VkPhysicalDeviceProperties* ptr = &deviceProperties)
                 vkGetPhysicalDeviceProperties(physicalDevice, ptr);
@@ -322,7 +322,7 @@ namespace LightVK
             return VkBool32.False;
         }
 
-        private unsafe void CreateSurface(IntPtr hinstance, IntPtr hwnd)
+        private unsafe void CreateSurfaceWin(IntPtr hinstance, IntPtr hwnd)
         {
             var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
             {
@@ -336,6 +336,24 @@ namespace LightVK
                 {
                     throw new Exception("Failed to create Vulkan surface!");
                 }
+        }
+
+        private unsafe void CreateSurfaceLinux(IntPtr display, IntPtr window)
+        {
+            var surfaceCreateInfo = new VkXlibSurfaceCreateInfoKHR
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR ,
+                dpy = display,
+                window = (IntPtr)(uint)window
+            };
+
+            fixed (VkSurfaceKHR* surface = &this.surface)
+            {
+                if (vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, null, surface) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create Vulkan X11 Surface!");
+                }
+            }
         }
 
         private unsafe void SelectPhysicalDevice()

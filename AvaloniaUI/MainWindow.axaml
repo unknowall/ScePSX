@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -11,126 +10,158 @@
 		WindowStartupLocation="CenterScreen">
 
 	<Window.Styles>
-		<Style Selector="Menu.MainStyle">
-			<Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}"/>
-			<Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-			<Setter Property="FontFamily" Value="Segoe UI, Arial"/>
-			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Padding" Value="2 4"/>
-			<Setter Property="Height" Value="38"/>
+		<!-- === 全局字体设置 === -->
+		<Style Selector="Window">
+			<Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, PingFang SC, WenQuanYi Micro Hei, sans-serif"/>
 		</Style>
 
+		<!-- === 菜单栏容器样式 === -->
+		<Style Selector="Menu.MainStyle">
+			<Setter Property="Background" Value="#252526"/> <!-- 深灰背景，略亮于列表背景 -->
+			<Setter Property="Foreground" Value="#FFFFFF"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Padding" Value="8 1"/>
+			<Setter Property="Height" Value="30"/>
+			<Setter Property="BorderThickness" Value="0 0 0 1"/>
+			<Setter Property="BorderBrush" Value="#3E3E42"/> <!-- 底部边框分割线 -->
+		</Style>
+
+		<!-- === 顶级菜单项 (文件, 渲染器, 帮助) === -->
 		<Style Selector="MenuItem.TopLevelMenuItem">
 			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-			<Setter Property="Padding" Value="8 6"/>
-			<Setter Property="Margin" Value="0 2"/>
+			<Setter Property="Foreground" Value="#CCCCCC"/>
+			<Setter Property="Padding" Value="10 6"/>
+			<Setter Property="Margin" Value="0 0 4 0"/>
 			<Setter Property="BorderThickness" Value="0"/>
 		</Style>
 
+		<!-- 顶级菜单悬停效果 -->
+		<Style Selector="MenuItem.TopLevelMenuItem:pointerover /template/ ContentPresenter#PART_HeaderPresenter">
+			<Setter Property="Background" Value="#3E3E42"/>
+			<Setter Property="CornerRadius" Value="4"/>
+		</Style>
+		<!-- 这里的辅助写法确保背景色能正确渲染 -->
 		<Style Selector="MenuItem.TopLevelMenuItem:pointerover">
-			<Setter Property="Background" Value="{DynamicResource SystemControlHighlightAltListLowBrush}"/>
-			<Setter Property="CornerRadius" Value="6"/>
+			<Setter Property="Background" Value="#3E3E42"/>
 		</Style>
 
+
+		<!-- === 子菜单项 === -->
 		<Style Selector="MenuItem.SubMenuItem">
-			<Setter Property="Padding" Value="20 4 60 4"/>
-			<Setter Property="FontFamily" Value="Segoe UI, Arial"/>
-			<Setter Property="MinHeight" Value="20"/>
+			<Setter Property="Padding" Value="20 6 12 6"/>
 			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Height" Value="26"/>
+			<Setter Property="Foreground" Value="#CCCCCC"/>
 		</Style>
 
+		<!-- 子菜单悬停效果：使用列表的同款蓝色高亮 -->
 		<Style Selector="MenuItem.SubMenuItem:pointerover">
-			<Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
-			<Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+			<Setter Property="Background" Value="#0078D7"/>
+			<Setter Property="Foreground" Value="#FFFFFF"/>
 		</Style>
 
+		<!-- 子菜单选中效果 -->
 		<Style Selector="MenuItem.SubMenuItem:checked">
-			<Setter Property="Background" Value="{DynamicResource SystemControlHighlightListMediumBrush}"/>
+			<Setter Property="Background" Value="#2A2D2E"/>
+			<Setter Property="Foreground" Value="#0078D7"/> <!-- 选中文字变蓝 -->
 		</Style>
 
+		<!-- === 分割线 === -->
 		<Style Selector="Separator.Separator">
-			<Setter Property="Background" Value="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"/>
+			<Setter Property="Background" Value="#3E3E42"/>
 			<Setter Property="Height" Value="1"/>
-			<Setter Property="Margin" Value="4 2"/>
+			<Setter Property="Margin" Value="2 2"/>
 		</Style>
 
+		<!-- === 底部状态栏 === -->
 		<Style Selector="TextBlock.StatusText">
-			<Setter Property="FontFamily" Value="Segoe UI, Arial"/>
-			<Setter Property="FontSize" Value="10"/>
+			<Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, PingFang SC, WenQuanYi Micro Hei, sans-serif"/>
+			<Setter Property="FontSize" Value="11"/>
 			<Setter Property="VerticalAlignment" Value="Center"/>
-			<Setter Property="Margin" Value="5 0 0 0"/>
-			<Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+			<Setter Property="Margin" Value="8 0 0 0"/>
+			<Setter Property="Foreground" Value="#999999"/>
 		</Style>
 	</Window.Styles>
 
 	<Grid Name="MainGrid">
-	<DockPanel LastChildFill="True" Name="MainDockPanel">
-		<Menu DockPanel.Dock="Top" Classes="MainStyle">
-			<MenuItem Header="文件(_F)" Classes="TopLevelMenuItem">
-				<MenuItem Header="加载游戏" Name="LoadDIsk" Click="LoadDisk_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="更换光盘" Name="SwapDisk" Click="SwapDisk_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="返回列表" Name="CloseRomMnu" Click="CloseRomMnu_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="扫描目录" Name="SearchMnu" Click="SearchMnu_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="系统设置" Name="SysSetMnu" Click="SysSetMnu_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="对战设置" Name="NetPlaySetMnu" Click="NetPlaySetMnu_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="按键设置" Name="KeyTool" Click="KeyMnu_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="即时存档 (F5)" Name="MnuSaveState" IsEnabled="False" Classes="SubMenuItem"/>
-				<MenuItem Header="即时读取 (F6)" Name="MnuLoadState" IsEnabled="False" Classes="SubMenuItem"/>
-				<MenuItem Header="撤销读取 (F7)" Name="MnuUnloadState" IsEnabled="False" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="金手指" Name="CheatCode" Click="CheatCode_Click" IsEnabled="False" Classes="SubMenuItem"/>
-				<MenuItem Header="内存编辑" Name="MemEditMnu" Click="MnuDebug_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="加速快进 (TAB)" Name="FreeSpeed" Classes="SubMenuItem"/>
-				<MenuItem Header="暂停/继续 (空格)" Name="MnuPause" Click="MnuPause_Click" Classes="SubMenuItem"/>
-			</MenuItem>
+		<DockPanel LastChildFill="True" Name="MainDockPanel">
+			<Menu DockPanel.Dock="Top" Classes="MainStyle">
+				<MenuItem Header="文件(_F)" Classes="TopLevelMenuItem">
+					<MenuItem Header="加载游戏" Name="LoadDIsk" Click="LoadDisk_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="更换光盘" Name="SwapDisk" Click="SwapDisk_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="返回列表" Name="CloseRomMnu" Click="CloseRomMnu_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="扫描目录" Name="SearchMnu" Click="SearchMnu_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="系统设置" Name="SysSetMnu" Click="SysSetMnu_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="对战设置" Name="NetPlaySetMnu" Click="NetPlaySetMnu_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="按键设置" Name="KeyTool" Click="KeyMnu_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="即时存档 (F5)" Name="MnuSaveState" IsEnabled="False" Classes="SubMenuItem"/>
+					<MenuItem Header="即时读取 (F6)" Name="MnuLoadState" IsEnabled="False" Classes="SubMenuItem"/>
+					<MenuItem Header="撤销读取 (F7)" Name="MnuUnloadState" IsEnabled="False" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="金手指" Name="CheatCode" Click="CheatCode_Click" IsEnabled="False" Classes="SubMenuItem"/>
+					<MenuItem Header="内存编辑" Name="MemEditMnu" Click="MnuDebug_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="加速快进 (TAB)" Name="FreeSpeed" Classes="SubMenuItem"/>
+					<MenuItem Header="暂停/继续 (空格)" Name="MnuPause" Click="MnuPause_Click" Classes="SubMenuItem"/>
+				</MenuItem>
 
-			<MenuItem Header="渲染器(_R)" Classes="TopLevelMenuItem">
-				<MenuItem Header="Software" Name="SdlRender" IsChecked="False" Click="SdlRenderMnu_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="OpenGL" Name="openGLRender" IsChecked="True" Click="OpenGLRenderMnu_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="Vulkan" Name="VulkanRenderMnu" IsChecked="False" Click="VulkanRenderMnu_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="IR Scale ++ (F11)" Name="xBRScaleAdd" Click="UpScale_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="IR Scale --   (F12)" Name="xBRScaleDec" Click="DownScale_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="全屏模式 (F2)" Name="fullScreenF2" Click="fullScreenF2_Click" Classes="SubMenuItem"/>
-			</MenuItem>
+				<MenuItem Header="渲染器(_R)" Classes="TopLevelMenuItem">
+					<MenuItem Header="Software" Name="SdlRender" IsChecked="False" Click="SdlRenderMnu_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="OpenGL" Name="openGLRender" IsChecked="True" Click="OpenGLRenderMnu_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="Vulkan" Name="VulkanRenderMnu" IsChecked="False" Click="VulkanRenderMnu_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="IR Scale ++ (F11)" Name="xBRScaleAdd" Click="UpScale_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="IR Scale --   (F12)" Name="xBRScaleDec" Click="DownScale_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="全屏模式 (F2)" Name="fullScreenF2" Click="fullScreenF2_Click" Classes="SubMenuItem"/>
+				</MenuItem>
 
-			<MenuItem Header="帮助(_H)" Classes="TopLevelMenuItem">
-				<MenuItem Header="GitHub(_G)" Name="gitHubMnu" Click="gitHubMnu_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="通过Ko-Fi支持本项目" Name="supportKoficomMnu" Click="supportKoficomMnu_Click" Classes="SubMenuItem"/>
-				<MenuItem Header="通过微信支持本项目" Name="supportWeChatMnu" Click="supportWeChatMnu_Click" Classes="SubMenuItem"/>
-				<Separator/>
-				<MenuItem Header="关于(_A)" Name="AboutMnu" Click="AboutMnu_Click" Classes="SubMenuItem"/>
-			</MenuItem>
-		</Menu>
+				<MenuItem Header="帮助(_H)" Classes="TopLevelMenuItem">
+					<MenuItem Header="GitHub(_G)" Name="gitHubMnu" Click="gitHubMnu_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="通过Ko-Fi支持本项目" Name="supportKoficomMnu" Click="supportKoficomMnu_Click" Classes="SubMenuItem"/>
+					<MenuItem Header="通过微信支持本项目" Name="supportWeChatMnu" Click="supportWeChatMnu_Click" Classes="SubMenuItem"/>
+					<Separator/>
+					<MenuItem Header="关于(_A)" Name="AboutMnu" Click="AboutMnu_Click" Classes="SubMenuItem"/>
+				</MenuItem>
+			</Menu>
 
-		<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Height="20"
-					Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
-			<TextBlock Name="toolStripStatusLabel1" Text="" Classes="StatusText"/>
-			<TextBlock Name="toolStripStatusLabel2" Text="" Classes="StatusText"/>
-			<TextBlock Name="toolStripStatusLabel3" Text="" Classes="StatusText"/>
-			<TextBlock Name="toolStripStatusLabel4" Text="" Classes="StatusText"/>
-			<!-- 占满剩余空间，右对齐后续内容 -->
-			<TextBlock Name="toolStripStatusLabel5" Text="" HorizontalAlignment="Stretch" Classes="StatusText"/>
-			<TextBlock Name="toolStripStatusLabel6" Text="" Classes="StatusText"/>
-			<TextBlock Name="toolStripStatusLabel7" Text="" Classes="StatusText"/>
-			<TextBlock Name="toolStripStatusLabel8" Text="" Classes="StatusText"/>
-		</StackPanel>
+			<Grid DockPanel.Dock="Bottom" Height="24" Background="#3E3E42">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
 
-		<Separator DockPanel.Dock="Bottom" Margin="0 1 0 0"/>
+				<StackPanel Grid.Column="0" Orientation="Horizontal">
+					<TextBlock Name="StatusLabel1" Text="" Classes="StatusText" Foreground="White" FontWeight="Bold"/>
+					<TextBlock Name="StatusLabel2" Text="" Classes="StatusText" Foreground="White"/>
+					<TextBlock Name="StatusLabel3" Text="" Classes="StatusText" Foreground="White"/>
+					<TextBlock Name="StatusLabel4" Text="" Classes="StatusText" Foreground="White"/>
+				</StackPanel>
 
-		<vm:RomList x:Name="RomListView" IsVisible="True" DockPanel.Dock="Top" />
+				<TextBlock Grid.Column="1" Name="StatusLabel0" Text=""
+						   Classes="StatusText" Foreground="White"
+						   VerticalAlignment="Center"/>
 
-		<!-- <Border Name="panel" Background="Transparent" /> -->
+				<StackPanel Grid.Column="2" Orientation="Horizontal">
+					<TextBlock Name="StatusLabel5" Text="" Classes="StatusText" Foreground="White" Margin="5 0 0 0"/>
+					<TextBlock Name="StatusLabel6" Text="" Classes="StatusText" Foreground="White" Margin="5 0 0 0"/>
+					<TextBlock Name="StatusLabel7" Text="" Classes="StatusText" Foreground="White" Margin="5 0 10 0"/>
+				</StackPanel>
+			</Grid>
+
+			<Separator DockPanel.Dock="Bottom" Margin="0 1 0 0"/>
+
+			<vm:RomList x:Name="RomListView" IsVisible="True" DockPanel.Dock="Top" />
+
+			<!-- <Border Name="panel" Background="Transparent" /> -->
+
+			<vm:RenderHost x:Name="RenderHost" IsVisible="False" />
 
 		</DockPanel>
-
-		<vm:GLRenderHost x:Name="RenderHost" IsVisible="False" DockPanel.Dock="Top"/>
 
 	</Grid>
 </Window>

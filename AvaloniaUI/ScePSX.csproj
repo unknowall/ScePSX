@@ -3,11 +3,13 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <RootNamespace>ScePSX</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-	<EnableAvaloniaDesigner>true</EnableAvaloniaDesigner>
+    <EnableAvaloniaDesigner>true</EnableAvaloniaDesigner>
     <AvaloniaTrimMode>full</AvaloniaTrimMode>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <ApplicationIcon>001.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +18,10 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.11" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.11" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="001.ico" />
   </ItemGroup>
 
   <ItemGroup>
