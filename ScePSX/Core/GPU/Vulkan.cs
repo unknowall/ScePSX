@@ -396,6 +396,7 @@ namespace ScePSX
             scissor = new VkRect2D { extent = new VkExtent2D(VRAM_WIDTH, VRAM_HEIGHT) };
 
             m_realColor = true;
+            RealColor = true;
 
             drawVert.u_resolutionScale = 1.0f;
 
@@ -1078,13 +1079,14 @@ namespace ScePSX
 
             PGXPVector.Clear();
 
+            if (IRScale != GPUBackend.IRScale)
+                IRScale = GPUBackend.IRScale;
+
             if (IRScale != resolutionScale)
                 SetResolutionScale(IRScale);
 
             if (RealColor != m_realColor)
-            {
                 SetRealColor(RealColor);
-            }
 
             PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
 

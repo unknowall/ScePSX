@@ -715,6 +715,10 @@ namespace ScePSX
             {
                 SetRealColor(RealColor);
             }
+            if (IRScale != GPUBackend.IRScale)
+            {
+                IRScale = GPUBackend.IRScale;
+            }
             if (IRScale != resolutionScale)
             {
                 SetResolutionScale(IRScale);

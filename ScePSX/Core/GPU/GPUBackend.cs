@@ -78,6 +78,7 @@ namespace ScePSX
         public static IntPtr HWND, HINST;
         public static int ClientWidth, ClientHeight;
         public static bool isResizeed;
+        public static int IRScale = 1;
 
         public GPUBackend()
         {

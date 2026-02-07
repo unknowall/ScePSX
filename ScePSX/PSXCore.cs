@@ -266,11 +266,7 @@ namespace ScePSX
                 Pauseing = true;
             }
 
-            int ir = 1;
-            if (GpuBackend == GPUType.OpenGL)
-            {
-                ir = (GPU as OpenglGPU).IRScale;
-            }
+            int ir = GPUBackend.IRScale;
 
             PsxBus.gpu.Backend.Dispose();
             PsxBus.Dispose();
@@ -281,12 +277,12 @@ namespace ScePSX
             PsxBus = StateFromFile<BUS>(fn);
             PsxBus.DeSerializable(this, GpuBackend);
 
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             GPU = PsxBus.gpu.Backend.GPU;
 
-            if (GpuBackend == GPUType.OpenGL)
-            {
-                (GPU as OpenglGPU).IRScale = ir;
-            }
+            GPUBackend.IRScale = ir;
 
             PsxBus.controller1.RumbleHandler = _IRumble;
 

@@ -7,6 +7,9 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 
+#pragma warning disable CS8600
+#pragma warning disable CS8604
+
 namespace ScePSX.UI
 {
     public class Translations
@@ -17,7 +20,7 @@ namespace ScePSX.UI
 
         private static SortedSet<string> _AvailableLanguages;
 
-        public static string DefaultLanguage = null;
+        public static string DefaultLanguage = "";
 
         public static string CurrentLangId = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
@@ -140,17 +143,17 @@ namespace ScePSX.UI
             }
         }
 
-        public static string GetText(string TextId, string LangId = null)
+        public static string GetText(string TextId, string LangId = "")
         {
             if (Translations.Dictionary == null)
             {
                 Translations.Init();
             }
-            if (LangId == null)
+            if (LangId == "")
             {
                 LangId = CurrentLangId;
             }
-            Dictionary<string, string> dictionary = null;
+            Dictionary<string, string> dictionary = [];
             string result;
             try
             {
@@ -174,17 +177,17 @@ namespace ScePSX.UI
             return result;
         }
 
-        public static string GetString(string CategoryId, string TextId, string LangId = null)
+        public static string GetString(string CategoryId, string TextId, string LangId = "")
         {
             if (Translations.Dictionary == null)
             {
                 Translations.Init();
             }
-            if (LangId == null)
+            if (LangId == "")
             {
                 LangId = CurrentLangId;
             }
-            Dictionary<string, string> dictionary = null;
+            Dictionary<string, string> dictionary = [];
             string result;
             try
             {
@@ -202,7 +205,7 @@ namespace ScePSX.UI
                 }
                 catch
                 {
-                    result = null;//string.Format("{0}.{1}", CategoryId, TextId);
+                    result = "";//string.Format("{0}.{1}", CategoryId, TextId);
                 }
             }
             return result;

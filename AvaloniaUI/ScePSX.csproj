@@ -10,6 +10,13 @@
     <AvaloniaTrimMode>full</AvaloniaTrimMode>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationIcon>001.ico</ApplicationIcon>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>8602;8618</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>8602;8618</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

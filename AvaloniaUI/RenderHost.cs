@@ -1,8 +1,11 @@
-using Avalonia.Controls;
-using Avalonia.Platform;
-using System;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Platform;
+using Avalonia.VisualTree;
 
 namespace ScePSX.UI;
 

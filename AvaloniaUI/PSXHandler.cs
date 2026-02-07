@@ -1,7 +1,11 @@
-﻿using Avalonia.Input;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Input;
+using ScePSX.Core.GPU;
 using static ScePSX.Controller;
 
 namespace ScePSX.UI
@@ -16,11 +20,16 @@ namespace ScePSX.UI
 
         public PSXCore? Core;
         public PixelsScaler Scaler;
+        public SoftRender softRender;
 
+        public GPUType GpuType = GPUType.OpenGL;
         public ScaleParam ScaleParam;
         public string GameName;
         public bool KeyFirst, isAnalog;
         public int CoreWidth, CoreHeight, Msaa;
+
+        public bool AutoIR, PGXP, PGXPT, Realcolor, KeepAR;
+        public int IRScale, SaveSlot;
 
         private int _frameCount = 0;
         private Stopwatch _fpsStopwatch = Stopwatch.StartNew();
@@ -31,6 +40,12 @@ namespace ScePSX.UI
             SDLHanlder = new SDLHanlder(ini);
             KeyMange = new KeyMange(ini);
             Scaler = new PixelsScaler();
+
+            LoadSetting();
+        }
+
+        public void LoadSetting()
+        {
             switch (ini.ReadInt("OpenGL", "MSAA"))
             {
                 case 0:
@@ -49,6 +64,15 @@ namespace ScePSX.UI
                     Msaa = 16;
                     break;
             }
+
+            IRScale = ini.ReadInt("main", "GpuModeScale");
+            AutoIR = IRScale <= 0;
+            PGXP = ini.ReadInt("main", "PGXP") == 1;
+            PGXPT = ini.ReadInt("main", "PGXPT") == 1;
+            Realcolor = ini.ReadInt("main", "RealColor") == 1;
+            KeepAR = ini.ReadInt("main", "KeepAR") == 1;
+            SaveSlot = ini.ReadInt("main", "StateSlot");
+            GpuType = (GPUType)ini.ReadInt("Main", "Render");
         }
 
         public void Dispose()
@@ -56,19 +80,22 @@ namespace ScePSX.UI
             if (Core != null)
             {
                 Core.Dispose();
+                softRender?.Dispose();
             }
         }
 
         public bool isRun()
         {
-            if (Core == null || !Core.Running) return false;
+            if (Core == null || !Core.Running)
+                return false;
 
             return Core.Running;
         }
 
         public void KeyPress(Key K, bool Press)
         {
-            if (Core == null || !Core.Running) return;
+            if (Core == null || !Core.Running)
+                return;
 
             if (K == Key.Tab && Press)
                 Core.Boost = true;
@@ -76,33 +103,181 @@ namespace ScePSX.UI
                 Core.Boost = false;
 
             InputAction button = KeyMange.KMM1.GetKeyButton(K);
-            if ((int)button != 0xFF) Core.Button(button, Press, 0);
+            if ((int)button != 0xFF)
+                Core.Button(button, Press, 0);
 
             InputAction button2 = KeyMange.KMM2.GetKeyButton(K);
-            if ((int)button2 != 0xFF) Core.Button(button2, Press, 1);
+            if ((int)button2 != 0xFF)
+                Core.Button(button2, Press, 1);
 
-            if (!KeyFirst) KeyFirst = true;
+            if (!KeyFirst)
+                KeyFirst = true;
+        }
+
+        public string SaveState()
+        {
+            if (Core == null || !Core.Running)
+                return "";
+
+            ini.WriteInt("main", "StateSlot", SaveSlot);
+            string statefile = RootPath + "/SaveState/" + Core.DiskID + "_Save" + SaveSlot.ToString() + ".dat";
+            string statename = SaveSlot.ToString() + " - " + File.GetLastWriteTime(statefile).ToLocalTime();
+
+            Core.SaveState(SaveSlot.ToString());
+
+            OSD.Show($"{Translations.GetText("FrmMain_SaveState_saved")} [ {SaveSlot} ]");
+
+            return statename;
+        }
+
+        public void LoadState()
+        {
+            if (Core == null || !Core.Running)
+                return;
+
+            string statefile = RootPath + "/SaveState/" + Core.DiskID + "_Save" + SaveSlot.ToString() + ".dat";
+
+            Core.SaveState("~");
+            Core.LoadState(SaveSlot.ToString());
+
+            SetGPUParam();
+
+            OSD.Show($"{Translations.GetText("FrmMain_SaveState_load")} [ {SaveSlot} ]");
+        }
+
+        public void UnLoadState()
+        {
+            if (Core == null || !Core.Running)
+                return;
+
+            Core.LoadState("~");
+
+            SetGPUParam();
+
+            OSD.Show($"{Translations.GetText("FrmMain_SaveState_unload")} [ {SaveSlot} ]");
         }
 
         public void Pause()
         {
-            if (Core == null || !Core.Running) return;
+            if (Core == null || !Core.Running)
+                return;
 
-            if (!Core.Pauseed) Core.WaitPaused();
+            if (!Core.Pauseed)
+                Core.WaitPaused();
         }
 
         public void Resume()
         {
-            if (Core == null || !Core.Running) return;
+            if (Core == null || !Core.Running)
+                return;
 
-            if (Core.Pauseed) Core.Pauseing = false;
+            if (Core.Pauseed)
+                Core.Pauseing = false;
         }
 
         public void Stop()
         {
-            if (Core == null || !Core.Running) return;
+            if (Core == null || !Core.Running)
+                return;
 
             Core.Stop();
+            softRender?.Dispose();
+            Core.Dispose();
+            Core = null;
+        }
+
+        public void SwitchBackEnd(GPUType mode, RenderHost Render)
+        {
+            if (Core == null || !Core.Running || Core.GPU.type == mode)
+                return;
+
+            ini.WriteInt("Main", "Render", (int)mode);
+            //GPUType gpumode = (GPUType)ini.ReadInt("main", "GpuMode");
+
+            GPUBackend.HWND = Render.NativeHandle;
+            GPUBackend.HINST = Render.hInstance;
+            GPUBackend.ClientHeight = (int)Render.Bounds.Height;
+            GPUBackend.ClientWidth = (int)Render.Bounds.Width;
+            GPUBackend.IRScale = AutoIR ? 3 : IRScale;
+
+            Core.WaitPausedAndSync();
+
+            if (mode == GPUType.OpenGL)
+            {
+                Core.PsxBus.gpu.SelectGPU(GPUType.OpenGL);
+
+                Core.GPU = Core.PsxBus.gpu.Backend.GPU;
+
+                Core.GpuBackend = GPUType.OpenGL;
+            }
+            if (mode == GPUType.Vulkan)
+            {
+                Core.PsxBus.gpu.SelectGPU(GPUType.Vulkan);
+
+                Core.GPU = Core.PsxBus.gpu.Backend.GPU;
+
+                Core.GpuBackend = GPUType.Vulkan;
+            }
+            if (mode == GPUType.Software)
+            {
+                InitSoftRender();
+
+                Core.PsxBus.gpu.SelectGPU(GPUType.Software);
+
+                Core.GpuBackend = GPUType.Software;
+            }
+
+            Core.GPU = Core.PsxBus.gpu.Backend.GPU;
+
+            GpuType = mode;
+
+            SetGPUParam();
+
+            Core.Pauseing = false;
+
+            OSD.Show($"GPU [ {mode.ToString()} ] BackEnd.", 5000);
+        }
+
+        private void InitSoftRender()
+        {
+            if (softRender == null)
+            {
+                softRender = new SoftRender();
+                softRender.InitRender(GPUBackend.HWND);
+            }
+            softRender.Width = GPUBackend.ClientWidth;
+            softRender.Height = GPUBackend.ClientHeight;
+        }
+
+        public void SetGPUParam()
+        {
+            switch (GpuType)
+            {
+                case GPUType.OpenGL:
+                    (Core.GPU as OpenglGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
+                    (Core.GPU as OpenglGPU).PGXPT = PGXPT;
+                    (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
+                    (Core.GPU as OpenglGPU).RealColor = Realcolor;
+                    break;
+                case GPUType.Vulkan:
+                    (Core.GPU as VulkanGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
+                    (Core.GPU as VulkanGPU).PGXPT = PGXPT;
+                    (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
+                    (Core.GPU as VulkanGPU).RealColor = Realcolor;
+                    break;
+            }
+        }
+
+        public void ApplyPGXPSet()
+        {
+            PGXPVector.use_pgxp = ini.ReadInt("PGXP", "base") == 1;
+            PGXPVector.use_pgxp_aff = ini.ReadInt("PGXP", "aff") == 1;
+            PGXPVector.use_pgxp_avs = ini.ReadInt("PGXP", "avs") == 1;
+            PGXPVector.use_pgxp_clip = ini.ReadInt("PGXP", "clip") == 1;
+            PGXPVector.use_pgxp_nc = ini.ReadInt("PGXP", "nc") == 1;
+            PGXPVector.use_pgxp_highpos = ini.ReadInt("PGXP", "highpos") == 1;
+            PGXPVector.use_pgxp_memcap = ini.ReadInt("PGXP", "memcap") == 1;
+            PGXPVector.use_perspective_correction = ini.ReadInt("PGXP", "ppc") == 1;
         }
 
         public void LoadGame(string RomFile, RenderHost Render, string ID = "")
@@ -111,14 +286,16 @@ namespace ScePSX.UI
             GPUBackend.HINST = Render.hInstance;
             GPUBackend.ClientHeight = (int)Render.Bounds.Height;
             GPUBackend.ClientWidth = (int)Render.Bounds.Width;
+            GPUBackend.IRScale = 3;
 
-            if (GameName == "") GameName = Path.GetFileNameWithoutExtension(RomFile);
+            if (GameName == "")
+                GameName = Path.GetFileNameWithoutExtension(RomFile);
 
-            Core = new PSXCore(this, this, this, RomFile, RootPath + "BIOS/" + ini.Read("main", "bios"), GPUType.OpenGL, ID);
-
-            (Core.GPU as OpenglGPU).IRScale = 3;
+            Core = new PSXCore(this, this, this, RomFile, RootPath + "BIOS/" + ini.Read("main", "bios"), GpuType, ID);
 
             ini.Write("history", Core.DiskID, $"{RomFile}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
+
+            ini.WriteInt("Main", "Render", (int)GpuType);
 
             SDLHanlder.SetAudioBuffer();
 
@@ -141,6 +318,16 @@ namespace ScePSX.UI
 
             CPU.SetExecution((ini.ReadInt("Main", "CpuMode") == 1));
 
+            ApplyPGXPSet();
+
+            if (GpuType == GPUType.Software)
+            {
+                InitSoftRender();
+                softRender.FrameSkip = 0;
+            }
+
+            SetGPUParam();
+
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
@@ -153,12 +340,20 @@ namespace ScePSX.UI
 
         public void RenderFrame(int[] pixels, int width, int height)
         {
-            if (Core == null || !Core.Running) return;
+            if (Core == null || !Core.Running)
+                return;
 
             CoreWidth = width;
             CoreHeight = height;
 
             //SDLHanlder.CheckController();
+            if (GpuType == GPUType.Software && softRender != null)
+            {
+                softRender.Width = GPUBackend.ClientWidth;
+                softRender.Height = GPUBackend.ClientHeight;
+
+                softRender.RenderToWindow(pixels, width, height, ScaleParam);
+            }
 
             KeyFirst = SDLHanlder.QueryControllerState(1, Core, false, KeyFirst);
             KeyFirst = SDLHanlder.QueryControllerState(2, Core, false, KeyFirst);

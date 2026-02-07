@@ -1,5 +1,6 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -11,6 +12,9 @@ using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
+#pragma warning disable CS8600
+#pragma warning disable CS8604
 
 namespace ScePSX.UI
 {
@@ -287,10 +291,7 @@ namespace ScePSX.UI
                         SimpleYaml.ParseYamlFile("gamedb.yaml");
                 });
             }
-            //Dispatcher.UIThread.Invoke(() =>
-            //{
-            //    SimpleOSD.Show(this, $"Search {dir}", 30000, Color.DarkBlue);
-            //});
+            OSD.Show($"Searching {dir} ..." , 99999);
             try
             {
                 DirectoryInfo dirinfo = new DirectoryInfo(dir);

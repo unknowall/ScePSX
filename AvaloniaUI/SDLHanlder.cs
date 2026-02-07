@@ -8,12 +8,12 @@ namespace ScePSX.UI
 {
     public class SDLHanlder
     {
-        public CircularBuffer<byte> SamplesBuffer;
+        public CircularBuffer<byte>? SamplesBuffer;
 
         uint audiodeviceid;
         SDL_AudioCallback audioCallbackDelegate;
 
-        Dictionary<SDL_GameControllerButton, InputAction> ButtonMap;
+        Dictionary<SDL_GameControllerButton, InputAction>? ButtonMap;
         nint controller1, controller2;
         bool HasRumble1, HasRumble2;
         IniFile ini;
@@ -153,14 +153,8 @@ namespace ScePSX.UI
                 {
                     HasRumble1 = SDL_GameControllerHasRumble(controller1) == SDL_bool.SDL_TRUE;
 
-                    //if (Core != null)
-                    //{
-                    //    SimpleOSD.Show(Render._currentRenderer as UserControl, $"{SDL_JoystickNameForIndex(0)} Connected");
-                    //}
-                    //else
-                    //{
-                    //    SimpleOSD.Show(romList, $"{SDL_JoystickNameForIndex(0)} Connected");
-                    //}
+                    OSD.Show($"{SDL_JoystickNameForIndex(0)} Connected");
+
                     Console.WriteLine($"Controller Device 1 : {SDL_JoystickNameForIndex(0)} Connected, Rumble: {HasRumble1}");
                     if (HasRumble1)
                         if (SDL_GameControllerRumble(controller1, 0, 0, 0) != 0)
