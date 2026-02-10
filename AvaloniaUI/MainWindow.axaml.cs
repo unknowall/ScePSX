@@ -1,15 +1,18 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ScePSX.Core.GPU;
+using static ScePSX.CPU;
 
 namespace ScePSX.UI;
 
@@ -25,9 +28,15 @@ public partial class MainWindow : Window
 
     DispatcherTimer? timer;
 
+    [DllImport("kernel32.dll")]
+    public static extern Boolean AllocConsole();
+
     public MainWindow()
     {
         InitializeComponent();
+
+        if (OperatingSystem.IsWindows())
+            AllocConsole();
 
         //if (!Path.Exists(RootPath+"/Save"))
         //    Directory.CreateDirectory(RootPath + "/Save");
@@ -51,7 +60,7 @@ public partial class MainWindow : Window
 
         this.Closing += MainWindow_Closing;
 
-        CleanCheckSet(MnuRender, (int)PSX.GpuType);
+        CleanCheckSet(MnuRender, (int)PSX.GpuType - 1);
 
         timer = new DispatcherTimer();
         timer.Interval = TimeSpan.FromSeconds(1);
@@ -68,6 +77,9 @@ public partial class MainWindow : Window
             this.Width = Convert.ToInt16(PosStr[2]);
             this.Height = Convert.ToInt16(PosStr[3]);
         }
+
+        PSX.SoftDrawView = SoftDrawView;
+        PSX.Render = RenderHostView;
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -295,17 +307,6 @@ public partial class MainWindow : Window
             e.Handled = true;
     }
 
-    private void RomListSeelected(GameInfo info)
-    {
-        RomListView.IsVisible = false;
-        RenderHost.IsVisible = true;
-
-        PSX.GameName = info.Name;
-        PSX.LoadGame(info.fullName, RenderHost, info.ID);
-
-        InitStateMenu();
-    }
-
     private async Task<string> SelectFile()
     {
         var topLevel = TopLevel.GetTopLevel(this);
@@ -349,16 +350,64 @@ public partial class MainWindow : Window
         return filePath;
     }
 
+    private void SetViewVisible()
+    {
+        if (PSX.GpuType == GPUType.Software && !PSX.SoftDrawViaGL)
+        {
+            RenderHostView.IsVisible = false;
+            SoftDrawView.IsVisible = true;
+        } else
+        {
+            RenderHostView.CancelSizeChanged();
+            SoftDrawView.IsVisible = false;
+            RenderHostView.IsVisible = false;
+
+            RenderHostContainer.Child = null;
+            RenderHostView = null;
+            PSX.Render = null;
+            var newRenderHost = new RenderHost
+            {
+                IsVisible = true,
+                Name = "RenderHostView",
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+            };
+            RenderHostView = newRenderHost;
+            RenderHostContainer.Child = newRenderHost;
+            RenderHostView.IsVisible = true;
+
+            RenderHostContainer.InvalidateMeasure();
+            RenderHostContainer.InvalidateArrange();
+
+            MainDockPanel.InvalidateMeasure();
+            MainDockPanel.InvalidateArrange();
+
+            PSX.Render = RenderHostView;
+        }
+    }
+
+    private async void RomListSeelected(GameInfo info)
+    {
+        RomListView.IsVisible = false;
+        SetViewVisible();
+        await Task.Delay(16);
+        PSX.GameName = info.Name;
+        PSX.LoadGame(info.fullName, info.ID);
+
+        InitStateMenu();
+    }
+
     private async void LoadDisk_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var File = await SelectFile();
         if (File == "")
             return;
 
-        PSX.LoadGame(File, RenderHost);
-
         RomListView.IsVisible = false;
-        RenderHost.IsVisible = true;
+        SetViewVisible();
+        await Task.Delay(16);
+        PSX.SoftDrawView = SoftDrawView;
+        PSX.LoadGame(File);
 
         InitStateMenu();
     }
@@ -390,7 +439,8 @@ public partial class MainWindow : Window
         RomListView.FillByini();
 
         RomListView.IsVisible = true;
-        RenderHost.IsVisible = false;
+        RenderHostView.IsVisible = false;
+        SoftDrawView.IsVisible = false;
 
         CleanStatus();
 
@@ -420,38 +470,46 @@ public partial class MainWindow : Window
         }
     }
 
-    private void SoftwareMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void SoftwareMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        PSX.GpuType = GPUType.Software;
+
         if (PSX.isRun())
         {
-            PSX.SwitchBackEnd(GPUType.Software, RenderHost);
+            SetViewVisible();
+            await Task.Delay(32);
+            PSX.SwitchBackEnd(GPUType.Software);
         }
-
-        PSX.GpuType = GPUType.Software;
 
         CleanCheckSet(MnuRender, 0);
     }
 
-    private void OpenGLMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OpenGLMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        PSX.GpuType = GPUType.OpenGL;
+
         if (PSX.isRun())
         {
-            PSX.SwitchBackEnd(GPUType.OpenGL, RenderHost);
+            // for Vulkan SwapChain
+            PSX.Pause();
+            SetViewVisible();
+            await Task.Delay(32);
+            PSX.SwitchBackEnd(GPUType.OpenGL);
         }
-
-        PSX.GpuType = GPUType.OpenGL;
 
         CleanCheckSet(MnuRender, 1);
     }
 
-    private void VulkanMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void VulkanMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        PSX.GpuType = GPUType.Vulkan;
+
         if (PSX.isRun())
         {
-            PSX.SwitchBackEnd(GPUType.Vulkan, RenderHost);
+            SetViewVisible();
+            await Task.Delay(32);
+            PSX.SwitchBackEnd(GPUType.Vulkan);
         }
-
-        PSX.GpuType = GPUType.Vulkan;
 
         CleanCheckSet(MnuRender, 2);
     }

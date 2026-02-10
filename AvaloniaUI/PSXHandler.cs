@@ -20,9 +20,13 @@ namespace ScePSX.UI
 
         public PSXCore? Core;
         public PixelsScaler Scaler;
-        public SoftRender softRender;
+        public SoftRender? softRender;
+
+        public RenderHost? Render;
+        public SoftDrawHost SoftDrawView;
 
         public GPUType GpuType = GPUType.OpenGL;
+        public bool SoftDrawViaGL = false;
         public ScaleParam ScaleParam;
         public string GameName;
         public bool KeyFirst, isAnalog;
@@ -181,12 +185,13 @@ namespace ScePSX.UI
                 return;
 
             Core.Stop();
-            softRender?.Dispose();
             Core.Dispose();
             Core = null;
+            softRender?.Dispose();
+            softRender = null;
         }
 
-        public void SwitchBackEnd(GPUType mode, RenderHost Render)
+        public void SwitchBackEnd(GPUType mode)
         {
             if (Core == null || !Core.Running || Core.GPU.type == mode)
                 return;
@@ -206,21 +211,18 @@ namespace ScePSX.UI
             {
                 Core.PsxBus.gpu.SelectGPU(GPUType.OpenGL);
 
-                Core.GPU = Core.PsxBus.gpu.Backend.GPU;
-
                 Core.GpuBackend = GPUType.OpenGL;
             }
             if (mode == GPUType.Vulkan)
             {
                 Core.PsxBus.gpu.SelectGPU(GPUType.Vulkan);
 
-                Core.GPU = Core.PsxBus.gpu.Backend.GPU;
-
                 Core.GpuBackend = GPUType.Vulkan;
             }
             if (mode == GPUType.Software)
             {
-                InitSoftRender();
+                if (SoftDrawViaGL)
+                    InitSoftRender();
 
                 Core.PsxBus.gpu.SelectGPU(GPUType.Software);
 
@@ -235,7 +237,7 @@ namespace ScePSX.UI
 
             Core.Pauseing = false;
 
-            OSD.Show($"GPU [ {mode.ToString()} ] BackEnd.", 5000);
+            OSD.Show($"GPU [ {mode.ToString()} ]", 5000);
         }
 
         private void InitSoftRender()
@@ -265,6 +267,9 @@ namespace ScePSX.UI
                     (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
                     (Core.GPU as VulkanGPU).RealColor = Realcolor;
                     break;
+                case GPUType.Software:
+                    SoftDrawView.KeepAR = KeepAR;
+                    break;
             }
         }
 
@@ -280,7 +285,7 @@ namespace ScePSX.UI
             PGXPVector.use_perspective_correction = ini.ReadInt("PGXP", "ppc") == 1;
         }
 
-        public void LoadGame(string RomFile, RenderHost Render, string ID = "")
+        public void LoadGame(string RomFile, string ID = "")
         {
             GPUBackend.HWND = Render.NativeHandle;
             GPUBackend.HINST = Render.hInstance;
@@ -320,7 +325,7 @@ namespace ScePSX.UI
 
             ApplyPGXPSet();
 
-            if (GpuType == GPUType.Software)
+            if (GpuType == GPUType.Software && SoftDrawViaGL)
             {
                 InitSoftRender();
                 softRender.FrameSkip = 0;
@@ -347,12 +352,15 @@ namespace ScePSX.UI
             CoreHeight = height;
 
             //SDLHanlder.CheckController();
-            if (GpuType == GPUType.Software && softRender != null)
+            if (width > 0 && GpuType == GPUType.Software && SoftDrawViaGL && softRender != null)
             {
                 softRender.Width = GPUBackend.ClientWidth;
                 softRender.Height = GPUBackend.ClientHeight;
 
                 softRender.RenderToWindow(pixels, width, height, ScaleParam);
+            } else if (width > 0)
+            {
+                SoftDrawView.RenderPixels(pixels, width, height);
             }
 
             KeyFirst = SDLHanlder.QueryControllerState(1, Core, false, KeyFirst);

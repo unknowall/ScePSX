@@ -62,7 +62,7 @@ namespace ScePSX.UI
 
         public static Action<GameInfo>? OnDbClick;
 
-        private bool? _shouldSearchSubdirectories = null;
+        //private bool? _shouldSearchSubdirectories = null;
         private CDData? cddata;
         private List<string>? addedfiles;
         private CancellationTokenSource? cts;

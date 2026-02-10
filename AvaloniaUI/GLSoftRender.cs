@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Threading;
 using LightGL;
 
 namespace ScePSX.UI;
@@ -13,7 +12,7 @@ public class SoftRender : IDisposable
     GLBuffer VertexBuffer;
     GLBuffer TexCoordsBuffer;
     GLShader Shader;
-    GLTexture2D Texture;
+    GLTexture2D? Texture;
 
     public int Width, Height;
     public int FrameSkip, FSkip;
@@ -21,7 +20,7 @@ public class SoftRender : IDisposable
     private int[] pixels;
     private int oldwidth = 1024;
     private int oldheight = 512;
-    private ScaleParam scaleParam;
+    private int GLTid;
 
     public class ShaderInfoClass
     {
@@ -33,10 +32,10 @@ public class SoftRender : IDisposable
 
     public void InitRender(IntPtr WindowHandle)
     {
-        if (Inited) return;
+        if (Inited)
+            return;
 
         Context = GlContextFactory.CreateFromWindowHandle(WindowHandle);
-        Context.MakeCurrent();
 
         Shader = new GLShader(
             "attribute vec4 position; attribute vec4 texCoords; varying vec2 v_texCoord; void main() { gl_Position = position; v_texCoord = texCoords.xy; }",
@@ -56,26 +55,32 @@ public class SoftRender : IDisposable
 
         TexCoordsBuffer.SetData(TextureRect.VFlip().GetFloat2TriangleStripCoords());
 
-        GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+        //GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
         Context.ReleaseCurrent();
-        Inited = false;
+        GLTid = Thread.CurrentThread.ManagedThreadId;
+        Inited = true;
     }
 
     public void Dispose()
     {
-        if (!Inited) return;
+        if (!Inited)
+            return;
 
+        Context.MakeCurrent();
         Texture?.Dispose();
+        Texture = null;
         VertexBuffer.Dispose();
         TexCoordsBuffer.Dispose();
         Shader.Dispose();
-        Context.ReleaseCurrent();
         Context.Dispose();
+
+        Inited = false;
     }
 
     public unsafe void RenderToWindow(int[] Pixels, int width, int height, ScaleParam scale)
     {
-        if (Context == null) return;
+        if (Context == null)
+            return;
 
         if (FSkip > 0)
         {
@@ -83,7 +88,11 @@ public class SoftRender : IDisposable
             return;
         }
 
-        Context.MakeCurrent();
+        if (Thread.CurrentThread.ManagedThreadId != GLTid)
+        {
+            GLTid = Thread.CurrentThread.ManagedThreadId;
+            Context.MakeCurrent();
+        }
 
         if (scale.scale > 0)
         {
@@ -97,12 +106,11 @@ public class SoftRender : IDisposable
             pixels = Pixels;
         }
 
-        if (scaleParam.scale != scale.scale || oldwidth != width || oldheight != height || Texture == null)
+        if (oldwidth != width || oldheight != height || Texture == null)
         {
             Texture?.Dispose();
             Texture = GLTexture2D.Create().SetFormat(TextureFormat.RGBA).SetSize(width, height).SetFilter(TextureMinFilter.Linear);
 
-            scaleParam = scale;
             oldwidth = width;
             oldheight = height;
         }

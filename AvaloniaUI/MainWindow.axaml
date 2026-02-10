@@ -21,7 +21,7 @@
             <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="8 1"/>
-            <Setter Property="Height" Value="30"/>
+            <Setter Property="Height" Value="34"/>
             <Setter Property="BorderThickness" Value="0 0 0 1"/>
             <Setter Property="BorderBrush" Value="#3E3E42"/> <!-- 底部边框分割线 -->
         </Style>
@@ -50,7 +50,7 @@
         <Style Selector="MenuItem.SubMenuItem">
             <Setter Property="Padding" Value="20 6 12 6"/>
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Height" Value="26"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="Foreground" Value="#CCCCCC"/>
         </Style>
 
@@ -157,7 +157,11 @@
 
             <vm:RomList x:Name="RomListView" IsVisible="True" DockPanel.Dock="Top" />
 
-            <vm:RenderHost x:Name="RenderHost" IsVisible="False"/>
+            <vm:SoftDrawHost x:Name="SoftDrawView" IsVisible="False"/>
+
+            <Border x:Name="RenderHostContainer" DockPanel.Dock="Top">
+                <vm:RenderHost x:Name="RenderHostView" IsVisible="False"/>
+            </Border>
 
         </DockPanel>
 

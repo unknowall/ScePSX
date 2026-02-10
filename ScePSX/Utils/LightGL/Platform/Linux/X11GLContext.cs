@@ -5,12 +5,13 @@ using static LightGL.GlContextFactory;
 
 namespace LightGL.Linux
 {
-    public unsafe class LinuxGlContext : IGlContext
+    public unsafe class X11GLContext : IGlContext
     {
         private static object Lock = new object();
 
-        public static IntPtr DefaultDisplay;
+        public GlContextSize Size => new GlContextSize { Width = 0, Height = 0 };
 
+        public static IntPtr DefaultDisplay;
         public static int DefaultScreen;
 
         //static public IntPtr DefaultRootWindow;
@@ -24,106 +25,131 @@ namespace LightGL.Linux
         private IntPtr WindowHandle;
         private IntPtr Context;
 
-        [DllImport("libX11")]
+        private const string libX11 = "libX11.so.6";
+
+        [DllImport(libX11)]
         public static extern IntPtr XOpenDisplay(IntPtr display);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern int XDefaultScreen(IntPtr display);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern IntPtr XCreateWindow(IntPtr display, IntPtr parent, int x, int y, int width, int height,
             int borderWidth, int depth, int xclass, IntPtr visual, IntPtr valuemask,
             ref XSetWindowAttributes attributes);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern IntPtr XCreateSimpleWindow(IntPtr display, IntPtr parent, int x, int y, int width,
             int height, int borderWidth, int border, int background);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern IntPtr XRootWindow(IntPtr display, int screenNumber);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern IntPtr XCreateColormap(IntPtr display, IntPtr window, IntPtr visual, int alloc);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern void XMapWindow(IntPtr display, IntPtr window);
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern int XInitThreads();
 
-        [DllImport("libX11")]
+        [DllImport(libX11)]
         public static extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfoMask, ref XVisualInfo template, out int nitems);
+
+        [DllImport(libX11)]
+        public static extern int XSync(IntPtr display, bool discard);
+
+        [DllImport(libX11)]
+        public static extern int XGetErrorText(IntPtr display, int code, IntPtr buffer, int length);
+
+        [DllImport(libX11)]
+        public static extern IntPtr XSetErrorHandler(XErrorHandler handler);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int XErrorHandler(IntPtr display, ref XErrorEvent errorEvent);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct XErrorEvent
+        {
+            public int type;
+            public IntPtr display;
+            public IntPtr resourceid;
+            public IntPtr serial;
+            public byte error_code;
+            public byte request_code;
+            public byte minor_code;
+        }
+        public static IntPtr _originalErrorHandlerPtr;
+        public static XErrorHandler _customErrorHandler = CustomErrorHandler;
+        public static int CustomErrorHandler(IntPtr display, ref XErrorEvent errorEvent)
+        {
+            Console.WriteLine($"X Error: {errorEvent.error_code}");
+            return 0;
+        }
 
         public static IGlContext FromWindowHandle(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
         {
             lock (Lock)
-                return new LinuxGlContext(windowHandle, Major, Minor, arbProfile, VSync);
+                return new X11GLContext(windowHandle, Major, Minor, arbProfile, VSync);
         }
 
-        static LinuxGlContext() => XInitThreads();
+        static X11GLContext() => XInitThreads();
 
-        private LinuxGlContext(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
+        private X11GLContext(IntPtr windowHandle, int Major, int Minor, GlProfile arbProfile, int VSync = 0)
         {
-            Console.WriteLine("InitialWindowHandle:{0:X8}", new UIntPtr(windowHandle.ToPointer()).ToUInt64());
+            //_originalErrorHandlerPtr = XSetErrorHandler(_customErrorHandler);
+
             const int width = 128;
             const int height = 128;
             int fbcount;
-            var visualAttributes = new List<int>();
-#if false
-			visualAttributes.AddRange(new[] { (int)GLXAttribute.RGBA });
-			visualAttributes.AddRange(new[] { (int)GLXAttribute.RED_SIZE, 1 });
-			visualAttributes.AddRange(new[] { (int)GLXAttribute.GREEN_SIZE, 1 });
-			visualAttributes.AddRange(new[] { (int)GLXAttribute.BLUE_SIZE, 1 });
-			visualAttributes.AddRange(new[] { (int)GLXAttribute.DOUBLEBUFFER, 1 });
-			visualAttributes.AddRange(new[] { (int)0, 0 });
-#else
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.DRAWABLE_TYPE, 1 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.RENDER_TYPE, 1 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.RED_SIZE, 8 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.GREEN_SIZE, 8 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.BLUE_SIZE, 8 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.ALPHA_SIZE, 8 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.DEPTH_SIZE, 24 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.STENCIL_SIZE, 8 });
-            visualAttributes.AddRange(new[] { (int)GLXAttribute.DOUBLEBUFFER, 1 });
-            visualAttributes.AddRange(new[] { 0, 0 });
-#endif
-            Console.WriteLine("++++++++++++++++++++++++");
+            var visualAttributes = new int[] {
+                (int)GLXAttribute.X_RENDER_TYPE, 1,
+                (int)GLXAttribute.RENDER_TYPE, 1,
+                (int)GLXAttribute.DRAWABLE_TYPE, 1 | 4,
+                (int)GLXAttribute.DOUBLEBUFFER, 1,
+                (int)GLXAttribute.RED_SIZE, 8,
+                (int)GLXAttribute.GREEN_SIZE, 8,
+                (int)GLXAttribute.BLUE_SIZE, 8,
+                (int)GLXAttribute.ALPHA_SIZE, 8,
+                (int)GLXAttribute.DEPTH_SIZE, 1,
+                (int)GLXAttribute.STENCIL_SIZE, 8 ,
+                0, 0
+            };
 
             if (DefaultDisplay == IntPtr.Zero)
             {
                 DefaultDisplay = XOpenDisplay(IntPtr.Zero);
+            }
+
+            if (DefaultScreen == IntPtr.Zero)
+            {
                 DefaultScreen = XDefaultScreen(DefaultDisplay);
-                //DefaultRootWindow = XRootWindow(Display, DefaultScreen);
-                //DefaultRootWindow = IntPtr.Zero;
             }
 
             Display = DefaultDisplay;
             _screen = DefaultScreen;
 
-            //Console.WriteLine("{0}", GLX.ChooseVisual(Display, Screen, visualAttributes.ToArray()));
+            //Console.WriteLine("{0}", GLX.ChooseVisual(wlDisplay, Screen, visualAttributes.ToArray()));
 
-            Console.WriteLine("------------------------");
-#if false
-			var visinfo = (XVisualInfo*)GLX.ChooseVisual(Display, Screen, visualAttributes.ToArray()).ToPointer();
-			//Console.WriteLine("------------------------");
-
-			Console.WriteLine("++++++++++++++++++++++++");
-#else
-            var fbconfigs = GLX.glXChooseFBConfig(Display, _screen, visualAttributes.ToArray(), out fbcount);
-            var visinfo = GLX.glXGetVisualFromFBConfig(Display, *fbconfigs);
-#endif
-            var root = XRootWindow(Display, visinfo->Screen);
-
-            Console.WriteLine("++++++++++++++++++++++++");
-
+            var fbconfigs = GLX.glXChooseFBConfig(Display, _screen, visualAttributes, out fbcount);
+            IntPtr fbconfig = IntPtr.Zero;
+            XVisualInfo* visinfo = null;
+            for (var c = 0; c < fbcount; c++)
+            {
+                var visual = GLX.glXGetVisualFromFBConfig(Display, fbconfigs[c]);
+                if (fbconfig == IntPtr.Zero || visual->Depth == 32)
+                {
+                    fbconfig = fbconfigs[c];
+                    visinfo = visual;
+                    if (visual->Depth == 32)
+                        break;
+                }
+            }
             var info = *visinfo;
-            //Console.WriteLine(info.VisualID);
-            //info = default(XVisualInfo);
-            //info.VisualID = new IntPtr(33); int nitems; XGetVisualInfo(Display, (IntPtr)XVisualInfoMask.ID, ref info, out nitems);
 
             if (windowHandle == IntPtr.Zero)
             {
+                var root = XRootWindow(Display, visinfo->Screen);
                 //var attr = default(XSetWindowAttributes);
                 ///* window attributes */
                 //attr.background_pixel = 0;
@@ -141,12 +167,11 @@ namespace LightGL.Linux
                 attr.border_pixel = IntPtr.Zero;
                 attr.colormap = XCreateColormap(Display, root, info.Visual, 0);
                 attr.event_mask = (IntPtr)(EventMask.StructureNotifyMask | EventMask.ExposureMask | EventMask.KeyPressMask);
-                //var mask = (IntPtr)(CreateWindowMask.CWBackPixel | CreateWindowMask.CWBorderPixel | CreateWindowMask.CWColormap | CreateWindowMask.CWEventMask);
 
                 uint mask = (uint)SetWindowValuemask.ColorMap | (uint)SetWindowValuemask.EventMask |
                             (uint)SetWindowValuemask.BackPixel | (uint)SetWindowValuemask.BorderPixel;
 
-                Console.WriteLine("{0}, {1}", info.Visual, info.VisualID);
+                //Console.WriteLine("glXGetVisualFromFBConfig {0}, {1}", info.Visual, info.VisualID);
 
                 windowHandle = XCreateWindow(
                     Display,
@@ -160,9 +185,6 @@ namespace LightGL.Linux
 
             this.WindowHandle = windowHandle;
 
-            //XMapWindow(Display, WindowHandle);
-            //var Info = (XVisualInfo*)GLX.ChooseVisual(Display, Screen, visualAttributes.ToArray()).ToPointer();
-
             IntPtr sharePtr;
             bool setAsSharedRoot = false;
             lock (_sharedLock)
@@ -171,63 +193,44 @@ namespace LightGL.Linux
                 {
                     sharePtr = IntPtr.Zero;
                     setAsSharedRoot = true;
-                }
-                else
+                } else
                 {
                     sharePtr = _sharedContext;
                     _sharedRefCount++;
                 }
             }
 
-            //GLX.glXCreateContextAttribsARB
-            Context = GLX.glXCreateContext(Display, &info, _sharedContext, false);
-            GL.CheckError();
+            var attrs = new int[]{
+                (int)ArbCreateContext.MajorVersion, Major,
+                (int)ArbCreateContext.MinorVersion, Minor,
+                (int)ArbCreateContext.ProfileMask,
+                arbProfile == GlProfile.Compatibility ? (int)ArbCreateContext.CompatibilityProfileBit : (int)ArbCreateContext.CoreProfileBit,
+                0
+            };
 
-            var CreateContextAttribsARB = (CreateContextAttribsARB)Marshal.GetDelegateForFunctionPointer(
-                GLX.glXGetProcAddress("glXCreateContextAttribsARB"), typeof(CreateContextAttribsARB)
-                );
-
-            List<int> attributes = new List<int>();
-            attributes.AddRange(new int[] { (int)ArbCreateContext.MajorVersion, Major });
-            attributes.AddRange(new int[] { (int)ArbCreateContext.MinorVersion, Minor });
-            attributes.AddRange(new int[] { (int)ArbCreateContext.ProfileMask,
-                arbProfile == GlProfile.Compatibility ? (int)ArbCreateContext.CompatibilityProfileBit : (int)ArbCreateContext.CoreProfileBit
-            });
-
-            fixed (int* attributesPtr = attributes.ToArray())
+            IntPtr proc = GLX.glXGetProcAddress("glXCreateContextAttribsARB");
+            var CreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<CreateContextAttribsARB>(proc);
+            Context = CreateContextAttribsARB(Display, fbconfig, sharePtr, true, attrs);
+            //XSync(Display, false);
+            //Console.WriteLine($"glXCreateContextAttribsARB: Version {Major}.{Minor} {arbProfile} 0x{Context:X}");
+            if (Context == IntPtr.Zero)
             {
-                var fbconfigs2 = GLX.glXChooseFBConfig(Display, _screen, new int[] {
-                        (int)GLXAttribute.VISUAL_ID, (int)visinfo->VisualID,
-                        0, 0,
-                    }, out fbcount);
-
-                Console.WriteLine("{0}", new IntPtr(fbconfigs2));
-                Console.WriteLine("{0}", *fbconfigs2);
-
-                GLX.glXDestroyContext(Display, this.Context);
-                this.Context = CreateContextAttribsARB(Display, *fbconfigs, _sharedContext, false, attributesPtr);
+                Context = GLX.glXCreateContext(Display, &info, sharePtr, true);
             }
+            //GLX.glXDestroyContext(Display, Context);
 
             lock (_sharedLock)
             {
                 if (setAsSharedRoot)
                 {
-                    if (_sharedContext == IntPtr.Zero && this.Context != IntPtr.Zero)
+                    if (_sharedContext == IntPtr.Zero && Context != IntPtr.Zero)
                     {
-                        _sharedContext = this.Context;
+                        _sharedContext = Context;
                         _sharedRefCount = 1;
                     }
-                    else
-                    {
-                        if (_sharedContext != IntPtr.Zero)
-                        {
-                            _sharedRefCount++;
-                        }
-                    }
-                }
-                else
+                } else
                 {
-                    if (this.Context == IntPtr.Zero)
+                    if (Context == IntPtr.Zero)
                     {
                         _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
                     }
@@ -241,25 +244,19 @@ namespace LightGL.Linux
 
             MakeCurrent();
 
-            Console.WriteLine("VisualID:{0}", info.VisualID);
+            Console.WriteLine($"Visual ID: {visinfo->VisualID}, Depth: {visinfo->Depth}, Screen: {visinfo->Screen}");
             Console.WriteLine("Display:{0:X8}", new UIntPtr(Display.ToPointer()).ToUInt64());
             Console.WriteLine("WindowHandle:{0:X8}", new UIntPtr(windowHandle.ToPointer()).ToUInt64());
             Console.WriteLine("Context:{0:X8}", new UIntPtr(Context.ToPointer()).ToUInt64());
-            Console.WriteLine("Version:{0}", GL.GetString(GL.GL_VERSION));
-            Console.WriteLine("Version:{0}.{1}", GL.GetInteger(GL.GL_MAJOR_VERSION), GL.GetInteger(GL.GL_MINOR_VERSION));
-            Console.WriteLine("Vendor:{0}", GL.GetString(GL.GL_VENDOR));
-            Console.WriteLine("Renderer:{0}", GL.GetString(GL.GL_RENDERER));
+            Console.WriteLine("Version:{0}", GL.GetStringStr(GL.GL_VERSION));
+            Console.WriteLine("Vendor:{0}", GL.GetStringStr(GL.GL_VENDOR));
+            Console.WriteLine("Renderer:{0}", GL.GetStringStr(GL.GL_RENDERER));
         }
-
-        public delegate IntPtr CreateContextAttribsARB(IntPtr display, IntPtr fbconfig, IntPtr shareContext, bool direct, int* attribs);
-
-        public GlContextSize Size => new GlContextSize { Width = 0, Height = 0 };
 
         public IGlContext MakeCurrent()
         {
             if (GLX.glXMakeCurrent(Display, WindowHandle, Context))
                 return this;
-            GL.CheckError();
             Console.WriteLine("glXMakeCurrent failed");
             return this;
         }
@@ -267,7 +264,6 @@ namespace LightGL.Linux
         public IGlContext ReleaseCurrent()
         {
             GLX.glXMakeCurrent(Display, IntPtr.Zero, IntPtr.Zero);
-            GL.CheckError();
             return this;
         }
 
@@ -276,6 +272,9 @@ namespace LightGL.Linux
             GLX.glXSwapBuffers(Display, WindowHandle);
             return this;
         }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr CreateContextAttribsARB(IntPtr display, IntPtr fbconfig, IntPtr shareContext, bool direct, int[] attribs);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GlXSwapIntervalEXTDelegate(IntPtr dpy, IntPtr drawable, int interval);
@@ -295,34 +294,30 @@ namespace LightGL.Linux
             {
                 try
                 {
-                    var del = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalEXTDelegate>(proc);
-                    del(Display, WindowHandle, vsync);
+                    var SwapInterval = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalEXTDelegate>(proc);
+                    SwapInterval(Display, WindowHandle, vsync);
                     return this;
-                }
-                catch { }
+                } catch { }
             }
             proc = GLX.glXGetProcAddress("glXSwapIntervalSGI");
             if (proc != IntPtr.Zero)
             {
                 try
                 {
-                    var del = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalSGIDelegate>(proc);
-                    del(vsync);
+                    var SwapIntervalSGI = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalSGIDelegate>(proc);
+                    SwapIntervalSGI(vsync);
                     return this;
-                }
-                catch { }
+                } catch { }
             }
-
             proc = GLX.glXGetProcAddress("glXSwapIntervalMESA");
             if (proc != IntPtr.Zero)
             {
                 try
                 {
-                    var del = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalMESADelegate>(proc);
-                    del(vsync);
+                    var SwapIntervalMESA = Marshal.GetDelegateForFunctionPointer<GlXSwapIntervalMESADelegate>(proc);
+                    SwapIntervalMESA(vsync);
                     return this;
-                }
-                catch { }
+                } catch { }
             }
 
             return this;
@@ -330,41 +325,27 @@ namespace LightGL.Linux
 
         public void Dispose()
         {
+            ReleaseCurrent();
+
             if (Context != IntPtr.Zero)
             {
-                bool destroyed = false;
-                lock (_sharedLock)
-                {
-                    if (_sharedContext != IntPtr.Zero && Context == _sharedContext)
-                    {
-                        _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
-                        if (_sharedRefCount == 0)
-                        {
-                            GLX.glXDestroyContext(Display, Context);
-                            _sharedContext = IntPtr.Zero;
-                            destroyed = true;
-                        }
-                    }
-                    else
-                    {
-                        GLX.glXDestroyContext(Display, Context);
-                        destroyed = true;
-                        if (_sharedContext != IntPtr.Zero && _sharedRefCount > 0)
-                        {
-                            _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
-                        }
-                    }
-                }
-
-                if (destroyed)
-                {
-                    // nothing else required
-                }
-
+                GLX.glXDestroyContext(Display, Context);
                 Context = IntPtr.Zero;
             }
-        }
 
+            lock (_sharedLock)
+            {
+                if (_sharedContext != IntPtr.Zero)
+                {
+                    _sharedRefCount = Math.Max(0, _sharedRefCount - 1);
+                    if (_sharedRefCount == 0)
+                    {
+                        GLX.glXDestroyContext(Display, _sharedContext);
+                        _sharedContext = IntPtr.Zero;
+                    }
+                }
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

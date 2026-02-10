@@ -316,6 +316,7 @@ namespace LightGL
         internal static readonly object Lock = new object();
 
         internal const string DllWindows = "OpenGL32";
+        internal const string DllEGLLinux = "libEGL.so.1";
         internal const string DllLinux = "libGL.so.1";
         internal const string DllMac = "/System/Library/Frameworks/OpenGL.framework/OpenGL";
         internal const string DllAndroid = "libopengl.so.1";

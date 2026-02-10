@@ -94,10 +94,10 @@
 							<TextBlock Classes="GameMeta" Text="{Binding ID}" DockPanel.Dock="Top" Margin="0 4 0 0"/>
 
 							<!-- 第三行：LastPlay/状态组 紧跟ID下方，靠右对齐 -->
-							<StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="0 -2 15 0">
-								<TextBlock Classes="GameMeta" IsVisible="{Binding IsLastPlayedVisible}" Text="{Binding LastPlayed, StringFormat='LastPlay: {0}'}" />
-								<TextBlock Classes="GameMeta" IsVisible="{Binding HasSaveState}" Text="StateSave: ✓" Margin="10 0 0 0" />
-								<TextBlock Classes="GameMeta" IsVisible="{Binding HasCheats}" Text="CheatCode: ✓" Margin="10 0 0 0" />
+							<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="0 -5 0 0">
+								<TextBlock Classes="GameMeta" Name="LastPlayed" IsVisible="{Binding IsLastPlayedVisible}" Text="{Binding LastPlayed, StringFormat='LastPlay: {0}'}" Margin="0 0 10 0"/>
+								<TextBlock Classes="GameMeta" Name="HasStateSave" IsVisible="{Binding HasSaveState}" Text="StateSave: ✓" Margin="0 0 10 0" />
+								<TextBlock Classes="GameMeta" Name="HasCheatCode" IsVisible="{Binding HasCheats}" Text="CheatCode: ✓" Margin="0 0 10 0" />
 							</StackPanel>
 
 						</DockPanel>

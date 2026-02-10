@@ -4914,7 +4914,7 @@ namespace SDL2
             /* Only available in SDL 2.0.14 or higher. */
             SDL_LOCALECHANGED,
 
-            /* Display events */
+            /* wlDisplay events */
             /* Only available in SDL 2.0.9 or higher. */
             SDL_DISPLAYEVENT = 0x150,
 
@@ -8726,7 +8726,7 @@ namespace SDL2
         [StructLayout(LayoutKind.Sequential)]
         public struct INTERNAL_x11_wminfo
         {
-            public IntPtr display; // Refers to a Display*
+            public IntPtr display; // Refers to a wlDisplay*
             public IntPtr window; // Refers to a Window (XID, use ToInt64!)
         }
 

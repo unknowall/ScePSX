@@ -187,7 +187,7 @@ namespace LightGL.Android
                 Surface = EGL.EGL_NO_SURFACE;
             }
 
-            // 不在这里调用 eglTerminate(Display) — 由上层负责生命周期（或根据需要添加计数）
+            // 不在这里调用 eglTerminate(wlDisplay) — 由上层负责生命周期（或根据需要添加计数）
         }
     }
 }

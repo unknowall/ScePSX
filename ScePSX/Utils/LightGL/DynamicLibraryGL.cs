@@ -58,7 +58,11 @@ namespace LightGL
                 case OS.Linux:
                 case OS.IOS:
                 default:
-                    result = glxGetProcAddressARB(name);
+                    if (GlContextFactory.IsWayLand)
+                    {
+                        result = eglGetProcAddress(name);
+                    } else
+                        result = glxGetProcAddressARB(name);
                     if (result == IntPtr.Zero)
                         result = glxGetProcAddress(name);
                     if (result == IntPtr.Zero)
@@ -80,8 +84,7 @@ namespace LightGL
                 if (Platform.IsWindows)
                 {
                     Console.WriteLine("GetProcAddress Can't find '{0}' : {1:X8}", name, Marshal.GetLastWin32Error());
-                }
-                else
+                } else
                 {
                     Console.WriteLine("GetProcAddress Can't find '{0}' on {1}", name, Platform.OS);
                 }
@@ -111,6 +114,13 @@ namespace LightGL
 
         [DllImport(GL.DllLinux, EntryPoint = "glXGetProcAddress")]
         private static extern IntPtr glxGetProcAddress([MarshalAs(UnmanagedType.LPStr)] string procName);
+
+        // --- Linux (EGL) ---
+        [DllImport(GL.DllEGLLinux, EntryPoint = "eglGetProcAddress")]
+        private static extern IntPtr eglGetProcAddress([MarshalAs(UnmanagedType.LPStr)] string procName);
+
+        [DllImport(GL.DllEGLLinux, EntryPoint = "eglGetProcAddressARB")]
+        private static extern IntPtr eglGetProcAddressARB([MarshalAs(UnmanagedType.LPStr)] string procName);
 
         // --- Android / EGL ---
         [DllImport("libEGL.so", EntryPoint = "eglGetProcAddress")]

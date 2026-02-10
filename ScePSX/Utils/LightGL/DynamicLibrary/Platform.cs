@@ -237,12 +237,12 @@ namespace LightGL.DynamicLibrary
                     return true;
                 }
 
-                IntPtr buf = Marshal.AllocHGlobal(8192);
-                if (uname(buf) == 0)
-                {
-                    string machine = ExecuteUnixCommand("uname", "-m");
-                    return machine == "arm64" || machine == "armv7" || machine == "i386" || machine == "x86_64"; // 模拟器
-                }
+                //IntPtr buf = Marshal.AllocHGlobal(8192);
+                //if (uname(buf) == 0)
+                //{
+                //    string machine = ExecuteUnixCommand("uname", "-m");
+                //    return machine == "arm64" || machine == "armv7" || machine == "i386" || machine == "x86_64"; // 模拟器
+                //}
             }
             catch { }
             return false;

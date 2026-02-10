@@ -24,7 +24,6 @@ namespace LightGL.Linux
         [DllImport(Library)]
         public static extern IntPtr glXCreateContext(IntPtr dpy, XVisualInfo* vis, IntPtr shareList, bool direct);
 
-        //[DllImport(Library)] public static extern IntPtr glXCreateContext(IntPtr dpy, ref XVisualInfo vis, IntPtr shareList, bool direct);
         [DllImport(Library)]
         public static extern void glXDestroyContext(IntPtr dpy, IntPtr context);
 
@@ -46,12 +45,8 @@ namespace LightGL.Linux
         [DllImport(Library)]
         public static extern IntPtr glXChooseVisual(IntPtr dpy, int screen, int* attriblist);
 
-        //[DllImport(Library)] public static extern XVisualInfo* glXChooseVisual(IntPtr dpy, int screen, int[] attriblist);
-        //[DllImport(Library)] public static extern IntPtr glXChooseVisual(IntPtr dpy, int screen, ref int attriblist);
         [DllImport(Library)]
-        public static extern IntPtr*
-            glXChooseFBConfig(IntPtr dpy, int screen, int[] attriblist,
-                out int fbount); // Returns an array of GLXFBConfig structures.
+        public static extern IntPtr* glXChooseFBConfig(IntPtr dpy, int screen, int[] attriblist, out int fbount); // Returns an array of GLXFBConfig structures.
 
         [DllImport(Library)]
         public static extern XVisualInfo* glXGetVisualFromFBConfig(IntPtr dpy, IntPtr fbconfig);
@@ -190,6 +185,7 @@ namespace LightGL.Linux
         NONE_EXT = 0x8000,
         HEIGHT_SGIX = 0x801E,
         RENDER_TYPE = 0x8011,
+        X_RENDER_TYPE = 0x8012,
         FBCONFIG_ID = 0x8013,
         TRANSPARENT_INDEX_EXT = 0x8009,
         TRANSPARENT_INDEX = 0x8009,
