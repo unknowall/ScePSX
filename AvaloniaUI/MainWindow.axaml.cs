@@ -66,6 +66,8 @@ public partial class MainWindow : Window
         timer.Interval = TimeSpan.FromSeconds(1);
         timer.Tick += Timer_Elapsed;
         timer.Start();
+
+        SetIcon.EnsureDesktopFile();
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -558,6 +560,9 @@ public partial class MainWindow : Window
 
     private void SysSetMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        var SetForm = new Setting();
+
+        SetForm.Show();
     }
 
     private void KeyMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -590,6 +595,42 @@ public partial class MainWindow : Window
 
     private void AboutMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+    }
+}
+
+public static class SetIcon
+{
+    public static void EnsureDesktopFile()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        var desktopPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".local/share/applications",
+            "scepsx.desktop"
+        );
+
+        if (File.Exists(desktopPath))
+            return;
+
+        var content = $"""
+        [Desktop Entry]
+        Name=ScePSX
+        Comment=PlayStation 1 Emulator
+        Exec={Environment.ProcessPath}
+        Icon={Path.Combine(AppContext.BaseDirectory, "001.ico")}
+        Terminal=false
+        Type=Application
+        Categories=Game;Emulator;
+        """;
+
+#pragma warning disable CS8604
+        Directory.CreateDirectory(Path.GetDirectoryName(desktopPath));
+        File.WriteAllText(desktopPath, content);
+
+        System.Diagnostics.Process.Start("update-desktop-database", Path.GetDirectoryName(desktopPath));
+#pragma warning restore CS8604
     }
 }
 

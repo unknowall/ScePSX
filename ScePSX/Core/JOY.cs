@@ -49,7 +49,8 @@ namespace ScePSX
         }
         ControllerDevice Device = ControllerDevice.None;
 
-        Controller controller1, controller2;
+        [NonSerialized]
+        public Controller controller1, controller2;
         MemCard memoryCard1, memoryCard2;
 
         int counter;

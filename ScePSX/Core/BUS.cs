@@ -34,6 +34,7 @@ namespace ScePSX
         public MDEC mdec;
         public SPU spu;
         public Expansion exp2;
+        [NonSerialized]
         public Controller controller1, controller2;
         public MemCard memoryCard, memoryCard2;
         [NonSerialized]
@@ -172,6 +173,12 @@ namespace ScePSX
             //Marshal.Copy(spuram, 0, (IntPtr)spu.ram, spuram.Length);
 
             InitializeJumpTables();
+
+            controller1 = new Controller();
+            controller2 = new Controller();
+
+            joybus.controller1 = controller1;
+            joybus.controller2 = controller2;
 
             mdec = new MDEC();
 

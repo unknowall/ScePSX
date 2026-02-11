@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ScePSX.Core;
 
 #pragma warning disable SYSLIB0011
 
@@ -339,6 +341,7 @@ namespace ScePSX
                 gzipStream.CopyTo(memoryStream);
                 memoryStream.Position = 0;
                 BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Binder = new FastBinder();
                 return (BUS)formatter.Deserialize(memoryStream);
             }
         }

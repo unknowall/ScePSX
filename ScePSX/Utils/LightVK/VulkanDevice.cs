@@ -35,6 +35,7 @@ namespace LightVK
 
     public class VulkanDevice : IDisposable
     {
+        public static vkOsEnv OsEnv = vkOsEnv.WIN;
         public VkInstance instance;
         public VkPhysicalDevice physicalDevice;
         public VkDevice device;
@@ -49,6 +50,13 @@ namespace LightVK
 
         private static VkDebugReportCallbackEXT _debugCallback;
         private static vkDebugReportCallback _callbackDelegate;
+
+        public enum vkOsEnv
+        {
+            WIN,
+            LINUX_XLIB,
+            LINUX_WAYLAND
+        }
 
         public struct vkSwapchain
         {
@@ -133,7 +141,18 @@ namespace LightVK
             {
                 CreateDebugInstance();
             }
-            CreateSurfaceWin(hinst, hwnd);
+            if (OperatingSystem.IsWindows() || OsEnv == vkOsEnv.WIN)
+            {
+                CreateSurfaceWin(hinst, hwnd);
+            }
+            if (OperatingSystem.IsLinux() || OsEnv == vkOsEnv.LINUX_XLIB)
+            {
+                CreateSurfaceLinuxXLib(hinst, hwnd);
+            }
+            if (OperatingSystem.IsLinux() && OsEnv == vkOsEnv.LINUX_WAYLAND)
+            {
+                CreateSurfaceLinuxWayLand(hinst, hwnd);
+            }
             SelectPhysicalDevice();
             fixed (VkPhysicalDeviceProperties* ptr = &deviceProperties)
                 vkGetPhysicalDeviceProperties(physicalDevice, ptr);
@@ -199,7 +218,18 @@ namespace LightVK
 
             vkRawList<IntPtr> Extensions = new vkRawList<IntPtr>();
             Extensions.Add(vkStrings.VK_KHR_SURFACE_EXTENSION_NAME);
-            Extensions.Add(vkStrings.VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+            if (OperatingSystem.IsWindows() || OsEnv == vkOsEnv.WIN)
+            {
+                Extensions.Add(vkStrings.VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+            }
+            if (OperatingSystem.IsLinux() || OsEnv == vkOsEnv.LINUX_XLIB)
+            {
+                Extensions.Add(vkStrings.VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+            }
+            if (OperatingSystem.IsLinux() && OsEnv == vkOsEnv.LINUX_WAYLAND)
+            {
+                Extensions.Add(vkStrings.VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+            }
 
             fixed (IntPtr* extensionsBase = &Extensions.Items[0])
             {
@@ -236,7 +266,18 @@ namespace LightVK
             vkRawList<IntPtr> Extensions = new vkRawList<IntPtr>();
 
             Extensions.Add(vkStrings.VK_KHR_SURFACE_EXTENSION_NAME);
-            Extensions.Add(vkStrings.VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+            if (OperatingSystem.IsWindows() || OsEnv == vkOsEnv.WIN)
+            {
+                Extensions.Add(vkStrings.VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+            }
+            if (OperatingSystem.IsLinux() || OsEnv== vkOsEnv.LINUX_XLIB)
+            {
+                Extensions.Add(vkStrings.VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+            }
+            if (OperatingSystem.IsLinux() && OsEnv == vkOsEnv.LINUX_WAYLAND)
+            {
+                Extensions.Add(vkStrings.VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+            }
             Extensions.Add(vkStrings.VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
             vkRawList<IntPtr> Extensions1 = new vkRawList<IntPtr>();
@@ -338,11 +379,11 @@ namespace LightVK
                 }
         }
 
-        private unsafe void CreateSurfaceLinux(IntPtr display, IntPtr window)
+        private unsafe void CreateSurfaceLinuxXLib(IntPtr display, IntPtr window)
         {
             var surfaceCreateInfo = new VkXlibSurfaceCreateInfoKHR
             {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR ,
+                sType = VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
                 dpy = display,
                 window = (IntPtr)(uint)window
             };
@@ -350,6 +391,24 @@ namespace LightVK
             fixed (VkSurfaceKHR* surface = &this.surface)
             {
                 if (vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, null, surface) != VkResult.VK_SUCCESS)
+                {
+                    throw new Exception("Failed to create Vulkan X11 Surface!");
+                }
+            }
+        }
+
+        private unsafe void CreateSurfaceLinuxWayLand(IntPtr display, IntPtr window)
+        {
+            var surfaceCreateInfo = new VkWaylandSurfaceCreateInfoKHR
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
+                display = display,
+                surface = (IntPtr)(uint)window
+            };
+
+            fixed (VkSurfaceKHR* surface = &this.surface)
+            {
+                if (vkCreateWaylandSurfaceKHR(instance, &surfaceCreateInfo, null, surface) != VkResult.VK_SUCCESS)
                 {
                     throw new Exception("Failed to create Vulkan X11 Surface!");
                 }

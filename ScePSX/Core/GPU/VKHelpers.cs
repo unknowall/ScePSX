@@ -1,10 +1,12 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ScePSX
 {
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public class ThreadSafeQueue<T>
     {
         private readonly Queue<T> queue = new Queue<T>();
@@ -38,7 +40,8 @@ namespace ScePSX
         }
     }
 
-    public struct vkRectangle<T> where T : struct, IComparable<T>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+    public struct vkRectangle<T> where T : struct, IComparable<T>, IConvertible
     {
         public T Left
         {
@@ -65,30 +68,39 @@ namespace ScePSX
             Bottom = bottom;
         }
 
-        public int GetWidth()
-        {
-            dynamic dRight = Right, dLeft = Left;
-            return (int)(dRight - dLeft);
-        }
-
-        public int GetHeight()
-        {
-            dynamic dBottom = Bottom, dTop = Top;
-            return (int)(dBottom - dTop);
-        }
-
-        public static vkRectangle<T> FromExtents(T left, T top, T width, T height)
-        {
-            dynamic dLeft = left, dTop = top, dWidth = width, dHeight = height;
-            return new vkRectangle<T>(left, top, dLeft + dWidth, dTop + dHeight);
-        }
-
         public bool Intersects(vkRectangle<T> other)
         {
             return Left.CompareTo(other.Right) < 0 &&
                    Right.CompareTo(other.Left) > 0 &&
                    Top.CompareTo(other.Bottom) < 0 &&
                    Bottom.CompareTo(other.Top) > 0;
+        }
+
+        public int GetWidth()
+        {
+            var right = Convert.ToDouble(Right);
+            var left = Convert.ToDouble(Left);
+            return (int)(right - left);
+        }
+
+        public int GetHeight()
+        {
+            var bottom = Convert.ToDouble(Bottom);
+            var top = Convert.ToDouble(Top);
+            return (int)(bottom - top);
+        }
+
+        public static vkRectangle<T> FromExtents(T left, T top, T width, T height)
+        {
+            var leftVal = Convert.ToDouble(left);
+            var topVal = Convert.ToDouble(top);
+            var widthVal = Convert.ToDouble(width);
+            var heightVal = Convert.ToDouble(height);
+
+            var right = (T)Convert.ChangeType(leftVal + widthVal, typeof(T));
+            var bottom = (T)Convert.ChangeType(topVal + heightVal, typeof(T));
+
+            return new vkRectangle<T>(left, top, right, bottom);
         }
 
         public void Grow(vkRectangle<T> bounds)
@@ -105,19 +117,25 @@ namespace ScePSX
 
         public void Grow(T x, T y)
         {
-            dynamic dX = x, dY = y;
-            Left = (T)(dynamic)Math.Min(Convert.ToDouble(Left), Convert.ToDouble(x));
-            Top = (T)(dynamic)Math.Min(Convert.ToDouble(Top), Convert.ToDouble(y));
-            Right = (T)(dynamic)Math.Max(Convert.ToDouble(Right), Convert.ToDouble(x));
-            Bottom = (T)(dynamic)Math.Max(Convert.ToDouble(Bottom), Convert.ToDouble(y));
+            double xVal = Convert.ToDouble(x);
+            double yVal = Convert.ToDouble(y);
+            double leftVal = Convert.ToDouble(Left);
+            double topVal = Convert.ToDouble(Top);
+            double rightVal = Convert.ToDouble(Right);
+            double bottomVal = Convert.ToDouble(Bottom);
+
+            Left = (T)Convert.ChangeType(Math.Min(leftVal, xVal), typeof(T));
+            Top = (T)Convert.ChangeType(Math.Min(topVal, yVal), typeof(T));
+            Right = (T)Convert.ChangeType(Math.Max(rightVal, xVal), typeof(T));
+            Bottom = (T)Convert.ChangeType(Math.Max(bottomVal, yVal), typeof(T));
         }
 
         public void ScaleInPlace(float scale)
         {
-            Left = (T)(object)(Convert.ToInt32(Left) * scale);
-            Top = (T)(object)(Convert.ToInt32(Top) * scale);
-            Right = (T)(object)(Convert.ToInt32(Right) * scale);
-            Bottom = (T)(object)(Convert.ToInt32(Bottom) * scale);
+            Left = (T)Convert.ChangeType(Convert.ToInt32(Left) * scale, typeof(T));
+            Top = (T)Convert.ChangeType(Convert.ToInt32(Top) * scale, typeof(T));
+            Right = (T)Convert.ChangeType(Convert.ToInt32(Right) * scale, typeof(T));
+            Bottom = (T)Convert.ChangeType(Convert.ToInt32(Bottom) * scale, typeof(T));
         }
 
         public vkRectangle<int> Scale(float scale)
@@ -141,6 +159,7 @@ namespace ScePSX
         }
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     [StructLayout(LayoutKind.Sequential)]
     public struct vkPosition
     {
@@ -179,6 +198,7 @@ namespace ScePSX
         }
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     [StructLayout(LayoutKind.Sequential)]
     public struct vkTexCoord
     {
@@ -204,6 +224,7 @@ namespace ScePSX
         }
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     [StructLayout(LayoutKind.Sequential)]
     public struct vkClutAttribute
     {
@@ -242,6 +263,7 @@ namespace ScePSX
         }
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     [StructLayout(LayoutKind.Sequential)]
     public struct vkTexPage
     {
@@ -306,6 +328,7 @@ namespace ScePSX
         }
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     [StructLayout(LayoutKind.Sequential)]
     public struct vkColor
     {

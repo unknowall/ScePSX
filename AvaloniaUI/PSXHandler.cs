@@ -360,7 +360,7 @@ namespace ScePSX.UI
                 softRender.RenderToWindow(pixels, width, height, ScaleParam);
             } else if (width > 0)
             {
-                SoftDrawView.RenderPixels(pixels, width, height);
+                SoftDrawView.RenderPixels(pixels, width, height, ScaleParam);
             }
 
             KeyFirst = SDLHanlder.QueryControllerState(1, Core, false, KeyFirst);

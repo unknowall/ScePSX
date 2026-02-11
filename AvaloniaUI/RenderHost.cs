@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -8,13 +9,14 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using LightGL.Linux;
+using LightVK;
 
 namespace ScePSX.UI;
 
 public class RenderHost : NativeControlHost
 {
     public IntPtr NativeHandle;
-    public IntPtr hInstance = Marshal.GetHINSTANCE(Assembly.GetEntryAssembly().GetModules()[0]);
+    public IntPtr hInstance;
     public bool ReSized;
 
     public void CancelSizeChanged()
@@ -28,7 +30,16 @@ public class RenderHost : NativeControlHost
         var Ret = base.CreateNativeControlCore(parent);
         NativeHandle = Ret.Handle;
         if (parent.HandleDescriptor == "XID")
+        {
+            VulkanDevice.OsEnv = VulkanDevice.vkOsEnv.LINUX_XLIB;
+
             GetDisplayFromCurrentWindow(this);
+        } else
+        {
+            VulkanDevice.OsEnv = VulkanDevice.vkOsEnv.WIN;
+
+            hInstance = Marshal.GetHINSTANCE(Assembly.GetEntryAssembly().GetModules()[0]);
+        }
         return Ret;
     }
 
@@ -43,10 +54,12 @@ public class RenderHost : NativeControlHost
         }
     }
 
+    //Need reflection for X11 display acces
     //https://github.com/AvaloniaUI/Avalonia/blob/master/src/Avalonia.X11/X11Window.cs
     //https://github.com/AvaloniaUI/Avalonia/blob/master/src/Avalonia.X11/X11Info.cs
 #pragma warning disable CS8605
-    public static void GetDisplayFromCurrentWindow(Control control)
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075", Justification = "Need reflection for X11 display acces")]
+    public void GetDisplayFromCurrentWindow(Control control)
     {
         var topLevel = TopLevel.GetTopLevel(control);
         if (topLevel?.PlatformImpl != null)
@@ -75,6 +88,7 @@ public class RenderHost : NativeControlHost
                     {
                         var display = (IntPtr)displayProp.GetValue(x11);
                         X11GLContext.DefaultDisplay = display;
+                        hInstance = display;
                         //Console.WriteLine($"✓ Got Display from X11Info: 0x{display:X}");
                     }
                 }
@@ -87,13 +101,12 @@ public class RenderHost : NativeControlHost
 public class SoftDrawHost : Control
 {
     private WriteableBitmap? _bitmap;
-    private bool _sizeChanged;
     private int _currentWidth;
     private int _currentHeight;
     private object _renderLock = new object();
     public bool KeepAR = true;
 
-    public void RenderPixels(int[] pixels, int width, int height)
+    public void RenderPixels(int[] pixels, int width, int height, ScaleParam scale)
     {
         if (width <= 0 || height <= 0 || pixels == null || pixels.Length < width * height)
             return;
@@ -104,6 +117,14 @@ public class SoftDrawHost : Control
             {
                 try
                 {
+                    if (scale.scale > 0)
+                    {
+                        pixels = PixelsScaler.Scale(pixels, width, height, scale.scale, scale.mode);
+
+                        width = width * scale.scale;
+                        height = height * scale.scale;
+                    }
+
                     if (_bitmap == null || _currentWidth != width || _currentHeight != height)
                     {
                         _bitmap?.Dispose();
@@ -114,7 +135,6 @@ public class SoftDrawHost : Control
                             AlphaFormat.Premul); //AlphaFormat.Premul
                         _currentWidth = width;
                         _currentHeight = height;
-                        _sizeChanged = true;
                     }
 
                     using (var lockedBitmap = _bitmap.Lock())

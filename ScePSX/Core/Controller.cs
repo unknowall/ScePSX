@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace ScePSX
 {
-
-    [Serializable]
     public class Controller
     {
         public byte RightJoyX;
@@ -22,7 +20,6 @@ namespace ScePSX
         public byte VibrationRight = 0x00;
         public byte VibrationLeft = 0x00;
 
-        [NonSerialized]
         public IRumbleHandler RumbleHandler = null;
 
         private enum Mode

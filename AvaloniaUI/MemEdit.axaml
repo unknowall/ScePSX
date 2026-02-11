@@ -1,0 +1,124 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:local="clr-namespace:ScePSX.UI"
+        x:Class="ScePSX.UI.MemEdit"
+        Title="MemEdit">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="590*" />
+            <ColumnDefinition Width="307*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧面板 - HexBox -->
+        <Border Grid.Column="0" Padding="0">
+            <DockPanel LastChildFill="True">
+                <!-- 顶部工具栏 -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="10,5">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="0x" VerticalAlignment="Center" Margin="0,0,2,0" />
+                        <TextBox x:Name="tbgoto" Width="119" />
+                    </StackPanel>
+                    <Button x:Name="btngo" Content="前往地址" Width="75" />
+                    <ComboBox x:Name="CboView" Width="84" />
+                    <ComboBox x:Name="CboEncode" Width="69" />
+                    <CheckBox x:Name="chkupd" Content="自动刷新" VerticalAlignment="Center" />
+                    <Button x:Name="btnupd" Content="刷新" Width="70" />
+                </StackPanel>
+
+                <!-- HexBox 控件 -->
+                <local:HexBox x:Name="HexBox" />
+            </DockPanel>
+        </Border>
+
+        <!-- 右侧面板 - 搜索和结果 -->
+        <Border Grid.Column="1" Padding="10,0,0,0">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top" Spacing="10">
+                    <!-- 搜索标题和重置按钮 -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" x:Name="labSearch"
+                                   Text="内存搜索"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1" x:Name="btnr" Content="重置" Width="75" />
+                    </Grid>
+
+                    <!-- 搜索输入 -->
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                        <TextBox Grid.Row="0" Grid.ColumnSpan="2" x:Name="findb"
+                                 Watermark="输入搜索内容"
+                                 Margin="0,0,0,5" />
+                        <Button Grid.Row="1" Grid.Column="1" x:Name="btns"
+                                Content="搜索"
+                                Width="75"
+                                HorizontalAlignment="Right" />
+                    </Grid>
+
+                    <!-- 搜索类型组 -->
+                    <Border BorderBrush="#FFABABAB" 
+                            BorderThickness="1" 
+                            CornerRadius="3" 
+                            Padding="12,8,12,8"
+                            Margin="0,5,0,5">
+                        <StackPanel>
+                            <TextBlock Text="搜索类型" 
+                                      FontWeight="SemiBold"
+                                      Margin="0,0,0,8"/>
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                                <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbbyte"
+                                             Content="字节 Byte"
+                                             GroupName="SearchType"
+                                             IsChecked="True"
+                                             Margin="0,2" />
+                                <RadioButton Grid.Row="0" Grid.Column="1" x:Name="rbWord"
+                                             Content="字 WORD"
+                                             GroupName="SearchType"
+                                             Margin="0,2" />
+                                <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbDword"
+                                             Content="双字 DWORD"
+                                             GroupName="SearchType"
+                                             Margin="0,2" />
+                                <RadioButton Grid.Row="1" Grid.Column="1" x:Name="rbfloat"
+                                             Content="浮点 Float"
+                                             GroupName="SearchType"
+                                             Margin="0,2" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 搜索结果提示 -->
+                    <TextBlock x:Name="labFirst500"
+                               Text="搜索到0个地址 只显示前500个"
+                               FontWeight="Bold"
+                               FontSize="12" />
+                </StackPanel>
+
+                <!-- 搜索结果表格 -->
+                <DataGrid x:Name="ml"
+                          DockPanel.Dock="Bottom"
+                          Margin="0,10,0,0"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="False"
+                          GridLinesVisibility="None"
+                          BorderThickness="0"
+                          RowHeaderWidth="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                                            Header="地址"
+                                            Width="160"
+                                            IsReadOnly="True" />
+                        <DataGridTextColumn
+                                            Header="值"
+                                            Width="100" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+
+</Window>
