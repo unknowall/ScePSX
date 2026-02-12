@@ -1,11 +1,10 @@
-﻿using Avalonia.Controls;
-using LightGL.DynamicLibrary;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using Avalonia.Controls;
 
 #pragma warning disable CS8600
 #pragma warning disable CS8604
@@ -74,8 +73,7 @@ namespace ScePSX.UI
                         }
                     }
                 }
-            }
-            catch (Exception value4)
+            } catch (Exception value4)
             {
                 Console.Error.WriteLine(value4);
             }
@@ -86,7 +84,8 @@ namespace ScePSX.UI
             foreach (FieldInfo fieldInfo in Target.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 object fieldValue = fieldInfo.GetValue(Target);
-                if (fieldValue == null) continue;
+                if (fieldValue == null)
+                    continue;
 
                 string category = null;
                 string originalText = null;
@@ -94,6 +93,12 @@ namespace ScePSX.UI
 
                 switch (fieldInfo.FieldType.Name)
                 {
+                    case nameof(Window):
+                        category = "forms";
+                        var formItem = (Window)fieldValue;
+                        originalText = (string)formItem.Title;
+                        setTextAction = newText => formItem.Title = newText;
+                        break;
                     case nameof(MenuItem):
                         category = "menus";
                         var menuItem = (MenuItem)fieldValue;
@@ -133,12 +138,8 @@ namespace ScePSX.UI
                         continue;
                 }
 
-                string translatedText = Translations.GetString(category, fieldInfo.Name, CultureInfo.CurrentCulture);
-                string finalText = translatedText ?? originalText ?? string.Empty;
-                if (Platform.IsMono)
-                {
-                    finalText = finalText.Replace("&", "");
-                }
+                string translatedText = Translations.GetString(category, fieldInfo.Name, CurrentLangId);
+                string finalText = translatedText != string.Empty ? translatedText : originalText;
                 setTextAction?.Invoke(finalText);
             }
         }
@@ -160,16 +161,14 @@ namespace ScePSX.UI
                 Dictionary<string, Dictionary<string, string>> dictionary2 = Translations.Dictionary["texts"];
                 dictionary = dictionary2[TextId];
                 result = dictionary[LangId];
-            }
-            catch (Exception)
+            } catch (Exception)
             {
                 //Console.Error.WriteLine("Can't find key '{0}.{1}.{2}'", CategoryId, TextId, LangId);
                 //Console.Error.WriteLine(value);
                 try
                 {
                     result = dictionary[Translations.DefaultLanguage];
-                }
-                catch
+                } catch
                 {
                     result = string.Format("texts.{0}", TextId);
                 }
@@ -194,18 +193,16 @@ namespace ScePSX.UI
                 Dictionary<string, Dictionary<string, string>> dictionary2 = Translations.Dictionary[CategoryId];
                 dictionary = dictionary2[TextId];
                 result = dictionary[LangId];
-            }
-            catch (Exception)
+            } catch (Exception)
             {
                 //Console.Error.WriteLine("Can't find key '{0}.{1}.{2}'", CategoryId, TextId, LangId);
                 //Console.Error.WriteLine(value);
                 try
                 {
                     result = dictionary[Translations.DefaultLanguage];
-                }
-                catch
+                } catch
                 {
-                    result = "";//string.Format("{0}.{1}", CategoryId, TextId);
+                    result = string.Empty;//string.Format("{0}.{1}", CategoryId, TextId);
                 }
             }
             return result;

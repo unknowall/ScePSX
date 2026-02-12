@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using Avalonia.Controls;
 using Avalonia.Input;
 using ScePSX.Core.GPU;
 using static ScePSX.Controller;

@@ -1,6 +1,6 @@
-﻿using Avalonia.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Avalonia.Input;
 using static ScePSX.Controller;
 
 namespace ScePSX.UI
@@ -19,14 +19,20 @@ namespace ScePSX.UI
             InitKeyMap();
         }
 
+        public void SaveKeyMap()
+        {
+            ini.WriteDictionary("Player1Key", KMM1._keyMapping);
+            ini.WriteDictionary("Player2Key", KMM2._keyMapping);
+            //ini.WriteDictionary("JoyKeyMap", AnalogMap);
+        }
+
         public void InitKeyMap()
         {
             try
             {
                 KMM1._keyMapping = ini.ReadDictionary<Key, InputAction>("Player1Key");
                 KMM2._keyMapping = ini.ReadDictionary<Key, InputAction>("Player2Key");
-            }
-            catch { }
+            } catch { }
 
             if (KMM1._keyMapping.Count == 0)
             {

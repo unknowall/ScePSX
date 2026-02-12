@@ -5,7 +5,12 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         xmlns:local="clr-namespace:ScePSX.UI"
         x:Class="ScePSX.UI.MemEdit"
-        Title="MemEdit">
+        Name="FrmMemEdit"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Title="MemEdit"
+        RequestedThemeVariant="Light"
+        Background="#FFF5F5F5">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -60,15 +65,15 @@
                     </Grid>
 
                     <!-- 搜索类型组 -->
-                    <Border BorderBrush="#FFABABAB" 
-                            BorderThickness="1" 
-                            CornerRadius="3" 
+                    <Border BorderBrush="#FFABABAB"
+                            BorderThickness="1"
+                            CornerRadius="3"
                             Padding="12,8,12,8"
                             Margin="0,5,0,5">
                         <StackPanel>
-                            <TextBlock Text="搜索类型" 
-                                      FontWeight="SemiBold"
-                                      Margin="0,0,0,8"/>
+                            <TextBlock Text="搜索类型"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,8"/>
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
                                 <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbbyte"
                                              Content="字节 Byte"
@@ -109,12 +114,12 @@
                           RowHeaderWidth="0">
                     <DataGrid.Columns>
                         <DataGridTextColumn
-                                            Header="地址"
-                                            Width="160"
-                                            IsReadOnly="True" />
+                        Header="地址"
+                        Width="160"
+                        IsReadOnly="True" />
                         <DataGridTextColumn
-                                            Header="值"
-                                            Width="100" />
+                        Header="值"
+                        Width="100" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

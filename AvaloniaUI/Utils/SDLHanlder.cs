@@ -49,14 +49,16 @@ namespace ScePSX.UI
 
             audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
 
-            if (audiodeviceid != 0) SDL_PauseAudioDevice(audiodeviceid, 0);
+            if (audiodeviceid != 0)
+                SDL_PauseAudioDevice(audiodeviceid, 0);
 
             InitControllerMap();
         }
 
         ~SDLHanlder()
         {
-            if (audiodeviceid != 0) SDL_CloseAudioDevice(audiodeviceid);
+            if (audiodeviceid != 0)
+                SDL_CloseAudioDevice(audiodeviceid);
             if (controller1 != 0)
             {
                 SDL_GameControllerClose(controller1);
@@ -86,17 +88,20 @@ namespace ScePSX.UI
 
         public void SetAudioBuffer()
         {
-            if (audiodeviceid != 0) SDL_PauseAudioDevice(audiodeviceid, 1);
+            if (audiodeviceid != 0)
+                SDL_PauseAudioDevice(audiodeviceid, 1);
 
             int bufms = ini.ReadInt("Audio", "Buffer");
 
-            if (bufms < 50) bufms = 50;
+            if (bufms < 50)
+                bufms = 50;
 
             int alignedSize = ((bufms * 176 + 2048 - 1) / 2048) * 2048;
 
             SamplesBuffer = new CircularBuffer<byte>(alignedSize); // 300 ms = 52920
 
-            if (audiodeviceid != 0) SDL_PauseAudioDevice(audiodeviceid, 0);
+            if (audiodeviceid != 0)
+                SDL_PauseAudioDevice(audiodeviceid, 0);
         }
 
         private unsafe void AudioCallbackImpl(IntPtr userdata, IntPtr stream, int len)
@@ -118,7 +123,8 @@ namespace ScePSX.UI
 
         public void ControllerRumble(byte VibrationRight, byte VibrationLeft)
         {
-            if (controller1 == 0) return;
+            if (controller1 == 0)
+                return;
 
             if (HasRumble1)
             {
@@ -144,8 +150,7 @@ namespace ScePSX.UI
                 if (SDL_IsGameController(0) == SDL_bool.SDL_TRUE)
                 {
                     controller1 = SDL_GameControllerOpen(0);
-                }
-                else
+                } else
                 {
                     controller1 = SDL_JoystickOpen(0);
                 }
@@ -171,8 +176,7 @@ namespace ScePSX.UI
                 if (SDL_IsGameController(1) == SDL_bool.SDL_TRUE)
                 {
                     controller2 = SDL_GameControllerOpen(1);
-                }
-                else
+                } else
                 {
                     controller2 = SDL_JoystickOpen(1);
                 }
@@ -198,17 +202,16 @@ namespace ScePSX.UI
             if (conidx == 1)
             {
                 controller = controller1;
-            }
-            else if (conidx == 2)
+            } else if (conidx == 2)
             {
                 controller = controller2;
-            }
-            else
+            } else
             {
                 return KeyFirst;
             }
 
-            if (Core == null || controller == 0) return KeyFirst;
+            if (Core == null || controller == 0)
+                return KeyFirst;
 
             conidx--;
 
@@ -232,7 +235,8 @@ namespace ScePSX.UI
                 }
             }
 
-            if (KeyFirst) return KeyFirst;
+            if (KeyFirst)
+                return KeyFirst;
 
             //AnalogAxis
             float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
@@ -256,7 +260,8 @@ namespace ScePSX.UI
 
             Core.AnalogAxis(lx, ly, rx, ry, conidx);
 
-            if (isPadPressed) return KeyFirst;
+            if (isPadPressed)
+                return KeyFirst;
 
             //Hat
             int hatIndex = 0;

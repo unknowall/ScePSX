@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
-
-#pragma warning disable SYSLIB0050
 
 namespace ScePSX.UI;
 
@@ -29,8 +26,7 @@ public partial class App : Application
                 {
                     desktop.MainWindow.Icon = new WindowIcon(iconStream);
                 }
-            }
-            catch
+            } catch
             {
             }
         }

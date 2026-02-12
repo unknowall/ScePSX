@@ -1,17 +1,16 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Input;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-using Avalonia.Threading;
-using ScePSX.CdRom;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Avalonia.Threading;
+using ScePSX.CdRom;
 
 #pragma warning disable CS8600
 #pragma warning disable CS8604
@@ -20,22 +19,52 @@ namespace ScePSX.UI
 {
     public class GameInfo
     {
-        public string Name { get; set; }
-        public Bitmap Icon { get; set; }
-        public long Size { get; set; }
-        public string ID { get; set; }
-        public string FileName { get; set; }
-        public string fullName { get; set; }
-        public string LastPlayed { get; set; }
-        public bool HasSaveState { get; set; }
-        public bool HasCheats { get; set; }
+        public string Name
+        {
+            get; set;
+        }
+        public Bitmap Icon
+        {
+            get; set;
+        }
+        public long Size
+        {
+            get; set;
+        }
+        public string ID
+        {
+            get; set;
+        }
+        public string FileName
+        {
+            get; set;
+        }
+        public string fullName
+        {
+            get; set;
+        }
+        public string LastPlayed
+        {
+            get; set;
+        }
+        public bool HasSaveState
+        {
+            get; set;
+        }
+        public bool HasCheats
+        {
+            get; set;
+        }
 
         public bool IsLastPlayedVisible => !string.IsNullOrWhiteSpace(LastPlayed);
         private string _backgroundColor = "#2A2A2A";
         public string BackgroundColor
         {
             get => _backgroundColor;
-            set { _backgroundColor = value; }
+            set
+            {
+                _backgroundColor = value;
+            }
         }
 
         public GameInfo()
@@ -159,8 +188,7 @@ namespace ScePSX.UI
                     if (File.Exists($"./Icons/{id}.png"))
                     {
                         game.Icon = new Bitmap($"./Icons/{id}.png");
-                    }
-                    else if (File.Exists($"./Save/{id}.dat"))
+                    } else if (File.Exists($"./Save/{id}.dat"))
                     {
                         MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
                         foreach (var Slot in mcr.Slots)
@@ -173,9 +201,11 @@ namespace ScePSX.UI
                             }
                         }
                     }
-                    if (game.Icon == null) game.Icon = DefaultIcon;
+                    if (game.Icon == null)
+                        game.Icon = DefaultIcon;
                     int index = GameListBox.Items.IndexOf(game);
-                    if (index == -1) index = GameListBox.Items.Count;
+                    if (index == -1)
+                        index = GameListBox.Items.Count;
                     game.BackgroundColor = (index % 2 == 0) ? Color2 : Color1;
                     AddOrReplace(game);
                 }
@@ -212,8 +242,7 @@ namespace ScePSX.UI
                 {
                     game.LastPlayed = "";
                     PSXHandler.ini.Write("history", id, $"{f.FullName}|");
-                }
-                else
+                } else
                 {
                     string[] infoary = infos.Split('|');
                     game.LastPlayed = infoary[1];
@@ -225,8 +254,7 @@ namespace ScePSX.UI
                 if (File.Exists($"./Icons/{id}.png"))
                 {
                     game.Icon = new Bitmap($"./Icons/{id}.png");
-                }
-                else if (File.Exists($"./Save/{id}.dat"))
+                } else if (File.Exists($"./Save/{id}.dat"))
                 {
                     MemCardMange mcr = new MemCardMange($"./Save/{id}.dat");
                     foreach (var Slot in mcr.Slots)
@@ -239,9 +267,11 @@ namespace ScePSX.UI
                         }
                     }
                 }
-                if (game.Icon == null) game.Icon = DefaultIcon;
+                if (game.Icon == null)
+                    game.Icon = DefaultIcon;
                 int index = GameListBox.Items.IndexOf(game);
-                if (index == -1) index = GameListBox.Items.Count;
+                if (index == -1)
+                    index = GameListBox.Items.Count;
                 game.BackgroundColor = (index % 2 == 0) ? Color2 : Color1;
                 AddOrReplace(game);
             }
@@ -291,7 +321,7 @@ namespace ScePSX.UI
                         SimpleYaml.ParseYamlFile("gamedb.yaml");
                 });
             }
-            OSD.Show($"Searching {dir} ..." , 99999);
+            OSD.Show($"Searching {dir} ...", 99999);
             try
             {
                 DirectoryInfo dirinfo = new DirectoryInfo(dir);
@@ -332,11 +362,9 @@ namespace ScePSX.UI
                         SearchDirTask(subDir.FullName, false, cancellationToken);
                     }
                 }
-            }
-            catch (OperationCanceledException)
+            } catch (OperationCanceledException)
             {
-            }
-            finally
+            } finally
             {
                 if (first)
                 {

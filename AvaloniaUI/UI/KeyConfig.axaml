@@ -1,0 +1,232 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="520"
+        x:Class="ScePSX.UI.KeyConfig"
+        Name="FrmKeyConfig"
+        Title="手柄设置 - ScePSX"
+        Width="600"
+        Height="520"
+        RequestedThemeVariant="Light"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#FFF5F5F5">
+
+    <Window.Styles>
+        <!-- 扁平干净风格 -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FFE4E4E4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+        
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#FF2D2D2D"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+        
+        <!-- 按键按钮样式 -->
+        <Style Selector="Button.keyButton">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#FFF8F8F8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#FF2D2D2D"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.keyButton:pointerover">
+            <Setter Property="Background" Value="#FFE8E8E8"/>
+            <Setter Property="BorderBrush" Value="#FFA0A0A0"/>
+        </Style>
+        
+        <!-- 肩键按钮样式 - 细长型 -->
+        <Style Selector="Button.shoulderButton">
+            <Setter Property="Width" Value="80"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#FFF0F0F0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        
+        <!-- 等待输入浮层 -->
+        <Style Selector="Border.waitOverlay">
+            <Setter Property="Background" Value="#CCFFFFFF"/>
+            <Setter Property="BorderBrush" Value="#FF0078D4"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="BoxShadow" Value="0 2 8 0 #1A000000"/>
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <Grid Margin="16" RowDefinitions="Auto,*">
+            <!-- 顶部：标题 + 玩家选择 + 模式 -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,16">
+                <TextBlock Grid.Column="0" Name="labButtonMap" Text="🎮 按键映射" 
+                           FontSize="18" FontWeight="Bold" Foreground="#FF2D2D2D"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Name="labController" Text="控制器" 
+                           VerticalAlignment="Center" Foreground="#FF5A5A5A" Margin="0,0,8,0"/>
+                <ComboBox x:Name="cbcon" 
+                          Grid.Column="2" 
+                          Width="110"
+                          SelectedIndex="0"
+                          Margin="0,0,16,0">
+                    <ComboBoxItem>Player 1</ComboBoxItem>
+                    <ComboBoxItem>Player 2</ComboBoxItem>
+                </ComboBox>
+                <ComboBox x:Name="cbmode" 
+                          Grid.Column="3" 
+                          Width="110"
+                          SelectedIndex="0"
+                          IsEnabled="False">
+                    <ComboBoxItem>Keyboard</ComboBoxItem>
+                </ComboBox>
+            </Grid>
+
+            <!-- 主卡片 - 按键布局 -->
+            <Border Grid.Row="1" Classes="card">
+                <Grid ColumnDefinitions="1.2*,1.8*">
+                    <!-- ========== 左侧：肩键 + 十字键十字布局 ========== -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="24">
+                        <!-- 肩键区 -->
+                        <Grid ColumnDefinitions="*,*" Width="200">
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Left" Spacing="8">
+                                <Border Background="#FFF5F5F5" CornerRadius="6" Padding="10,6">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Text="L2" FontWeight="Bold" Foreground="#FF0078D4" Width="30"/>
+                                        <Button x:Name="L2" Content="Z" Classes="shoulderButton" Width="60" Grid.Column="1"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#FFF5F5F5" CornerRadius="6" Padding="10,6">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Text="L1" FontWeight="Bold" Foreground="#FF0078D4" Width="30"/>
+                                        <Button x:Name="L1" Content="Q" Classes="shoulderButton" Width="60" Grid.Column="1"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="8">
+                                <Border Background="#FFF5F5F5" CornerRadius="6" Padding="10,6">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Text="R2" FontWeight="Bold" Foreground="#FF0078D4" Width="30"/>
+                                        <Button x:Name="R2" Content="C" Classes="shoulderButton" Width="60" Grid.Column="1"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#FFF5F5F5" CornerRadius="6" Padding="10,6">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Text="R1" FontWeight="Bold" Foreground="#FF0078D4" Width="30"/>
+                                        <Button x:Name="R1" Content="E" Classes="shoulderButton" Width="60" Grid.Column="1"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- 十字键 - 十字形布局 -->
+                        <Border Background="#FFF9F9F9" CornerRadius="8" Padding="24,20" Width="200">
+                            <StackPanel>
+                                <TextBlock Name="labDPad" Text="方向键" FontWeight="SemiBold" Foreground="#FF2D2D2D" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                <Grid Width="150" Height="150" HorizontalAlignment="Center">
+                                    <!-- 上 -->
+                                    <Button x:Name="U" Content="W" Classes="keyButton" Width="70" 
+                                            HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,0"/>
+                                    <!-- 左 -->
+                                    <Button x:Name="L" Content="A" Classes="keyButton" Width="70"
+                                            HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,0,0"/>
+                                    <!-- 下 -->
+                                    <Button x:Name="D" Content="S" Classes="keyButton" Width="70"
+                                            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"/>
+                                    <!-- 右 -->
+                                    <Button x:Name="R" Content="D" Classes="keyButton" Width="70"
+                                            HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                    
+                    <!-- ========== 右侧：动作按键 + 系统按键 + 操作按钮 ========== -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+                        <!-- 功能键区域 -->
+                        <Border Background="#FFF9F9F9" CornerRadius="8" Padding="20,16" Width="240">
+                            <StackPanel Spacing="12">
+                                <TextBlock Name="labActButton" Text="⚡ 动作按键" FontWeight="SemiBold" Foreground="#FF2D2D2D" FontSize="14"/>
+                                <Grid ColumnDefinitions="80,1*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Name="labSquadbutton" Text="□ 方块" VerticalAlignment="Center"/>
+                                    <Button Grid.Row="0" Grid.Column="1" x:Name="SQUAD" Content="U" Classes="keyButton" Width="90" HorizontalAlignment="Right"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Name="labTributton" Text="△ 三角" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <Button Grid.Row="1" Grid.Column="1" x:Name="TRI" Content="J" Classes="keyButton" Width="90" HorizontalAlignment="Right" Margin="0,8,0,0"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Name="labXbutton" Text="× 交叉" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <Button Grid.Row="2" Grid.Column="1" x:Name="X" Content="I" Classes="keyButton" Width="90" HorizontalAlignment="Right" Margin="0,8,0,0"/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Name="labOButton" Text="○ 圆圈" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <Button Grid.Row="3" Grid.Column="1" x:Name="O" Content="K" Classes="keyButton" Width="90" HorizontalAlignment="Right" Margin="0,8,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- 系统按键 -->
+                        <Border Background="#FFF0F0F0" CornerRadius="8" Padding="20,16" Width="240">
+                            <Grid ColumnDefinitions="80,1*" RowDefinitions="Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="SELECT" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <Button Grid.Row="0" Grid.Column="1" x:Name="SELE" Content="D2" Classes="keyButton" Width="90" HorizontalAlignment="Right"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="START" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                <Button Grid.Row="1" Grid.Column="1" x:Name="START" Content="D1" Classes="keyButton" Width="90" HorizontalAlignment="Right" Margin="0,12,0,0"/>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- 底部按钮组 -->
+                        <Grid ColumnDefinitions="*,*" Width="240" Margin="0,-5,0,0">
+                            <Button Grid.Column="0" 
+                                    x:Name="BtnReset" 
+                                    Content="↺ 重置" 
+                                    Width="100" 
+                                    Height="36"
+                                    BorderBrush="#FFD0D0D0"
+                                    Background="#FFF5F5F5"
+                                    CornerRadius="4"
+                                    Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" 
+                                    x:Name="BtnSave" 
+                                    Content="💾 保存" 
+                                    Width="100" 
+                                    Height="36"
+                                    Background="#FF0078D4"
+                                    Foreground="White"
+                                    BorderBrush="#FF0060A0"
+                                    CornerRadius="4"
+                                    Margin="8,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 等待按键输入浮层 -->
+        <Border Name="plwait"
+                Classes="waitOverlay"
+                IsVisible="False"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="⌨️" FontSize="20"/>
+                <TextBlock x:Name="labPressKey" Text="按下任意键，ESC取消" 
+                           FontSize="14" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
+            </StackPanel>
+        </Border>
+    </Panel>
+</Window>

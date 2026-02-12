@@ -1,0 +1,121 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="480"
+        x:Class="ScePSX.UI.AboutFrm"
+        Title="About..."
+        Width="340"
+        Height="480"
+        RequestedThemeVariant="Light"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#FFF5F5F5">
+
+    <Window.Styles>
+        <!-- 卡片样式 -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FFE4E4E4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="24"/>
+        </Style>
+
+        <!-- 标题样式 -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#FF2D2D2D"/>
+        </Style>
+
+        <!-- 链接样式 -->
+        <Style Selector="TextBlock.link">
+            <Setter Property="Foreground" Value="#FF0078D4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+        <Style Selector="TextBlock.link:pointerover">
+            <Setter Property="Foreground" Value="#FF005A9E"/>
+        </Style>
+
+        <!-- 分隔线 -->
+        <Style Selector="Rectangle.separator">
+            <Setter Property="Fill" Value="#FFE8E8E8"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="0,16,0,16"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Classes="card" Margin="16">
+        <StackPanel Spacing="12">
+            <!-- Logo/标题区 -->
+            <StackPanel HorizontalAlignment="Center" Spacing="4">
+                <TextBlock Text="🎮 ScePSX" Classes="title" HorizontalAlignment="Center"/>
+                <TextBlock Name="labver"
+                           Text="Version 1.0.0"
+                           FontSize="12"
+                           Foreground="#FF666666"
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Name="labinfo"
+                           Text=""
+                           TextWrapping="Wrap"
+                           PointerPressed="Link_LinkClicked"/>
+            </StackPanel>
+
+            <Rectangle Classes="separator"/>
+
+            <!-- 项目链接 -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="📦 GitHub" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
+                <TextBlock Name="linkLabel1"
+                           Text="https://github.com/unknowall/ScePSX"
+                           Classes="link"
+                           TextWrapping="Wrap"
+                           PointerPressed="Link_LinkClicked"/>
+            </StackPanel>
+
+            <!-- 赞助 -->
+            <StackPanel Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="☕ Support via Ko-fi" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
+                </StackPanel>
+                <TextBlock Name="labSupport"
+                           Text="(如果您愿意，可以请我喝一杯咖啡)"
+                           FontSize="11"
+                           Foreground="#FF888888"
+                           TextWrapping="Wrap"/>
+                <TextBlock Name="SupportLink"
+                           Text="https://ko-fi.com/unknowall"
+                           Classes="link"
+                           TextWrapping="Wrap"
+                           PointerPressed="SupportLink_Click"/>
+            </StackPanel>
+
+            <Rectangle Classes="separator"/>
+
+            <!-- 维护者信息 -->
+            <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="👤 Maintainer" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
+                </StackPanel>
+
+                <Border Background="#FFF9F9F9" CornerRadius="6" Padding="12,10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="unknowall" FontWeight="Medium"/>
+                        <TextBlock Text="·" Foreground="#FFB0B0B0"/>
+                        <TextBlock Text="sgfree@hotmail.com" Foreground="#FF0078D4"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- 版权信息 -->
+            <TextBlock Text="©unknowall(sgfree@hotmail.com). All rights reserved."
+                       FontSize="10"
+                       Foreground="#FF999999"
+                       HorizontalAlignment="Center"
+                       Margin="0,8,0,0"/>
+        </StackPanel>
+    </Border>
+</Window>

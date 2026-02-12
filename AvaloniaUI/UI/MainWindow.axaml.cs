@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,11 +9,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ScePSX.Core.GPU;
-using static ScePSX.CPU;
 
 namespace ScePSX.UI;
 
@@ -68,6 +67,11 @@ public partial class MainWindow : Window
         timer.Start();
 
         SetIcon.EnsureDesktopFile();
+
+        Translations.CurrentLangId = "en";
+        Translations.DefaultLanguage = "en";
+        Translations.Init();
+        Translations.UpdateLang(this);
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -152,6 +156,7 @@ public partial class MainWindow : Window
         var TimeStr = PSX.SaveState();
         (MnuSaveState.Items[PSX.SaveSlot] as MenuItem).Header = TimeStr;
         (MnuLoadState.Items[PSX.SaveSlot] as MenuItem).Header = TimeStr;
+        (MnuLoadState.Items[PSX.SaveSlot] as MenuItem).IsEnabled = true;
     }
 
     private void StateLoadMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -271,6 +276,7 @@ public partial class MainWindow : Window
                 var TimeStr = PSX.SaveState();
                 (MnuSaveState.Items[PSX.SaveSlot] as MenuItem).Header = TimeStr;
                 (MnuLoadState.Items[PSX.SaveSlot] as MenuItem).Header = TimeStr;
+                (MnuLoadState.Items[PSX.SaveSlot] as MenuItem).IsEnabled = true;
                 break;
             case Key.F6:
                 PSX.LoadState();
@@ -560,41 +566,84 @@ public partial class MainWindow : Window
 
     private void SysSetMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var SetForm = new Setting();
-
+        var SetForm = new Setting("");
+        Translations.UpdateLang(SetForm);
         SetForm.Show();
     }
 
     private void KeyMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        var KeyForm = new KeyConfig(PSX.KeyMange);
+        Translations.UpdateLang(KeyForm);
+        KeyForm.Show();
     }
 
     private void CheatCode_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        var CheatForm = new CheatFrm("SLPS-02377", PSX.Core);
+        Translations.UpdateLang(CheatForm);
+        CheatForm.Show();
     }
 
-    private void MnuDebug_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void MemEditMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+    }
+
+    private void McrEditMnu_Click(object? sender, RoutedEventArgs e)
     {
     }
 
     private void NetPlaySetMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        if (!PSX.isRun())
+            return;
+        if (PSX.Core != null)
+        {
+            var NetForm = new NetPlayFrm(PSX.Core);
+            Translations.UpdateLang(NetForm);
+            NetForm.Show();
+        }
     }
 
     private void gitHubMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        OpenUrl("https://github.com/unknowall/ScePSX");
     }
 
     private void supportKoficomMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        OpenUrl("https://ko-fi.com/unknowall");
     }
 
     private void supportWeChatMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        OpenUrl("https://gitee.com/unknowall/ScePSX/raw/master/Others/support_via_wechat.png");
     }
 
     private void AboutMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        var About = new AboutFrm();
+        About.Show();
+    }
+
+    private void OpenUrl(string url)
+    {
+        try
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to open URL: {ex.Message}");
+        }
     }
 }
 

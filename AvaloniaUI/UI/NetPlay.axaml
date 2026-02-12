@@ -1,0 +1,142 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="430"
+        x:Class="ScePSX.UI.NetPlayFrm"
+        Title="网络对战 - ScePSX"
+        Width="300"
+        Height="430"
+        Name="FrmNetPlay"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        RequestedThemeVariant="Light"
+        Background="#FFF5F5F5">
+
+    <Window.Styles>
+        <!-- 卡片样式 -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FFE4E4E4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+        
+        <!-- 标签样式 -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#FF5A5A5A"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        
+        <!-- 文本框样式 -->
+        <Style Selector="TextBox">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#FF0078D4"/>
+        </Style>
+        
+        <!-- 按钮样式 -->
+        <Style Selector="Button.primary">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="#FF0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF0060A0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#FF0086E6"/>
+        </Style>
+        
+        <Style Selector="Button.secondary">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="#FFF5F5F5"/>
+            <Setter Property="Foreground" Value="#FF2D2D2D"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.secondary:pointerover">
+            <Setter Property="Background" Value="#FFE8E8E8"/>
+        </Style>
+        
+        <!-- 提示文本样式 -->
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#FF666666"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Classes="card" Margin="16">
+        <StackPanel Spacing="16">
+            <!-- 标题 -->
+            <TextBlock Text="🌐 NetPlay" 
+                       FontSize="16" 
+                       FontWeight="Bold" 
+                       Foreground="#FF2D2D2D"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,4"/>
+            
+            <!-- 主机模式区 -->
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="labClientIP" 
+                           Text="作为主机时的IP地址" 
+                           Classes="label"/>
+                <TextBox x:Name="tblocalip" 
+                         Watermark="192.168.1.100"
+                         Text="127.0.0.1"/>
+                
+                <Button x:Name="btnsrv" 
+                        Content="🚀 作为主机启动" 
+                        Classes="primary"
+                        Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- 分隔线 -->
+            <Rectangle Fill="#FFE8E8E8" Height="1" Margin="0,4,0,4"/>
+
+            <!-- 客户机模式区 -->
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="labHostIP" 
+                           Text="目标主机的IP地址" 
+                           Classes="label"/>
+                <TextBox x:Name="tbsrvip" 
+                         Watermark="192.168.1.101"
+                         Text="192.168.1.101"/>
+                
+                <Button x:Name="btncli" 
+                        Content="🖥️ 作为客户机启动" 
+                        Classes="secondary"
+                        Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- 状态提示 -->
+            <Border Background="#FFF0F7FF" 
+                    CornerRadius="6" 
+                    Padding="12,10"
+                    BorderBrush="#FFCCE4FF"
+                    BorderThickness="1"
+                    Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="ℹ️" FontSize="14"/>
+                    <TextBlock x:Name="labnethint" 
+                               Text="未启动网络对战" 
+                               Classes="hint"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+</Window>
