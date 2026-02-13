@@ -108,7 +108,6 @@ A: Yes, the following platforms are supported:
   ⚠️ Note: The Avalonia UI version only supports the x64 architecture.  
   📌 The Avalonia UI version does not require the .NET runtime to be installed.
 - **Linux**: x64 / arm / arm64 / loongarch64  
-  📌 For the LoongArch platform, please install [.NET 8 for LoongArch64](https://www.loongnix.cn/zh/api/dotnet/downloads-8.0.22-1/index.html) first, then run: `dotnet ScePSX`.  
   📌 For Raspberry Pi Zero / Zero W (BCM2835), please choose the arm version.
 - **macOS**: x64 / arm64  
   ⚠️ Note: To enable the Vulkan rendering backend, MoltenVK must be installed in advance (using the Vulkan backend on macOS is not recommended).  
@@ -131,7 +130,7 @@ We welcome contributions to ScePSX, including code submissions, issue reporting,
 # Downloads 📥
 - **WinUI Lightweight Version (1.05 MB)**: Core features only, ideal for quick testing.
 - **WinUI Full Version (5.63 MB)**: Includes all features (e.g., ReShade integration).
-- **AvaloniaUI version (12–20 MB, depending on platform)**
+- **AvaloniaUI version (12–30 MB, depending on platform)**
 - **GameDB Database**: Optional download for automatic game configuration recognition.
 - **ControllerDB Database**: Optional download for extended controller support.
 
@@ -253,7 +252,6 @@ A: 是的，支持以下各种平台
   ⚠️ 注：Avalonia 界面版本仅支持 x64 架构<br>
   📌Avalonia 界面版本无需安装.NET 运行时<br>
 - **Linux**：x64 / arm / arm64 / loongarch64（龙芯）<br>
-  📌 龙芯平台需先安装 [.NET 8 for LoongArch64](https://www.loongnix.cn/zh/api/dotnet/downloads-8.0.22-1/index.html)，运行命令：`dotnet ScePSX`<br>
   📌 树莓派 Zero / Zero W（BCM2835 芯片）请选择 arm 版本<br>
 - **macOS**：x64 / arm64<br>
   ⚠️ 注：若需启用 Vulkan 渲染后端，需提前安装 MoltenVK（不推荐在 macOS 环境下使用 Vulkan 后端）<br>
@@ -281,7 +279,7 @@ A: 是的，支持以下各种平台
 
 - **WinUI轻量版 (1.05 MB)**: 仅包含核心功能，适合快速体验。
 - **WinUI完整版 (5.63 MB)**: 包含所有功能（如 ReShade 集成）。
-- **AvaloniaUI版 (视平台不同 12~20 MB)**
+- **AvaloniaUI版 (视平台不同 12~30 MB)**
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
