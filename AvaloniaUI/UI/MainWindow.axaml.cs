@@ -17,7 +17,7 @@ namespace ScePSX.UI;
 
 public partial class MainWindow : Window
 {
-    public static string version = "ScePSX v0.1.8.0";
+    public static string version = "ScePSX v0.1.9.0";
     private static string RootPath = AppContext.BaseDirectory;
 
     public PSXHandler PSX;
@@ -68,10 +68,12 @@ public partial class MainWindow : Window
 
         SetIcon.EnsureDesktopFile();
 
-        Translations.CurrentLangId = "en";
+        //Translations.CurrentLangId = "en";
         Translations.DefaultLanguage = "en";
         Translations.Init();
         Translations.UpdateLang(this);
+
+        InitLangMenu();
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -92,6 +94,19 @@ public partial class MainWindow : Window
     {
         string PosStr = $"{this.Position.X}|{this.Position.Y}|{(int)this.Width}|{(int)this.Height}";
         PSXHandler.ini.Write("Main", "FromPos", PosStr);
+    }
+
+    private void InitLangMenu()
+    {
+        foreach (var lang in Translations.Languages)
+        {
+            MenuItem item = new MenuItem();
+            item.Header = lang.Value;
+            item.Tag = lang.Key;
+            item.Click += LangClick;
+
+            MnuLang.Items.Add(item);
+        }
     }
 
     private void InitStateMenu()
@@ -145,6 +160,21 @@ public partial class MainWindow : Window
         MnuSaveState.IsEnabled = true;
         MnuLoadState.IsEnabled = true;
         MnuUnloadState.IsEnabled = true;
+    }
+
+    private void LangClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender != null)
+        {
+            MenuItem item = (MenuItem)sender;
+            if (item.Tag != null)
+            {
+                Translations.CurrentLangId = (string)item.Tag;
+                Translations.UpdateLang(this);
+                Translations.UpdateLang(RomListView);
+                RomListView.FillByini();
+            }
+        }
     }
 
     private void StateSaveMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -568,40 +598,93 @@ public partial class MainWindow : Window
     {
         var SetForm = new Setting("");
         Translations.UpdateLang(SetForm);
-        SetForm.Show();
+        SetForm.Show(this);
     }
 
     private void KeyMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var KeyForm = new KeyConfig(PSX.KeyMange);
         Translations.UpdateLang(KeyForm);
-        KeyForm.Show();
+        KeyForm.Show(this);
     }
 
     private void CheatCode_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var CheatForm = new CheatFrm("SLPS-02377", PSX.Core);
+        if (PSX.isRun())
+        {
+            var RCheatForm = new CheatFrm(PSX.Core.DiskID, PSX.Core);
+            Translations.UpdateLang(RCheatForm);
+            RCheatForm.Show(this);
+            return;
+        }
+        if (RomListView.GameListBox.SelectedItem == null)
+        {
+            OSD.Show(Translations.GetText("notselected"));
+            return;
+        }
+        var item = (RomListView.GameListBox.SelectedItem as GameInfo);
+        var CheatForm = new CheatFrm(item.ID, PSX.Core);
         Translations.UpdateLang(CheatForm);
-        CheatForm.Show();
+        CheatForm.Show(this);
     }
 
     private void MemEditMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        if (!PSX.isRun())
+        {
+            OSD.Show(Translations.GetText("notruning"));
+            return;
+        }
+        var MemForm = new MemEdit(PSX.Core);
+        Translations.UpdateLang(MemForm);
+        MemForm.Show(this);
     }
 
     private void McrEditMnu_Click(object? sender, RoutedEventArgs e)
     {
+        if (RomListView.GameListBox.SelectedItem == null)
+        {
+            OSD.Show(Translations.GetText("notselected"));
+            return;
+        }
+        var item = (RomListView.GameListBox.SelectedItem as GameInfo);
+        var McrForm = new McrMangeFrm(item.ID);
+        Translations.UpdateLang(McrForm);
+        McrForm.Show(this);
+    }
+
+    private void iniEditMnu_Click(object? sender, RoutedEventArgs e)
+    {
+        if (PSX.isRun())
+        {
+            var RSetForm = new Setting(PSX.Core.DiskID);
+            Translations.UpdateLang(RSetForm);
+            RSetForm.Show(this);
+            return;
+        }
+        if (RomListView.GameListBox.SelectedItem == null)
+        {
+            OSD.Show(Translations.GetText("notselected"));
+            return;
+        }
+        var item = (RomListView.GameListBox.SelectedItem as GameInfo);
+        var SetForm = new Setting(item.ID);
+        Translations.UpdateLang(SetForm);
+        SetForm.Show(this);
     }
 
     private void NetPlaySetMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (!PSX.isRun())
+        {
+            OSD.Show(Translations.GetText("notruning"));
             return;
+        }
         if (PSX.Core != null)
         {
             var NetForm = new NetPlayFrm(PSX.Core);
             Translations.UpdateLang(NetForm);
-            NetForm.Show();
+            NetForm.Show(this);
         }
     }
 
@@ -623,7 +706,7 @@ public partial class MainWindow : Window
     private void AboutMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var About = new AboutFrm();
-        About.Show();
+        About.Show(this);
     }
 
     private void OpenUrl(string url)

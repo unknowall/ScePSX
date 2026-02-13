@@ -12,10 +12,13 @@ public partial class KeyConfig : Window
     private InputAction SetKey;
     private Button Btn;
 
-    public KeyConfig(KeyMange KeySet)
+    public KeyConfig()
     {
         InitializeComponent();
+    }
 
+    public KeyConfig(KeyMange KeySet) : this()
+    {
         KeyM = KeySet;
 
         KeyM.InitKeyMap();

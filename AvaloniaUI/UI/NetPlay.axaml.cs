@@ -9,10 +9,13 @@ namespace ScePSX.UI
     {
         PSXCore? Core;
 
-        public NetPlayFrm(PSXCore? core)
+        public NetPlayFrm()
         {
             InitializeComponent();
+        }
 
+        public NetPlayFrm(PSXCore? core) : this()
+        {
             tblocalip.Text = GetLocalIPAddress();
 
             Core = core;

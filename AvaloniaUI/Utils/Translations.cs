@@ -21,6 +21,8 @@ namespace ScePSX.UI
 
         public static string DefaultLanguage = "";
 
+        public static Dictionary<string, string> Languages = new Dictionary<string, string>();
+
         public static string CurrentLangId = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
         public static SortedSet<string> AvailableLanguages
@@ -73,9 +75,28 @@ namespace ScePSX.UI
                         }
                     }
                 }
+                LoadLang(xmlDocument);
             } catch (Exception value4)
             {
                 Console.Error.WriteLine(value4);
+            }
+        }
+
+        private static void LoadLang(XmlDocument xmlDocument)
+        {
+            XmlNode langNode = xmlDocument.SelectSingleNode("//text[@id='lang']");
+            if (langNode == null)
+                return;
+            Languages.Clear();
+            foreach (XmlNode transNode in langNode.ChildNodes)
+            {
+                if (transNode.Name != "translation")
+                    continue;
+
+                string langCode = transNode.Attributes["lang"].Value;
+                string langName = transNode.InnerText.Trim();
+
+                Languages[langCode] = langName;
             }
         }
 

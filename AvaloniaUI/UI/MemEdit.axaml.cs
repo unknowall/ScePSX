@@ -1,38 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
 namespace ScePSX.UI
 {
+    public class MemoryItem
+    {
+        public string Address
+        {
+            get; set;
+        }
+        public string Value
+        {
+            get; set;
+        }
+    }
+
     public partial class MemEdit : Window
     {
         private ObservableCollection<MemoryItem> memoryItems = new ObservableCollection<MemoryItem>();
         private bool isAutoRefresh = false;
         private System.Timers.Timer autoRefreshTimer;
 
+        private const long PSX_BASE = 0x80000000;
+        private byte[] blankdata = new byte[1024];
+
+        private MemorySearch memsearch;
+        private static List<(int Address, object Value)> SearchResults = new List<(int Address, object Value)> { };
+
+        public enum SearchType
+        {
+            Byte,
+            Word,
+            DWord,
+            Float
+        }
+
+        PSXCore? Core;
+
         public MemEdit()
         {
             InitializeComponent();
+        }
 
+        public unsafe MemEdit(PSXCore? core) : this()
+        {
             InitComboBoxes();
 
-            ml.ItemsSource = memoryItems;
+            Core = core;
+
+            if (Core != null)
+            {
+                HexBox.Memory = ConvertBytePointerToByteArray(Core.PsxBus.ramPtr, 2048 * 1024);
+            } else
+            {
+                HexBox.Memory = blankdata;
+            }
+            HexBox.ShowScrollBar = true;
+
+            scanresult.ItemsSource = memoryItems;
 
             SetupAutoRefreshTimer();
 
             AttachEvents();
         }
 
+        private unsafe byte[] ConvertBytePointerToByteArray(byte* ptr, int length)
+        {
+            byte[] result = new byte[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = *(ptr + i);
+            }
+            return result;
+        }
+
         private void InitComboBoxes()
         {
-            CboView.ItemsSource = new List<string> { "Hex", "Ascii", "Hex+Ascii" };
-            CboView.SelectedIndex = 0;
-
-            CboEncode.ItemsSource = new List<string> { "UTF-8", "ASCII", "Unicode" };
+            CboEncode.ItemsSource = new List<string> { "ASCII", "UTF-8", "Unicode" };
             CboEncode.SelectedIndex = 0;
         }
 
@@ -67,25 +115,21 @@ namespace ScePSX.UI
             if (findb != null)
                 findb.KeyUp += findb_KeyPress;
 
-            if (CboView != null)
-                CboView.SelectionChanged += CboView_SelectedIndexChanged;
             if (CboEncode != null)
                 CboEncode.SelectionChanged += CboEncode_SelectedIndexChanged;
 
-            //if (HexBox != null)
-            //    HexBox.Edited += HexBox_Edited;
+            if (HexBox != null)
+                HexBox.MemoryChanged += HexBox_Edited;
 
             if (chkupd != null)
                 chkupd.IsCheckedChanged += Chkupd_IsCheckedChanged;
 
-            if (ml != null)
+            if (scanresult != null)
             {
-                ml.CellEditEnding += Ml_CellEditEnding;
-                ml.DoubleTapped += Ml_DoubleTapped;
+                scanresult.DoubleTapped += Ml_DoubleTapped;
             }
         }
 
-        // 自动刷新复选框
         private void Chkupd_IsCheckedChanged(object? sender, RoutedEventArgs e)
         {
             isAutoRefresh = chkupd.IsChecked ?? false;
@@ -99,7 +143,6 @@ namespace ScePSX.UI
             }
         }
 
-        // 前往地址
         private void btngo_Click(object? sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(tbgoto.Text))
@@ -107,73 +150,100 @@ namespace ScePSX.UI
 
             try
             {
-                // 支持十六进制输入（带或不带0x前缀）
                 string input = tbgoto.Text.Trim();
                 if (input.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 {
                     input = input.Substring(2);
                 }
 
-                long address = Convert.ToInt64(input, 16);
+                int address = Convert.ToInt32(input, 16);
 
-                //HexBox?.NavigateTo(address);
+                HexBox.NavigateTo(address);
             } catch
             {
             }
         }
 
-        // 刷新按钮
-        private void btnupd_Click(object? sender, RoutedEventArgs? e)
+        private unsafe void btnupd_Click(object? sender, RoutedEventArgs? e)
         {
-            //HexBox?.Refresh();
+            if (Core != null)
+            {
+                HexBox.Memory = ConvertBytePointerToByteArray(Core.PsxBus.ramPtr, 2048 * 1024);
+            } else
+            {
+                HexBox.Memory = blankdata;
+            }
         }
 
-        // 重置搜索
-        private void btnr_Click(object? sender, RoutedEventArgs e)
+        private unsafe void btnr_Click(object? sender, RoutedEventArgs e)
         {
+            if (Core == null)
+                return;
+
+            memsearch = new MemorySearch(ConvertBytePointerToByteArray(Core.PsxBus.ramPtr, 2048 * 1024));
+
+            SearchResults.Clear();
+
             findb.Text = "";
             memoryItems.Clear();
-            labFirst500.Text = "搜索到0个地址 只显示前500个";
         }
 
-        // 搜索按钮
-        private void btns_Click(object? sender, RoutedEventArgs e)
+        private unsafe void btns_Click(object? sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(findb.Text))
             {
-                ShowMessage("请输入搜索内容");
                 return;
             }
 
-            try
+            if (memsearch == null)
+                memsearch = new MemorySearch(ConvertBytePointerToByteArray(Core.PsxBus.ramPtr, 2048 * 1024));
+            else
+                memsearch.UpdateData(ConvertBytePointerToByteArray(Core.PsxBus.ramPtr, 2048 * 1024));
+
+            if (rbbyte.IsChecked ?? false)
             {
-                // 获取搜索类型
-                SearchType type = GetSearchType();
+                byte tmp;
+                if (!byte.TryParse(findb.Text, out tmp))
+                    return;
+                memsearch.SearchByte(tmp);
+            } else
+            if (rbWord.IsChecked ?? false)
+            {
+                ushort tmp;
+                if (!ushort.TryParse(findb.Text, out tmp))
+                    return;
+                memsearch.SearchWord(tmp);
+            } else
+            if (rbDword.IsChecked ?? false)
+            {
+                uint tmp;
+                if (!uint.TryParse(findb.Text, out tmp))
+                    return;
+                memsearch.SearchDword(tmp);
+            } else
+            if (rbfloat.IsChecked ?? false)
+            {
+                float tmp;
+                if (!float.TryParse(findb.Text, out tmp))
+                    return;
+                memsearch.SearchFloat(tmp);
+            }
 
-                // 解析搜索值
-                byte[] searchBytes = ParseSearchValue(findb.Text, type);
+            SearchResults = memsearch.GetResults();
 
-                // 执行搜索（这里需要根据你的HexBox实现来写）
-                // List<long> results = HexBox?.Search(searchBytes) ?? new List<long>();
+            labFirst500.Text = $"{Translations.GetText("Form_Mem_updateml_find")} {SearchResults.Count} {Translations.GetText("Form_Mem_updateml_result")}";
 
-                // 模拟搜索结果
-                var results = new List<long> { 0x80000000, 0x80000100, 0x80000200 };
+            memoryItems.Clear();
+            for (int i = 0; i < SearchResults.Count; i++)
+            {
+                if (i >= 500)
+                    break;
 
-                // 更新搜索结果列表
-                memoryItems.Clear();
-                foreach (var addr in results.Take(500))
+                memoryItems.Add(new MemoryItem
                 {
-                    memoryItems.Add(new MemoryItem
-                    {
-                        Address = $"0x{addr:X8}",
-                        Value = GetValueAtAddress(addr, type)
-                    });
-                }
-
-                labFirst500.Text = $"搜索到{results.Count}个地址 只显示前500个";
-            } catch (Exception ex)
-            {
-                ShowMessage($"搜索失败: {ex.Message}");
+                    Address = $"0x{PSX_BASE + SearchResults[i].Address:X8}",
+                    Value = SearchResults[i].Value.ToString() ?? "0"
+                });
             }
         }
 
@@ -209,113 +279,54 @@ namespace ScePSX.UI
             }
         }
 
-        private string GetValueAtAddress(long address, SearchType type)
-        {
-            // 这里应该从HexBox读取实际值
-            // 模拟返回值
-            switch (type)
-            {
-                case SearchType.Byte:
-                    return "00";
-                case SearchType.Word:
-                    return "0000";
-                case SearchType.DWord:
-                    return "00000000";
-                case SearchType.Float:
-                    return "0.0";
-                default:
-                    return "00";
-            }
-        }
-
-        // 单元格编辑
-        private void Ml_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
-        {
-            if (e.Column.Header.ToString() == "值")
-            {
-                if (e.EditingElement is TextBox textBox)
-                {
-                    var row = e.Row.DataContext as MemoryItem;
-                    if (row != null && textBox.Text != null)
-                    {
-                        string newValue = textBox.Text;
-                        WriteMemory(row.Address, newValue);
-                    }
-                }
-            }
-        }
-
-        // 单元格双击
         private void Ml_DoubleTapped(object? sender, RoutedEventArgs e)
         {
-            var row = ml.SelectedItem as MemoryItem;
+            var row = scanresult.SelectedItem as MemoryItem;
             if (row != null)
             {
-                // 跳转到HexBox对应地址
                 try
                 {
                     string addrStr = row.Address.Replace("0x", "");
-                    long address = Convert.ToInt64(addrStr, 16);
-                    //HexBox?.NavigateTo(address);
+                    int address = Convert.ToInt32(addrStr, 16);
+                    HexBox.NavigateTo(address);
                 } catch { }
             }
         }
 
-        // HexBox编辑事件
-        private void HexBox_Edited(object sender, EventArgs e)
+        private unsafe void HexBox_Edited(object? sender, MemoryChangedEventArgs e)
         {
-            // 刷新搜索结果列表的值
-            foreach (var item in memoryItems)
-            {
-                try
-                {
-                    string addrStr = item.Address.Replace("0x", "");
-                    long address = Convert.ToInt64(addrStr, 16);
-                    // item.Value = GetValueFromHexBox(address);
-                } catch { }
-            }
+            Core.PsxBus.ramPtr[e.Address - PSX_BASE] = (byte)e.Value;
         }
 
-        private void WriteMemory(string addressStr, string value)
+        private unsafe void WriteMemory(string addressStr, string value)
         {
             try
             {
                 addressStr = addressStr.Replace("0x", "");
-                long address = Convert.ToInt64(addressStr, 16);
-                // HexBox?.WriteBytes(address, value);
-            } catch (Exception ex)
+                uint address = (uint)Convert.ToInt32(addressStr, 16);
+                uint tmp = uint.Parse(value);
+                address = Core.PsxBus.GetMask(address);
+                if (tmp < 0xFF)
+                {
+                    Core.PsxBus.write(address & 0x1F_FFFF, (byte)tmp, Core.PsxBus.ramPtr);
+                } else if (tmp < 0xFFFF)
+                {
+                    Core.PsxBus.write(address & 0x1F_FFFF, (ushort)tmp, Core.PsxBus.ramPtr);
+                } else
+                {
+                    Core.PsxBus.write(address & 0x1F_FFFF, tmp, Core.PsxBus.ramPtr);
+                }
+            } catch
             {
-                ShowMessage($"写入失败: {ex.Message}");
-            }
-        }
-
-        // ComboBox事件
-        private void CboView_SelectedIndexChanged(object? sender, SelectionChangedEventArgs e)
-        {
-            if (HexBox == null)
-                return;
-
-            switch (CboView.SelectedIndex)
-            {
-                case 0:
-                    //HexBox.ViewMode = HexBoxControl.HexBoxViewMode.Hex; // 假设有Hex模式
-                    break;
-                case 1:
-                    //HexBox.ViewMode = HexBoxControl.HexBoxViewMode.Ascii;
-                    break;
-                case 2:
-                    //HexBox.ViewMode = HexBoxControl.HexBoxViewMode.BytesAscii;
-                    break;
             }
         }
 
         private void CboEncode_SelectedIndexChanged(object? sender, SelectionChangedEventArgs e)
         {
-            // 切换编码
-            // HexBox?.SetEncoding(CboEncode.SelectedIndex);
+            HexBox.encoding = (HexBox.Encoding)CboEncode.SelectedIndex;
+            HexBox.InvalidateVisual();
         }
 
-        // KeyPress事件
         private void tbgoto_KeyPress(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -332,48 +343,11 @@ namespace ScePSX.UI
             }
         }
 
-        private void ShowMessage(string message)
-        {
-            // 简单的消息提示
-            var messageBox = new Window
-            {
-                Title = "提示",
-                Content = message,
-                Width = 300,
-                Height = 150,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                //Owner = this
-            };
-            messageBox.ShowDialog(this);
-        }
-
         protected override void OnClosed(EventArgs e)
         {
             autoRefreshTimer?.Stop();
             autoRefreshTimer?.Dispose();
             base.OnClosed(e);
-        }
-    }
-
-    // 搜索类型枚举
-    public enum SearchType
-    {
-        Byte,
-        Word,
-        DWord,
-        Float
-    }
-
-    // 内存项数据模型
-    public class MemoryItem
-    {
-        public string Address
-        {
-            get; set;
-        }
-        public string Value
-        {
-            get; set;
         }
     }
 }

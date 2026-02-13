@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -10,7 +11,6 @@ namespace ScePSX.UI;
 
 public class HexBox : Control
 {
-    // 依赖属性
     public static readonly StyledProperty<byte[]> MemoryProperty =
         AvaloniaProperty.Register<HexBox, byte[]>(nameof(Memory), Array.Empty<byte>());
 
@@ -29,17 +29,36 @@ public class HexBox : Control
         set => SetValue(BaseAddressProperty, value);
     }
 
-    // 配置参数
+    public static readonly StyledProperty<bool> ShowScrollBarProperty =
+        AvaloniaProperty.Register<HexBox, bool>(nameof(ShowScrollBar), true);
+
+    public bool ShowScrollBar
+    {
+        get => GetValue(ShowScrollBarProperty);
+        set => SetValue(ShowScrollBarProperty, value);
+    }
+
     private const int BYTES_PER_ROW = 16;
     private const int ROW_HEIGHT = 22;
     private const int ADDRESS_WIDTH = 80;
     private const int HEX_COLUMN_WIDTH = 28;
     private const int ASCII_COLUMN_WIDTH = 16;
     private const int CELL_PADDING = 4;
+    private const int SCROLLBAR_WIDTH = 13;
 
     private int _visibleRows;
     private int _scrollOffset;
     private EditCell? _editingCell;
+    private bool _isDraggingScroll = false;
+    private Point _lastMousePosition;
+
+    public enum Encoding
+    {
+        ASCII,
+        UTF8,
+        UNICODE
+    }
+    public Encoding encoding = Encoding.ASCII;
 
     private class EditCell
     {
@@ -52,11 +71,12 @@ public class HexBox : Control
             get; set;
         }
         public string InputBuffer { get; set; } = "";
+        public int InputIndex { get; set; } = 0;
     }
 
     static HexBox()
     {
-        AffectsRender<HexBox>(MemoryProperty, BaseAddressProperty);
+        AffectsRender<HexBox>(MemoryProperty, BaseAddressProperty, ShowScrollBarProperty);
         FocusableProperty.OverrideDefaultValue<HexBox>(true);
     }
 
@@ -69,8 +89,120 @@ public class HexBox : Control
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        _visibleRows = (int)(Bounds.Height / ROW_HEIGHT) + 1;
+        _visibleRows = (int)(Bounds.Height / ROW_HEIGHT);
         InvalidateVisual();
+    }
+
+    public void NavigateTo(ulong address)
+    {
+        if (Memory == null || Memory.Length == 0)
+            return;
+
+        int relativeAddress;
+        if (address >= BaseAddress)
+        {
+            relativeAddress = (int)(address - BaseAddress);
+        } else
+        {
+            relativeAddress = (int)address; // 如果小于BaseAddress，视为相对地址
+        }
+
+        relativeAddress = Math.Max(0, Math.Min(relativeAddress, Memory.Length - 1));
+
+        int targetRow = relativeAddress / BYTES_PER_ROW;
+        int totalRows = (Memory.Length + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
+        int maxScroll = Math.Max(0, totalRows - _visibleRows);
+
+        _scrollOffset = Math.Max(0, Math.Min(targetRow, maxScroll));
+
+        InvalidateVisual();
+    }
+
+    public void NavigateTo(int address)
+    {
+        NavigateTo((ulong)address);
+    }
+
+    private string DecodeRowBytes(byte[] rowBytes)
+    {
+        switch (encoding)
+        {
+            case Encoding.UTF8:
+                return DecodeUTF8(rowBytes);
+            case Encoding.UNICODE:
+                return DecodeUnicode(rowBytes);
+            case Encoding.ASCII:
+            default:
+                return DecodeASCII(rowBytes);
+        }
+    }
+
+    private string DecodeASCII(byte[] bytes)
+    {
+        var chars = new char[bytes.Length];
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            byte b = bytes[i];
+            chars[i] = b < 32 || b > 127 ? '.' : (char)b;
+        }
+        return new string(chars);
+    }
+
+    private string DecodeUTF8(byte[] bytes)
+    {
+        try
+        {
+            string result = System.Text.Encoding.UTF8.GetString(bytes);
+
+            var sb = new StringBuilder();
+            foreach (char c in result)
+            {
+                if (char.IsControl(c) || c > 127)
+                    sb.Append('.');
+                else
+                    sb.Append(c);
+            }
+            return sb.ToString().PadRight(bytes.Length).Substring(0, bytes.Length);
+        } catch
+        {
+            return DecodeASCII(bytes);
+        }
+    }
+
+    private string DecodeUnicode(byte[] bytes)
+    {
+        try
+        {
+            // Unicode (UTF-16 LE)
+            if (bytes.Length < 2)
+                return DecodeASCII(bytes);
+
+            int length = bytes.Length - (bytes.Length % 2);
+            byte[] unicodeBytes = new byte[length];
+            Array.Copy(bytes, unicodeBytes, length);
+
+            string result = System.Text.Encoding.Unicode.GetString(unicodeBytes);
+
+            var sb = new StringBuilder();
+            foreach (char c in result)
+            {
+                if (char.IsControl(c) || c > 127)
+                    sb.Append('.');
+                else
+                    sb.Append(c);
+            }
+
+            string decoded = sb.ToString();
+            if (decoded.Length < BYTES_PER_ROW / 2)
+                decoded = decoded.PadRight(BYTES_PER_ROW / 2);
+            else if (decoded.Length > BYTES_PER_ROW / 2)
+                decoded = decoded.Substring(0, BYTES_PER_ROW / 2);
+
+            return decoded;
+        } catch
+        {
+            return DecodeASCII(bytes);
+        }
     }
 
     public override void Render(DrawingContext context)
@@ -86,6 +218,14 @@ public class HexBox : Control
         var yellowBrush = new SolidColorBrush(Colors.Yellow);
         var darkBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60));
         var bgBrush = new SolidColorBrush(Color.FromRgb(30, 30, 30));
+        var scrollBarBrush = new SolidColorBrush(Color.FromRgb(80, 80, 80));
+        var scrollBarThumbBrush = new SolidColorBrush(Color.FromRgb(120, 120, 120));
+        var grayPen = new Pen(grayBrush, 1);
+        var borderPen = new Pen(new SolidColorBrush(Color.FromRgb(100, 100, 100)), 1);
+
+        // 计算内容宽度
+        //double contentWidth = ADDRESS_WIDTH + BYTES_PER_ROW * HEX_COLUMN_WIDTH + 10 + BYTES_PER_ROW * ASCII_COLUMN_WIDTH;
+        double availableWidth = Bounds.Width - (ShowScrollBar ? SCROLLBAR_WIDTH : 0);
 
         // 画背景
         context.FillRectangle(bgBrush, new Rect(0, 0, Bounds.Width, Bounds.Height));
@@ -114,9 +254,23 @@ public class HexBox : Control
             context.DrawText(hexHeaderText, new Point(x + CELL_PADDING, 2));
         }
 
-        // 画表头 - ASCII
+        // 画表头
+        var codeing = "ASCII";
+        switch (encoding)
+        {
+            case Encoding.ASCII:
+                codeing = "ASCII";
+                break;
+            case Encoding.UTF8:
+                codeing = "UTF8";
+                break;
+            case Encoding.UNICODE:
+                codeing = "UNICODE";
+                break;
+        }
+
         var asciiHeaderText = new FormattedText(
-            "ASCII",
+            codeing,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             typeface,
@@ -126,11 +280,11 @@ public class HexBox : Control
             new Point(ADDRESS_WIDTH + BYTES_PER_ROW * HEX_COLUMN_WIDTH + 10, 2));
 
         // 画分隔线
-        context.DrawLine(new Pen(grayBrush, 1), new Point(0, 20), new Point(Bounds.Width, 20));
+        context.DrawLine(grayPen, new Point(0, 20), new Point(Bounds.Width, 20));
 
         // 画数据行
         int startRow = _scrollOffset;
-        int endRow = Math.Min(startRow + _visibleRows,
+        int endRow = Math.Min(startRow + _visibleRows + 1,
             (Memory.Length + BYTES_PER_ROW - 1) / BYTES_PER_ROW);
 
         for (int row = startRow; row < endRow; row++)
@@ -146,7 +300,7 @@ public class HexBox : Control
                 FlowDirection.LeftToRight,
                 typeface,
                 emSize,
-                lightGrayBrush);
+                whiteBrush);
             context.DrawText(addrText, new Point(5, y));
 
             // 画HEX
@@ -185,30 +339,70 @@ public class HexBox : Control
                 }
             }
 
-            // 画ASCII
-            int asciiX = ADDRESS_WIDTH + BYTES_PER_ROW * HEX_COLUMN_WIDTH + 10;
-            var asciiChars = new char[BYTES_PER_ROW];
+            int textX = ADDRESS_WIDTH + BYTES_PER_ROW * HEX_COLUMN_WIDTH + 10;
+
+            byte[] rowBytes = new byte[BYTES_PER_ROW];
+            int bytesInRow = 0;
             for (int col = 0; col < BYTES_PER_ROW; col++)
             {
                 int index = baseIndex + col;
                 if (index >= Memory.Length)
-                {
-                    asciiChars[col] = ' ';
-                    continue;
-                }
-
-                byte b = Memory[index];
-                asciiChars[col] = b < 32 || b > 127 ? '.' : (char)b;
+                    break;
+                rowBytes[col] = Memory[index];
+                bytesInRow++;
             }
 
-            var asciiText = new FormattedText(
-                new string(asciiChars),
+            if (bytesInRow < BYTES_PER_ROW)
+            {
+                Array.Resize(ref rowBytes, bytesInRow);
+            }
+
+            string decodedText = DecodeRowBytes(rowBytes);
+
+            var textDisplay = new FormattedText(
+                decodedText,
                 CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
                 typeface,
                 emSize,
                 whiteBrush);
-            context.DrawText(asciiText, new Point(asciiX, y));
+
+            context.DrawText(textDisplay, new Point(textX, y));
+        }
+
+        // 画滚动条
+        if (ShowScrollBar)
+        {
+            DrawScrollBar(context, scrollBarBrush, scrollBarThumbBrush, borderPen);
+        }
+    }
+
+    private void DrawScrollBar(DrawingContext context, IBrush scrollBarBrush, IBrush thumbBrush, IPen borderPen)
+    {
+        double scrollBarX = Bounds.Width - SCROLLBAR_WIDTH;
+        double scrollBarHeight = Bounds.Height - 20; // 减去表头高度
+
+        // 滚动条背景
+        var scrollBarRect = new Rect(scrollBarX, 20, SCROLLBAR_WIDTH, scrollBarHeight);
+        context.FillRectangle(scrollBarBrush, scrollBarRect);
+        context.DrawRectangle(borderPen, scrollBarRect);
+
+        // 计算滚动块位置
+        int totalRows = (Memory.Length + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
+        int maxScroll = Math.Max(0, totalRows - _visibleRows);
+
+        if (maxScroll > 0)
+        {
+            double thumbHeight = Math.Max(20, scrollBarHeight * _visibleRows / totalRows);
+            double thumbY = 20 + (scrollBarHeight - thumbHeight) * _scrollOffset / maxScroll;
+
+            var thumbRect = new Rect(scrollBarX + 2, thumbY, SCROLLBAR_WIDTH - 4, thumbHeight);
+            context.FillRectangle(thumbBrush, thumbRect);
+        } else
+        {
+            // 不需要滚动时显示一个较小的滚动块
+            var thumbRect = new Rect(scrollBarX + 2, 20, SCROLLBAR_WIDTH - 4, 20);
+            context.FillRectangle(thumbBrush, thumbRect);
         }
     }
 
@@ -218,6 +412,16 @@ public class HexBox : Control
         Focus();
 
         var point = e.GetPosition(this);
+
+        if (ShowScrollBar && point.X >= Bounds.Width - SCROLLBAR_WIDTH)
+        {
+            _isDraggingScroll = true;
+            _lastMousePosition = point;
+            UpdateScrollFromPoint(point);
+            e.Handled = true;
+            return;
+        }
+
         var (row, col, isHex) = HitTest(point);
 
         if (row >= 0 && col >= 0 && isHex)
@@ -229,13 +433,61 @@ public class HexBox : Control
                 {
                     Row = row + _scrollOffset,
                     Column = col,
-                    InputBuffer = Memory[index].ToString("X2")
+                    InputBuffer = Memory[index].ToString("X2"),
+                    InputIndex = 0
                 };
                 InvalidateVisual();
             }
         } else
         {
             _editingCell = null;
+            InvalidateVisual();
+        }
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+
+        if (_isDraggingScroll)
+        {
+            var point = e.GetPosition(this);
+            _lastMousePosition = point;
+            UpdateScrollFromPoint(point);
+            e.Handled = true;
+        }
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        if (_isDraggingScroll)
+        {
+            _isDraggingScroll = false;
+            e.Handled = true;
+        }
+    }
+
+    private void UpdateScrollFromPoint(Point point)
+    {
+        if (Memory == null || Memory.Length == 0)
+            return;
+
+        double scrollBarY = point.Y - 20; // 减去表头高度
+        double scrollBarHeight = Bounds.Height - 20;
+
+        int totalRows = (Memory.Length + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
+        int maxScroll = Math.Max(0, totalRows - _visibleRows);
+
+        if (maxScroll > 0)
+        {
+            double thumbHeight = Math.Max(20, scrollBarHeight * _visibleRows / totalRows);
+            double normalizedY = Math.Max(0, Math.Min(scrollBarY, scrollBarHeight - thumbHeight));
+
+            _scrollOffset = (int)(normalizedY / (scrollBarHeight - thumbHeight) * maxScroll);
+            _scrollOffset = Math.Max(0, Math.Min(_scrollOffset, maxScroll));
+
             InvalidateVisual();
         }
     }
@@ -277,6 +529,7 @@ public class HexBox : Control
             if (_editingCell.InputBuffer.Length > 0)
             {
                 _editingCell.InputBuffer = _editingCell.InputBuffer[0..^1];
+                _editingCell.InputIndex--;
                 InvalidateVisual();
             }
             e.Handled = true;
@@ -284,11 +537,22 @@ public class HexBox : Control
         {
             // 十六进制输入
             var key = e.Key.ToString();
+            if (key.Length == 2)
+                key = key.Replace("D", "");
             if (key.Length == 1 && "0123456789ABCDEF".Contains(key.ToUpper()))
             {
-                if (_editingCell.InputBuffer.Length < 2)
+                if (_editingCell.InputIndex < 2)
                 {
-                    _editingCell.InputBuffer += key.ToUpper();
+                    if (_editingCell.InputIndex == 0)
+                    {
+                        if (_editingCell.InputBuffer.Length > 1)
+                            _editingCell.InputBuffer = key.ToUpper() + _editingCell.InputBuffer[1];
+                        else
+                            _editingCell.InputBuffer = key.ToUpper();
+                    } else
+                        _editingCell.InputBuffer = _editingCell.InputBuffer[0] + key.ToUpper();
+
+                    _editingCell.InputIndex++;
                     InvalidateVisual();
                 }
                 e.Handled = true;
@@ -315,7 +579,7 @@ public class HexBox : Control
             return (-1, -1, false);
 
         int row = (int)((point.Y - 25) / ROW_HEIGHT);
-        if (row < 0 || row >= _visibleRows)
+        if (row < 0 || row >= _visibleRows + 1)
             return (-1, -1, false);
 
         // HEX区

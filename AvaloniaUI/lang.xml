@@ -198,6 +198,15 @@
       <translation lang="ru">Справка(_H)</translation>
       <translation lang="ja">ヘルプ(_H)</translation>
     </text>
+    <text id="MnuLang">
+      <translation lang="en">Language(_L)</translation>
+      <translation lang="zh">语言(_L)</translation>
+      <translation lang="de">Sprache(_L)</translation>
+      <translation lang="fr">Langue(_L)</translation>
+      <translation lang="it">Lingua(_L)</translation>
+      <translation lang="ru">Язык(_L)</translation>
+      <translation lang="ja">言語(_L)</translation>
+    </text>
     <text id="fullScreenF2">
       <translation lang="en">Full Screen (F2)</translation>
       <translation lang="zh">全屏模式 (F2)</translation>
@@ -224,6 +233,15 @@
       <translation lang="it">Supporta via WeChat</translation>
       <translation lang="ru">Поддержать через WeChat</translation>
       <translation lang="ja">WeChatでプロジェクトをサポート</translation>
+    </text>
+    <text id="iniEditMnu">
+      <translation lang="en">Individual Settings</translation>
+      <translation lang="zh">独立设置</translation>
+      <translation lang="de">Individuelle Einstellungen</translation>
+      <translation lang="fr">Paramètres individuels</translation>
+      <translation lang="it">Impostazioni individuali</translation>
+      <translation lang="ru">Индивидуальные настройки</translation>
+      <translation lang="ja">個別設定</translation>
     </text>
   </category>
   <category id="radios">
@@ -303,12 +321,21 @@
     </text>
     <text id="labFirst500">
       <translation lang="en">0 Results</translation>
-      <translation lang="zh">搜索到 0 个地址 (只显示前500个)</translation>
-      <translation lang="de">0 Ergebnisse (nur die ersten 500 werden angezeigt)</translation>
-      <translation lang="fr">0 résultats (seuls les 500 premiers sont affichés)</translation>
-      <translation lang="it">0 risultati (vengono visualizzati solo i primi 500)</translation>
-      <translation lang="ru">0 адресов найдено (показываются только первые 500)</translation>
-      <translation lang="ja">0個のアドレスを検索 (上位500個のみ表示)</translation>
+      <translation lang="zh">搜索到 0 个地址</translation>
+      <translation lang="de">0 Ergebnisse</translation>
+      <translation lang="fr">0 résultats</translation>
+      <translation lang="it">0 risultati</translation>
+      <translation lang="ru">0 адресов найдено</translation>
+      <translation lang="ja">0個のアドレスを検索</translation>
+    </text>
+    <text id="labscantype">
+      <translation lang="en">Search Type</translation>
+      <translation lang="zh">搜索类型</translation>
+      <translation lang="de">Suchtyp</translation>
+      <translation lang="fr">Type de recherche</translation>
+      <translation lang="it">Tipo di ricerca</translation>
+      <translation lang="ru">Тип поиска</translation>
+      <translation lang="ja">検索種別</translation>
     </text>
     <text id="labSearch">
       <translation lang="en">Search Value</translation>
@@ -525,6 +552,15 @@
       <translation lang="it">✏️ Modifica codici</translation>
       <translation lang="ru">✏️ Редактирование кодов</translation>
       <translation lang="ja">✏️ コード編集</translation>
+    </text>
+    <text id="labmcrhint">
+      <translation lang="en">Save to apply; close to cancel</translation>
+      <translation lang="zh">所有操作保存后生效，关闭窗口即取消操作</translation>
+      <translation lang="de">Speichern zum Anwenden; Schließen zum Abbrechen</translation>
+      <translation lang="fr">Enregistrer pour appliquer; fermer pour annuler</translation>
+      <translation lang="it">Salva per applicare; chiudi per annullare</translation>
+      <translation lang="ru">Сохраните для применения; закройте для отмены</translation>
+      <translation lang="ja">保存で適用、終了でキャンセル</translation>
     </text>
   </category>
   <category id="groups">
@@ -748,77 +784,95 @@
       <translation lang="ru">Сбросить</translation>
       <translation lang="ja">リセット</translation>
     </text>
+    <text id="btnformat1">
+      <translation lang="en">💽 Format</translation>
+      <translation lang="zh">💽 格式化</translation>
+      <translation lang="de">💽 Formatieren</translation>
+      <translation lang="fr">💽 Formater</translation>
+      <translation lang="it">💽 Formatta</translation>
+      <translation lang="ru">💽 Форматировать</translation>
+      <translation lang="ja">💽 フォーマット</translation>
+    </text>
+    <text id="btnformat2">
+      <translation lang="en">💽 Format</translation>
+      <translation lang="zh">💽 格式化</translation>
+      <translation lang="de">💽 Formatieren</translation>
+      <translation lang="fr">💽 Formater</translation>
+      <translation lang="it">💽 Formatta</translation>
+      <translation lang="ru">💽 Форматировать</translation>
+      <translation lang="ja">💽 フォーマット</translation>
+    </text>
     <text id="del1">
-      <translation lang="en">Delete</translation>
-      <translation lang="zh">删除选中</translation>
-      <translation lang="de">Ausgewähltes löschen</translation>
-      <translation lang="fr">Supprimer la sélection</translation>
-      <translation lang="it">Elimina selezionato</translation>
-      <translation lang="ru">Удалить выбранное</translation>
-      <translation lang="ja">選択したものを削除</translation>
+      <translation lang="en">🗑️ Delete</translation>
+      <translation lang="zh">🗑️ 删除选中</translation>
+      <translation lang="de">🗑️ Ausgewähltes löschen</translation>
+      <translation lang="fr">🗑️ Supprimer la sélection</translation>
+      <translation lang="it">🗑️ Elimina selezionato</translation>
+      <translation lang="ru">🗑️ Удалить выбранное</translation>
+      <translation lang="ja">🗑️ 選択したものを削除</translation>
     </text>
     <text id="del2">
-      <translation lang="en">Delete</translation>
-      <translation lang="zh">删除选中</translation>
-      <translation lang="de">Ausgewähltes löschen</translation>
-      <translation lang="fr">Supprimer la sélection</translation>
-      <translation lang="it">Elimina selezionato</translation>
-      <translation lang="ru">Удалить выбранное</translation>
-      <translation lang="ja">選択したものを削除</translation>
+      <translation lang="en">🗑️ Delete</translation>
+      <translation lang="zh">🗑️ 删除选中</translation>
+      <translation lang="de">🗑️ Ausgewähltes löschen</translation>
+      <translation lang="fr">🗑️ Supprimer la sélection</translation>
+      <translation lang="it">🗑️ Elimina selezionato</translation>
+      <translation lang="ru">🗑️ Удалить выбранное</translation>
+      <translation lang="ja">🗑️ 選択したものを削除</translation>
     </text>
     <text id="out1">
-      <translation lang="en">Save as</translation>
-      <translation lang="zh">导出</translation>
-      <translation lang="de">Exportieren</translation>
-      <translation lang="fr">Exporter</translation>
-      <translation lang="it">Esporta</translation>
-      <translation lang="ru">Экспорт</translation>
-      <translation lang="ja">エクスポート</translation>
+      <translation lang="en">📤 Export</translation>
+      <translation lang="zh">📤 导出</translation>
+      <translation lang="de">📤 Exportieren</translation>
+      <translation lang="fr">📤 Exporter</translation>
+      <translation lang="it">📤 Esporta</translation>
+      <translation lang="ru">📤 Экспорт</translation>
+      <translation lang="ja">📤 エクスポート</translation>
     </text>
     <text id="out2">
-      <translation lang="en">Save as</translation>
-      <translation lang="zh">导出</translation>
-      <translation lang="de">Exportieren</translation>
-      <translation lang="fr">Exporter</translation>
-      <translation lang="it">Esporta</translation>
-      <translation lang="ru">Экспорт</translation>
-      <translation lang="ja">エクスポート</translation>
+      <translation lang="en">📤 Export</translation>
+      <translation lang="zh">📤 导出</translation>
+      <translation lang="de">📤 Exportieren</translation>
+      <translation lang="fr">📤 Exporter</translation>
+      <translation lang="it">📤 Esporta</translation>
+      <translation lang="ru">📤 Экспорт</translation>
+      <translation lang="ja">📤 エクスポート</translation>
     </text>
     <text id="save1">
-      <translation lang="en">Save</translation>
-      <translation lang="zh">保存修改</translation>
-      <translation lang="de">Änderungen speichern</translation>
-      <translation lang="fr">Enregistrer les modifications</translation>
-      <translation lang="it">Salva modifiche</translation>
-      <translation lang="ru">Сохранить изменения</translation>
-      <translation lang="ja">変更を保存</translation>
+      <translation lang="en">💾 Save</translation>
+      <translation lang="zh">💾 保存修改</translation>
+      <translation lang="de">💾 Änderungen speichern</translation>
+      <translation lang="fr">💾 Enregistrer les modifications</translation>
+      <translation lang="it">💾 Salva modifiche</translation>
+      <translation lang="ru">💾 Сохранить изменения</translation>
+      <translation lang="ja">💾 変更を保存</translation>
     </text>
     <text id="save2">
-      <translation lang="en">Save</translation>
-      <translation lang="zh">保存修改</translation>
-      <translation lang="de">Änderungen speichern</translation>
-      <translation lang="fr">Enregistrer les modifications</translation>
-      <translation lang="it">Salva modifiche</translation>
-      <translation lang="ru">Сохранить изменения</translation>
-      <translation lang="ja">変更を保存</translation>
+      <translation lang="en">💾 Save</translation>
+      <translation lang="zh">💾 保存修改</translation>
+      <translation lang="de">💾 Änderungen speichern</translation>
+      <translation lang="fr">💾 Enregistrer les modifications</translation>
+      <translation lang="it">💾 Salva modifiche</translation>
+      <translation lang="ru">💾 Сохранить изменения</translation>
+      <translation lang="ja">💾 変更を保存</translation>
     </text>
     <text id="btnimport1">
-      <translation lang="en">📎 Import</translation>
-      <translation lang="zh">📎 导入</translation>
-      <translation lang="de">📎 Importieren</translation>
-      <translation lang="fr">📎 Importer</translation>
-      <translation lang="it">📎 Importa</translation>
-      <translation lang="ru">📎 Импорт</translation>
-      <translation lang="ja">📎 インポート</translation>
+      <translation lang="en">📂 Import</translation>
+      <translation lang="zh">📂 导入</translation>
+      <translation lang="de">📂 Importieren</translation>
+      <translation lang="fr">📂 Importer</translation>
+      <translation lang="it">📂 Importa</translation>
+      <translation lang="ru">📂 Импорт</translation>
+      <translation lang="ja">📂 インポート</translation>
     </text>
     <text id="btnimport2">
-      <translation lang="en">📎 Import</translation>
-      <translation lang="zh">📎 导入</translation>
-      <translation lang="de">📎 Importieren</translation>
-      <translation lang="fr">📎 Importer</translation>
-      <translation lang="it">📎 Importa</translation>
-      <translation lang="ru">📎 Импорт</translation>
-      <translation lang="ja">📎 インポート</translation>
+      <translation lang="en">📂 Import</translation>
+      <translation lang="zh">📂 导入</translation>
+      <translation lang="de">📂 Importieren</translation>
+      <translation lang="fr">📂 Importer</translation>
+      <translation lang="it">📂 Importa</translation>
+      <translation lang="ru">📂 Импорт</translation>
+      <translation lang="ja">📂 インポート</translation>
     </text>
     <text id="btnadd">
       <translation lang="en">➕ add</translation>
@@ -848,13 +902,13 @@
       <translation lang="ja">📂 読み込む</translation>
     </text>
     <text id="btnimp">
-      <translation lang="en">📎 Import</translation>
-      <translation lang="zh">📎 导入</translation>
-      <translation lang="de">📎 Importieren</translation>
-      <translation lang="fr">📎 Importer</translation>
-      <translation lang="it">📎 Importa</translation>
-      <translation lang="ru">📎 Импорт</translation>
-      <translation lang="ja">📎 インポート</translation>
+      <translation lang="en">📂 Import</translation>
+      <translation lang="zh">📂 导入</translation>
+      <translation lang="de">📂 Importieren</translation>
+      <translation lang="fr">📂 Importer</translation>
+      <translation lang="it">📂 Importa</translation>
+      <translation lang="ru">📂 Импорт</translation>
+      <translation lang="ja">📂 インポート</translation>
     </text>
     <text id="btnapply">
       <translation lang="en">⚡ Apply</translation>
@@ -876,7 +930,7 @@
     </text>
   </category>
   <category id="forms">
-    <text id="FormCheat">
+    <text id="FrmCheat">
       <translation lang="en">Codes</translation>
       <translation lang="zh">金手指</translation>
       <translation lang="de">Cheat-Codes</translation>
@@ -885,7 +939,7 @@
       <translation lang="ru">Чит-коды</translation>
       <translation lang="ja">のチートコード</translation>
     </text>
-    <text id="FormMcrMange">
+    <text id="FrmMcrMange">
       <translation lang="en">Memcard Mange</translation>
       <translation lang="zh">内存卡管理</translation>
       <translation lang="de">Speicherkartenverwaltung</translation>
@@ -1093,7 +1147,7 @@
       <translation lang="ru">Сменить диск...</translation>
       <translation lang="ja">ディスクを交換...</translation>
     </text>
-    <text id="RomList_DrawInfoBoxes_last">
+    <text id="RomList_last">
       <translation lang="en">Last Play</translation>
       <translation lang="zh">最后运行</translation>
       <translation lang="de">Zuletzt gespielt</translation>
@@ -1102,25 +1156,25 @@
       <translation lang="ru">Последний запуск</translation>
       <translation lang="ja">最後に実行</translation>
     </text>
-    <text id="RomList_DrawInfoBoxes_statesave">
-      <translation lang="en">SaveState</translation>
-      <translation lang="zh">即时存档</translation>
-      <translation lang="de">Spielfortschritt</translation>
-      <translation lang="fr">État de sauvegarde</translation>
-      <translation lang="it">Salvataggio stato</translation>
-      <translation lang="ru">Инстантное сохранение</translation>
-      <translation lang="ja">インスタントセーブ</translation>
+    <text id="RomList_statesave">
+      <translation lang="en">SaveState ✅</translation>
+      <translation lang="zh">即时存档 ✅</translation>
+      <translation lang="de">Spielfortschritt ✅</translation>
+      <translation lang="fr">État de sauvegarde ✅</translation>
+      <translation lang="it">Salvataggio stato ✅</translation>
+      <translation lang="ru">Инстантное сохранение ✅</translation>
+      <translation lang="ja">インスタントセーブ ✅</translation>
     </text>
-    <text id="RomList_DrawInfoBoxes_cheat">
-      <translation lang="en">Cheats</translation>
-      <translation lang="zh">金手指</translation>
-      <translation lang="de">Cheat-Codes</translation>
-      <translation lang="fr">Codes triche</translation>
-      <translation lang="it">Codici cheat</translation>
-      <translation lang="ru">Чит-коды</translation>
-      <translation lang="ja">チートコード</translation>
+    <text id="RomList_cheat">
+      <translation lang="en">Cheats ✅</translation>
+      <translation lang="zh">金手指 ✅</translation>
+      <translation lang="de">Cheat-Codes ✅</translation>
+      <translation lang="fr">Codes triche ✅</translation>
+      <translation lang="it">Codici cheat ✅</translation>
+      <translation lang="ru">Чит-коды ✅</translation>
+      <translation lang="ja">チートコード ✅</translation>
     </text>
-    <text id="RomList_SearchDir_SubDir">
+    <text id="RomList_SubDir">
       <translation lang="en">Search subdirectories?</translation>
       <translation lang="zh">是否要搜索子目录？</translation>
       <translation lang="de">Unterverzeichnisse durchsuchen?</translation>
@@ -1129,7 +1183,7 @@
       <translation lang="ru">Поиск в поддиректориях?</translation>
       <translation lang="ja">サブディレクトリを検索しますか？</translation>
     </text>
-    <text id="RomList_RomList_mcr">
+    <text id="RomList_mcr">
       <translation lang="en">Memcard mange</translation>
       <translation lang="zh">存档管理</translation>
       <translation lang="de">Speicherkartenverwaltung</translation>
@@ -1138,7 +1192,7 @@
       <translation lang="ru">Управление сохранениями</translation>
       <translation lang="ja">セーブデータ管理</translation>
     </text>
-    <text id="RomList_RomList_set">
+    <text id="RomList_set">
       <translation lang="en">Setting</translation>
       <translation lang="zh">修改设置</translation>
       <translation lang="de">Einstellungen ändern</translation>
@@ -1147,7 +1201,7 @@
       <translation lang="ru">Изменить настройки</translation>
       <translation lang="ja">設定を変更</translation>
     </text>
-    <text id="RomList_RomList_edit">
+    <text id="RomList_edit">
       <translation lang="en">Cheat Codes</translation>
       <translation lang="zh">编辑金手指</translation>
       <translation lang="de">Cheat-Codes bearbeiten</translation>
@@ -1156,7 +1210,7 @@
       <translation lang="ru">Редактировать чит-коды</translation>
       <translation lang="ja">チートコードを編集</translation>
     </text>
-    <text id="RomList_RomList_geticon">
+    <text id="RomList_geticon">
       <translation lang="en">Icon from savedata</translation>
       <translation lang="zh">取存档图标</translation>
       <translation lang="de">Symbol aus gespeicherten Daten</translation>
@@ -1165,7 +1219,7 @@
       <translation lang="ru">Иконка из сохраненных данных</translation>
       <translation lang="ja">セーブデータからアイコンを取得</translation>
     </text>
-    <text id="RomList_RomList_seticon">
+    <text id="RomList_seticon">
       <translation lang="en">Set icon</translation>
       <translation lang="zh">设置图标</translation>
       <translation lang="de">Symbol festlegen</translation>
@@ -1174,7 +1228,7 @@
       <translation lang="ru">Установить иконку</translation>
       <translation lang="ja">アイコンを設定</translation>
     </text>
-    <text id="RomList_RomList_del">
+    <text id="RomList_del">
       <translation lang="en">Delete</translation>
       <translation lang="zh">删除</translation>
       <translation lang="de">Löschen</translation>
@@ -1310,13 +1364,13 @@
       <translation lang="ja">⚡ チートコードを適用しました</translation>
     </text>
     <text id="cheatimport">
-      <translation lang="en">📎 Imported</translation>
-      <translation lang="zh">📎 已导入</translation>
-      <translation lang="de">📎 Importiert</translation>
-      <translation lang="fr">📎 Importé</translation>
-      <translation lang="it">📎 Importato</translation>
-      <translation lang="ru">📎 Импортировано</translation>
-      <translation lang="ja">📎 インポートしました</translation>
+      <translation lang="en">📂 Imported</translation>
+      <translation lang="zh">📂 已导入</translation>
+      <translation lang="de">📂 Importiert</translation>
+      <translation lang="fr">📂 Importé</translation>
+      <translation lang="it">📂 Importato</translation>
+      <translation lang="ru">📂 Импортировано</translation>
+      <translation lang="ja">📂 インポートしました</translation>
     </text>
     <text id="importerror">
       <translation lang="en">❌ Import Failed</translation>
@@ -1336,18 +1390,104 @@
       <translation lang="ru">🌐 Загрузка чит-кодов...</translation>
       <translation lang="ja">🌐 チートコードをダウンロード中...</translation>
     </text>
-  </category>
-  <category id="info">
-    <text id="CultureInfo">
-      <translation lang="zh">zh-CN</translation>
-      <translation lang="en">en-US</translation>
-      <translation lang="es">es-ES</translation>
-      <translation lang="it">it-IT</translation>
-      <translation lang="ja">ja-JP</translation>
-      <translation lang="pt">pt-BR</translation>
-      <translation lang="fr">fr-FR</translation>
-      <translation lang="de">de-DE</translation>
-      <translation lang="ru">ru-RU</translation>
+    <text id="notruning">
+      <translation lang="en">❌ Game not running</translation>
+      <translation lang="zh">❌ 游戏未启动</translation>
+      <translation lang="de">❌ Spiel läuft nicht</translation>
+      <translation lang="fr">❌ Jeu non lancé</translation>
+      <translation lang="it">❌ Gioco non in esecuzione</translation>
+      <translation lang="ru">❌ Игра не запущена</translation>
+      <translation lang="ja">❌ ゲームが起動していません</translation>
+    </text>
+    <text id="notselected">
+      <translation lang="en">❌ No game selected</translation>
+      <translation lang="zh">❌ 未选中游戏</translation>
+      <translation lang="de">❌ Kein Spiel ausgewählt</translation>
+      <translation lang="fr">❌ Aucun jeu sélectionné</translation>
+      <translation lang="it">❌ Nessun gioco selezionato</translation>
+      <translation lang="ru">❌ Игра не выбрана</translation>
+      <translation lang="ja">❌ ゲームが選択されていません</translation>
+    </text>
+    <text id="cardformat">
+      <translation lang="en">Format Slot</translation>
+      <translation lang="zh">格式化卡槽</translation>
+      <translation lang="de">Slot formatieren</translation>
+      <translation lang="fr">Formater l'emplacement</translation>
+      <translation lang="it">Formatta slot</translation>
+      <translation lang="ru">Форматировать слот</translation>
+      <translation lang="ja">スロットをフォーマット</translation>
+    </text>
+    <text id="cardload">
+      <translation lang="en">Load</translation>
+      <translation lang="zh">加载</translation>
+      <translation lang="de">Laden</translation>
+      <translation lang="fr">Charger</translation>
+      <translation lang="it">Carica</translation>
+      <translation lang="ru">Загрузить</translation>
+      <translation lang="ja">ロード</translation>
+    </text>
+    <text id="cardmove">
+      <translation lang="en">Move</translation>
+      <translation lang="zh">移动</translation>
+      <translation lang="de">Verschieben</translation>
+      <translation lang="fr">Déplacer</translation>
+      <translation lang="it">Sposta</translation>
+      <translation lang="ru">Переместить</translation>
+      <translation lang="ja">移動</translation>
+    </text>
+    <text id="cardcopy">
+      <translation lang="en">Copy</translation>
+      <translation lang="zh">复制</translation>
+      <translation lang="de">Kopieren</translation>
+      <translation lang="fr">Copier</translation>
+      <translation lang="it">Copia</translation>
+      <translation lang="ru">Копировать</translation>
+      <translation lang="ja">コピー</translation>
+    </text>
+    <text id="carddele">
+      <translation lang="en">Delete</translation>
+      <translation lang="zh">删除</translation>
+      <translation lang="de">Löschen</translation>
+      <translation lang="fr">Supprimer</translation>
+      <translation lang="it">Elimina</translation>
+      <translation lang="ru">Удалить</translation>
+      <translation lang="ja">削除</translation>
+    </text>
+    <text id="cardexport">
+      <translation lang="en">Export</translation>
+      <translation lang="zh">导出</translation>
+      <translation lang="de">Exportieren</translation>
+      <translation lang="fr">Exporter</translation>
+      <translation lang="it">Esporta</translation>
+      <translation lang="ru">Экспорт</translation>
+      <translation lang="ja">エクスポート</translation>
+    </text>
+    <text id="cardsave">
+      <translation lang="en">Save</translation>
+      <translation lang="zh">保存</translation>
+      <translation lang="de">Speichern</translation>
+      <translation lang="fr">Enregistrer</translation>
+      <translation lang="it">Salva</translation>
+      <translation lang="ru">Сохранить</translation>
+      <translation lang="ja">保存</translation>
+    </text>
+    <text id="cardimport">
+      <translation lang="en">Import</translation>
+      <translation lang="zh">导入</translation>
+      <translation lang="de">Importieren</translation>
+      <translation lang="fr">Importer</translation>
+      <translation lang="it">Importa</translation>
+      <translation lang="ru">Импорт</translation>
+      <translation lang="ja">インポート</translation>
+    </text>
+    <text id="lang">
+      <translation lang="zh">🇨🇳 简体中文</translation>
+      <translation lang="en">🇺🇸 English</translation>
+      <translation lang="de">🇩🇪 Deutsch</translation>
+      <translation lang="fr">🇫🇷 Français</translation>
+      <translation lang="it">🇮🇹 Italiano</translation>
+      <translation lang="ru">🇷🇺 Русский</translation>
+      <translation lang="ja">🇯🇵 日本語</translation>
     </text>
   </category>
 </translations>

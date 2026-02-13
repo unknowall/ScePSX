@@ -21,7 +21,17 @@
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="16,18"/>
         </Style>
-
+        <Style Selector="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
         <Style Selector="Separator">
             <Setter Property="Background" Value="#FFE8E8E8"/>
             <Setter Property="Height" Value="1"/>
@@ -202,21 +212,26 @@
                 BorderThickness="0,1,0,0"
                 BorderBrush="#FFE0E0E0"
                 Padding="20,12">
-            <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <TextBlock Grid.Column="0"
                            x:Name="labSetHint"
                            Text="仅当前游戏生效"
                            VerticalAlignment="Center"
                            Foreground="#FF888888"
                            FontSize="12"/>
-                <Button Grid.Column="1"
+                <TextBlock Grid.Column="1" Name="labGameID" Text="🎮 ScePSX" 
+                           Margin="0,0,12,0"
+                           VerticalAlignment="Center"
+                           IsVisible="false"
+                           />
+                <Button Grid.Column="2"
                         x:Name="btndel"
                         Content="删除"
-                        Width="80"
+                        Width="100"
                         Height="32"
                         Margin="0,0,12,0"
-                        IsVisible="False"/>
-                <Button Grid.Column="2"
+                        IsVisible="false"/>
+                <Button Grid.Column="3"
                         x:Name="BtnSave"
                         Content="保存"
                         Width="100"

@@ -1,127 +1,170 @@
-<Window xmlns="https://github.com/avaloniaui"
+ï»¿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="500"
         xmlns:local="clr-namespace:ScePSX.UI"
         x:Class="ScePSX.UI.MemEdit"
         Name="FrmMemEdit"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Title="MemEdit"
+        Width="900"
+        Height="500"
         RequestedThemeVariant="Light"
         Background="#FFF5F5F5">
 
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#FFE8E8E8"/>
+        </Style>
+            <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderBrush" Value="#FFD0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#FF0078D4"/>
+        </Style>
+    </Window.Styles>
+
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="590*" />
-            <ColumnDefinition Width="307*" />
+            <ColumnDefinition Width="865*" />
+            <ColumnDefinition Width="300*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ×ó²àÃæ°å - HexBox -->
+        <!-- å·¦ä¾§é¢æ¿ - HexBox -->
         <Border Grid.Column="0" Padding="0">
             <DockPanel LastChildFill="True">
-                <!-- ¶¥²¿¹¤¾ßÀ¸ -->
+                <!-- é¡¶éƒ¨å·¥å…·æ  -->
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="10,5">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="0x" VerticalAlignment="Center" Margin="0,0,2,0" />
                         <TextBox x:Name="tbgoto" Width="119" />
                     </StackPanel>
-                    <Button x:Name="btngo" Content="Ç°ÍùµØÖ·" Width="75" />
-                    <ComboBox x:Name="CboView" Width="84" />
-                    <ComboBox x:Name="CboEncode" Width="69" />
-                    <CheckBox x:Name="chkupd" Content="×Ô¶¯Ë¢ÐÂ" VerticalAlignment="Center" />
-                    <Button x:Name="btnupd" Content="Ë¢ÐÂ" Width="70" />
+                    <Button x:Name="btngo" Content="å‰å¾€åœ°å€" MinWidth="75" />
+                    <ComboBox x:Name="CboEncode" Width="100" />
+                    <CheckBox x:Name="chkupd" Content="è‡ªåŠ¨åˆ·æ–°" VerticalAlignment="Center" />
+                    <Button x:Name="btnupd" Content="åˆ·æ–°" MinWidth="50" />
                 </StackPanel>
 
-                <!-- HexBox ¿Ø¼þ -->
+                <!-- HexBox æŽ§ä»¶ -->
                 <local:HexBox x:Name="HexBox" />
             </DockPanel>
         </Border>
 
-        <!-- ÓÒ²àÃæ°å - ËÑË÷ºÍ½á¹û -->
-        <Border Grid.Column="1" Padding="10,0,0,0">
+        <!-- å³ä¾§é¢æ¿ - æœç´¢å’Œç»“æžœ -->
+        <Border Grid.Column="1" Padding="10,0,0,0" >
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Top" Spacing="10">
-                    <!-- ËÑË÷±êÌâºÍÖØÖÃ°´Å¥ -->
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" x:Name="labSearch"
-                                   Text="ÄÚ´æËÑË÷"
-                                   FontWeight="Bold"
-                                   FontSize="16"
-                                   VerticalAlignment="Center" />
-                        <Button Grid.Column="1" x:Name="btnr" Content="ÖØÖÃ" Width="75" />
-                    </Grid>
 
-                    <!-- ËÑË÷ÊäÈë -->
+                    <TextBlock Grid.Column="0" x:Name="labSearch"
+                               Text="å†…å­˜æœç´¢"
+                               FontWeight="Bold"
+                               FontSize="16"
+                               Margin="15,5,0,5"
+                               VerticalAlignment="Center" />
+
+
+                    <!-- æœç´¢è¾“å…¥ -->
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                        <TextBox Grid.Row="0" Grid.ColumnSpan="2" x:Name="findb"
-                                 Watermark="ÊäÈëËÑË÷ÄÚÈÝ"
-                                 Margin="0,0,0,5" />
+                        <TextBox Grid.Row="0" Grid.Column="2" x:Name="findb"
+                                 Watermark="0x64 or 100"
+                                 Width="200"
+                                 Margin="15,0,15,5" />
+                        <Button Grid.Row="1" Grid.Column="1" x:Name="btnr"
+                                Content="é‡ç½®" MinWidth="50"
+                                Margin="15,0,10,5" />
                         <Button Grid.Row="1" Grid.Column="1" x:Name="btns"
-                                Content="ËÑË÷"
-                                Width="75"
+                                Content="æœç´¢"
+                                MinWidth="50"
+                                Margin="0,0,15,5"
                                 HorizontalAlignment="Right" />
                     </Grid>
 
-                    <!-- ËÑË÷ÀàÐÍ×é -->
+                    <!-- æœç´¢ç±»åž‹ç»„ -->
                     <Border BorderBrush="#FFABABAB"
                             BorderThickness="1"
                             CornerRadius="3"
                             Padding="12,8,12,8"
-                            Margin="0,5,0,5">
+                            Margin="15,5,10,5">
                         <StackPanel>
-                            <TextBlock Text="ËÑË÷ÀàÐÍ"
+                            <TextBlock Text="æœç´¢ç±»åž‹"
+                                       Name="labscantype"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,8"/>
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
                                 <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbbyte"
-                                             Content="×Ö½Ú Byte"
+                                             Content="Byte"
                                              GroupName="SearchType"
                                              IsChecked="True"
                                              Margin="0,2" />
                                 <RadioButton Grid.Row="0" Grid.Column="1" x:Name="rbWord"
-                                             Content="×Ö WORD"
+                                             Content="WORD"
                                              GroupName="SearchType"
                                              Margin="0,2" />
                                 <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbDword"
-                                             Content="Ë«×Ö DWORD"
+                                             Content="DWORD"
                                              GroupName="SearchType"
                                              Margin="0,2" />
                                 <RadioButton Grid.Row="1" Grid.Column="1" x:Name="rbfloat"
-                                             Content="¸¡µã Float"
+                                             Content="Float"
                                              GroupName="SearchType"
                                              Margin="0,2" />
                             </Grid>
                         </StackPanel>
                     </Border>
 
-                    <!-- ËÑË÷½á¹ûÌáÊ¾ -->
+                    <!-- æœç´¢ç»“æžœæç¤º -->
                     <TextBlock x:Name="labFirst500"
-                               Text="ËÑË÷µ½0¸öµØÖ· Ö»ÏÔÊ¾Ç°500¸ö"
+                               Text="æœç´¢åˆ°0ä¸ªåœ°å€ åªæ˜¾ç¤ºå‰500ä¸ª"
                                FontWeight="Bold"
+                               Margin="15,5,10,5"
                                FontSize="12" />
                 </StackPanel>
 
-                <!-- ËÑË÷½á¹û±í¸ñ -->
-                <DataGrid x:Name="ml"
-                          DockPanel.Dock="Bottom"
-                          Margin="0,10,0,0"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="False"
-                          GridLinesVisibility="None"
-                          BorderThickness="0"
-                          RowHeaderWidth="0">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn
-                        Header="µØÖ·"
-                        Width="160"
-                        IsReadOnly="True" />
-                        <DataGridTextColumn
-                        Header="Öµ"
-                        Width="100" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                <!-- æœç´¢ç»“æžœè¡¨æ ¼ -->
+                <ListBox x:Name="scanresult"
+                         Grid.Row="1"
+                         BorderThickness="1"
+                         Background="Transparent"
+                         SelectionMode="Single"
+                         Margin="15,4,10,10">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="local:MemoryItem">
+                            <Grid ColumnDefinitions="Auto,Auto,*">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding Address}"
+                                         VerticalAlignment="Center"
+                                         FontSize="13"
+                                         BorderThickness="0"
+                                         IsReadOnly="True"
+                                         />
+
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Value}"
+                                           FontSize="13"
+                                           Margin="15,0,0,0"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </DockPanel>
         </Border>
     </Grid>

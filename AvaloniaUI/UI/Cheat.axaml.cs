@@ -23,10 +23,13 @@ namespace ScePSX.UI
         private PSXCore? Core;
         private string DiskID;
 
-        public CheatFrm(string id, PSXCore? core)
+        public CheatFrm()
         {
             InitializeComponent();
+        }
 
+        public CheatFrm(string id, PSXCore? core) : this()
+        {
             DataContext = this;
 
             clb.ItemsSource = CheatItems;
@@ -202,6 +205,11 @@ namespace ScePSX.UI
         {
             if (clb.SelectedItem is not CheatItem selectedItem)
                 return;
+
+            if (sender is ListBoxItem item)
+            {
+                item.IsSelected = true;
+            }
 
             var listBoxItem = clb.ContainerFromItem(selectedItem) as ListBoxItem;
             if (listBoxItem == null)

@@ -55,6 +55,16 @@ namespace ScePSX.UI
         {
             get; set;
         }
+        public string StateText
+        {
+            get;
+            set;
+        }
+        public string CheatText
+        {
+            get;
+            set;
+        }
 
         public bool IsLastPlayedVisible => !string.IsNullOrWhiteSpace(LastPlayed);
         private string _backgroundColor = "#2A2A2A";
@@ -185,6 +195,8 @@ namespace ScePSX.UI
                     game.LastPlayed = infos[1];
                     game.HasSaveState = Directory.GetFiles("./SaveState/", $"{id}_Save?.dat").Length > 0;
                     game.HasCheats = File.Exists($"./Cheats/{id}.txt");
+                    game.StateText = Translations.GetText("RomList_statesave");
+                    game.CheatText = Translations.GetText("RomList_cheat");
                     if (File.Exists($"./Icons/{id}.png"))
                     {
                         game.Icon = new Bitmap($"./Icons/{id}.png");

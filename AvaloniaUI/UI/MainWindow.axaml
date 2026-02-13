@@ -119,6 +119,11 @@
                     <MenuItem Header="金手指" Name="CheatCode" Click="CheatCode_Click" IsEnabled="True" Classes="SubMenuItem"/>
                     <MenuItem Header="内存编辑" Name="MemEditMnu" Click="MemEditMnu_Click" Classes="SubMenuItem"/>
                     <MenuItem Header="存档管理" Name="McrEditMnu" Click="McrEditMnu_Click" Classes="SubMenuItem"/>
+                    <Separator/>
+                    <MenuItem Header="独立设置" Name="iniEditMnu" Click="iniEditMnu_Click" Classes="SubMenuItem"/>
+                </MenuItem>
+
+                <MenuItem Header="语言(_L)" Name="MnuLang" Classes="TopLevelMenuItem">
                 </MenuItem>
 
                 <MenuItem Header="帮助(_H)" Name="HelpMnu" Classes="TopLevelMenuItem">

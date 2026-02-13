@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ScePSX.UI"
         x:Class="ScePSX.UI.CheatFrm"
         Title="金手指"
-        Name="FormCheat"
+        Name="FrmCheat"
         Width="640"
         Height="530"
         WindowStartupLocation="CenterOwner"
@@ -33,11 +33,13 @@
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button:pointerover">
             <Setter Property="Background" Value="#FFE8E8E8"/>
         </Style>
-        
+
         <!-- 主要按钮 -->
         <Style Selector="Button.primary">
             <Setter Property="Background" Value="#FF0078D4"/>
@@ -86,28 +88,26 @@
         <Grid RowDefinitions="Auto,*,Auto">
             <!-- ========== 顶部工具栏 ========== -->
             <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,0,0,12">
-                <Button Grid.Column="0" 
-                        x:Name="btnadd" 
-                        Content="➕ 增加" 
-                        Width="70"
+                <Button Grid.Column="0"
+                        x:Name="btnadd"
+                        Content="➕ 增加"
                         Click="BtnAdd_Click"
-                        Margin="0,0,0,0"/>
-                <Button Grid.Column="1" 
-                        x:Name="btndel" 
-                        Content="🗑️ 删除" 
-                        Width="70"
+                        Margin="0,0,5,0"/>
+                <Button Grid.Column="1"
+                        x:Name="btndel"
+                        Content="🗑️ 删除"
                         Click="BtnDel_Click"
-                        Margin="0,0,0,0"/>
-                <Button Grid.Column="2" 
-                        x:Name="BtnSearchCheat" 
-                        Content="🌐 下载金手指" 
+                        Margin="0,0,5,0"/>
+                <Button Grid.Column="2"
+                        x:Name="BtnSearchCheat"
+                        Content="🌐 下载金手指"
                         MinWidth="110"
                         Click="BtnSearch_Click"
                         Classes="primary"
                         Margin="0,0,0,0"/>
-                <TextBlock Grid.Column="4" 
+                <TextBlock Grid.Column="4"
                            x:Name="labStatus"
-                           FontSize="12" 
+                           FontSize="12"
                            Foreground="#FF666666"
                            VerticalAlignment="Center"
                            />
@@ -116,68 +116,68 @@
             <!-- ========== 主内容区：金手指列表 + 代码编辑 ========== -->
             <Grid Grid.Row="1" ColumnDefinitions="280,*,8,280" Margin="0,0,0,12">
                 <!-- 左侧：金手指列表 -->
-                <Border Grid.Column="0" 
-                        BorderBrush="#FFE8E8E8" 
-                        BorderThickness="1" 
+                <Border Grid.Column="0"
+                        BorderBrush="#FFE8E8E8"
+                        BorderThickness="1"
                         CornerRadius="6"
                         Background="White">
                     <Grid RowDefinitions="Auto,*">
                         <!-- 列表标题 -->
-                        <Border Grid.Row="0" 
-                                Background="#FFF9F9F9" 
+                        <Border Grid.Row="0"
+                                Background="#FFF9F9F9"
                                 CornerRadius="6,6,0,0"
                                 Padding="12,8"
                                 BorderBrush="#FFE8E8E8"
                                 BorderThickness="0,0,0,1">
                             <Grid ColumnDefinitions="Auto,*">
-                                <CheckBox x:Name="chkSelectAll" 
-                                        IsChecked="False"
-                                        Margin="0,0,8,0"
-                                        IsVisible="False"/>
-                                <TextBlock Grid.Column="1" 
-                                         Text="📋 金手指列表" 
-                                         Name="labcodelist"
-                                         FontWeight="SemiBold"
-                                         Foreground="#FF2D2D2D"
-                                         FontSize="13"/>
+                                <CheckBox x:Name="chkSelectAll"
+                                          IsChecked="False"
+                                          Margin="0,0,8,0"
+                                          IsVisible="False"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="📋 金手指列表"
+                                           Name="labcodelist"
+                                           FontWeight="SemiBold"
+                                           Foreground="#FF2D2D2D"
+                                           FontSize="13"/>
                             </Grid>
                         </Border>
-                        
+
                         <!-- 列表内容 -->
-                        <ListBox x:Name="clb" 
-                                Grid.Row="1"
-                                BorderThickness="0"
-                                Background="Transparent"
-                                SelectionMode="Single"
-                                SelectionChanged="Clb_SelectionChanged"
-                                DoubleTapped="Clb_DbCLick"
-                                Margin="0,4,0,0">
+                        <ListBox x:Name="clb"
+                                 Grid.Row="1"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 SelectionMode="Single"
+                                 SelectionChanged="Clb_SelectionChanged"
+                                 DoubleTapped="Clb_DbCLick"
+                                 Margin="0,4,0,0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="local:CheatItem">
                                     <Grid ColumnDefinitions="Auto,*,Auto">
-                                        <CheckBox Grid.Column="0" 
-                                                IsChecked="{Binding IsChecked}"
-                                                Margin="0,0,8,0"
-                                                VerticalAlignment="Center"/>
-                
-                                        <TextBox Grid.Column="1" 
-                                                x:Name="txtName"
-                                                Text="{Binding Name, Mode=TwoWay}"
-                                                VerticalAlignment="Center"
-                                                Padding="4,2"
-                                                FontSize="13"
-                                                BorderThickness="0"
-                                                Background="Transparent"
-                                                IsReadOnly="True"
-                                                LostFocus="EditName_LostFocus"
-                                                KeyDown="EditName_KeyDown"/>
-                
-                                        <TextBlock Grid.Column="2" 
-                                                  Text="{Binding CodeCount}" 
-                                                  Foreground="#FF888888"
-                                                  FontSize="11"
-                                                  Margin="4,0,0,0"
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{Binding IsChecked}"
+                                                  Margin="0,0,8,0"
                                                   VerticalAlignment="Center"/>
+
+                                        <TextBox Grid.Column="1"
+                                                 x:Name="txtName"
+                                                 Text="{Binding Name, Mode=TwoWay}"
+                                                 VerticalAlignment="Center"
+                                                 Padding="4,2"
+                                                 FontSize="13"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 IsReadOnly="True"
+                                                 LostFocus="EditName_LostFocus"
+                                                 KeyDown="EditName_KeyDown"/>
+
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding CodeCount}"
+                                                   Foreground="#FF888888"
+                                                   FontSize="11"
+                                                   Margin="4,0,0,0"
+                                                   VerticalAlignment="Center"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -189,81 +189,77 @@
                 <Rectangle Grid.Column="2" Fill="Transparent"/>
 
                 <!-- 右侧：代码编辑区 -->
-                <Border Grid.Column="3" 
-                        BorderBrush="#FFE8E8E8" 
-                        BorderThickness="1" 
+                <Border Grid.Column="3"
+                        BorderBrush="#FFE8E8E8"
+                        BorderThickness="1"
                         CornerRadius="6"
                         Background="White">
                     <Grid RowDefinitions="Auto,*" Margin="0,0,0,0">
                         <!-- 编辑区标题 -->
-                        <Border Grid.Row="0" 
-                                Background="#FFF9F9F9" 
+                        <Border Grid.Row="0"
+                                Background="#FFF9F9F9"
                                 CornerRadius="6,6,0,0"
                                 Padding="12,8"
                                 BorderBrush="#FFE8E8E8"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock Text="✏️ 代码编辑" 
-                                     Name="labcodeedit"
-                                     FontWeight="SemiBold"
-                                     Foreground="#FF2D2D2D"
-                                     FontSize="13"/>
+                            <TextBlock Text="✏️ 代码编辑"
+                                       Name="labcodeedit"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FF2D2D2D"
+                                       FontSize="13"/>
                         </Border>
-                        
+
                         <!-- 代码文本框 -->
-                        <TextBox x:Name="ctb" 
-                                Grid.Row="1"
-                                AcceptsReturn="True"
-                                TextWrapping="Wrap"
-                                Watermark="XXXXXXXX YYYY&#xA;e.g: 0x80000000 0x10"
-                                BorderThickness="0"
-                                Background="Transparent"
-                                Padding="12"
-                                FontFamily="Consolas, Courier New, monospace"
-                                FontSize="12"/>
+                        <TextBox x:Name="ctb"
+                                 Grid.Row="1"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Watermark="XXXXXXXX YYYY&#xA;e.g: 0x80000000 0x10"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Padding="12"
+                                 FontFamily="Consolas, Courier New, monospace"
+                                 FontSize="12"/>
                     </Grid>
                 </Border>
             </Grid>
 
             <!-- ========== 底部操作栏 ========== -->
-            <Border Grid.Row="2" 
-                    Background="#FFF9F9F9" 
-                    CornerRadius="6" 
+            <Border Grid.Row="2"
+                    Background="#FFF9F9F9"
+                    CornerRadius="6"
                     Padding="16,12"
                     BorderBrush="#FFE8E8E8"
                     BorderThickness="1">
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                     <!-- 状态提示 -->
-                    <TextBlock Grid.Column="0" 
-                             x:Name="labDiskID"
-                             Text="就绪"
-                             VerticalAlignment="Center"
-                             Foreground="#FF666666"
-                             FontSize="12"
-                             FontWeight="SemiBold"/>
-                    
+                    <TextBlock Grid.Column="0"
+                               x:Name="labDiskID"
+                               Text="就绪"
+                               VerticalAlignment="Center"
+                               Foreground="#FF666666"
+                               FontSize="12"
+                               FontWeight="SemiBold"/>
+
                     <!-- 操作按钮组 -->
-                    <Button Grid.Column="1" 
-                            x:Name="btnload" 
-                            Content="📂 读取" 
-                            Width="80"
+                    <Button Grid.Column="1"
+                            x:Name="btnload"
+                            Content="📂 读取"
                             Click="BtnLoad_Click"
                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="2" 
-                            x:Name="BtnSave" 
-                            Content="💾 保存" 
-                            Width="80"
+                    <Button Grid.Column="2"
+                            x:Name="BtnSave"
+                            Content="💾 保存"
                             Click="BtnSave_Click"
                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="3" 
-                            x:Name="btnimp" 
-                            Content="📎 导入" 
-                            Width="80"
+                    <Button Grid.Column="3"
+                            x:Name="btnimp"
+                            Content="📎 导入"
                             Click="BtnImport_Click"
                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="4" 
-                            x:Name="btnapply" 
-                            Content="⚡ 应用" 
-                            Width="80"
+                    <Button Grid.Column="4"
+                            x:Name="btnapply"
+                            Content="⚡ 应用"
                             Click="BtnApply_Click"
                             Classes="primary"/>
                 </Grid>

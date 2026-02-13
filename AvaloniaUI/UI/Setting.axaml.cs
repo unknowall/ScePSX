@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 
 namespace ScePSX.UI;
 
@@ -11,10 +12,13 @@ public partial class Setting : Window
     private string id;
     private IniFile ini;
 
-    public Setting(string gameid)
+    public Setting()
     {
         InitializeComponent();
+    }
 
+    public Setting(string gameid) : this()
+    {
         id = gameid;
 
         cbcdrom.Items[0] = Translations.GetText("Adaptive");
@@ -40,15 +44,20 @@ public partial class Setting : Window
                 loadini(ini);
             }
             btndel.IsVisible = true;
+            labGameID.IsVisible = true;
+            labGameID.Text = $"🎮 {id}";
         }
-
-        this.Title = $" {id} " + this.Title;
 
         cbgpures.IsEditable = true;
         cbgpu.SelectionChanged += Cbgpu_SelectionChanged;
 
         BtnSave.Click += BtnSave_Click;
         btndel.Click += Btndel_Click;
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        this.Title = $" {id} " + this.Title;
     }
 
     private void BtnSave_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -75,6 +84,8 @@ public partial class Setting : Window
             File.Delete(fn);
         }
         loadini(PSXHandler.ini);
+
+        Close();
     }
 
     private void Cbgpu_SelectionChanged(object? sender, SelectionChangedEventArgs? e)

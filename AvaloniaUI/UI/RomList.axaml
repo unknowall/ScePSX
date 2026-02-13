@@ -95,9 +95,9 @@
 
 							<!-- 第三行：LastPlay/状态组 紧跟ID下方，靠右对齐 -->
 							<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="0 -5 0 0">
-								<TextBlock Classes="GameMeta" Name="LastPlayed" IsVisible="{Binding IsLastPlayedVisible}" Text="{Binding LastPlayed, StringFormat='LastPlay: {0}'}" Margin="0 0 10 0"/>
-								<TextBlock Classes="GameMeta" Name="HasStateSave" IsVisible="{Binding HasSaveState}" Text="StateSave: ✅" Margin="0 0 10 0" />
-								<TextBlock Classes="GameMeta" Name="HasCheatCode" IsVisible="{Binding HasCheats}" Text="CheatCode: ✅" Margin="0 0 10 0" />
+								<TextBlock Classes="GameMeta" Name="RomList_last" IsVisible="{Binding IsLastPlayedVisible}" Text="{Binding LastPlayed}" Margin="0 0 10 0"/>
+								<TextBlock Classes="GameMeta" Name="RomList_statesave" IsVisible="{Binding HasSaveState}" Text="{Binding StateText}" Margin="0 0 10 0" />
+								<TextBlock Classes="GameMeta" Name="RomList_cheat" IsVisible="{Binding HasCheats}" Text="{Binding CheatText}" Margin="0 0 10 0" />
 							</StackPanel>
 
 						</DockPanel>
