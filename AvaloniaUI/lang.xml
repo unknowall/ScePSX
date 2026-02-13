@@ -243,6 +243,15 @@
       <translation lang="ru">Индивидуальные настройки</translation>
       <translation lang="ja">個別設定</translation>
     </text>
+    <text id="ConsoleMnu">
+      <translation lang="en">Open Console</translation>
+      <translation lang="zh">打开控制台</translation>
+      <translation lang="de">Konsole öffnen</translation>
+      <translation lang="fr">Ouvrir la console</translation>
+      <translation lang="it">Apri console</translation>
+      <translation lang="ru">Открыть консоль</translation>
+      <translation lang="ja">コンソールを開く</translation>
+    </text>
   </category>
   <category id="radios">
     <text id="rbfloat">
@@ -1479,6 +1488,15 @@
       <translation lang="it">Importa</translation>
       <translation lang="ru">Импорт</translation>
       <translation lang="ja">インポート</translation>
+    </text>
+    <text id="NotBios">
+      <translation lang="en">No BIOS available, cannot run game. Please check the BIOS folder</translation>
+      <translation lang="zh">没有可用BIOS, 无法运行游戏。请检查 BIOS 文件夹</translation>
+      <translation lang="de">Kein BIOS verfügbar, Spiel kann nicht ausgeführt werden. Bitte überprüfen Sie den BIOS-Ordner</translation>
+      <translation lang="fr">Aucun BIOS disponible, impossible de lancer le jeu. Veuillez vérifier le dossier BIOS</translation>
+      <translation lang="it">Nessun BIOS disponibile, impossibile eseguire il gioco. Controlla la cartella BIOS</translation>
+      <translation lang="ru">BIOS недоступен, невозможно запустить игру. Проверьте папку с BIOS</translation>
+      <translation lang="ja">利用可能なBIOSがありません。ゲームを実行できません。BIOSフォルダを確認してください</translation>
     </text>
     <text id="lang">
       <translation lang="zh">🇨🇳 简体中文</translation>

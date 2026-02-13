@@ -284,6 +284,12 @@ namespace ScePSX.UI
 
         public void LoadGame(string RomFile, string ID = "")
         {
+            if (!File.Exists("./BIOS/" + PSXHandler.ini.Read("main", "bios")))
+            {
+                OSD.Show(Translations.GetText("NotBios"), 9999999);
+                return;
+            }
+
             GPUBackend.HWND = Render.NativeHandle;
             GPUBackend.HINST = Render.hInstance;
             GPUBackend.ClientHeight = (int)Render.Bounds.Height;

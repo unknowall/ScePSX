@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -35,7 +36,12 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         if (OperatingSystem.IsWindows())
-            AllocConsole();
+        {
+            if (File.Exists("./opengl32.dll") && !File.Exists("./ReShader.dll"))
+            {
+                File.Copy("./opengl32.dll", "./ReShader.dll");
+            }
+        }
 
         RomList.OnDbClick += RomListSeelected;
 
@@ -61,6 +67,12 @@ public partial class MainWindow : Window
         Translations.UpdateLang(this);
 
         InitLangMenu();
+
+        if (!CheckMac())
+            VulkanMnu.IsVisible = false;
+
+        if (OperatingSystem.IsWindows())
+            ConsoleMnu.IsVisible = true;
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -73,8 +85,26 @@ public partial class MainWindow : Window
             this.Height = Convert.ToInt16(PosStr[3]);
         }
 
+        if (!File.Exists("./BIOS/" + PSXHandler.ini.Read("main", "bios")))
+        {
+            OSD.Show(Translations.GetText("NotBios"), 9999999);
+        }
+
         PSX.SoftDrawView = SoftDrawView;
         PSX.Render = RenderHostView;
+    }
+
+    private void ConsoleMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            AllocConsole();
+            var writer = new StreamWriter(Console.OpenStandardOutput())
+            {
+                AutoFlush = true
+            };
+            Console.SetOut(writer);
+        }
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -714,6 +744,22 @@ public partial class MainWindow : Window
         {
             Console.WriteLine($"Failed to open URL: {ex.Message}");
         }
+    }
+
+    private bool CheckMac()
+    {
+        if (OperatingSystem.IsMacOS())
+        {
+            try
+            {
+                return File.Exists("/usr/lib/libvulkan.dylib") ||
+                       File.Exists("/usr/local/lib/libvulkan.dylib");
+            } catch
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
 

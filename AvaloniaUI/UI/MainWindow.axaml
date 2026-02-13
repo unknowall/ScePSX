@@ -121,6 +121,7 @@
                     <MenuItem Header="存档管理" Name="McrEditMnu" Click="McrEditMnu_Click" Classes="SubMenuItem"/>
                     <Separator/>
                     <MenuItem Header="独立设置" Name="iniEditMnu" Click="iniEditMnu_Click" Classes="SubMenuItem"/>
+                    <MenuItem Header="打开控制台" Name="ConsoleMnu" Click="ConsoleMnu_Click" IsVisible="False" Classes="SubMenuItem"/>
                 </MenuItem>
 
                 <MenuItem Header="语言(_L)" Name="MnuLang" Classes="TopLevelMenuItem">
