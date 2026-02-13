@@ -25,7 +25,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            var resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             MainMenu = new System.Windows.Forms.MenuStrip();
             MnuFile = new System.Windows.Forms.ToolStripMenuItem();
             LoadDIsk = new System.Windows.Forms.ToolStripMenuItem();
@@ -77,6 +77,7 @@
             toolStripStatusLabel7 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel8 = new System.Windows.Forms.ToolStripStatusLabel();
             panel = new System.Windows.Forms.Panel();
+            MnuLang = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             StatusBar.SuspendLayout();
             SuspendLayout();
@@ -84,7 +85,7 @@
             // MainMenu
             // 
             MainMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
-            MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, MnuRender, NetPlayMnu, HelpMnu });
+            MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { MnuFile, MnuRender, NetPlayMnu, MnuLang, HelpMnu });
             MainMenu.Location = new System.Drawing.Point(0, 0);
             MainMenu.Name = "MainMenu";
             MainMenu.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
@@ -96,117 +97,117 @@
             // 
             MnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { LoadDIsk, SwapDisk, CloseRomMnu, toolStripMenuItem1, SearchMnu, SysSetMnu, KeyTool, toolStripMenuItem2, MnuSaveState, MnuLoadState, MnuUnloadState, toolStripMenuItem3, CheatCode, MemEditMnu, toolStripMenuItem5, FreeSpeed, MnuPause });
             MnuFile.Name = "MnuFile";
-            MnuFile.Size = new System.Drawing.Size(57, 21);
+            MnuFile.Size = new System.Drawing.Size(44, 21);
             MnuFile.Text = "文件";
             // 
             // LoadDIsk
             // 
             LoadDIsk.Name = "LoadDIsk";
-            LoadDIsk.Size = new System.Drawing.Size(191, 22);
+            LoadDIsk.Size = new System.Drawing.Size(165, 22);
             LoadDIsk.Text = "加载游戏";
             LoadDIsk.Click += LoadDisk_Click;
             // 
             // SwapDisk
             // 
             SwapDisk.Name = "SwapDisk";
-            SwapDisk.Size = new System.Drawing.Size(191, 22);
+            SwapDisk.Size = new System.Drawing.Size(165, 22);
             SwapDisk.Text = "更换光盘";
             SwapDisk.Click += SwapDisk_Click;
             // 
             // CloseRomMnu
             // 
             CloseRomMnu.Name = "CloseRomMnu";
-            CloseRomMnu.Size = new System.Drawing.Size(191, 22);
+            CloseRomMnu.Size = new System.Drawing.Size(165, 22);
             CloseRomMnu.Text = "返回列表";
             CloseRomMnu.Click += CloseRomMnu_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new System.Drawing.Size(188, 6);
+            toolStripMenuItem1.Size = new System.Drawing.Size(162, 6);
             // 
             // SearchMnu
             // 
             SearchMnu.Name = "SearchMnu";
-            SearchMnu.Size = new System.Drawing.Size(191, 22);
+            SearchMnu.Size = new System.Drawing.Size(165, 22);
             SearchMnu.Text = "扫描目录";
             SearchMnu.Click += SearchMnu_Click;
             // 
             // SysSetMnu
             // 
             SysSetMnu.Name = "SysSetMnu";
-            SysSetMnu.Size = new System.Drawing.Size(191, 22);
+            SysSetMnu.Size = new System.Drawing.Size(165, 22);
             SysSetMnu.Text = "系统设置";
             SysSetMnu.Click += SysSetMnu_Click;
             // 
             // KeyTool
             // 
             KeyTool.Name = "KeyTool";
-            KeyTool.Size = new System.Drawing.Size(191, 22);
+            KeyTool.Size = new System.Drawing.Size(165, 22);
             KeyTool.Text = "按键设置";
             KeyTool.Click += KeyToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new System.Drawing.Size(188, 6);
+            toolStripMenuItem2.Size = new System.Drawing.Size(162, 6);
             // 
             // MnuSaveState
             // 
             MnuSaveState.Enabled = false;
             MnuSaveState.Name = "MnuSaveState";
-            MnuSaveState.Size = new System.Drawing.Size(191, 22);
+            MnuSaveState.Size = new System.Drawing.Size(165, 22);
             MnuSaveState.Text = "即时存档 (F5)";
             // 
             // MnuLoadState
             // 
             MnuLoadState.Enabled = false;
             MnuLoadState.Name = "MnuLoadState";
-            MnuLoadState.Size = new System.Drawing.Size(191, 22);
+            MnuLoadState.Size = new System.Drawing.Size(165, 22);
             MnuLoadState.Text = "即时读取 (F6)";
             // 
             // MnuUnloadState
             // 
             MnuUnloadState.Enabled = false;
             MnuUnloadState.Name = "MnuUnloadState";
-            MnuUnloadState.Size = new System.Drawing.Size(191, 22);
+            MnuUnloadState.Size = new System.Drawing.Size(165, 22);
             MnuUnloadState.Text = "撤销读取 (F7)";
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new System.Drawing.Size(188, 6);
+            toolStripMenuItem3.Size = new System.Drawing.Size(162, 6);
             // 
             // CheatCode
             // 
             CheatCode.Enabled = false;
             CheatCode.Name = "CheatCode";
-            CheatCode.Size = new System.Drawing.Size(191, 22);
+            CheatCode.Size = new System.Drawing.Size(165, 22);
             CheatCode.Text = "金手指";
             CheatCode.Click += CheatCode_Click;
             // 
             // MemEditMnu
             // 
             MemEditMnu.Name = "MemEditMnu";
-            MemEditMnu.Size = new System.Drawing.Size(191, 22);
+            MemEditMnu.Size = new System.Drawing.Size(165, 22);
             MemEditMnu.Text = "内存编辑";
             MemEditMnu.Click += MnuDebug_Click;
             // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
-            toolStripMenuItem5.Size = new System.Drawing.Size(188, 6);
+            toolStripMenuItem5.Size = new System.Drawing.Size(162, 6);
             // 
             // FreeSpeed
             // 
             FreeSpeed.Name = "FreeSpeed";
-            FreeSpeed.Size = new System.Drawing.Size(191, 22);
+            FreeSpeed.Size = new System.Drawing.Size(165, 22);
             FreeSpeed.Text = "加速快进 (TAB)";
             // 
             // MnuPause
             // 
             MnuPause.Name = "MnuPause";
-            MnuPause.Size = new System.Drawing.Size(191, 22);
+            MnuPause.Size = new System.Drawing.Size(165, 22);
             MnuPause.Text = "暂停/继续 (空格)";
             MnuPause.Click += MnuPause_Click;
             // 
@@ -214,14 +215,14 @@
             // 
             MnuRender.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { CutBlackLineMnu, frameskipmnu, toolStripMenuItem6, directx2DRender, directx3DRender, openGLRender, VulkanRenderMnu, toolStripMenuItem4, xBRScaleAdd, xBRScaleDec, fullScreenF2, toolStripMenuItem7 });
             MnuRender.Name = "MnuRender";
-            MnuRender.Size = new System.Drawing.Size(78, 21);
+            MnuRender.Size = new System.Drawing.Size(72, 21);
             MnuRender.Text = "渲染器(&R)";
             // 
             // CutBlackLineMnu
             // 
             CutBlackLineMnu.CheckOnClick = true;
             CutBlackLineMnu.Name = "CutBlackLineMnu";
-            CutBlackLineMnu.Size = new System.Drawing.Size(384, 22);
+            CutBlackLineMnu.Size = new System.Drawing.Size(228, 22);
             CutBlackLineMnu.Text = "裁剪上下黑边(可能造成失真)";
             CutBlackLineMnu.CheckedChanged += CutBlackLineMnu_CheckedChanged;
             // 
@@ -231,20 +232,20 @@
             frameskipmnu.CheckOnClick = true;
             frameskipmnu.CheckState = System.Windows.Forms.CheckState.Checked;
             frameskipmnu.Name = "frameskipmnu";
-            frameskipmnu.Size = new System.Drawing.Size(384, 22);
+            frameskipmnu.Size = new System.Drawing.Size(228, 22);
             frameskipmnu.Text = "跳帧 (只对 D2D/D3D)";
             frameskipmnu.CheckedChanged += frameskipmnu_CheckedChanged;
             // 
             // toolStripMenuItem6
             // 
             toolStripMenuItem6.Name = "toolStripMenuItem6";
-            toolStripMenuItem6.Size = new System.Drawing.Size(381, 6);
+            toolStripMenuItem6.Size = new System.Drawing.Size(225, 6);
             // 
             // directx2DRender
             // 
             directx2DRender.CheckOnClick = true;
             directx2DRender.Name = "directx2DRender";
-            directx2DRender.Size = new System.Drawing.Size(384, 22);
+            directx2DRender.Size = new System.Drawing.Size(228, 22);
             directx2DRender.Text = "DirectxD2D";
             directx2DRender.Click += directx2DRender_Click;
             // 
@@ -252,7 +253,7 @@
             // 
             directx3DRender.CheckOnClick = true;
             directx3DRender.Name = "directx3DRender";
-            directx3DRender.Size = new System.Drawing.Size(384, 22);
+            directx3DRender.Size = new System.Drawing.Size(228, 22);
             directx3DRender.Text = "DirectxD3D";
             directx3DRender.Click += directx3DToolStripMenuItem_Click;
             // 
@@ -261,7 +262,7 @@
             openGLRender.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             openGLRender.CheckOnClick = true;
             openGLRender.Name = "openGLRender";
-            openGLRender.Size = new System.Drawing.Size(384, 22);
+            openGLRender.Size = new System.Drawing.Size(228, 22);
             openGLRender.Text = "OpenGL";
             openGLRender.Click += openGLToolStripMenuItem_Click;
             // 
@@ -269,52 +270,52 @@
             // 
             VulkanRenderMnu.CheckOnClick = true;
             VulkanRenderMnu.Name = "VulkanRenderMnu";
-            VulkanRenderMnu.Size = new System.Drawing.Size(384, 22);
+            VulkanRenderMnu.Size = new System.Drawing.Size(228, 22);
             VulkanRenderMnu.Text = "Vulkan";
             VulkanRenderMnu.Click += VulkanRenderMnu_Click;
             // 
             // toolStripMenuItem4
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new System.Drawing.Size(381, 6);
+            toolStripMenuItem4.Size = new System.Drawing.Size(225, 6);
             // 
             // xBRScaleAdd
             // 
             xBRScaleAdd.Name = "xBRScaleAdd";
-            xBRScaleAdd.Size = new System.Drawing.Size(384, 22);
+            xBRScaleAdd.Size = new System.Drawing.Size(228, 22);
             xBRScaleAdd.Text = "IR Scale++ (F11)";
             xBRScaleAdd.Click += UpScale_Click;
             // 
             // xBRScaleDec
             // 
             xBRScaleDec.Name = "xBRScaleDec";
-            xBRScaleDec.Size = new System.Drawing.Size(384, 22);
+            xBRScaleDec.Size = new System.Drawing.Size(228, 22);
             xBRScaleDec.Text = "IR Scale --  (F12)";
             xBRScaleDec.Click += DownScale_Click;
             // 
             // fullScreenF2
             // 
             fullScreenF2.Name = "fullScreenF2";
-            fullScreenF2.Size = new System.Drawing.Size(384, 22);
+            fullScreenF2.Size = new System.Drawing.Size(228, 22);
             fullScreenF2.Text = "全屏模式 (F2)";
             fullScreenF2.Click += fullScreenF2_Click;
             // 
             // toolStripMenuItem7
             // 
             toolStripMenuItem7.Name = "toolStripMenuItem7";
-            toolStripMenuItem7.Size = new System.Drawing.Size(381, 6);
+            toolStripMenuItem7.Size = new System.Drawing.Size(225, 6);
             // 
             // NetPlayMnu
             // 
             NetPlayMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { NetPlaySetMnu });
             NetPlayMnu.Name = "NetPlayMnu";
-            NetPlayMnu.Size = new System.Drawing.Size(82, 21);
+            NetPlayMnu.Size = new System.Drawing.Size(86, 21);
             NetPlayMnu.Text = "网络对战(&N)";
             // 
             // NetPlaySetMnu
             // 
             NetPlaySetMnu.Name = "NetPlaySetMnu";
-            NetPlaySetMnu.Size = new System.Drawing.Size(116, 22);
+            NetPlaySetMnu.Size = new System.Drawing.Size(100, 22);
             NetPlaySetMnu.Text = "设置";
             NetPlaySetMnu.Click += NetPlaySetMnu_Click;
             // 
@@ -322,44 +323,44 @@
             // 
             HelpMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { gitHubMnu, toolStripMenuItem8, supportKoficomMnu, supportWeChatMnu, toolStripMenuItem9, AboutMnu });
             HelpMnu.Name = "HelpMnu";
-            HelpMnu.Size = new System.Drawing.Size(64, 21);
+            HelpMnu.Size = new System.Drawing.Size(61, 21);
             HelpMnu.Text = "帮助(&H)";
             // 
             // gitHubMnu
             // 
             gitHubMnu.Name = "gitHubMnu";
-            gitHubMnu.Size = new System.Drawing.Size(192, 22);
+            gitHubMnu.Size = new System.Drawing.Size(190, 22);
             gitHubMnu.Text = "GitHub(&G)";
             gitHubMnu.Click += gitHubMnu_Click;
             // 
             // toolStripMenuItem8
             // 
             toolStripMenuItem8.Name = "toolStripMenuItem8";
-            toolStripMenuItem8.Size = new System.Drawing.Size(189, 6);
+            toolStripMenuItem8.Size = new System.Drawing.Size(187, 6);
             // 
             // supportKoficomMnu
             // 
             supportKoficomMnu.Name = "supportKoficomMnu";
-            supportKoficomMnu.Size = new System.Drawing.Size(192, 22);
+            supportKoficomMnu.Size = new System.Drawing.Size(190, 22);
             supportKoficomMnu.Text = "通过Ko-Fi支持本项目";
             supportKoficomMnu.Click += supportKoficomMnu_Click;
             // 
             // supportWeChatMnu
             // 
             supportWeChatMnu.Name = "supportWeChatMnu";
-            supportWeChatMnu.Size = new System.Drawing.Size(192, 22);
+            supportWeChatMnu.Size = new System.Drawing.Size(190, 22);
             supportWeChatMnu.Text = "通过微信支持本项目";
             supportWeChatMnu.Click += supportWeChatMnu_Click;
             // 
             // toolStripMenuItem9
             // 
             toolStripMenuItem9.Name = "toolStripMenuItem9";
-            toolStripMenuItem9.Size = new System.Drawing.Size(189, 6);
+            toolStripMenuItem9.Size = new System.Drawing.Size(187, 6);
             // 
             // AboutMnu
             // 
             AboutMnu.Name = "AboutMnu";
-            AboutMnu.Size = new System.Drawing.Size(192, 22);
+            AboutMnu.Size = new System.Drawing.Size(190, 22);
             AboutMnu.Text = "关于(&A)";
             AboutMnu.Click += AboutMnu_Click;
             // 
@@ -427,6 +428,12 @@
             panel.Name = "panel";
             panel.Size = new System.Drawing.Size(684, 451);
             panel.TabIndex = 2;
+            // 
+            // MnuLang
+            // 
+            MnuLang.Name = "MnuLang";
+            MnuLang.Size = new System.Drawing.Size(58, 21);
+            MnuLang.Text = "语言(&L)";
             // 
             // FrmMain
             // 
@@ -504,5 +511,6 @@
         private System.Windows.Forms.ToolStripMenuItem supportWeChatMnu;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem9;
         private System.Windows.Forms.ToolStripMenuItem AboutMnu;
+        private System.Windows.Forms.ToolStripMenuItem MnuLang;
     }
 }

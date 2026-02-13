@@ -37,19 +37,6 @@ public partial class MainWindow : Window
         if (OperatingSystem.IsWindows())
             AllocConsole();
 
-        //if (!Path.Exists(RootPath+"/Save"))
-        //    Directory.CreateDirectory(RootPath + "/Save");
-        //if (!Path.Exists(RootPath + "/BIOS"))
-        //    Directory.CreateDirectory(RootPath + "/BIOS");
-        //if (!Path.Exists(RootPath + "/Cheats"))
-        //    Directory.CreateDirectory(RootPath + "/Cheats");
-        //if (!Path.Exists(RootPath + "/SaveState"))
-        //    Directory.CreateDirectory(RootPath + "/SaveState");
-        //if (!Path.Exists(RootPath + "/Shaders"))
-        //    Directory.CreateDirectory(RootPath + "/Shaders");
-        //if (!Path.Exists(RootPath + "/Icons"))
-        //    Directory.CreateDirectory(RootPath + "/Icons");
-
         RomList.OnDbClick += RomListSeelected;
 
         PSX = new PSXHandler();

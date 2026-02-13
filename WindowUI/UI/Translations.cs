@@ -19,6 +19,8 @@ namespace ScePSX.UI
 
         public static string DefaultLanguage = null;
 
+        public static Dictionary<string, string> Languages = new Dictionary<string, string>();
+
         public static string CurrentLangId = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
         public static SortedSet<string> AvailableLanguages
@@ -71,10 +73,29 @@ namespace ScePSX.UI
                         }
                     }
                 }
+                LoadLang(xmlDocument);
             }
             catch (Exception value4)
             {
                 Console.Error.WriteLine(value4);
+            }
+        }
+
+        private static void LoadLang(XmlDocument xmlDocument)
+        {
+            XmlNode langNode = xmlDocument.SelectSingleNode("//text[@id='lang']");
+            if (langNode == null)
+                return;
+            Languages.Clear();
+            foreach (XmlNode transNode in langNode.ChildNodes)
+            {
+                if (transNode.Name != "translation")
+                    continue;
+
+                string langCode = transNode.Attributes["lang"].Value;
+                string langName = transNode.InnerText.Trim();
+
+                Languages[langCode] = langName;
             }
         }
 
@@ -86,7 +107,7 @@ namespace ScePSX.UI
                 {
                     ToolStripMenuItem Item = (ToolStripMenuItem)fieldInfo.GetValue(Target);
                     if (Item == null) continue;
-                    string @string = Translations.GetString("menus", Item.Name, CultureInfo.CurrentCulture);
+                    string @string = Translations.GetString("menus", Item.Name, CurrentLangId);
                     string text2 = (@string != null) ? @string : Item.Text;
                     if (Platform.IsMono)
                     {
@@ -99,7 +120,7 @@ namespace ScePSX.UI
                 {
                     Label Item = (Label)fieldInfo.GetValue(Target);
                     if (Item == null) continue;
-                    string @string = Translations.GetString("labels", Item.Name, CultureInfo.CurrentCulture);
+                    string @string = Translations.GetString("labels", Item.Name, CurrentLangId);
                     string text2 = (@string != null) ? @string : Item.Text;
                     Item.Text = text2;
                 }
@@ -108,7 +129,7 @@ namespace ScePSX.UI
                 {
                     Button Item = (Button)fieldInfo.GetValue(Target);
                     if (Item == null) continue;
-                    string @string = Translations.GetString("buttons", Item.Name, CultureInfo.CurrentCulture);
+                    string @string = Translations.GetString("buttons", Item.Name, CurrentLangId);
                     string text2 = (@string != null) ? @string : Item.Text;
                     Item.Text = text2;
                 }
@@ -117,7 +138,7 @@ namespace ScePSX.UI
                 {
                     CheckBox Item = (CheckBox)fieldInfo.GetValue(Target);
                     if (Item == null) continue;
-                    string @string = Translations.GetString("checks", Item.Name, CultureInfo.CurrentCulture);
+                    string @string = Translations.GetString("checks", Item.Name, CurrentLangId);
                     string text2 = (@string != null) ? @string : Item.Text;
                     Item.Text = text2;
                 }
@@ -126,7 +147,7 @@ namespace ScePSX.UI
                 {
                     RadioButton Item = (RadioButton)fieldInfo.GetValue(Target);
                     if (Item == null) continue;
-                    string @string = Translations.GetString("radios", Item.Name, CultureInfo.CurrentCulture);
+                    string @string = Translations.GetString("radios", Item.Name, CurrentLangId);
                     string text2 = (@string != null) ? @string : Item.Text;
                     Item.Text = text2;
                 }
@@ -135,7 +156,7 @@ namespace ScePSX.UI
                 {
                     GroupBox Item = (GroupBox)fieldInfo.GetValue(Target);
                     if (Item == null) continue;
-                    string @string = Translations.GetString("groups", Item.Name, CultureInfo.CurrentCulture);
+                    string @string = Translations.GetString("groups", Item.Name, CurrentLangId);
                     string text2 = (@string != null) ? @string : Item.Text;
                     Item.Text = text2;
                 }
@@ -144,7 +165,7 @@ namespace ScePSX.UI
             if (Target.GetType().BaseType == typeof(Form))
             {
                 if (Target.GetType().Name == "MainForm") return;
-                string @string = Translations.GetString("forms", Target.GetType().Name, CultureInfo.CurrentCulture);
+                string @string = Translations.GetString("forms", Target.GetType().Name, CurrentLangId);
                 string text2 = (@string != null) ? @string : (Target as Form).Text;
                 (Target as Form).Text = text2;
             }

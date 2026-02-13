@@ -216,6 +216,15 @@
 			<translation lang="ru">Поддержать через WeChat</translation>
 			<translation lang="ja">WeChatでプロジェクトをサポート</translation>
 		</text>
+    <text id="MnuLang">
+      <translation lang="en">Language(&amp;L)</translation>
+      <translation lang="zh">语言(&amp;L)</translation>
+      <translation lang="de">Sprache(&amp;L)</translation>
+      <translation lang="fr">Langue(&amp;L)</translation>
+      <translation lang="it">Lingua(&amp;L)</translation>
+      <translation lang="ru">Язык(&amp;L)</translation>
+      <translation lang="ja">言語(&amp;L)</translation>
+    </text>
 	</category>
 	<category id="radios">
 		<text id="rbfloat">
@@ -1130,18 +1139,14 @@
 			<translation lang="ru">Если хотите, можете купить мне кофе!</translation>
 			<translation lang="ja">もしよろしければ、コーヒーをおごってください！</translation>
 		</text>
-	</category>
-	<category id="info">
-		<text id="CultureInfo">
-			<translation lang="zh">zh-CN</translation>
-			<translation lang="en">en-US</translation>
-			<translation lang="es">es-ES</translation>
-			<translation lang="it">it-IT</translation>
-			<translation lang="ja">ja-JP</translation>
-			<translation lang="pt">pt-BR</translation>
-			<translation lang="fr">fr-FR</translation>
-			<translation lang="de">de-DE</translation>
-			<translation lang="ru">ru-RU</translation>
-		</text>
+    <text id="lang">
+      <translation lang="zh">🇨🇳 简体中文</translation>
+      <translation lang="en">🇺🇸 English</translation>
+      <translation lang="de">🇩🇪 Deutsch</translation>
+      <translation lang="fr">🇫🇷 Français</translation>
+      <translation lang="it">🇮🇹 Italiano</translation>
+      <translation lang="ru">🇷🇺 Русский</translation>
+      <translation lang="ja">🇯🇵 日本語</translation>
+    </text>
 	</category>
 </translations>

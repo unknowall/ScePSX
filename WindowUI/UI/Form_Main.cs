@@ -27,7 +27,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX v0.1.8.0";
+        public static string version = "ScePSX v0.1.9.0";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -138,7 +138,6 @@ namespace ScePSX.UI
             KeyFirst = ini.ReadInt("main", "keyfirst") == 1;
             isAnalog = ini.ReadInt("main", "isAnalog") == 1;
 
-            //CultureInfo.CurrentCulture = new CultureInfo("de-DE");
             //Translations.CurrentLangId = "de";
             Translations.DefaultLanguage = "en";
             Translations.Init();
@@ -159,6 +158,7 @@ namespace ScePSX.UI
             SDLHanlder = new SDLHanlder(ini);
 
             InitShaderMnu();
+            InitLangMenu();
 
             BackColor = Color.Black;
             StatusBar.BackColor = Color.White;
@@ -169,6 +169,35 @@ namespace ScePSX.UI
             gpumnu.Enabled = false;
 
             openGLRender.Text = openGLRender.Text + Translations.GetText("recommend");
+        }
+
+        private void InitLangMenu()
+        {
+            foreach (var lang in Translations.Languages)
+            {
+                ToolStripMenuItem item = new ToolStripMenuItem();
+                item.Text = lang.Value;
+                item.Tag = lang.Key;
+                item.Click += LangClick;
+
+                MnuLang.DropDownItems.Add(item);
+            }
+        }
+
+        private void LangClick(object sender, EventArgs e)
+        {
+            if (sender != null)
+            {
+                ToolStripMenuItem item = (ToolStripMenuItem)sender;
+                if (item.Tag != null)
+                {
+                    Translations.CurrentLangId = (string)item.Tag;
+                    Translations.UpdateLang(this);
+                    Translations.UpdateLang(romList);
+                    romList.FillByini();
+                    openGLRender.Text = openGLRender.Text + Translations.GetText("recommend");
+                }
+            }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
