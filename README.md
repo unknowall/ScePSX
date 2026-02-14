@@ -14,10 +14,11 @@
 - **Cheat Support**: Enable cheat codes to unlock hidden content or adjust game difficulty.
 - **Online Multiplayer**: Supports networked gameplay to relive classic gaming experiences.
 - **Save Management**: Easily manage multiple save files.
+- **Cross-platform**: Supports Windows, Linux, macOS
 
 **Short demo video: [Bilibili](https://www.bilibili.com/video/BV1sUKCzcEWg)**
 
-## Performance Overview 🚀
+## 🚀Performance Overview (Tested on the WinUI version)
 
 | Rendering Mode | Memory Usage | Recommended Hardware | Backend Mode          |
 |----------------|--------------|----------------------|-----------------------|
@@ -27,7 +28,7 @@
 | Vulkan         | ~120MB / ~143MB | Modern Devices     | Software / Vulkan     |
 
 **PGXP is supported across software, OpenGL, and Vulkan backends; older systems should enable it with caution.**
-> **Smooth Performance Test**: Runs at 60 FPS on an Intel Celeron i3 3215u. *No gamedb, no reshade，PGXP off.*
+> **Smooth Performance Test(Tested on the WinUI version)**: Runs at 60 FPS on an Intel Celeron i3 3215u. *No gamedb, no reshade，PGXP off.*
 
 > **Hardware Backend**: Better native graphics quality, lower CPU usage  
 > OpenGL requires a GPU supporting OpenGL 3.3+  
@@ -102,7 +103,17 @@ A: Because it requires extra memory to store:
 - Developer's precious hair samples
 
 ### Q: Is cross-platform support available?
-A: Currently, only Windows is supported. Future plans include Linux/macOS support via .NET MAUI or Avalonia.
+A: Yes, the following platforms are supported:
+- **Windows**: x86 / x64 / arm  
+  ⚠️ Note: The Avalonia UI version only supports the x64 architecture.  
+  📌 The Avalonia UI version does not require the .NET runtime to be installed.
+- **Linux**: x64 / arm / arm64 / loongarch64  
+  📌 For Raspberry Pi Zero / Zero W (BCM2835), please choose the arm version.
+- **macOS**: x64 / arm64  
+  ⚠️ Note: To enable the Vulkan rendering backend, MoltenVK must be installed in advance (using the Vulkan backend on macOS is not recommended).  
+  📌 Intel-based Macs → choose the x64 version.  
+  📌 M-series Macs → choose the arm64 version.
+- **📢 Additional note**: For broader platform support, compiling from source is recommended (refer to the various .bat files in the source code's AvaloniaUI directory).
 
 ## How to Build
 1. The project is built on the .NET 8.0 framework with no third-party dependencies.
@@ -117,8 +128,9 @@ We welcome contributions to ScePSX, including code submissions, issue reporting,
 - **Translation Support**: If you’re fluent in other languages, help translate README or UI text.
 
 # Downloads 📥
-- **Lightweight Version (1.05 MB)**: Core features only, ideal for quick testing.
-- **Full Version (5.63 MB)**: Includes all features (e.g., ReShade integration).
+- **WinUI Lightweight Version (1.05 MB)**: Core features only, ideal for quick testing.
+- **WinUI Full Version (5.63 MB)**: Includes all features (e.g., ReShade integration).
+- **AvaloniaUI version (12–30 MB, depending on platform)**
 - **GameDB Database**: Optional download for automatic game configuration recognition.
 - **ControllerDB Database**: Optional download for extended controller support.
 
@@ -138,10 +150,11 @@ ScePSX is an open-source project intended solely for learning and research purpo
 - **金手指支持**: 开启作弊功能，解锁隐藏内容或调整游戏难度。
 - **网络对战**: 支持联机对战，重温经典游戏乐趣。
 - **存档管理**: 方便管理多个游戏存档。
+- **跨平台**: 支持 Windows, Linux, macOS
 
 **简短演示视频：[BiliBili链接](https://www.bilibili.com/video/BV1sUKCzcEWg )**
 
-## 性能表现 🚀
+## 🚀性能表现 (测试于 WinUI 版本) 
 
 | 渲染模式 | 内存占用 | 推荐硬件 | 后端模式          |
 |----------|----------|----------|-------------------|
@@ -151,7 +164,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 | Vulkan   | ~120MB / ~143MB  | 现代设备 | software / Vulkan          |
 
 **PGXP功能在 软件、OpenGL、Vulkan 后端均生效，老机器酌情启用**
-> **流畅运行测试**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, reshade, 不开启PGXP*
+> **流畅运行测试(测试于 WinUI 版本)**: 在 Intel 赛扬 i3 3215u 上以 60 FPS 流畅运行。*不使用gamedb, reshade, 不开启PGXP*
 
 > **硬件后端**: 更好的原生画质，更低的CPU使用率<br>
 > OpenGL 需支持OpenGL 3.3以上的显卡<br>
@@ -234,7 +247,17 @@ A: 因为它需要额外内存来存储：
 - 开发者珍贵的头发样本
 
 ### Q: 是否支持跨平台？
-A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Linux/macOS 支持。
+A: 是的，支持以下各种平台
+- **Windows**：x86 / x64 / arm<br>
+  ⚠️ 注：Avalonia 界面版本仅支持 x64 架构<br>
+  📌Avalonia 界面版本无需安装.NET 运行时<br>
+- **Linux**：x64 / arm / arm64 / loongarch64（龙芯）<br>
+  📌 树莓派 Zero / Zero W（BCM2835 芯片）请选择 arm 版本<br>
+- **macOS**：x64 / arm64<br>
+  ⚠️ 注：若需启用 Vulkan 渲染后端，需提前安装 MoltenVK（不推荐在 macOS 环境下使用 Vulkan 后端）<br>
+  📌 Intel 芯片机型 → 选择 x64 版本<br>
+  📌 M 系列芯片机型 → 选择 arm64 版本<br>
+- **📢 补充说明：如需更多的平台支持，推荐从源码编译（参考源码 AvaloniaUI 目录下各个 .bat 文件）** <br>
 
 ## 如何编译
 1. 项目是.net 8.0 框架，无第三方依赖
@@ -246,7 +269,6 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
 - **提交 Issue**: 在 [Issues](https://github.com/unknowall/ScePSX/issues) 页面报告问题或提出建议。
 - **提交 PR**: Fork 本项目并提交 Pull Request。
-- **翻译支持**: 如果你熟悉其他语言，欢迎帮助翻译 README 或 UI 文本。
 
 - 国内的朋友可以在下面这里提出汉化ROM兼容性问题(感谢miku233, lzsgodmax转载)
 
@@ -255,8 +277,9 @@ A: 目前仅支持 Windows，未来计划通过 .NET MAUI 或 Avalonia 实现 Li
 
 # 下载 📥
 
-- **轻量版 (1.05 MB)**: 仅包含核心功能，适合快速体验。
-- **完整版 (5.63 MB)**: 包含所有功能（如 ReShade 集成）。
+- **WinUI轻量版 (1.05 MB)**: 仅包含核心功能，适合快速体验。
+- **WinUI完整版 (5.63 MB)**: 包含所有功能（如 ReShade 集成）。
+- **AvaloniaUI版 (视平台不同 12~30 MB)**
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
