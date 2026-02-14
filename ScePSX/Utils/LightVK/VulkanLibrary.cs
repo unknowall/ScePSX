@@ -33,12 +33,10 @@ namespace LightVK
             } else if (OperatingSystem.IsLinux())
             {
                 return "libvulkan.so.1";
-            }
-              //else if (OperatingSystem.IsMacOS())
-              //{
-              //    return "libvulkan.dylib";
-              //}
-              else
+            } else if (OperatingSystem.IsMacOS())
+            {
+                return "libvulkan.dylib";
+            } else
             {
                 throw new PlatformNotSupportedException();
             }

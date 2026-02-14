@@ -1,0 +1,73 @@
+<UserControl  xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="800"
+        x:Class="ScePSX.MainView"
+        >
+
+    <Grid RowDefinitions="Auto, *" Background="#121212">
+
+        <!-- 第一行：顶部功能按钮栏 -->
+        <StackPanel Grid.Row="0" 
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Background="#1E1E1E"
+                    VerticalAlignment="Center">
+            
+            <!-- 扫描游戏按钮（突出显示） -->
+            <Button Content="扫描游戏"
+                    Width="80"
+                    Height="40"
+                    Background="#2196F3"
+                    Foreground="White"
+                    CornerRadius="6"
+                    FontSize="14"
+                    Padding="5"/>
+            
+            <!-- 设置按钮 -->
+            <Button Content="设置"
+                    Width="60"
+                    Height="40"
+                    Background="#333333"
+                    Foreground="White"
+                    CornerRadius="6"
+                    FontSize="14"
+                    Padding="5"/>
+            
+            <!-- 金手指按钮 -->
+            <Button Content="金手指"
+                    Width="60"
+                    Height="40"
+                    Background="#333333"
+                    Foreground="White"
+                    CornerRadius="6"
+                    FontSize="14"
+                    Padding="5"/>
+            
+            <!-- 存档管理按钮 -->
+            <Button Content="存档管理"
+                    Width="80"
+                    Height="40"
+                    Background="#333333"
+                    Foreground="White"
+                    CornerRadius="6"
+                    FontSize="14"
+                    Padding="5"/>
+            
+            <!-- 关于按钮 -->
+            <Button Content="关于"
+                    Width="60"
+                    Height="40"
+                    Background="#333333"
+                    Foreground="White"
+                    CornerRadius="6"
+                    FontSize="14"
+                    Padding="5"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
+            
+        </StackPanel>
+    </Grid>
+</UserControl>
