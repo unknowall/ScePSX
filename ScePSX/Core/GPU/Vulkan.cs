@@ -22,6 +22,8 @@ namespace ScePSX
     {
         public GPUType type => GPUType.Vulkan;
 
+        public static string AppPath = ".";
+
         #region VARS
 
         const int VRAM_WIDTH = 1024;
@@ -303,8 +305,8 @@ namespace ScePSX
                 inputRate = VkVertexInputRate.VK_VERTEX_INPUT_RATE_VERTEX
             };
 
-            var drawVertbytes = Device.LoadShaderFile("./Shaders/draw.vert.spv");
-            var drawFragbytes = Device.LoadShaderFile("./Shaders/draw.frag.spv");
+            var drawVertbytes = Device.LoadShaderFile(AppPath + "/Shaders/draw.vert.spv");
+            var drawFragbytes = Device.LoadShaderFile(AppPath + "/Shaders/draw.frag.spv");
 
             drawMain = Device.CreateGraphicsPipeline(
                 drawPass,
@@ -357,8 +359,8 @@ namespace ScePSX
                 size = (uint)sizeof(SrcRectUBO)
             };
 
-            var outVert = Device.LoadShaderFile("./Shaders/out.vert.spv");
-            var outFrag = Device.LoadShaderFile("./Shaders/out.frag.spv");
+            var outVert = Device.LoadShaderFile(AppPath + "/Shaders/out.vert.spv");
+            var outFrag = Device.LoadShaderFile(AppPath + "/Shaders/out.frag.spv");
             SwapChainPipeline = Device.CreateGraphicsPipeline(
                 renderPass,
                 new VkExtent2D(VRAM_WIDTH, VRAM_HEIGHT),

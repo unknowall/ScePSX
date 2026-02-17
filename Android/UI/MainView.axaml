@@ -6,6 +6,13 @@
         x:Class="ScePSX.MainView"
         >
 
+    <UserControl.Styles>
+        <Style Selector="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
     <Grid RowDefinitions="Auto, *" Background="#121212">
 
         <!-- 第一行：顶部功能按钮栏 -->
@@ -16,8 +23,9 @@
                     VerticalAlignment="Center">
             
             <!-- 扫描游戏按钮（突出显示） -->
-            <Button Content="扫描游戏"
-                    Width="80"
+            <Button Content="测试OpenGL"
+                    Click="BtnScan_Click"
+                    MinWidth="80"
                     Height="40"
                     Background="#2196F3"
                     Foreground="White"
@@ -26,8 +34,9 @@
                     Padding="5"/>
             
             <!-- 设置按钮 -->
-            <Button Content="设置"
-                    Width="60"
+            <Button Content="测试软渲染"
+                    Click="BtnSet_Click"
+                    MinWidth="80"
                     Height="40"
                     Background="#333333"
                     Foreground="White"
@@ -36,8 +45,9 @@
                     Padding="5"/>
             
             <!-- 金手指按钮 -->
-            <Button Content="金手指"
-                    Width="60"
+            <Button Content="测试Vulkan"
+                    Click="BtnCheat_Click"
+                    MinWidth="80"
                     Height="40"
                     Background="#333333"
                     Foreground="White"

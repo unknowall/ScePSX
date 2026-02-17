@@ -259,7 +259,7 @@ namespace LightGL.Android
         public const int EGL_ALPHA_FORMAT_NONPRE = EGL_VG_ALPHA_FORMAT_NONPRE;
         public const int EGL_ALPHA_FORMAT_PRE = EGL_VG_ALPHA_FORMAT_PRE;
 
-        const string DLL_EGL = "libEGL";
+        const string DLL_EGL = "libEGL.so";
 
         [DllImport(DLL_EGL), SuppressUnmanagedCodeSecurity]
         public static extern int eglGetError();

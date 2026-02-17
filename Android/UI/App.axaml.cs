@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
@@ -17,6 +16,7 @@ namespace ScePSX
             if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewLifetime)
             {
                 singleViewLifetime.MainView = new MainView();
+                AHelper.MainView = (MainView)singleViewLifetime.MainView;
             }
 
             base.OnFrameworkInitializationCompleted();

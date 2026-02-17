@@ -79,6 +79,7 @@ namespace ScePSX
         public static int ClientWidth, ClientHeight;
         public static bool isResizeed;
         public static int IRScale = 1;
+        public static bool ReCreate = false;
 
         public GPUBackend()
         {
@@ -93,7 +94,7 @@ namespace ScePSX
 
         public void SelectMode(GPUType type)
         {
-            if (GPU?.type == type)
+            if (GPU?.type == type && !ReCreate)
                 return;
 
             DisposeGPU();
@@ -104,6 +105,8 @@ namespace ScePSX
 
                 GPU.Initialize(HWND, HINST, ClientWidth, ClientHeight);
             }
+
+            ReCreate = false;
         }
 
         private void DisposeGPU()

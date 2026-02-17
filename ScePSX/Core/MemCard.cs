@@ -53,13 +53,11 @@ namespace ScePSX
         public MemCard(string memCardFile)
         {
             memCardFilePath = memCardFile;
+
             try
             {
                 memory = File.ReadAllBytes(memCardFilePath);
-
-                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"[MEMCARD] {Path.GetFileName(memCardFilePath)} Loaded.");
-                Console.ResetColor();
             } catch //(Exception e)
             {
                 Console.WriteLine($"[MEMCARD] generate {Path.GetFileName(memCardFilePath)}");

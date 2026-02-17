@@ -77,7 +77,7 @@ namespace ScePSX
         [NonSerialized]
         private unsafe byte* memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
 
-        public BUS(ICoreHandler Host, string BiosFile, string RomFile, GPUType gputype, string diskid = "")
+        public BUS(ICoreHandler Host, string BiosFile, string RomFile, GPUType gputype, string diskid = "", string apppath = ".")
         {
             InitializeJumpTables();
 
@@ -85,9 +85,7 @@ namespace ScePSX
             DiskID = cddata.DiskID;
             if (DiskID == "")
             {
-                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"ISO {RomFile} Non PSX CDROM!");
-                Console.ResetColor();
                 return;
             }
 
@@ -112,8 +110,8 @@ namespace ScePSX
 
             controller1 = new Controller();
             controller2 = new Controller();
-            memoryCard = new MemCard("./Save/" + DiskID + ".dat");
-            memoryCard2 = new MemCard("./Save/MemCard2.dat");
+            memoryCard = new MemCard(apppath + "/Save/" + DiskID + ".dat");
+            memoryCard2 = new MemCard(apppath + "/Save/MemCard2.dat");
             joybus = new JoyBus(controller1, controller2, memoryCard, memoryCard2);
 
             gpu = new GPU(Host, gputype);
@@ -130,9 +128,7 @@ namespace ScePSX
             CDData swapcddata = new CDData(RomFile);
             if (swapcddata.DiskID == "")
             {
-                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"ISO {RomFile} Non PSX CDROM!");
-                Console.ResetColor();
                 return;
             }
             cddata = swapcddata;
@@ -214,16 +210,12 @@ namespace ScePSX
                 byte[] rom = File.ReadAllBytes(biosfile);
                 Marshal.Copy(rom, 0, (IntPtr)biosPtr, rom.Length);
 
-                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"[BIOS] {Path.GetFileName(biosfile)} loaded.");
-                Console.ResetColor();
 
                 return true;
             } catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"[BIOS] {Path.GetFileName(biosfile)} not found.\n" + e.Message);
-
                 return false;
             }
             //write32(0x1F02_0018, 0x1); //Enable exp flag

@@ -49,7 +49,7 @@ namespace LightGL
     public unsafe class GLShader : IDisposable
     {
         private static uint _CurrentProgram = 0;
-        uint Program;
+        public uint Program;
         uint VertexShader;
         uint FragmentShader;
         uint ComputerShader;
@@ -221,11 +221,11 @@ namespace LightGL
             }
         }
 
-        public void Use()
+        public void Use(bool Force = false)
         {
             lock (this)
             {
-                if (_CurrentProgram != Program)
+                if (_CurrentProgram != Program || Force)
                 {
                     GL.UseProgram(Program);
                     _CurrentProgram = Program;

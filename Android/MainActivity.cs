@@ -17,24 +17,26 @@ public class MainActivity : AvaloniaMainActivity<App>
 {
     protected override void OnCreate(Android.OS.Bundle? savedInstanceState)
     {
-        base.OnCreate(savedInstanceState);
-
         SetTheme(Resource.Style.Theme_AppCompat_NoActionBar);
 
-        if (Window != null)
-        {
-            Window.AddFlags(Android.Views.WindowManagerFlags.Fullscreen);
-#pragma warning disable CS0618
-            Window.DecorView.SystemUiVisibility = (Android.Views.StatusBarVisibility)(
-                Android.Views.SystemUiFlags.Fullscreen |
-                Android.Views.SystemUiFlags.HideNavigation |
-                Android.Views.SystemUiFlags.ImmersiveSticky);
-#pragma warning restore CS0618
-        }
+        base.OnCreate(savedInstanceState);
+
+        AHelper.MainActivity = this;
     }
 
     public override void OnBackPressed()
     {
         base.OnBackPressed();
+    }
+
+    public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Android.Content.PM.Permission[] grantResults)
+    {
+        base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001)
+        {
+            bool isGranted = grantResults.Length > 0 && grantResults[0] == Android.Content.PM.Permission.Granted;
+            if (AHelper.MainView != null)
+                AHelper.HasPermission = isGranted;
+        }
     }
 }

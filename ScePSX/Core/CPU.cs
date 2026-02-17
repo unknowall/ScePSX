@@ -147,9 +147,7 @@ namespace ScePSX
         {
             if (PC == 0x00000B0 && GPR[9] == 0x3D || PC == 0x00000A0 && GPR[9] == 0x3C)
             {
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.Write((char)GPR[4]);
-                Console.ResetColor();
             }
         }
 

@@ -15,7 +15,7 @@ namespace ScePSX
             Notice,
             Info,
             Warning,
-            Unimplemented,
+            Disassembler,
             Error,
             Fatal,
         }
@@ -83,22 +83,13 @@ namespace ScePSX
             return this;
         }
 
-        public Logger Notice(object format, params object[] Params)
-        {
-            return Log(Level.Notice, format, Params);
-        }
+        public Logger Notice(object format, params object[] Params) => Log(Level.Notice, format, Params);
 
-        public Logger Info(object format, params object[] Params)
-        {
-            return Log(Level.Info, format, Params);
-        }
+        public Logger Info(object format, params object[] Params) => Log(Level.Info, format, Params);
 
-        public Logger Warning(object format, params object[] Params)
-        {
-            return Log(Level.Warning, format, Params);
-        }
+        public Logger Warning(object format, params object[] Params) => Log(Level.Warning, format, Params);
 
-        public Logger Unimplemented(object format, params object[] Params) => Log(Level.Unimplemented, format, Params);
+        public Logger Disassembler(object format, params object[] Params) => Log(Level.Disassembler, format, Params);
 
         public Logger Error(object format, params object[] Params) => Log(Level.Error, format, Params);
 

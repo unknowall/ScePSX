@@ -904,9 +904,9 @@ namespace ScePSX.Disassembler
 
         private void log(string msg)
         {
-            Console.ForegroundColor = ConsoleColor.Blue;
+            //Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine(msg);
-            Console.ResetColor();
+            //Console.ResetColor();
         }
 
         private string biosOutput(uint addr)

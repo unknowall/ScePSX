@@ -20,10 +20,7 @@ namespace ScePSX.CdRom
         public CdDisk(string filepath, string diskid)
         {
             this.DiskID = diskid;
-            ConsoleColor previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Yellow;
             Tracks = BuildTracks(filepath);
-            Console.ForegroundColor = previousColor;
         }
 
         private List<CdTrack> BuildTracks(string filepath)

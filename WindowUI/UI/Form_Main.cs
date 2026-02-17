@@ -27,7 +27,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX v0.1.9.0";
+        public static string version = "ScePSX v0.1.9.1";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -274,10 +274,12 @@ namespace ScePSX.UI
 
             if (Core.GPU.type == GPUType.OpenGL && AutoIR)
             {
+                GPUBackend.IRScale = IRscale;
                 (Core.GPU as OpenglGPU).IRScale = IRscale;
             }
             if (Core.GPU.type == GPUType.Vulkan && AutoIR)
             {
+                GPUBackend.IRScale = IRscale;
                 (Core.GPU as VulkanGPU).IRScale = IRscale;
             }
 
@@ -724,9 +726,11 @@ namespace ScePSX.UI
                 switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
                     case GPUType.OpenGL:
+                        GPUBackend.IRScale = IRscale;
                         (Core.GPU as OpenglGPU).IRScale = IRscale;
                         break;
                     case GPUType.Vulkan:
+                        GPUBackend.IRScale = IRscale;
                         (Core.GPU as VulkanGPU).IRScale = IRscale;
                         break;
                     default:
@@ -750,9 +754,11 @@ namespace ScePSX.UI
                 switch (Core.PsxBus.gpu.Backend.GPU.type)
                 {
                     case GPUType.OpenGL:
+                        GPUBackend.IRScale = IRscale;
                         (Core.GPU as OpenglGPU).IRScale = IRscale;
                         break;
                     case GPUType.Vulkan:
+                        GPUBackend.IRScale = IRscale;
                         (Core.GPU as VulkanGPU).IRScale = IRscale;
                         break;
                     default:
@@ -1129,6 +1135,7 @@ namespace ScePSX.UI
                 GPUBackend.HINST = NullRenderer.hinstance;
                 GPUBackend.ClientHeight = NullRenderer.ClientHeight;
                 GPUBackend.ClientWidth = NullRenderer.ClientWidth;
+                GPUBackend.IRScale = IRscale;
             }
             else if ((gpumode == GPUType.Vulkan || gpumode == GPUType.Advite) && Rendermode == RenderMode.Vulkan)
             {
@@ -1140,6 +1147,7 @@ namespace ScePSX.UI
                 GPUBackend.HINST = NullRenderer.hinstance;
                 GPUBackend.ClientHeight = NullRenderer.ClientHeight;
                 GPUBackend.ClientWidth = NullRenderer.ClientWidth;
+                GPUBackend.IRScale = IRscale;
             }
             else
             {
@@ -1174,6 +1182,7 @@ namespace ScePSX.UI
                 (Core.GPU as OpenglGPU).PGXPT = PGXPT;
                 (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
                 (Core.GPU as OpenglGPU).RealColor = Realcolor;
+                GPUBackend.IRScale = IRscale;
             }
             else if ((gpumode == GPUType.Vulkan || gpumode == GPUType.Advite) && Rendermode == RenderMode.Vulkan)
             {
@@ -1183,6 +1192,7 @@ namespace ScePSX.UI
                 (Core.GPU as VulkanGPU).PGXPT = PGXPT;
                 (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
                 (Core.GPU as VulkanGPU).RealColor = Realcolor;
+                GPUBackend.IRScale = IRscale;
             }
             else
             {

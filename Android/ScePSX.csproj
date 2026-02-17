@@ -6,19 +6,23 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<ApplicationTitle>ScePSX</ApplicationTitle>
 		<ApplicationId>com.unknowall.ScePSX</ApplicationId>
-		<ApplicationDisplayVersion>0.1.9.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>0.1.9.1</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PublishTrimmed>true</PublishTrimmed>
     <AvaloniaTrimMode>full</AvaloniaTrimMode>
     <TrimMode>full</TrimMode>
-    <Platforms>AnyCPU;ARM64;ARM32</Platforms>
+    <Platforms>AnyCPU;ARM64;ARM32;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateAndroidManifest>false</GenerateAndroidManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
   </PropertyGroup>
@@ -34,6 +38,10 @@
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM32'">
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
@@ -42,6 +50,22 @@
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+    <RuntimeIdentifiers>android-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+  
+<PropertyGroup>
+    <!-- 禁用AOT编译 -->
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <!-- 启用解释器 -->
+    <UseInterpreter>true</UseInterpreter>
+    <!-- 启用JIT -->
+    <AndroidEnableJIT>true</AndroidEnableJIT>
+  
+    <AndroidUseNativeRuntime>true</AndroidUseNativeRuntime>
+    <AndroidFastDeploymentType>Assemblies</AndroidFastDeploymentType>
+</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.11" />

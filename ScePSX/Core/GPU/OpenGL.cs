@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using LightGL;
@@ -24,6 +25,8 @@ namespace ScePSX
         public GPUType type => GPUType.OpenGL;
 
         int _ThreadID;
+        bool isAndroid;
+        PixelType TexType = PixelType.UnsignedShort1555Rev;
 
         bool isDisposed = false;
 
@@ -194,6 +197,13 @@ namespace ScePSX
 
             _DeviceContext = GlContextFactory.CreateFromWindowHandle(HWND);
 
+            if (OperatingSystem.IsAndroid())
+            {
+                GLShaderStrings.SetAndroidShaders();
+                isAndroid = true;
+                TexType = PixelType.UnsignedShort5551;
+            }
+
             VertexsBuffer = GLBuffer.Create<Vertex>(BufferTarget.ArrayBuffer, BufferUsage.StreamDraw, 1024);
 
             DrawShader = new GLShader(GLShaderStrings.DrawVertix, GLShaderStrings.DrawFragment);
@@ -313,16 +323,13 @@ namespace ScePSX
                 GetVRamTextureWidth(),
                 GetVRamTextureHeight(),
                 PixelFormat.DepthComponent,
-                PixelType.Short,
+                PixelType.UnsignedShort,
                 null
             );
 
             DrawFB = GLFrameBuffer.Create();
-
             DrawFB.AttachTexture(FramebufferAttachment.ColorAttachment0, DrawTexture);
-
             DrawFB.AttachTexture(FramebufferAttachment.DepthAttachment, DrawDepthTexture);
-
             DrawFB.Unbind();
 
             ReadTexture = GLTexture2D.Create().SetData(
@@ -333,13 +340,10 @@ namespace ScePSX
                 PixelType.UnsignedByte,
                 null
             );
-
             ReadTexture.SetWrap(TextureWrapMode.Repeat);
 
             ReadFB = GLFrameBuffer.Create();
-
             ReadFB.AttachTexture(FramebufferAttachment.ColorAttachment0, ReadTexture);
-
             ReadFB.Unbind();
         }
 
@@ -466,7 +470,7 @@ namespace ScePSX
 
             if (!dir.Exists)
             {
-                Console.WriteLine($"[OPENGL] Shader directory not found: {ShaderDir}");
+                Console.WriteLine($"[OpenGL GPU] Shader directory not found: {ShaderDir}");
                 return;
             }
 
@@ -1021,13 +1025,13 @@ namespace ScePSX
                     readWidth,
                     readHeight,
                     PixelFormat.Rgba,
-                    PixelType.UnsignedShort1555Rev,
+                    TexType, //PixelType.UnsignedShort1555Rev
                     null
                 );
             }
 
             if (!TransferFB.IsComplete())
-                Console.WriteLine("[OPENGL GPU] Error: VRAMtoCPU Framebuffer is incomplete.");
+                Console.WriteLine("[OpenGL GPU] Error: VRAMtoCPU Framebuffer is incomplete.");
 
             TransferFB.Bind(FramebufferTarget.DrawFramebuffer);
 
@@ -1057,10 +1061,14 @@ namespace ScePSX
                 0, 0,
                 readWidth, readHeight,
                 (int)PixelFormat.Rgba,
-                (int)PixelType.UnsignedShort1555Rev,
+                (int)TexType, //PixelType.UnsignedShort1555Rev
                 (VRAM + readBounds.Left + readBounds.Top * VRAM_WIDTH)
             );
-
+            if (isAndroid)
+            {
+                ushort* ptr = (ushort*)(VRAM + readBounds.Left + readBounds.Top * VRAM_WIDTH);
+                Ps5551toPs1555(ptr, readWidth, readHeight);
+            }
             // 恢复渲染状态
             DrawFB.Bind();
 
@@ -1068,6 +1076,54 @@ namespace ScePSX
 
             GL.PixelStorei((int)PixelStoreParameter.PackAlignment, 4);
             GL.PixelStorei((int)PixelStoreParameter.PackRowLength, 0);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void Ps5551toPs1555(ushort* ptr, int width, int height)
+        {
+            int pixelCount = width * height;
+
+            for (int i = 0; i < pixelCount; i++)
+            {
+                ushort pixel = ptr[i];
+                // 5551:  RRRRR GGGGG BBBBB A
+                // 1555Rev: A BBBBB GGGGG RRRRR
+                int r = (pixel >> 11) & 0x1F;
+                int g = (pixel >> 6) & 0x1F;
+                int b = (pixel >> 1) & 0x1F;
+                int a = pixel & 0x1;
+
+                ptr[i] = (ushort)(
+                    (a << 15) |     // A
+                    (b << 10) |     // B
+                    (g << 5) |      // G
+                    r               // R
+                );
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void Ps1555toPs5551(ushort* ptr, int width, int height)
+        {
+            //Convert 1555Rev -> 5551
+            int pixelCount = width * height;
+            for (int i = 0; i < pixelCount; i++)
+            {
+                ushort pixel = ptr[i];
+                // 1555Rev: A B G R
+                // 5551:    R G B A
+                int a = (pixel >> 15) & 0x1;
+                int b = (pixel >> 10) & 0x1F;
+                int g = (pixel >> 5) & 0x1F;
+                int r = pixel & 0x1F;
+
+                ptr[i] = (ushort)(
+                    (r << 11) |
+                    (g << 6) |
+                    (b << 1) |
+                    a
+                );
+            }
         }
 
         public unsafe void CopyRectCPUtoVRAM(int left, int top, int width, int height)
@@ -1086,18 +1142,24 @@ namespace ScePSX
             bool wrapX = (left + width) > VRAM_WIDTH;
             bool wrapY = (top + height) > VRAM_HEIGHT;
 
+            ushort* ptr = (ushort*)(VRAM + left + top * width);
+
             if (!wrapX && !wrapY && !CheckMaskBit && !ForceSetMaskBit && resolutionScale == 1)
             {
+                if (isAndroid)
+                {
+                    Ps1555toPs5551(ptr, width, height);
+                }
                 //Console.WriteLine($"[OpenGL GPU] CPUtoVRAM 1 {left} {top} [ {width} x {height} ]");
                 DrawTexture.SubData(
-                    (int)left,
-                    (int)top,
-                    (int)width,
-                    (int)height,
-                    PixelFormat.Rgba,
-                    PixelType.UnsignedShort1555Rev,
-                    (VRAM + left + top * width)
-                );
+                        (int)left,
+                        (int)top,
+                        (int)width,
+                        (int)height,
+                        PixelFormat.Rgba,
+                        TexType, //PixelType.UnsignedShort1555Rev
+                        ptr
+                    );
 
                 ResetDepthBuffer();
 
@@ -1106,13 +1168,17 @@ namespace ScePSX
                 //Console.WriteLine($"[OpenGL GPU] CPUtoVRAM 2 {left} {top} [ {width} x {height} ]");
                 UpdateCurrentDepth();
 
+                if (isAndroid)
+                {
+                    Ps1555toPs5551(ptr, width, height);
+                }
                 TransferTexture.SetData(
                     InternalFormat.Rgba,
                     (int)width,
                     (int)height,
                     PixelFormat.Rgba,
-                    PixelType.UnsignedShort1555Rev,
-                    (VRAM + left + top * width)
+                    TexType, //PixelType.UnsignedShort1555Rev
+                    ptr
                 );
 
                 // 计算宽度和高度的分段

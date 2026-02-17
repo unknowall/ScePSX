@@ -1,0 +1,1511 @@
+﻿<translations>
+  <category id="menus">
+    <text id="MnuFile">
+      <translation lang="en">File(_F)</translation>
+      <translation lang="zh">文件(_F)</translation>
+      <translation lang="de">Datei(_F)</translation>
+      <translation lang="fr">Fichier(_F)</translation>
+      <translation lang="it">File(_F)</translation>
+      <translation lang="ru">Файл(_F)</translation>
+      <translation lang="ja">ファイル(_F)</translation>
+    </text>
+    <text id="LoadDIsk">
+      <translation lang="en">Load Game</translation>
+      <translation lang="zh">加载游戏</translation>
+      <translation lang="de">Spiel laden</translation>
+      <translation lang="fr">Charger le jeu</translation>
+      <translation lang="it">Carica gioco</translation>
+      <translation lang="ru">Загрузить игру</translation>
+      <translation lang="ja">ゲームを読み込む</translation>
+    </text>
+    <text id="SwapDisk">
+      <translation lang="en">Change disc</translation>
+      <translation lang="zh">更换光盘</translation>
+      <translation lang="de">Disc wechseln</translation>
+      <translation lang="fr">Changer de disque</translation>
+      <translation lang="it">Cambia disco</translation>
+      <translation lang="ru">Сменить диск</translation>
+      <translation lang="ja">ディスクを交換</translation>
+    </text>
+    <text id="CloseRomMnu">
+      <translation lang="en">Close Game</translation>
+      <translation lang="zh">返回列表</translation>
+      <translation lang="de">Spiel schließen</translation>
+      <translation lang="fr">Fermer le jeu</translation>
+      <translation lang="it">Chiudi gioco</translation>
+      <translation lang="ru">Закрыть игру</translation>
+      <translation lang="ja">ゲームを閉じる（リストに戻る）</translation>
+    </text>
+    <text id="SearchMnu">
+      <translation lang="en">Search Games</translation>
+      <translation lang="zh">扫描目录</translation>
+      <translation lang="de">Spiele suchen</translation>
+      <translation lang="fr">Rechercher des jeux</translation>
+      <translation lang="it">Cerca giochi</translation>
+      <translation lang="ru">Поиск игр</translation>
+      <translation lang="ja">ゲームをスキャン</translation>
+    </text>
+    <text id="SysSetMnu">
+      <translation lang="en">Options</translation>
+      <translation lang="zh">系统设置</translation>
+      <translation lang="de">Systemeinstellungen</translation>
+      <translation lang="fr">Paramètres système</translation>
+      <translation lang="it">Impostazioni di sistema</translation>
+      <translation lang="ru">Системные настройки</translation>
+      <translation lang="ja">システム設定</translation>
+    </text>
+    <text id="KeyTool">
+      <translation lang="en">Key config</translation>
+      <translation lang="zh">按键设置</translation>
+      <translation lang="de">Tastaturbelegung</translation>
+      <translation lang="fr">Configuration des touches</translation>
+      <translation lang="it">Configura tasti</translation>
+      <translation lang="ru">Настройка клавиш</translation>
+      <translation lang="ja">キー設定</translation>
+    </text>
+    <text id="MnuSaveState">
+      <translation lang="en">Save state (F5)</translation>
+      <translation lang="zh">即时存档 (F5)</translation>
+      <translation lang="de">Spielfortschritt speichern (F5)</translation>
+      <translation lang="fr">Enregistrer l'état (F5)</translation>
+      <translation lang="it">Salva stato (F5)</translation>
+      <translation lang="ru">Сохранить состояние (F5)</translation>
+      <translation lang="ja">インスタントセーブ (F5)</translation>
+    </text>
+    <text id="MnuLoadState">
+      <translation lang="en">Load state (F6)</translation>
+      <translation lang="zh">即时读取 (F6)</translation>
+      <translation lang="de">Spielfortschritt laden (F6)</translation>
+      <translation lang="fr">Charger l'état (F6)</translation>
+      <translation lang="it">Carica stato (F6)</translation>
+      <translation lang="ru">Загрузить состояние (F6)</translation>
+      <translation lang="ja">インスタントロード (F6)</translation>
+    </text>
+    <text id="MnuUnloadState">
+      <translation lang="en">Undo state load</translation>
+      <translation lang="zh">撤销读取 (F7)</translation>
+      <translation lang="de">Laden des Spielfortschritts rückgängig machen (F7)</translation>
+      <translation lang="fr">Annuler le chargement de l'état (F7)</translation>
+      <translation lang="it">Annulla caricamento stato (F7)</translation>
+      <translation lang="ru">Отменить загрузку состояния (F7)</translation>
+      <translation lang="ja">ロードを取り消す (F7)</translation>
+    </text>
+    <text id="CheatCode">
+      <translation lang="en">Cheat codes</translation>
+      <translation lang="zh">金手指</translation>
+      <translation lang="de">Cheat-Codes</translation>
+      <translation lang="fr">Codes triche</translation>
+      <translation lang="it">Codici cheat</translation>
+      <translation lang="ru">Чит-коды</translation>
+      <translation lang="ja">チートコード</translation>
+    </text>
+    <text id="MemEditMnu">
+      <translation lang="en">Search memory</translation>
+      <translation lang="zh">内存编辑</translation>
+      <translation lang="de">Speicher bearbeiten</translation>
+      <translation lang="fr">Éditer la mémoire</translation>
+      <translation lang="it">Modifica memoria</translation>
+      <translation lang="ru">Редактирование памяти</translation>
+      <translation lang="ja">メモリエディット</translation>
+    </text>
+    <text id="FreeSpeed">
+      <translation lang="en">Unlock speed (TAB)</translation>
+      <translation lang="zh">加速快进 (TAB)</translation>
+      <translation lang="de">Geschwindigkeit freischalten (TAB)</translation>
+      <translation lang="fr">Déverrouiller la vitesse (TAB)</translation>
+      <translation lang="it">Sblocca velocità (TAB)</translation>
+      <translation lang="ru">Разблокировать скорость (TAB)</translation>
+      <translation lang="ja">速度解除 (TAB)</translation>
+    </text>
+    <text id="MnuPause">
+      <translation lang="en">Pause (space)</translation>
+      <translation lang="zh">暂停/继续 (空格)</translation>
+      <translation lang="de">Pause (Leertaste)</translation>
+      <translation lang="fr">Pause (espace)</translation>
+      <translation lang="it">Pausa (spazio)</translation>
+      <translation lang="ru">Пауза (пробел)</translation>
+      <translation lang="ja">ポーズ/再開 (スペース)</translation>
+    </text>
+    <text id="MnuRender">
+      <translation lang="en">Render(_R)</translation>
+      <translation lang="zh">渲染器(_R)</translation>
+      <translation lang="de">Renderer(_R)</translation>
+      <translation lang="fr">Renderiseur(_R)</translation>
+      <translation lang="it">Renderer(_R)</translation>
+      <translation lang="ru">Рендер(_R)</translation>
+      <translation lang="ja">レンダラー(_R)</translation>
+    </text>
+    <text id="CutBlackLineMnu">
+      <translation lang="en">Remove Letterbox Borders (May Affect Aspect Ratio)</translation>
+      <translation lang="zh">裁剪上下黑边(可能造成失真)</translation>
+      <translation lang="de">Letterbox-Ränder entfernen (kann das Seitenverhältnis beeinträchtigen)</translation>
+      <translation lang="fr">Supprimer les bordures letterbox (peut affecter le ratio d'aspect)</translation>
+      <translation lang="it">Rimuovi bordi letterbox (può alterare il rapporto di aspetto)</translation>
+      <translation lang="ru">Убрать черные рамки (может нарушить соотношение сторон)</translation>
+      <translation lang="ja">上下の黒帯を削除（アスペクト比が崩れる場合があります）</translation>
+    </text>
+    <text id="frameskipmnu">
+      <translation lang="en">Frame Skip (Only for D2D/D3D)</translation>
+      <translation lang="zh">跳帧 (只对 D2D/D3D)</translation>
+      <translation lang="de">Frame-Skip (nur für D2D/D3D)</translation>
+      <translation lang="fr">Saut de trames (seulement pour D2D/D3D)</translation>
+      <translation lang="it">Salto frame (solo per D2D/D3D)</translation>
+      <translation lang="ru">Пропуск кадров (только для D2D/D3D)</translation>
+      <translation lang="ja">フレームスキップ (D2D/D3Dのみ)</translation>
+    </text>
+    <text id="NetPlaySetMnu">
+      <translation lang="en">NetPlay</translation>
+      <translation lang="zh">网络对战</translation>
+      <translation lang="de">Netzwerkspiel</translation>
+      <translation lang="fr">Jeu en réseau</translation>
+      <translation lang="it">Gioco online</translation>
+      <translation lang="ru">Сетевая игра</translation>
+      <translation lang="ja">ネットプレイ</translation>
+    </text>
+    <text id="MnuTools">
+      <translation lang="en">Tools(_T)</translation>
+      <translation lang="zh">工具(_T)</translation>
+      <translation lang="de">Werkzeuge(_T)</translation>
+      <translation lang="fr">Outils(_T)</translation>
+      <translation lang="it">Strumenti(_T)</translation>
+      <translation lang="ru">Инструменты(_T)</translation>
+      <translation lang="ja">ツール(_T)</translation>
+    </text>
+    <text id="McrEditMnu">
+      <translation lang="en">Memory Card Management</translation>
+      <translation lang="zh">存储卡管理</translation>
+      <translation lang="de">Speicherkartenverwaltung</translation>
+      <translation lang="fr">Gestion des cartes mémoire</translation>
+      <translation lang="it">Gestione schede di memoria</translation>
+      <translation lang="ru">Управление картами памяти</translation>
+      <translation lang="ja">メモリーカード管理</translation>
+    </text>
+    <text id="AboutMnu">
+      <translation lang="en">About(_A)</translation>
+      <translation lang="zh">关于(_A)</translation>
+      <translation lang="de">Über(_A)</translation>
+      <translation lang="fr">À propos(_A)</translation>
+      <translation lang="it">Informazioni(_A)</translation>
+      <translation lang="ru">О программе(_A)</translation>
+      <translation lang="ja">について(_A)</translation>
+    </text>
+    <text id="HelpMnu">
+      <translation lang="en">Help(_H)</translation>
+      <translation lang="zh">帮助(_H)</translation>
+      <translation lang="de">Hilfe(_H)</translation>
+      <translation lang="fr">Aide(_H)</translation>
+      <translation lang="it">Aiuto(_H)</translation>
+      <translation lang="ru">Справка(_H)</translation>
+      <translation lang="ja">ヘルプ(_H)</translation>
+    </text>
+    <text id="MnuLang">
+      <translation lang="en">Language(_L)</translation>
+      <translation lang="zh">语言(_L)</translation>
+      <translation lang="de">Sprache(_L)</translation>
+      <translation lang="fr">Langue(_L)</translation>
+      <translation lang="it">Lingua(_L)</translation>
+      <translation lang="ru">Язык(_L)</translation>
+      <translation lang="ja">言語(_L)</translation>
+    </text>
+    <text id="fullScreenF2">
+      <translation lang="en">Full Screen (F2)</translation>
+      <translation lang="zh">全屏模式 (F2)</translation>
+      <translation lang="de">Vollbild (F2)</translation>
+      <translation lang="fr">Écran complet (F2)</translation>
+      <translation lang="it">Schermo intero (F2)</translation>
+      <translation lang="ru">Полноэкранный режим (F2)</translation>
+      <translation lang="ja">フルスクリーン (F2)</translation>
+    </text>
+    <text id="supportKoficomMnu">
+      <translation lang="en">Support via Ko-Fi</translation>
+      <translation lang="zh">通过Ko-Fi支持本项目</translation>
+      <translation lang="de">Unterstützung via Ko-Fi</translation>
+      <translation lang="fr">Soutenir via Ko-Fi</translation>
+      <translation lang="it">Supporta via Ko-Fi</translation>
+      <translation lang="ru">Поддержать через Ko-Fi</translation>
+      <translation lang="ja">Ko-Fiでプロジェクトをサポート</translation>
+    </text>
+    <text id="supportWeChatMnu">
+      <translation lang="en">Support via WeChat</translation>
+      <translation lang="zh">通过微信支持本项目</translation>
+      <translation lang="de">Unterstützung via WeChat</translation>
+      <translation lang="fr">Soutenir via WeChat</translation>
+      <translation lang="it">Supporta via WeChat</translation>
+      <translation lang="ru">Поддержать через WeChat</translation>
+      <translation lang="ja">WeChatでプロジェクトをサポート</translation>
+    </text>
+    <text id="iniEditMnu">
+      <translation lang="en">Individual Settings</translation>
+      <translation lang="zh">独立设置</translation>
+      <translation lang="de">Individuelle Einstellungen</translation>
+      <translation lang="fr">Paramètres individuels</translation>
+      <translation lang="it">Impostazioni individuali</translation>
+      <translation lang="ru">Индивидуальные настройки</translation>
+      <translation lang="ja">個別設定</translation>
+    </text>
+    <text id="ConsoleMnu">
+      <translation lang="en">Open Console</translation>
+      <translation lang="zh">打开控制台</translation>
+      <translation lang="de">Konsole öffnen</translation>
+      <translation lang="fr">Ouvrir la console</translation>
+      <translation lang="it">Apri console</translation>
+      <translation lang="ru">Открыть консоль</translation>
+      <translation lang="ja">コンソールを開く</translation>
+    </text>
+  </category>
+  <category id="radios">
+    <text id="rbfloat">
+      <translation lang="en">Float</translation>
+      <translation lang="zh">Float</translation>
+      <translation lang="de">Float</translation>
+      <translation lang="fr">Float</translation>
+      <translation lang="it">Float</translation>
+      <translation lang="ru">Float</translation>
+      <translation lang="ja">Float</translation>
+    </text>
+    <text id="rbDword">
+      <translation lang="en">DWORD</translation>
+      <translation lang="zh">DWORD</translation>
+      <translation lang="de">DWORD</translation>
+      <translation lang="fr">DWORD</translation>
+      <translation lang="it">DWORD</translation>
+      <translation lang="ru">DWORD</translation>
+      <translation lang="ja">DWORD</translation>
+    </text>
+    <text id="rbWord">
+      <translation lang="en">WORD</translation>
+      <translation lang="zh">WORD</translation>
+      <translation lang="de">WORD</translation>
+      <translation lang="fr">WORD</translation>
+      <translation lang="it">WORD</translation>
+      <translation lang="ru">WORD</translation>
+      <translation lang="ja">WORD</translation>
+    </text>
+    <text id="rbbyte">
+      <translation lang="en">Byte</translation>
+      <translation lang="zh">Byte</translation>
+      <translation lang="de">Byte</translation>
+      <translation lang="fr">Byte</translation>
+      <translation lang="it">Byte</translation>
+      <translation lang="ru">Byte</translation>
+      <translation lang="ja">Byte</translation>
+    </text>
+  </category>
+  <category id="labels">
+    <text id="labPGXP">
+      <translation lang="en">Settings apply instantly. Avoid for 2D games</translation>
+      <translation lang="zh">所有选项保存后即时生效。2D游戏建议关闭PGXP</translation>
+      <translation lang="de">Einstellungen werden sofort angewendet. Für 2D-Spiele deaktivieren</translation>
+      <translation lang="fr">Les paramètres s'appliquent immédiatement. Éviter pour les jeux 2D</translation>
+      <translation lang="it">Le impostazioni si applicano istantaneamente. Evitare per i giochi 2D</translation>
+      <translation lang="ru">Настройки применяются мгновенно. Не использовать для 2D игр</translation>
+      <translation lang="ja">すべての設定は保存後即時に有効になります。2DゲームではPGXPをオフにすることを推奨</translation>
+    </text>
+    <text id="labnethint">
+      <translation lang="en">netplay closed</translation>
+      <translation lang="zh">未启动网络对战</translation>
+      <translation lang="de">Netzwerkspiel deaktiviert</translation>
+      <translation lang="fr">Jeu en réseau fermé</translation>
+      <translation lang="it">Gioco online disattivato</translation>
+      <translation lang="ru">Сетевая игра не запущена</translation>
+      <translation lang="ja">ネットプレイは起動していません</translation>
+    </text>
+    <text id="labClientIP">
+      <translation lang="en">As Server IP</translation>
+      <translation lang="zh">作为主机时的IP地址</translation>
+      <translation lang="de">Als Server-IP</translation>
+      <translation lang="fr">En tant qu'IP de serveur</translation>
+      <translation lang="it">Come IP del server</translation>
+      <translation lang="ru">IP как сервер</translation>
+      <translation lang="ja">ホストとしてのIPアドレス</translation>
+    </text>
+    <text id="labHostIP">
+      <translation lang="en">Connect IP</translation>
+      <translation lang="zh">目标主机的IP地址</translation>
+      <translation lang="de">Verbindungs-IP</translation>
+      <translation lang="fr">IP de connexion</translation>
+      <translation lang="it">IP di connessione</translation>
+      <translation lang="ru">IP целевого хоста</translation>
+      <translation lang="ja">対象ホストのIPアドレス</translation>
+    </text>
+    <text id="labFirst500">
+      <translation lang="en">0 Results</translation>
+      <translation lang="zh">搜索到 0 个地址</translation>
+      <translation lang="de">0 Ergebnisse</translation>
+      <translation lang="fr">0 résultats</translation>
+      <translation lang="it">0 risultati</translation>
+      <translation lang="ru">0 адресов найдено</translation>
+      <translation lang="ja">0個のアドレスを検索</translation>
+    </text>
+    <text id="labscantype">
+      <translation lang="en">Search Type</translation>
+      <translation lang="zh">搜索类型</translation>
+      <translation lang="de">Suchtyp</translation>
+      <translation lang="fr">Type de recherche</translation>
+      <translation lang="it">Tipo di ricerca</translation>
+      <translation lang="ru">Тип поиска</translation>
+      <translation lang="ja">検索種別</translation>
+    </text>
+    <text id="labSearch">
+      <translation lang="en">Search Value</translation>
+      <translation lang="zh">内存搜索</translation>
+      <translation lang="de">Speichersuche</translation>
+      <translation lang="fr">Recherche dans la mémoire</translation>
+      <translation lang="it">Cerca nella memoria</translation>
+      <translation lang="ru">Поиск в памяти</translation>
+      <translation lang="ja">メモリ検索</translation>
+    </text>
+    <text id="labPressKey">
+      <translation lang="en">Press any key| ESC to cancel</translation>
+      <translation lang="zh">按下任意键，ESC取消</translation>
+      <translation lang="de">Beliebige Taste drücken | ESC zum Abbrechen</translation>
+      <translation lang="fr">Appuyez sur n'importe quelle touche | ESC pour annuler</translation>
+      <translation lang="it">Premi qualsiasi tasto | ESC per annullare</translation>
+      <translation lang="ru">Нажмите любую клавишу | ESC для отмены</translation>
+      <translation lang="ja">任意のキーを押してください、ESCでキャンセル</translation>
+    </text>
+    <text id="labSoftScale">
+      <translation lang="en">SoftGPU Scale</translation>
+      <translation lang="zh">软件后端缩放</translation>
+      <translation lang="de">SoftGPU-Skalierung</translation>
+      <translation lang="fr">Mise à l'échelle SoftGPU</translation>
+      <translation lang="it">Scala SoftGPU</translation>
+      <translation lang="ru">Масштабирование программного GPU</translation>
+      <translation lang="ja">ソフトウェアバックエンドスケーリング</translation>
+    </text>
+    <text id="labCycleFix">
+      <translation lang="en">Cycle fix</translation>
+      <translation lang="zh">时序修正</translation>
+      <translation lang="de">Zykluskorrektur</translation>
+      <translation lang="fr">Correction de cycle</translation>
+      <translation lang="it">Correzione ciclo</translation>
+      <translation lang="ru">Исправление тайминга</translation>
+      <translation lang="ja">タイミング修正</translation>
+    </text>
+    <text id="labFrameLimit">
+      <translation lang="en">Frame limit</translation>
+      <translation lang="zh">帧率限制</translation>
+      <translation lang="de">Frame-Limit</translation>
+      <translation lang="fr">Limite de trames</translation>
+      <translation lang="it">Limite frame</translation>
+      <translation lang="ru">Ограничение кадров в секунду</translation>
+      <translation lang="ja">フレームレート制限</translation>
+    </text>
+    <text id="labFrameSkip">
+      <translation lang="en">SoftGPU Frame skip</translation>
+      <translation lang="zh">SoftGPU 跳帧</translation>
+      <translation lang="de">SoftGPU Frame-Skip</translation>
+      <translation lang="fr">Saut de trames SoftGPU</translation>
+      <translation lang="it">Salto frame SoftGPU</translation>
+      <translation lang="ru">Пропуск кадров SoftGPU</translation>
+      <translation lang="ja">SoftGPU フレームスキップ</translation>
+    </text>
+    <text id="labAudioBuff">
+      <translation lang="en">AudioBuff(ms)</translation>
+      <translation lang="zh">音频缓冲(ms)</translation>
+      <translation lang="de">Audio-Puffer (ms)</translation>
+      <translation lang="fr">Mémoire tampon audio (ms)</translation>
+      <translation lang="it">Buffer audio (ms)</translation>
+      <translation lang="ru">Аудиобуфер (мс)</translation>
+      <translation lang="ja">オーディオバッファ(ms)</translation>
+    </text>
+    <text id="labCpuTick">
+      <translation lang="en">CPU Tick</translation>
+      <translation lang="zh">CPU执行</translation>
+      <translation lang="de">CPU-Tick</translation>
+      <translation lang="fr">Tick du CPU</translation>
+      <translation lang="it">Tick CPU</translation>
+      <translation lang="ru">Выполнение CPU</translation>
+      <translation lang="ja">CPU実行</translation>
+    </text>
+    <text id="labBusTick">
+      <translation lang="en">BUS Tick</translation>
+      <translation lang="zh">总线执行</translation>
+      <translation lang="de">BUS-Tick</translation>
+      <translation lang="fr">Tick du BUS</translation>
+      <translation lang="it">Tick BUS</translation>
+      <translation lang="ru">Выполнение шины</translation>
+      <translation lang="ja">バス実行</translation>
+    </text>
+    <text id="labSetHint">
+      <translation lang="en">Adjust only if experienced</translation>
+      <translation lang="zh">只修改清楚作用的设置</translation>
+      <translation lang="de">Nur anpassen, wenn erfahren</translation>
+      <translation lang="fr">Ajuster uniquement si expérimenté</translation>
+      <translation lang="it">Regola solo se esperto</translation>
+      <translation lang="ru">Изменяйте только если понимаете назначение</translation>
+      <translation lang="ja">作用が明確な設定のみ変更してください</translation>
+    </text>
+    <text id="labIRScale">
+      <translation lang="en">IR Scale</translation>
+      <translation lang="zh">内部分辨率</translation>
+      <translation lang="de">IR-Skalierung</translation>
+      <translation lang="fr">Échelle de résolution interne</translation>
+      <translation lang="it">Scala risoluzione interna</translation>
+      <translation lang="ru">Внутренняя разрешение</translation>
+      <translation lang="ja">内部解像度</translation>
+    </text>
+    <text id="labcore">
+      <translation lang="en">Core</translation>
+      <translation lang="zh">核心</translation>
+      <translation lang="de">Kern</translation>
+      <translation lang="fr">Noyau</translation>
+      <translation lang="it">Core</translation>
+      <translation lang="ru">Ядро</translation>
+      <translation lang="ja">コア</translation>
+    </text>
+    <text id="labgrap">
+      <translation lang="en">Graphics</translation>
+      <translation lang="zh">图形</translation>
+      <translation lang="de">Grafik</translation>
+      <translation lang="fr">Graphiques</translation>
+      <translation lang="it">Grafica</translation>
+      <translation lang="ru">Графика</translation>
+      <translation lang="ja">グラフィック</translation>
+    </text>
+    <text id="labpref">
+      <translation lang="en">Performance</translation>
+      <translation lang="zh">性能</translation>
+      <translation lang="de">Leistung</translation>
+      <translation lang="fr">Performance</translation>
+      <translation lang="it">Prestazioni</translation>
+      <translation lang="ru">Производительность</translation>
+      <translation lang="ja">パフォーマンス</translation>
+    </text>
+    <text id="labButtonMap">
+      <translation lang="en">🎮 Button Mapping</translation>
+      <translation lang="zh">🎮 按键映射</translation>
+      <translation lang="de">🎮 Tastenbelegung</translation>
+      <translation lang="fr">🎮 Mappage des touches</translation>
+      <translation lang="it">🎮 Assegnazione tasti</translation>
+      <translation lang="ru">🎮 Привязка кнопок</translation>
+      <translation lang="ja">🎮 ボタンマッピング</translation>
+    </text>
+    <text id="labController">
+      <translation lang="en">Controller</translation>
+      <translation lang="zh">控制器</translation>
+      <translation lang="de">Controller</translation>
+      <translation lang="fr">Manette</translation>
+      <translation lang="it">Controller</translation>
+      <translation lang="ru">Контроллер</translation>
+      <translation lang="ja">コントローラー</translation>
+    </text>
+    <text id="labDPad">
+      <translation lang="en">D-Pad</translation>
+      <translation lang="zh">方向键</translation>
+      <translation lang="de">D-Pad</translation>
+      <translation lang="fr">D-Pad</translation>
+      <translation lang="it">D-Pad</translation>
+      <translation lang="ru">Кнопки направления</translation>
+      <translation lang="ja">十字キー</translation>
+    </text>
+    <text id="labActButton">
+      <translation lang="en">⚡ Action Buttons</translation>
+      <translation lang="zh">⚡ 动作按键</translation>
+      <translation lang="de">⚡ Aktionstasten</translation>
+      <translation lang="fr">⚡ Boutons d'action</translation>
+      <translation lang="it">⚡ Pulsanti azione</translation>
+      <translation lang="ru">⚡ Кнопки действий</translation>
+      <translation lang="ja">⚡ アクションボタン</translation>
+    </text>
+    <text id="labSquadbutton">
+      <translation lang="en">□ Square</translation>
+      <translation lang="zh">□ 方块</translation>
+      <translation lang="de">□ Quadrat</translation>
+      <translation lang="fr">□ Carré</translation>
+      <translation lang="it">□ Quadrato</translation>
+      <translation lang="ru">□ Квадрат</translation>
+      <translation lang="ja">□ スクエア</translation>
+    </text>
+    <text id="labTributton">
+      <translation lang="en">△ Triangle</translation>
+      <translation lang="zh">△ 三角</translation>
+      <translation lang="de">△ Dreieck</translation>
+      <translation lang="fr">△ Triangle</translation>
+      <translation lang="it">△ Triangolo</translation>
+      <translation lang="ru">△ Треугольник</translation>
+      <translation lang="ja">△ トライアングル</translation>
+    </text>
+    <text id="labXbutton">
+      <translation lang="en">× Cross</translation>
+      <translation lang="zh">× 交叉</translation>
+      <translation lang="de">× Kreuz</translation>
+      <translation lang="fr">× Croix</translation>
+      <translation lang="it">× Croce</translation>
+      <translation lang="ru">× Крест</translation>
+      <translation lang="ja">× クロス</translation>
+    </text>
+    <text id="labOButton">
+      <translation lang="en">○ Circle</translation>
+      <translation lang="zh">○ 圆圈</translation>
+      <translation lang="de">○ Kreis</translation>
+      <translation lang="fr">○ Cercle</translation>
+      <translation lang="it">○ Cerchio</translation>
+      <translation lang="ru">○ Круг</translation>
+      <translation lang="ja">○ サークル</translation>
+    </text>
+    <text id="labcodelist">
+      <translation lang="en">📋 Cheat Code List</translation>
+      <translation lang="zh">📋 金手指列表</translation>
+      <translation lang="de">📋 Cheat-Code-Liste</translation>
+      <translation lang="fr">📋 Liste de codes triche</translation>
+      <translation lang="it">📋 Elenco codici cheat</translation>
+      <translation lang="ru">📋 Список чит-кодов</translation>
+      <translation lang="ja">📋 チートコードリスト</translation>
+    </text>
+    <text id="labcodeedit">
+      <translation lang="en">✏️ Code Editing</translation>
+      <translation lang="zh">✏️ 代码编辑</translation>
+      <translation lang="de">✏️ Codebearbeitung</translation>
+      <translation lang="fr">✏️ Édition de codes</translation>
+      <translation lang="it">✏️ Modifica codici</translation>
+      <translation lang="ru">✏️ Редактирование кодов</translation>
+      <translation lang="ja">✏️ コード編集</translation>
+    </text>
+    <text id="labmcrhint">
+      <translation lang="en">Save to apply; close to cancel</translation>
+      <translation lang="zh">所有操作保存后生效，关闭窗口即取消操作</translation>
+      <translation lang="de">Speichern zum Anwenden; Schließen zum Abbrechen</translation>
+      <translation lang="fr">Enregistrer pour appliquer; fermer pour annuler</translation>
+      <translation lang="it">Salva per applicare; chiudi per annullare</translation>
+      <translation lang="ru">Сохраните для применения; закройте для отмены</translation>
+      <translation lang="ja">保存で適用、終了でキャンセル</translation>
+    </text>
+  </category>
+  <category id="groups">
+    <text id="gbst">
+      <translation lang="en">Value Type</translation>
+      <translation lang="zh">搜索类型</translation>
+      <translation lang="de">Werttyp</translation>
+      <translation lang="fr">Type de valeur</translation>
+      <translation lang="it">Tipo di valore</translation>
+      <translation lang="ru">Тип значения</translation>
+      <translation lang="ja">検索タイプ</translation>
+    </text>
+  </category>
+  <category id="checks">
+    <text id="chkpgxp">
+      <translation lang="en">PGXP Features (Recommended for 3D)</translation>
+      <translation lang="zh">PGXP 基础功能 （3D游戏推荐开启）</translation>
+      <translation lang="de">PGXP Basisfunktionen (empfohlen für 3D)</translation>
+      <translation lang="fr">Fonctions PGXP de base (recommandé pour le 3D)</translation>
+      <translation lang="it">Funzioni base PGXP (consigliato per il 3D)</translation>
+      <translation lang="ru">Базовые функции PGXP (рекомендуется для 3D)</translation>
+      <translation lang="ja">PGXP 基本機能（オンにすることを推奨）</translation>
+    </text>
+    <text id="chkpgxp_aff">
+      <translation lang="en">PGXP Affine Correction (No issues in most cases)</translation>
+      <translation lang="zh">PGXP 仿射矫正 （大多数情况没有问题）</translation>
+      <translation lang="de">PGXP Affine Korrektur (keine Probleme in den meisten Fällen)</translation>
+      <translation lang="fr">Correction affine PGXP (pas de problèmes dans la plupart des cas)</translation>
+      <translation lang="it">Correzione affine PGXP (nessun problema nella maggior parte dei casi)</translation>
+      <translation lang="ru">Аффинная коррекция PGXP (в большинстве случаев без проблем)</translation>
+      <translation lang="ja">PGXP アフィン補正（ほとんどのケースで問題なし）</translation>
+    </text>
+    <text id="chkpgxp_nc">
+      <translation lang="en">PGXP Color Correction (Some games may have color issues)</translation>
+      <translation lang="zh">PGXP 着色矫正 （少量游戏可能出现颜色异常）</translation>
+      <translation lang="de">PGXP Farbkorrektur (einige Spiele können Farbprobleme haben)</translation>
+      <translation lang="fr">Correction de couleur PGXP (certains jeux peuvent avoir des problèmes de couleur)</translation>
+      <translation lang="it">Correzione colore PGXP (alcuni giochi potrebbero avere problemi di colore)</translation>
+      <translation lang="ru">Цветовая коррекция PGXP (у некоторых игр могут быть цветовые ошибки)</translation>
+      <translation lang="ja">PGXP カラー補正（一部のゲームで色異常が発生する場合があります）</translation>
+    </text>
+    <text id="chkpgxp_memcap">
+      <translation lang="en">PGXP Coordinate Capture (may cause texture errors)</translation>
+      <translation lang="zh">PGXP 内存坐标捕获 （可能造成贴图错位）</translation>
+      <translation lang="de">PGXP Koordinatenaufnahme (kann Texturfehler verursachen)</translation>
+      <translation lang="fr">Capture de coordonnées PGXP (peut causer des erreurs de texture)</translation>
+      <translation lang="it">Cattura coordinate PGXP (può causare errori di texture)</translation>
+      <translation lang="ru">Перехват координат PGXP (может вызвать ошибки текстур)</translation>
+      <translation lang="ja">PGXP メモリ座標キャプチャ（テクスチャの位置ずれが発生する場合があります）</translation>
+    </text>
+    <text id="chkpgxp_clip">
+      <translation lang="en">PGXP Clipping Fix (may cause missing textures)</translation>
+      <translation lang="zh">PGXP 裁剪纠正（可能造成贴图丢失）</translation>
+      <translation lang="de">PGXP Clipping-Korrektur (kann fehlende Texturen verursachen)</translation>
+      <translation lang="fr">Correction de recadrage PGXP (peut causer des textures manquantes)</translation>
+      <translation lang="it">Correzione clipping PGXP (può causare texture mancanti)</translation>
+      <translation lang="ru">Исправление обрезки PGXP (может привести к потере текстур)</translation>
+      <translation lang="ja">PGXP クリッピング修正（テクスチャの消失が発生する場合があります）</translation>
+    </text>
+    <text id="chkpgxp_highpos">
+      <translation lang="en">PGXP High-Precision Rendering (recommended, low risk)</translation>
+      <translation lang="zh">PGXP 高精度渲染 （ 推荐开启，极少兼容问题 ）</translation>
+      <translation lang="de">PGXP Hochpräzisions-Rendering (empfohlen, geringes Risiko)</translation>
+      <translation lang="fr">Rendu haute précision PGXP (recommandé, faible risque)</translation>
+      <translation lang="it">Rendering alta precisione PGXP (consigliato, basso rischio)</translation>
+      <translation lang="ru">Высокоточное рендеринг (рекомендуется, минимальные проблемы совместимости)</translation>
+      <translation lang="ja">PGXP 高精度レンダリング（オンにすることを推奨、互換性の問題は極めて少ない）</translation>
+    </text>
+    <text id="chkpgxp_ppc">
+      <translation lang="en">PGXP Color Correction (Some games may have color issues)</translation>
+      <translation lang="zh">PGXP 着色矫正 （ 少量游戏可能出现颜色异常 ）</translation>
+      <translation lang="de">PGXP Farbkorrektur (einige Spiele können Farbprobleme haben)</translation>
+      <translation lang="fr">Correction de couleur PGXP (certains jeux peuvent avoir des problèmes de couleur)</translation>
+      <translation lang="it">Correzione colore PGXP (alcuni giochi potrebbero avere problemi di colore)</translation>
+      <translation lang="ru">Цветовая коррекция PGXP (у некоторых игр могут быть цветовые ошибки)</translation>
+      <translation lang="ja">PGXP カラー補正（一部のゲームで色異常が発生する場合があります）</translation>
+    </text>
+    <text id="chkpgxp_avs">
+      <translation lang="en">PGXP Average Depth (recommended, minimal issues)</translation>
+      <translation lang="zh">PGXP 平均深度（ 推荐开启，极少兼容问题 ）</translation>
+      <translation lang="de">PGXP Durchschnittliche Tiefe (empfohlen, minimale Probleme)</translation>
+      <translation lang="fr">Profondeur moyenne PGXP (recommandé, problèmes minimaux)</translation>
+      <translation lang="it">Profondità media PGXP (consigliato, problemi minimi)</translation>
+      <translation lang="ru">Средняя глубина PGXP (рекомендуется, минимальные проблемы)</translation>
+      <translation lang="ja">PGXP 平均深度（オンにすることを推奨、互換性の問題は極めて少ない）</translation>
+    </text>
+    <text id="chkconsole">
+      <translation lang="en">Debug Console</translation>
+      <translation lang="zh">输出调试信息</translation>
+      <translation lang="de">Debug-Konsole</translation>
+      <translation lang="fr">Console de débogage</translation>
+      <translation lang="it">Console debug</translation>
+      <translation lang="ru">Отладочная консоль</translation>
+      <translation lang="ja">デバッグ情報を出力</translation>
+    </text>
+    <text id="chkupd">
+      <translation lang="en">Auto Refresh</translation>
+      <translation lang="zh">自动刷新</translation>
+      <translation lang="de">Automatische Aktualisierung</translation>
+      <translation lang="fr">Actualisation automatique</translation>
+      <translation lang="it">Aggiornamento automatico</translation>
+      <translation lang="ru">Автоматическое обновление</translation>
+      <translation lang="ja">自動更新</translation>
+    </text>
+    <text id="chkkeepar">
+      <translation lang="en">4:3 AR</translation>
+      <translation lang="zh">保持 4:3</translation>
+      <translation lang="de">4:3 Seitenverhältnis beibehalten</translation>
+      <translation lang="fr">Conserver 4:3</translation>
+      <translation lang="it">Mantieni 4:3</translation>
+      <translation lang="ru">Сохранить 4:3</translation>
+      <translation lang="ja">4:3を保持</translation>
+    </text>
+    <text id="ChkFMV">
+      <translation lang="en">24Bit FMV</translation>
+      <translation lang="zh">24位色 FMV</translation>
+      <translation lang="de">24-Bit FMV</translation>
+      <translation lang="fr">FMV 24 bits</translation>
+      <translation lang="it">FMV 24 bit</translation>
+      <translation lang="ru">24-битное FMV</translation>
+      <translation lang="ja">24ビットカラー FMV</translation>
+    </text>
+    <text id="chkpgxpt">
+      <translation lang="en">Fix Triangle</translation>
+      <translation lang="zh">三角形过滤</translation>
+      <translation lang="de">Dreieckfilterung</translation>
+      <translation lang="fr">Filtrage de triangles</translation>
+      <translation lang="it">Filtro triangoli</translation>
+      <translation lang="ru">Фильтрация треугольников</translation>
+      <translation lang="ja">トライアングルフィルタリング</translation>
+    </text>
+    <text id="chkrealcolor">
+      <translation lang="en">True Color</translation>
+      <translation lang="zh">真彩色渲染</translation>
+      <translation lang="de">True Color-Rendering</translation>
+      <translation lang="fr">Rendu True Color</translation>
+      <translation lang="it">Rendering True Color</translation>
+      <translation lang="ru">Рендеринг в истинном цвете</translation>
+      <translation lang="ja">トゥルーカラーレンダリング</translation>
+    </text>
+  </category>
+  <category id="buttons">
+    <text id="btncli">
+      <translation lang="en">🖥️ As Client</translation>
+      <translation lang="zh">🖥️ 作为客户机启动</translation>
+      <translation lang="de">🖥️ Als Client starten</translation>
+      <translation lang="fr">🖥️ Démarrer en tant que client</translation>
+      <translation lang="it">🖥️ Avvia come client</translation>
+      <translation lang="ru">🖥️ Запустить как клиент</translation>
+      <translation lang="ja">🖥️ クライアントとして起動</translation>
+    </text>
+    <text id="btnsrv">
+      <translation lang="en">🚀 As Server</translation>
+      <translation lang="zh">🚀 作为主机启动</translation>
+      <translation lang="de">🚀 Als Server starten</translation>
+      <translation lang="fr">🚀 Démarrer en tant que serveur</translation>
+      <translation lang="it">🚀 Avvia come server</translation>
+      <translation lang="ru">🚀 Запустить как сервер</translation>
+      <translation lang="ja">🚀 ホストとして起動</translation>
+    </text>
+    <text id="BtnSave">
+      <translation lang="en">💾 Save</translation>
+      <translation lang="zh">💾 保存</translation>
+      <translation lang="de">💾 Anwenden</translation>
+      <translation lang="fr">💾 Appliquer</translation>
+      <translation lang="it">💾 Applica</translation>
+      <translation lang="ru">💾 Применить</translation>
+      <translation lang="ja">💾 保存</translation>
+    </text>
+    <text id="BtnReset">
+      <translation lang="en">↺ Reset</translation>
+      <translation lang="zh">↺ 重置</translation>
+      <translation lang="de">↺ Zurücksetzen</translation>
+      <translation lang="fr">↺ Réinitialiser</translation>
+      <translation lang="it">↺ Reimposta</translation>
+      <translation lang="ru">↺ Сбросить</translation>
+      <translation lang="ja">↺ リセット</translation>
+    </text>
+    <text id="btndel">
+      <translation lang="en">Defaults</translation>
+      <translation lang="zh">使用全局设置</translation>
+      <translation lang="de">Standardwerte verwenden</translation>
+      <translation lang="fr">Utiliser les paramètres globaux</translation>
+      <translation lang="it">Usa impostazioni globali</translation>
+      <translation lang="ru">Использовать глобальные настройки</translation>
+      <translation lang="ja">グローバル設定を使用</translation>
+    </text>
+    <text id="btnupd">
+      <translation lang="en">Refresh</translation>
+      <translation lang="zh">刷新</translation>
+      <translation lang="de">Aktualisieren</translation>
+      <translation lang="fr">Actualiser</translation>
+      <translation lang="it">Aggiorna</translation>
+      <translation lang="ru">Обновить</translation>
+      <translation lang="ja">更新</translation>
+    </text>
+    <text id="btngo">
+      <translation lang="en">GO</translation>
+      <translation lang="zh">前往地址</translation>
+      <translation lang="de">Zu Adresse</translation>
+      <translation lang="fr">Aller à l'adresse</translation>
+      <translation lang="it">Vai all'indirizzo</translation>
+      <translation lang="ru">Перейти к адресу</translation>
+      <translation lang="ja">アドレスに移動</translation>
+    </text>
+    <text id="btns">
+      <translation lang="en">Find</translation>
+      <translation lang="zh">搜索</translation>
+      <translation lang="de">Suchen</translation>
+      <translation lang="fr">Rechercher</translation>
+      <translation lang="it">Cerca</translation>
+      <translation lang="ru">Найти</translation>
+      <translation lang="ja">検索</translation>
+    </text>
+    <text id="btnr">
+      <translation lang="en">Reset</translation>
+      <translation lang="zh">重置</translation>
+      <translation lang="de">Zurücksetzen</translation>
+      <translation lang="fr">Réinitialiser</translation>
+      <translation lang="it">Reimposta</translation>
+      <translation lang="ru">Сбросить</translation>
+      <translation lang="ja">リセット</translation>
+    </text>
+    <text id="btnformat1">
+      <translation lang="en">💽 Format</translation>
+      <translation lang="zh">💽 格式化</translation>
+      <translation lang="de">💽 Formatieren</translation>
+      <translation lang="fr">💽 Formater</translation>
+      <translation lang="it">💽 Formatta</translation>
+      <translation lang="ru">💽 Форматировать</translation>
+      <translation lang="ja">💽 フォーマット</translation>
+    </text>
+    <text id="btnformat2">
+      <translation lang="en">💽 Format</translation>
+      <translation lang="zh">💽 格式化</translation>
+      <translation lang="de">💽 Formatieren</translation>
+      <translation lang="fr">💽 Formater</translation>
+      <translation lang="it">💽 Formatta</translation>
+      <translation lang="ru">💽 Форматировать</translation>
+      <translation lang="ja">💽 フォーマット</translation>
+    </text>
+    <text id="del1">
+      <translation lang="en">🗑️ Delete</translation>
+      <translation lang="zh">🗑️ 删除选中</translation>
+      <translation lang="de">🗑️ Ausgewähltes löschen</translation>
+      <translation lang="fr">🗑️ Supprimer la sélection</translation>
+      <translation lang="it">🗑️ Elimina selezionato</translation>
+      <translation lang="ru">🗑️ Удалить выбранное</translation>
+      <translation lang="ja">🗑️ 選択したものを削除</translation>
+    </text>
+    <text id="del2">
+      <translation lang="en">🗑️ Delete</translation>
+      <translation lang="zh">🗑️ 删除选中</translation>
+      <translation lang="de">🗑️ Ausgewähltes löschen</translation>
+      <translation lang="fr">🗑️ Supprimer la sélection</translation>
+      <translation lang="it">🗑️ Elimina selezionato</translation>
+      <translation lang="ru">🗑️ Удалить выбранное</translation>
+      <translation lang="ja">🗑️ 選択したものを削除</translation>
+    </text>
+    <text id="out1">
+      <translation lang="en">📤 Export</translation>
+      <translation lang="zh">📤 导出</translation>
+      <translation lang="de">📤 Exportieren</translation>
+      <translation lang="fr">📤 Exporter</translation>
+      <translation lang="it">📤 Esporta</translation>
+      <translation lang="ru">📤 Экспорт</translation>
+      <translation lang="ja">📤 エクスポート</translation>
+    </text>
+    <text id="out2">
+      <translation lang="en">📤 Export</translation>
+      <translation lang="zh">📤 导出</translation>
+      <translation lang="de">📤 Exportieren</translation>
+      <translation lang="fr">📤 Exporter</translation>
+      <translation lang="it">📤 Esporta</translation>
+      <translation lang="ru">📤 Экспорт</translation>
+      <translation lang="ja">📤 エクスポート</translation>
+    </text>
+    <text id="save1">
+      <translation lang="en">💾 Save</translation>
+      <translation lang="zh">💾 保存修改</translation>
+      <translation lang="de">💾 Änderungen speichern</translation>
+      <translation lang="fr">💾 Enregistrer les modifications</translation>
+      <translation lang="it">💾 Salva modifiche</translation>
+      <translation lang="ru">💾 Сохранить изменения</translation>
+      <translation lang="ja">💾 変更を保存</translation>
+    </text>
+    <text id="save2">
+      <translation lang="en">💾 Save</translation>
+      <translation lang="zh">💾 保存修改</translation>
+      <translation lang="de">💾 Änderungen speichern</translation>
+      <translation lang="fr">💾 Enregistrer les modifications</translation>
+      <translation lang="it">💾 Salva modifiche</translation>
+      <translation lang="ru">💾 Сохранить изменения</translation>
+      <translation lang="ja">💾 変更を保存</translation>
+    </text>
+    <text id="btnimport1">
+      <translation lang="en">📂 Import</translation>
+      <translation lang="zh">📂 导入</translation>
+      <translation lang="de">📂 Importieren</translation>
+      <translation lang="fr">📂 Importer</translation>
+      <translation lang="it">📂 Importa</translation>
+      <translation lang="ru">📂 Импорт</translation>
+      <translation lang="ja">📂 インポート</translation>
+    </text>
+    <text id="btnimport2">
+      <translation lang="en">📂 Import</translation>
+      <translation lang="zh">📂 导入</translation>
+      <translation lang="de">📂 Importieren</translation>
+      <translation lang="fr">📂 Importer</translation>
+      <translation lang="it">📂 Importa</translation>
+      <translation lang="ru">📂 Импорт</translation>
+      <translation lang="ja">📂 インポート</translation>
+    </text>
+    <text id="btnadd">
+      <translation lang="en">➕ add</translation>
+      <translation lang="zh">➕ 增加</translation>
+      <translation lang="de">➕ Hinzufügen</translation>
+      <translation lang="fr">➕ Ajouter</translation>
+      <translation lang="it">➕ Aggiungi</translation>
+      <translation lang="ru">➕ Добавить</translation>
+      <translation lang="ja">➕ 追加</translation>
+    </text>
+    <text id="btndel">
+      <translation lang="en">🗑️ del</translation>
+      <translation lang="zh">🗑️ 删除</translation>
+      <translation lang="de">🗑️ Löschen</translation>
+      <translation lang="fr">🗑️ Supprimer</translation>
+      <translation lang="it">🗑️ Elimina</translation>
+      <translation lang="ru">🗑️ Удалить</translation>
+      <translation lang="ja">🗑️ 削除</translation>
+    </text>
+    <text id="btnload">
+      <translation lang="en">📂 Load</translation>
+      <translation lang="zh">📂 读取</translation>
+      <translation lang="de">📂 Laden</translation>
+      <translation lang="fr">📂 Charger</translation>
+      <translation lang="it">📂 Carica</translation>
+      <translation lang="ru">📂 Загрузить</translation>
+      <translation lang="ja">📂 読み込む</translation>
+    </text>
+    <text id="btnimp">
+      <translation lang="en">📂 Import</translation>
+      <translation lang="zh">📂 导入</translation>
+      <translation lang="de">📂 Importieren</translation>
+      <translation lang="fr">📂 Importer</translation>
+      <translation lang="it">📂 Importa</translation>
+      <translation lang="ru">📂 Импорт</translation>
+      <translation lang="ja">📂 インポート</translation>
+    </text>
+    <text id="btnapply">
+      <translation lang="en">⚡ Apply</translation>
+      <translation lang="zh">⚡ 应用金手指</translation>
+      <translation lang="de">⚡ Cheat-Codes anwenden</translation>
+      <translation lang="fr">⚡ Appliquer les codes triche</translation>
+      <translation lang="it">⚡ Applica codici cheat</translation>
+      <translation lang="ru">⚡ Применить чит-коды</translation>
+      <translation lang="ja">⚡ チートコードを適用</translation>
+    </text>
+    <text id="BtnSearchCheat">
+      <translation lang="en">🌐 Fetch Cheats Online</translation>
+      <translation lang="zh">🌐 下载金手指</translation>
+      <translation lang="de">🌐 Cheat-Codes online abrufen</translation>
+      <translation lang="fr">🌐 Télécharger des codes triche en ligne</translation>
+      <translation lang="it">🌐 Recupera cheat online</translation>
+      <translation lang="ru">🌐 Загрузить чит-коды онлайн</translation>
+      <translation lang="ja">🌐 チートコードをダウンロード</translation>
+    </text>
+  </category>
+  <category id="forms">
+    <text id="FrmCheat">
+      <translation lang="en">Codes</translation>
+      <translation lang="zh">金手指</translation>
+      <translation lang="de">Cheat-Codes</translation>
+      <translation lang="fr">Codes triche</translation>
+      <translation lang="it">Codici cheat</translation>
+      <translation lang="ru">Чит-коды</translation>
+      <translation lang="ja">のチートコード</translation>
+    </text>
+    <text id="FrmMcrMange">
+      <translation lang="en">Memcard Mange</translation>
+      <translation lang="zh">内存卡管理</translation>
+      <translation lang="de">Speicherkartenverwaltung</translation>
+      <translation lang="fr">Gestion de carte mémoire</translation>
+      <translation lang="it">Gestione scheda di memoria</translation>
+      <translation lang="ru">Управление картой памяти</translation>
+      <translation lang="ja">メモリーカード管理</translation>
+    </text>
+    <text id="FrmKeyConfig">
+      <translation lang="en">Keyboard Config</translation>
+      <translation lang="zh">按键设置</translation>
+      <translation lang="de">Tastaturkonfiguration</translation>
+      <translation lang="fr">Configuration du clavier</translation>
+      <translation lang="it">Configura tastiera</translation>
+      <translation lang="ru">Настройка клавиатуры</translation>
+      <translation lang="ja">キー設定</translation>
+    </text>
+    <text id="FrmAbout">
+      <translation lang="en">About...</translation>
+      <translation lang="zh">关于...</translation>
+      <translation lang="de">Über...</translation>
+      <translation lang="fr">À propos...</translation>
+      <translation lang="it">Informazioni...</translation>
+      <translation lang="ru">О программе...</translation>
+      <translation lang="ja">について...</translation>
+    </text>
+    <text id="FrmMemEdit">
+      <translation lang="en">Memory Editor</translation>
+      <translation lang="zh">内存编辑</translation>
+      <translation lang="de">Speichereditor</translation>
+      <translation lang="fr">Éditeur de mémoire</translation>
+      <translation lang="it">Editor memoria</translation>
+      <translation lang="ru">Редактор памяти</translation>
+      <translation lang="ja">メモリエディッタ</translation>
+    </text>
+    <text id="FrmNetPlay">
+      <translation lang="en">NetPlay</translation>
+      <translation lang="zh">对战</translation>
+      <translation lang="de">Netzwerkspiel</translation>
+      <translation lang="fr">Jeu en réseau</translation>
+      <translation lang="it">Gioco online</translation>
+      <translation lang="ru">Сетевая игра</translation>
+      <translation lang="ja">対戦</translation>
+    </text>
+    <text id="FrmSetting">
+      <translation lang="en">Settings</translation>
+      <translation lang="zh">设置</translation>
+      <translation lang="de">Einstellungen</translation>
+      <translation lang="fr">Paramètres</translation>
+      <translation lang="it">Impostazioni</translation>
+      <translation lang="ru">Настройки</translation>
+      <translation lang="ja">設定</translation>
+    </text>
+  </category>
+  <category id="texts">
+    <text id="cpuPerf">
+      <translation lang="en">Performance</translation>
+      <translation lang="zh">性能优化模式</translation>
+      <translation lang="de">Leistungsmodus</translation>
+      <translation lang="fr">Mode performance</translation>
+      <translation lang="it">Modalità prestazioni</translation>
+      <translation lang="ru">Режим оптимизации производительности</translation>
+      <translation lang="ja">パフォーマンス最適化モード</translation>
+    </text>
+    <text id="cpuNormal">
+      <translation lang="en">Normal</translation>
+      <translation lang="zh">完整指令模式</translation>
+      <translation lang="de">Vollständiger Befehlsmodus</translation>
+      <translation lang="fr">Mode instruction complet</translation>
+      <translation lang="it">Modalità istruzioni complete</translation>
+      <translation lang="ru">Режим полных инструкций</translation>
+      <translation lang="ja">完全命令モード</translation>
+    </text>
+    <text id="Adaptive">
+      <translation lang="en">Adaptive</translation>
+      <translation lang="zh">自适应</translation>
+      <translation lang="de">Adaptiv</translation>
+      <translation lang="fr">Adaptatif</translation>
+      <translation lang="it">Adattivo</translation>
+      <translation lang="ru">Адаптивный</translation>
+      <translation lang="ja">アダプティブ</translation>
+    </text>
+    <text id="Form_Cheat_newitem">
+      <translation lang="en">New Address</translation>
+      <translation lang="zh">新建项，请修改名称</translation>
+      <translation lang="de">Neuer Eintrag, bitte Namen ändern</translation>
+      <translation lang="fr">Nouvel élément, veuillez modifier le nom</translation>
+      <translation lang="it">Nuovo elemento, modifica il nome</translation>
+      <translation lang="ru">Новый элемент, измените имя</translation>
+      <translation lang="ja">新規項目、名前を変更してください</translation>
+    </text>
+    <text id="ColAddress">
+      <translation lang="en">Address</translation>
+      <translation lang="zh">地址</translation>
+      <translation lang="de">Adresse</translation>
+      <translation lang="fr">Adresse</translation>
+      <translation lang="it">Indirizzo</translation>
+      <translation lang="ru">Адрес</translation>
+      <translation lang="ja">アドレス</translation>
+    </text>
+    <text id="ColValue">
+      <translation lang="en">Value</translation>
+      <translation lang="zh">数值</translation>
+      <translation lang="de">Wert</translation>
+      <translation lang="fr">Valeur</translation>
+      <translation lang="it">Valore</translation>
+      <translation lang="ru">Значение</translation>
+      <translation lang="ja">数値</translation>
+    </text>
+    <text id="recommend">
+      <translation lang="en">(recommended)</translation>
+      <translation lang="zh">(推荐)</translation>
+      <translation lang="de">(empfohlen)</translation>
+      <translation lang="fr">(recommandé)</translation>
+      <translation lang="it">(consigliato)</translation>
+      <translation lang="ru">(рекомендуется)</translation>
+      <translation lang="ja">(推奨)</translation>
+    </text>
+    <text id="SaveSlot">
+      <translation lang="en">StateSlot</translation>
+      <translation lang="zh">存档槽</translation>
+      <translation lang="de">Speicherslot</translation>
+      <translation lang="fr">Emplacement de sauvegarde</translation>
+      <translation lang="it">Slot salvataggio</translation>
+      <translation lang="ru">Слот сохранения</translation>
+      <translation lang="ja">セーブスロット</translation>
+    </text>
+    <text id="KeyFirst">
+      <translation lang="en">Key First</translation>
+      <translation lang="zh">键盘优先</translation>
+      <translation lang="de">Tastatur zuerst</translation>
+      <translation lang="fr">Clavier en premier</translation>
+      <translation lang="it">Tastiera prima</translation>
+      <translation lang="ru">Клавиатура первым</translation>
+      <translation lang="ja">キーボード優先</translation>
+    </text>
+    <text id="JoyFirst">
+      <translation lang="en">Joy First</translation>
+      <translation lang="zh">手柄优先</translation>
+      <translation lang="de">Joystick zuerst</translation>
+      <translation lang="fr">Manette en premier</translation>
+      <translation lang="it">Joystick prima</translation>
+      <translation lang="ru">Джойстик первым</translation>
+      <translation lang="ja">コントローラー優先</translation>
+    </text>
+    <text id="Analog">
+      <translation lang="en">Analog</translation>
+      <translation lang="zh">模拟手柄</translation>
+      <translation lang="de">Analoger Joystick</translation>
+      <translation lang="fr">Manette analogique</translation>
+      <translation lang="it">Joystick analogico</translation>
+      <translation lang="ru">Аналоговый джойстик</translation>
+      <translation lang="ja">アナログコントローラー</translation>
+    </text>
+    <text id="Digital">
+      <translation lang="en">Digital</translation>
+      <translation lang="zh">数字手柄</translation>
+      <translation lang="de">Digitaler Joystick</translation>
+      <translation lang="fr">Manette numérique</translation>
+      <translation lang="it">Joystick digitale</translation>
+      <translation lang="ru">Цифровой джойстик</translation>
+      <translation lang="ja">デジタルコントローラー</translation>
+    </text>
+    <text id="Pause">
+      <translation lang="en">PAUSE</translation>
+      <translation lang="zh">暂停中</translation>
+      <translation lang="de">PAUSE</translation>
+      <translation lang="fr">PAUSE</translation>
+      <translation lang="it">PAUSA</translation>
+      <translation lang="ru">ПАУЗА</translation>
+      <translation lang="ja">ポーズ中</translation>
+    </text>
+    <text id="FrmMain_SaveState_saved">
+      <translation lang="en">State Saved</translation>
+      <translation lang="zh">保存即时存档</translation>
+      <translation lang="de">Zustand gespeichert</translation>
+      <translation lang="fr">État enregistré</translation>
+      <translation lang="it">Stato salvato</translation>
+      <translation lang="ru">Состояние сохранено</translation>
+      <translation lang="ja">インスタントセーブに保存しました</translation>
+    </text>
+    <text id="FrmMain_SaveState_load">
+      <translation lang="en">State Loaded</translation>
+      <translation lang="zh">加载即时存档</translation>
+    </text>
+    <text id="FrmMain_SaveState_unload">
+      <translation lang="en">Cancel Load</translation>
+      <translation lang="zh">回滚即时存档</translation>
+    </text>
+    <text id="FrmMain_LoadRom_nobios">
+      <translation lang="en">Oops</translation>
+      <translation lang="zh">没有BIOS文件，无法运行</translation>
+      <translation lang="de">Keine BIOS-Datei gefunden, kann nicht ausgeführt werden</translation>
+      <translation lang="fr">Aucun fichier BIOS trouvé, impossible de lancer</translation>
+      <translation lang="it">Nessun file BIOS trovato, impossibile avviare</translation>
+      <translation lang="ru">Файл BIOS не найден, запуск невозможен</translation>
+      <translation lang="ja">BIOSファイルがないため、実行できません</translation>
+    </text>
+    <text id="FrmMain_SwapDisc">
+      <translation lang="en">Change Disc...</translation>
+      <translation lang="zh">更换光盘...</translation>
+      <translation lang="de">Disc wechseln...</translation>
+      <translation lang="fr">Changer de disque...</translation>
+      <translation lang="it">Cambia disco...</translation>
+      <translation lang="ru">Сменить диск...</translation>
+      <translation lang="ja">ディスクを交換...</translation>
+    </text>
+    <text id="RomList_last">
+      <translation lang="en">Last Play</translation>
+      <translation lang="zh">最后运行</translation>
+      <translation lang="de">Zuletzt gespielt</translation>
+      <translation lang="fr">Dernière lecture</translation>
+      <translation lang="it">Ultima riproduzione</translation>
+      <translation lang="ru">Последний запуск</translation>
+      <translation lang="ja">最後に実行</translation>
+    </text>
+    <text id="RomList_statesave">
+      <translation lang="en">SaveState ✅</translation>
+      <translation lang="zh">即时存档 ✅</translation>
+      <translation lang="de">Spielfortschritt ✅</translation>
+      <translation lang="fr">État de sauvegarde ✅</translation>
+      <translation lang="it">Salvataggio stato ✅</translation>
+      <translation lang="ru">Инстантное сохранение ✅</translation>
+      <translation lang="ja">インスタントセーブ ✅</translation>
+    </text>
+    <text id="RomList_cheat">
+      <translation lang="en">Cheats ✅</translation>
+      <translation lang="zh">金手指 ✅</translation>
+      <translation lang="de">Cheat-Codes ✅</translation>
+      <translation lang="fr">Codes triche ✅</translation>
+      <translation lang="it">Codici cheat ✅</translation>
+      <translation lang="ru">Чит-коды ✅</translation>
+      <translation lang="ja">チートコード ✅</translation>
+    </text>
+    <text id="RomList_SubDir">
+      <translation lang="en">Search subdirectories?</translation>
+      <translation lang="zh">是否要搜索子目录？</translation>
+      <translation lang="de">Unterverzeichnisse durchsuchen?</translation>
+      <translation lang="fr">Rechercher dans les sous-dossiers ?</translation>
+      <translation lang="it">Cerca nelle sottocartelle?</translation>
+      <translation lang="ru">Поиск в поддиректориях?</translation>
+      <translation lang="ja">サブディレクトリを検索しますか？</translation>
+    </text>
+    <text id="RomList_mcr">
+      <translation lang="en">Memcard mange</translation>
+      <translation lang="zh">存档管理</translation>
+      <translation lang="de">Speicherkartenverwaltung</translation>
+      <translation lang="fr">Gestion de carte mémoire</translation>
+      <translation lang="it">Gestione scheda di memoria</translation>
+      <translation lang="ru">Управление сохранениями</translation>
+      <translation lang="ja">セーブデータ管理</translation>
+    </text>
+    <text id="RomList_set">
+      <translation lang="en">Setting</translation>
+      <translation lang="zh">修改设置</translation>
+      <translation lang="de">Einstellungen ändern</translation>
+      <translation lang="fr">Modifier les paramètres</translation>
+      <translation lang="it">Modifica impostazioni</translation>
+      <translation lang="ru">Изменить настройки</translation>
+      <translation lang="ja">設定を変更</translation>
+    </text>
+    <text id="RomList_edit">
+      <translation lang="en">Cheat Codes</translation>
+      <translation lang="zh">编辑金手指</translation>
+      <translation lang="de">Cheat-Codes bearbeiten</translation>
+      <translation lang="fr">Éditer les codes triche</translation>
+      <translation lang="it">Modifica codici cheat</translation>
+      <translation lang="ru">Редактировать чит-коды</translation>
+      <translation lang="ja">チートコードを編集</translation>
+    </text>
+    <text id="RomList_geticon">
+      <translation lang="en">Icon from savedata</translation>
+      <translation lang="zh">取存档图标</translation>
+      <translation lang="de">Symbol aus gespeicherten Daten</translation>
+      <translation lang="fr">Icône depuis les données sauvegardées</translation>
+      <translation lang="it">Icona dai dati salvati</translation>
+      <translation lang="ru">Иконка из сохраненных данных</translation>
+      <translation lang="ja">セーブデータからアイコンを取得</translation>
+    </text>
+    <text id="RomList_seticon">
+      <translation lang="en">Set icon</translation>
+      <translation lang="zh">设置图标</translation>
+      <translation lang="de">Symbol festlegen</translation>
+      <translation lang="fr">Définir l'icône</translation>
+      <translation lang="it">Imposta icona</translation>
+      <translation lang="ru">Установить иконку</translation>
+      <translation lang="ja">アイコンを設定</translation>
+    </text>
+    <text id="RomList_del">
+      <translation lang="en">Delete</translation>
+      <translation lang="zh">删除</translation>
+      <translation lang="de">Löschen</translation>
+      <translation lang="fr">Supprimer</translation>
+      <translation lang="it">Elimina</translation>
+      <translation lang="ru">Удалить</translation>
+      <translation lang="ja">削除</translation>
+    </text>
+    <text id="FrmNetPlay_client">
+      <translation lang="en">Client Mode</translation>
+      <translation lang="zh">已启用客户机模式</translation>
+      <translation lang="de">Client-Modus aktiviert</translation>
+      <translation lang="fr">Mode client activé</translation>
+      <translation lang="it">Modalità client attivata</translation>
+      <translation lang="ru">Режим клиента активирован</translation>
+      <translation lang="ja">クライアントモードを有効にしました</translation>
+    </text>
+    <text id="FrmNetPlay_host">
+      <translation lang="en">Server Mode</translation>
+      <translation lang="zh">已启用主机模式</translation>
+      <translation lang="de">Server-Modus aktiviert</translation>
+      <translation lang="fr">Mode serveur activé</translation>
+      <translation lang="it">Modalità server attivata</translation>
+      <translation lang="ru">Режим сервера активирован</translation>
+      <translation lang="ja">ホストモードを有効にしました</translation>
+    </text>
+    <text id="Form_Mem_updateml_find">
+      <translation lang="en">Find</translation>
+      <translation lang="zh">搜索到</translation>
+      <translation lang="de">Gefunden</translation>
+      <translation lang="fr">Trouvé</translation>
+      <translation lang="it">Trovato</translation>
+      <translation lang="ru">Найдено</translation>
+      <translation lang="ja">検索した</translation>
+    </text>
+    <text id="Form_Mem_updateml_result">
+      <translation lang="en">Results</translation>
+      <translation lang="zh">个地址 (只显示前500个)</translation>
+      <translation lang="de">Adressen (nur die ersten 500 werden angezeigt)</translation>
+      <translation lang="fr">adresses (seulement les 500 premiers sont affichés)</translation>
+      <translation lang="it">indirizzi (vengono visualizzati solo i primi 500)</translation>
+      <translation lang="ru">адресов (отображается только первые 500)</translation>
+      <translation lang="ja">個のアドレス (上位500件のみ表示)</translation>
+    </text>
+    <text id="SameName">
+      <translation lang="en">Cannot select the same file. Please choose a different file.</translation>
+      <translation lang="zh">不能选择相同的文件，请选择其他文件。</translation>
+      <translation lang="de">Die gleiche Datei kann nicht ausgewählt werden. Bitte wählen Sie eine andere Datei.</translation>
+      <translation lang="fr">Impossible de sélectionner le même fichier. Veuillez choisir un fichier différent.</translation>
+      <translation lang="it">Non è possibile selezionare lo stesso file. Scegliere un file diverso.</translation>
+      <translation lang="ru">Нельзя выбрать тот же файл. Пожалуйста, выберите другой файл.</translation>
+      <translation lang="ja">同じファイルを選択できません。他のファイルを選択してください。</translation>
+    </text>
+    <text id="enoughSlot">
+      <translation lang="en">Please check if there is enough space on the target memory card.</translation>
+      <translation lang="zh">无法移动存档，请检查目标存储卡是否有足够的空间。</translation>
+      <translation lang="de">Speicherstand kann nicht verschoben werden. Bitte prüfen Sie, ob auf der Zielspeicherkarte genügend Speicherplatz vorhanden ist.</translation>
+      <translation lang="fr">Impossible de déplacer la sauvegarde. Vérifiez si la carte mémoire cible dispose de suffisamment d'espace.</translation>
+      <translation lang="it">Impossibile spostare il salvataggio. Verificare se la scheda di memoria di destinazione ha spazio sufficiente.</translation>
+      <translation lang="ru">Невозможно переместить сохранение. Проверьте, есть ли достаточно места на целевой карте памяти.</translation>
+      <translation lang="ja">セーブデータを移動できません。ターゲットのメモリーカードに十分な空き容量があるか確認してください。</translation>
+    </text>
+    <text id="FrmAbout_memo1">
+      <translation lang="en">PS1 emulator released under the MIT License</translation>
+      <translation lang="zh">这是一个遵循 MIT 许可协议的开源 PS1 模拟器</translation>
+      <translation lang="de">Dies ist ein quelloffener PS1-Emulator, der unter der MIT-Lizenz lizenziert ist</translation>
+      <translation lang="fr">Il s'agit d'un émulateur PS1 open source distribué sous licence MIT</translation>
+      <translation lang="it">Si tratta di un emulatore PS1 open source rilasciato con licenza MIT</translation>
+      <translation lang="ru">Это открытый эмулятор PS1, распространяемый по лицензии MIT</translation>
+      <translation lang="ja">これはMITライセンスに基づいてリリースされたオープンソースのPS1エミュレーターです</translation>
+    </text>
+    <text id="FrmAbout_memo2">
+      <translation lang="en">GitHub:</translation>
+      <translation lang="zh">源码公开在GitHub:</translation>
+      <translation lang="de">Quellcode ist auf GitHub verfügbar:</translation>
+      <translation lang="fr">Le code source est disponible sur GitHub:</translation>
+      <translation lang="it">Il codice sorgente è disponibile su GitHub:</translation>
+      <translation lang="ru">Исходный код доступен на GitHub:</translation>
+      <translation lang="ja">ソースコードはGitHubで公開されています:</translation>
+    </text>
+    <text id="gitHublink">
+      <translation lang="en">https://github.com/unknowall/ScePSX</translation>
+      <translation lang="zh">https://github.com/unknowall/ScePSX</translation>
+      <translation lang="de">https://github.com/unknowall/ScePSX</translation>
+      <translation lang="fr">https://github.com/unknowall/ScePSX</translation>
+      <translation lang="it">https://github.com/unknowall/ScePSX</translation>
+      <translation lang="ru">https://github.com/unknowall/ScePSX</translation>
+      <translation lang="ja">https://github.com/unknowall/ScePSX</translation>
+    </text>
+    <text id="support_message">
+      <translation lang="en">If you'd like, you can buy me a coffee.</translation>
+      <translation lang="zh">如果您愿意，可以请我喝一杯咖啡!</translation>
+      <translation lang="de">Wenn Sie möchten, können Sie mir einen Kaffee kaufen!</translation>
+      <translation lang="fr">Si vous le souhaitez, vous pouvez m'offrir un café !</translation>
+      <translation lang="it">Se vuoi, puoi offrirmi un caffè!</translation>
+      <translation lang="ru">Если хотите, можете купить мне кофе!</translation>
+      <translation lang="ja">もしよろしければ、コーヒーをおごってください！</translation>
+    </text>
+    <text id="newcheatitem">
+      <translation lang="en">New Cheat Code</translation>
+      <translation lang="zh">新金手指</translation>
+      <translation lang="de">Neuer Cheat-Code</translation>
+      <translation lang="fr">Nouveau code triche</translation>
+      <translation lang="it">Nuovo codice cheat</translation>
+      <translation lang="ru">Новый чит-код</translation>
+      <translation lang="ja">新しいチートコード</translation>
+    </text>
+    <text id="loadcheatitem">
+      <translation lang="en">✅ Cheat Codes Loaded</translation>
+      <translation lang="zh">✅ 已加载金手指</translation>
+      <translation lang="de">✅ Cheat-Codes geladen</translation>
+      <translation lang="fr">✅ Codes triche chargés</translation>
+      <translation lang="it">✅ Codici cheat caricati</translation>
+      <translation lang="ru">✅ Чит-коды загружены</translation>
+      <translation lang="ja">✅ チートコードを読み込みました</translation>
+    </text>
+    <text id="saved">
+      <translation lang="en">💾 Saved</translation>
+      <translation lang="zh">💾 已保存</translation>
+      <translation lang="de">💾 Gespeichert</translation>
+      <translation lang="fr">💾 Enregistré</translation>
+      <translation lang="it">💾 Salvato</translation>
+      <translation lang="ru">💾 Сохранено</translation>
+      <translation lang="ja">💾 保存しました</translation>
+    </text>
+    <text id="cheatapply">
+      <translation lang="en">⚡ Cheat Codes Applied</translation>
+      <translation lang="zh">⚡ 金手指已应用</translation>
+      <translation lang="de">⚡ Cheat-Codes angewendet</translation>
+      <translation lang="fr">⚡ Codes triche appliqués</translation>
+      <translation lang="it">⚡ Codici cheat applicati</translation>
+      <translation lang="ru">⚡ Чит-коды применены</translation>
+      <translation lang="ja">⚡ チートコードを適用しました</translation>
+    </text>
+    <text id="cheatimport">
+      <translation lang="en">📂 Imported</translation>
+      <translation lang="zh">📂 已导入</translation>
+      <translation lang="de">📂 Importiert</translation>
+      <translation lang="fr">📂 Importé</translation>
+      <translation lang="it">📂 Importato</translation>
+      <translation lang="ru">📂 Импортировано</translation>
+      <translation lang="ja">📂 インポートしました</translation>
+    </text>
+    <text id="importerror">
+      <translation lang="en">❌ Import Failed</translation>
+      <translation lang="zh">❌ 导入失败</translation>
+      <translation lang="de">❌ Import fehlgeschlagen</translation>
+      <translation lang="fr">❌ Échec de l'importation</translation>
+      <translation lang="it">❌ Importazione fallita</translation>
+      <translation lang="ru">❌ Импорт не удался</translation>
+      <translation lang="ja">❌ インポートに失敗しました</translation>
+    </text>
+    <text id="cheatdownload">
+      <translation lang="en">🌐 Downloading Cheat Codes...</translation>
+      <translation lang="zh">🌐 正在下载金手指...</translation>
+      <translation lang="de">🌐 Cheat-Codes werden heruntergeladen...</translation>
+      <translation lang="fr">🌐 Téléchargement des codes triche...</translation>
+      <translation lang="it">🌐 Scaricamento codici cheat...</translation>
+      <translation lang="ru">🌐 Загрузка чит-кодов...</translation>
+      <translation lang="ja">🌐 チートコードをダウンロード中...</translation>
+    </text>
+    <text id="notruning">
+      <translation lang="en">❌ Game not running</translation>
+      <translation lang="zh">❌ 游戏未启动</translation>
+      <translation lang="de">❌ Spiel läuft nicht</translation>
+      <translation lang="fr">❌ Jeu non lancé</translation>
+      <translation lang="it">❌ Gioco non in esecuzione</translation>
+      <translation lang="ru">❌ Игра не запущена</translation>
+      <translation lang="ja">❌ ゲームが起動していません</translation>
+    </text>
+    <text id="notselected">
+      <translation lang="en">❌ No game selected</translation>
+      <translation lang="zh">❌ 未选中游戏</translation>
+      <translation lang="de">❌ Kein Spiel ausgewählt</translation>
+      <translation lang="fr">❌ Aucun jeu sélectionné</translation>
+      <translation lang="it">❌ Nessun gioco selezionato</translation>
+      <translation lang="ru">❌ Игра не выбрана</translation>
+      <translation lang="ja">❌ ゲームが選択されていません</translation>
+    </text>
+    <text id="cardformat">
+      <translation lang="en">Format Slot</translation>
+      <translation lang="zh">格式化卡槽</translation>
+      <translation lang="de">Slot formatieren</translation>
+      <translation lang="fr">Formater l'emplacement</translation>
+      <translation lang="it">Formatta slot</translation>
+      <translation lang="ru">Форматировать слот</translation>
+      <translation lang="ja">スロットをフォーマット</translation>
+    </text>
+    <text id="cardload">
+      <translation lang="en">Load</translation>
+      <translation lang="zh">加载</translation>
+      <translation lang="de">Laden</translation>
+      <translation lang="fr">Charger</translation>
+      <translation lang="it">Carica</translation>
+      <translation lang="ru">Загрузить</translation>
+      <translation lang="ja">ロード</translation>
+    </text>
+    <text id="cardmove">
+      <translation lang="en">Move</translation>
+      <translation lang="zh">移动</translation>
+      <translation lang="de">Verschieben</translation>
+      <translation lang="fr">Déplacer</translation>
+      <translation lang="it">Sposta</translation>
+      <translation lang="ru">Переместить</translation>
+      <translation lang="ja">移動</translation>
+    </text>
+    <text id="cardcopy">
+      <translation lang="en">Copy</translation>
+      <translation lang="zh">复制</translation>
+      <translation lang="de">Kopieren</translation>
+      <translation lang="fr">Copier</translation>
+      <translation lang="it">Copia</translation>
+      <translation lang="ru">Копировать</translation>
+      <translation lang="ja">コピー</translation>
+    </text>
+    <text id="carddele">
+      <translation lang="en">Delete</translation>
+      <translation lang="zh">删除</translation>
+      <translation lang="de">Löschen</translation>
+      <translation lang="fr">Supprimer</translation>
+      <translation lang="it">Elimina</translation>
+      <translation lang="ru">Удалить</translation>
+      <translation lang="ja">削除</translation>
+    </text>
+    <text id="cardexport">
+      <translation lang="en">Export</translation>
+      <translation lang="zh">导出</translation>
+      <translation lang="de">Exportieren</translation>
+      <translation lang="fr">Exporter</translation>
+      <translation lang="it">Esporta</translation>
+      <translation lang="ru">Экспорт</translation>
+      <translation lang="ja">エクスポート</translation>
+    </text>
+    <text id="cardsave">
+      <translation lang="en">Save</translation>
+      <translation lang="zh">保存</translation>
+      <translation lang="de">Speichern</translation>
+      <translation lang="fr">Enregistrer</translation>
+      <translation lang="it">Salva</translation>
+      <translation lang="ru">Сохранить</translation>
+      <translation lang="ja">保存</translation>
+    </text>
+    <text id="cardimport">
+      <translation lang="en">Import</translation>
+      <translation lang="zh">导入</translation>
+      <translation lang="de">Importieren</translation>
+      <translation lang="fr">Importer</translation>
+      <translation lang="it">Importa</translation>
+      <translation lang="ru">Импорт</translation>
+      <translation lang="ja">インポート</translation>
+    </text>
+    <text id="NotBios">
+      <translation lang="en">No BIOS available, cannot run game. Please check the BIOS folder</translation>
+      <translation lang="zh">没有可用BIOS, 无法运行游戏。请检查 BIOS 文件夹</translation>
+      <translation lang="de">Kein BIOS verfügbar, Spiel kann nicht ausgeführt werden. Bitte überprüfen Sie den BIOS-Ordner</translation>
+      <translation lang="fr">Aucun BIOS disponible, impossible de lancer le jeu. Veuillez vérifier le dossier BIOS</translation>
+      <translation lang="it">Nessun BIOS disponibile, impossibile eseguire il gioco. Controlla la cartella BIOS</translation>
+      <translation lang="ru">BIOS недоступен, невозможно запустить игру. Проверьте папку с BIOS</translation>
+      <translation lang="ja">利用可能なBIOSがありません。ゲームを実行できません。BIOSフォルダを確認してください</translation>
+    </text>
+    <text id="lang">
+      <translation lang="zh">🇨🇳 简体中文</translation>
+      <translation lang="en">🇺🇸 English</translation>
+      <translation lang="de">🇩🇪 Deutsch</translation>
+      <translation lang="fr">🇫🇷 Français</translation>
+      <translation lang="it">🇮🇹 Italiano</translation>
+      <translation lang="ru">🇷🇺 Русский</translation>
+      <translation lang="ja">🇯🇵 日本語</translation>
+    </text>
+  </category>
+</translations>

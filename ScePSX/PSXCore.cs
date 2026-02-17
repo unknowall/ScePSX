@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -30,6 +32,7 @@ namespace ScePSX
         public IGPU GPU;
         public GPUType GpuBackend;
 
+        public string AppPath = ".";
         public string DiskID = "";
         public bool Pauseing, Pauseed, Running, Boost;
         public bool GTE_PGXP = false;
@@ -52,8 +55,18 @@ namespace ScePSX
         }
         public List<CheatCode> cheatCodes = new List<CheatCode> { };
 
-        public PSXCore(IRenderHandler render, IAudioHandler audio, IRumbleHandler rumble, string RomFile, string BiosFile, GPUType gputype, string diskid = "")
+        //for Android Thread priority
+        private const int PRIO_PROCESS = 0;
+        [DllImport("c")]
+        private static extern int getpid();
+        [DllImport("c")]
+        private static extern int setpriority(int which, int who, int prio);
+        [DllImport("c")]
+        private static extern int sched_setaffinity(int pid, int cpusetsize, ref ulong mask);
+
+        public PSXCore(IRenderHandler render, IAudioHandler audio, IRumbleHandler rumble, string RomFile, string BiosFile, GPUType gputype, string diskid = "", string path = ".")
         {
+            AppPath = path;
             _Audio = audio;
             _IRender = render;
             _IRumble = rumble;
@@ -62,7 +75,7 @@ namespace ScePSX
 
             ColorLine($"ScePSX Booting...");
 
-            PsxBus = new BUS(this, BiosFile, RomFile, gputype, diskid);
+            PsxBus = new BUS(this, BiosFile, RomFile, gputype, diskid, AppPath);
 
             DiskID = PsxBus.DiskID;
 
@@ -78,15 +91,15 @@ namespace ScePSX
 
             PsxBus.controller1.RumbleHandler = _IRumble;
 
-            ColorLine($"ScePSX Running...");
+            ColorLine($"ScePSX {DiskID} Running...");
         }
 
         public void ColorLine(string logs)
         {
-            ConsoleColor previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Cyan;
+            //ConsoleColor previousColor = Console.ForegroundColor;
+            //Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(logs);
-            Console.ForegroundColor = previousColor;
+            //Console.ForegroundColor = previousColor;
         }
 
         public void CombineSet()
@@ -178,12 +191,11 @@ namespace ScePSX
         public void LoadCheats()
         {
             cheatCodes.Clear();
-            string fn = "./Cheats/" + DiskID + ".txt";
+            string fn = AppPath + "/Cheats/" + DiskID + ".txt";
             if (!File.Exists(fn))
                 return;
             cheatCodes = ParseTextToCheatCodeList(fn);
 
-            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"[CHEAT] {cheatCodes.Count} Codes Loaded");
             foreach (var code in cheatCodes)
             {
@@ -192,7 +204,6 @@ namespace ScePSX
                 else
                     Console.WriteLine($"    {code.Name} [Non Active]");
             }
-            Console.ResetColor();
         }
 
         public static List<CheatCode> ParseTextToCheatCodeList(string fn, bool isfile = true)
@@ -257,7 +268,7 @@ namespace ScePSX
             if (!Running)
                 return;
 
-            string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
+            string fn = AppPath + "/SaveState/" + DiskID + "_Save" + Fix + ".dat";
             if (!File.Exists(fn))
                 return;
 
@@ -290,9 +301,7 @@ namespace ScePSX
 
             //PGXPVector.use_pgxp = false;
 
-            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State LOADED.");
-            Console.ResetColor();
 
             Pauseing = false;
         }
@@ -315,7 +324,7 @@ namespace ScePSX
 
             WaitPausedAndSync();
 
-            string fn = "./SaveState/" + DiskID + "_Save" + Fix + ".dat";
+            string fn = AppPath + "/SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
             PsxBus.ReadySerializable();
             StateToFile(PsxBus, fn);
@@ -325,9 +334,7 @@ namespace ScePSX
             //    (GPU as OpenglGPU).IRScale = ir;
             //}
 
-            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("State SAVEED.");
-            Console.ResetColor();
 
             Pauseing = false;
         }
@@ -413,9 +420,17 @@ namespace ScePSX
             SYNC_LOOPS = (CYCLES_PER_FRAME / SYNC_CYCLES_BUS) + SYNC_CYCLES_FIX;
             int totalTicks = SYNC_LOOPS * SYNC_CPU_TICK;
 
+            if (OperatingSystem.IsAndroid())
+            {
+                int pid = getpid();
+                setpriority(PRIO_PROCESS, pid, -19);
+                //ulong mask = 0x0F; //（0x0F=4核，0xFF=8核）
+                //sched_setaffinity(pid, sizeof(ulong), ref mask);
+                Console.WriteLine($"ScePSX Priority set to -19 for PID {pid}");
+            }
+
             while (Running)
             {
-
                 stopwatch.Restart();
 
                 if (!Pauseing)

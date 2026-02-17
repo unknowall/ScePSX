@@ -432,6 +432,60 @@ namespace ScePSX
 
     public class GLShaderStrings
     {
+        public static void SetAndroidShaders()
+        {
+            string es300Header = "#version 300 es\n" +
+                                 //"#extension GL_EXT_frag_depth : enable\n" +
+                                 "precision highp float;\n" +
+                                 "precision highp int;\n";
+
+            GLShaderStrings.DrawVertix = es300Header + RemoveFirstLine(GLShaderStrings.DrawVertix);
+            GLShaderStrings.DrawFragment = es300Header + RemoveFirstLine(GLShaderStrings.DrawFragment);
+            GLShaderStrings.VRamViewVertex = es300Header + RemoveFirstLine(GLShaderStrings.VRamViewVertex);
+            GLShaderStrings.VRamViewFragment = es300Header + RemoveFirstLine(GLShaderStrings.VRamViewFragment);
+            GLShaderStrings.Output24bitVertex = es300Header + RemoveFirstLine(GLShaderStrings.Output24bitVertex);
+            GLShaderStrings.Output24bitFragment = es300Header + RemoveFirstLine(GLShaderStrings.Output24bitFragment);
+            GLShaderStrings.Output16bitVertex = es300Header + RemoveFirstLine(GLShaderStrings.Output16bitVertex);
+            GLShaderStrings.Output16bitFragment = es300Header + RemoveFirstLine(GLShaderStrings.Output16bitFragment);
+            GLShaderStrings.ResetDepthVertex = es300Header + RemoveFirstLine(GLShaderStrings.ResetDepthVertex);
+            GLShaderStrings.ResetDepthFragment = es300Header + RemoveFirstLine(GLShaderStrings.ResetDepthFragment);
+            GLShaderStrings.DisplayVertex = es300Header + RemoveFirstLine(GLShaderStrings.DisplayVertex);
+            GLShaderStrings.DisplayFragment = es300Header + RemoveFirstLine(GLShaderStrings.DisplayFragment);
+            GLShaderStrings.VRamCopyVertex = es300Header + RemoveFirstLine(GLShaderStrings.VRamCopyVertex);
+            GLShaderStrings.VRamCopyFragment = es300Header + RemoveFirstLine(GLShaderStrings.VRamCopyFragment);
+
+            //GLShaderStrings.ResetDepthFragment = GLShaderStrings.ResetDepthFragment.Replace(
+            //    "gl_FragDepth =",
+            //    "gl_FragDepthEXT ="
+            //);
+            //GLShaderStrings.DrawFragment = GLShaderStrings.DrawFragment.Replace(
+            //    "gl_FragDepth =",
+            //    "gl_FragDepthEXT ="
+            //);
+            //GLShaderStrings.VRamCopyFragment = GLShaderStrings.VRamCopyFragment.Replace(
+            //    "gl_FragDepth =",
+            //    "gl_FragDepthEXT ="
+            //);
+        }
+
+        private static string RemoveFirstLine(string shader)
+        {
+            if (string.IsNullOrEmpty(shader))
+                return shader;
+
+            int versionPos = shader.IndexOf("#version");
+            if (versionPos >= 0)
+            {
+                int lineEnd = shader.IndexOf('\n', versionPos);
+                if (lineEnd > 0)
+                {
+                    return shader.Substring(lineEnd + 1);
+                }
+            }
+
+            return shader;
+        }
+
         public static string DrawVertix = @"
         #version 330
 
@@ -519,8 +573,10 @@ namespace ScePSX
         flat in ivec2 ClutBase;
         flat in int TexPage;
 
-        layout(location=0, index=0) out vec4 FragColor;
-        layout(location=0, index=1) out vec4 ParamColor;
+        //layout(location=0, index=0) out vec4 FragColor;
+        //layout(location=0, index=1) out vec4 ParamColor;
+        layout(location=0) out vec4 FragColor;
+        layout(location=1) out vec4 ParamColor;
 
         uniform float u_srcBlend;
         uniform float u_destBlend;
@@ -619,17 +675,17 @@ namespace ScePSX
         // texCoord counted in 4bit steps
         int SampleIndex4( ivec2 texCoord )
         {
-	        int sample = SampleUShort( TexPageBase + ivec2( texCoord.x / 4, texCoord.y ) );
+	        int sampleU = SampleUShort( TexPageBase + ivec2( texCoord.x / 4, texCoord.y ) );
 	        int shiftAmount = ( texCoord.x & 0x3 ) * 4;
-	        return ( sample >> shiftAmount ) & 0xf;
+	        return ( sampleU >> shiftAmount ) & 0xf;
         }
 
         // texCoord counted in 8bit steps
         int SampleIndex8( ivec2 texCoord )
         {
-	        int sample = SampleUShort( TexPageBase + ivec2( texCoord.x / 2, texCoord.y ) );
+	        int sampleU = SampleUShort( TexPageBase + ivec2( texCoord.x / 2, texCoord.y ) );
 	        int shiftAmount = ( texCoord.x & 0x1 ) * 8;
-	        return ( sample >> shiftAmount ) & 0xff;
+	        return ( sampleU >> shiftAmount ) & 0xff;
         }
 
         vec4 LookupTexel()
@@ -792,7 +848,8 @@ namespace ScePSX
 
         uint SampleVRam16( ivec2 pos )
         {
-	        vec4 c = texture( u_vram, pos / vec2( 1024.0, 512.0 ) );
+	        //vec4 c = texture( u_vram, pos / vec2( 1024.0, 512.0 ) );
+            vec4 c = texture( u_vram, vec2(pos) / vec2( 1024.0, 512.0 ) );
 	        uint red = FloatTo5bit( c.r );
 	        uint green = FloatTo5bit( c.g );
 	        uint blue = FloatTo5bit( c.b );
@@ -828,9 +885,10 @@ namespace ScePSX
         void main()
         {
 	        ivec2 base =  u_srcRect.xy;
-	        ivec2 offset = ivec2( TexCoord * u_srcRect.zw );
-	        vec3 sample = SampleVRam24( base, offset );
-	        FragColor = vec4( sample.rgb, 1.0 );
+	        //ivec2 offset = ivec2( TexCoord * u_srcRect.zw );
+            ivec2 offset = ivec2( TexCoord * vec2(float(u_srcRect.z), float(u_srcRect.w)) );
+	        vec3 sampleOut = SampleVRam24( base, offset );
+	        FragColor = vec4( sampleOut.rgb, 1.0 );
         }";
 
         public static string Output16bitVertex = @"
