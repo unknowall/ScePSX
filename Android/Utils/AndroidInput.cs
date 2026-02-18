@@ -18,7 +18,7 @@ public class AndroidInputHandler : Java.Lang.Object, View.IOnGenericMotionListen
 
     // 摇杆轴状态 (归一化 -1.0f 到 1.0f)
     private float leftX, leftY, rightX, rightY;
-    private float triggerLeft, triggerRight;
+    //private float triggerLeft, triggerRight;
 
     private const float DEADZONE = 0.1f;
 
@@ -47,7 +47,7 @@ public class AndroidInputHandler : Java.Lang.Object, View.IOnGenericMotionListen
 
     public event Action<InputAction, bool> OnButtonChanged;
     public event Action<float, float, float, float> OnAnalogAxisChanged; // lx, ly, rx, ry
-    public event Action<InputAction, bool> OnTriggerChanged; // L2/R2 扳机键
+    //public event Action<InputAction, bool> OnTriggerChanged; // L2/R2 扳机键
 
     public AndroidInputHandler(Activity activity)
     {

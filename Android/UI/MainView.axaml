@@ -1,83 +1,118 @@
-<UserControl  xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="800"
-        x:Class="ScePSX.MainView"
-        >
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="800"
+             xmlns:vm="clr-namespace:ScePSX"
+             x:Class="ScePSX.MainView">
 
     <UserControl.Styles>
-        <Style Selector="Button">
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <!-- 全局字体 -->
+        <Style Selector="UserControl">
+            <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, PingFang SC, WenQuanYi Micro Hei, sans-serif"/>
+        </Style>
+
+        <!-- 文字标签样式 -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#B0B0B0"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <!-- 主要按钮样式 (蓝底) -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="10,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#1976D2"/>
+        </Style>
+
+        <!-- 次要按钮样式 (灰底) -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.secondary:pressed">
+            <Setter Property="Background" Value="#3D3D3D"/>
+        </Style>
+
+        <!-- 下拉框样式 -->
+        <Style Selector="ComboBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Height" Value="32"/>
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto, *" Background="#121212">
+    <Grid RowDefinitions="Auto,Auto,*" Background="#121212">
 
-        <!-- 第一行：顶部功能按钮栏 -->
-        <StackPanel Grid.Row="0" 
-                    Orientation="Horizontal"
-                    Spacing="8"
-                    Background="#1E1E1E"
-                    VerticalAlignment="Center">
-            
-            <!-- 扫描游戏按钮（突出显示） -->
-            <Button Content="测试OpenGL"
-                    Click="BtnScan_Click"
-                    MinWidth="80"
-                    Height="40"
-                    Background="#2196F3"
-                    Foreground="White"
-                    CornerRadius="6"
-                    FontSize="14"
-                    Padding="5"/>
-            
-            <!-- 设置按钮 -->
-            <Button Content="测试软渲染"
-                    Click="BtnSet_Click"
-                    MinWidth="80"
-                    Height="40"
-                    Background="#333333"
-                    Foreground="White"
-                    CornerRadius="6"
-                    FontSize="14"
-                    Padding="5"/>
-            
-            <!-- 金手指按钮 -->
-            <Button Content="测试Vulkan"
-                    Click="BtnCheat_Click"
-                    MinWidth="80"
-                    Height="40"
-                    Background="#333333"
-                    Foreground="White"
-                    CornerRadius="6"
-                    FontSize="14"
-                    Padding="5"/>
-            
-            <!-- 存档管理按钮 -->
-            <Button Content="存档管理"
-                    Width="80"
-                    Height="40"
-                    Background="#333333"
-                    Foreground="White"
-                    CornerRadius="6"
-                    FontSize="14"
-                    Padding="5"/>
-            
-            <!-- 关于按钮 -->
-            <Button Content="关于"
-                    Width="60"
-                    Height="40"
-                    Background="#333333"
-                    Foreground="White"
-                    CornerRadius="6"
-                    FontSize="14"
-                    Padding="5"/>
-        </StackPanel>
+        <Border Grid.Row="0" Background="#1E1E1E" Padding="4,6">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="扫描游戏" Click="BtnScan_Click" Classes="primary" MinWidth="60"/>
+                    <Button Content="打开游戏" Click="BtnOpen_Click" Classes="primary" MinWidth="60"/>
+                    
+                    <!-- 间隔稍微拉大一点，区分功能组 -->
+                    <Button Content="BIOS" Click="BtnBios_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Content="设置" Click="BtnSet_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Content="金手指" Click="BtnCheat_Click" Classes="secondary" MinWidth="70"/>
+                    <Button Content="存档管理" Click="BtnMcr_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Content="关于" Click="BtnAbout_Click" Classes="secondary" MinWidth="60"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
 
-        <StackPanel Grid.Row="1">
-            
-        </StackPanel>
+
+        <Border Grid.Row="1" Background="#181818" Padding="8,4">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="GPU" Classes="label"/>
+                    <ComboBox x:Name="cbgpu" Width="110">
+                        <ComboBoxItem Content="SoftWare"/>
+                        <ComboBoxItem Content="OpenGL"/>
+                        <ComboBoxItem Content="Vulkan"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="分辨率增强" Classes="label"/>
+                    <ComboBox x:Name="cbgpures" Width="80">
+                        <ComboBoxItem Content="1x"/>
+                        <ComboBoxItem Content="2x"/>
+                        <ComboBoxItem Content="3x"/>
+                        <ComboBoxItem Content="5x"/>
+                        <ComboBoxItem Content="9x"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="屏幕比例" Classes="label"/>
+                    <ComboBox x:Name="cbar" Width="80">
+                        <ComboBoxItem Content="4:3"/>
+                        <ComboBoxItem Content="16:9"/>
+                    </ComboBox>
+                </StackPanel>
+                
+            </StackPanel>
+        </Border>
+
+        <vm:RomList x:Name="RomListView" Grid.Row="2" IsVisible="True" />
     </Grid>
 </UserControl>

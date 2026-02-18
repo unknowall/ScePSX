@@ -22,6 +22,7 @@ namespace ScePSX
         // 顶部控制栏相关
         private bool isTopBarExpanded = false;
         private RectF topBarRect = new RectF();
+        private RectF showpadButtonRect = new RectF();
         private RectF cheatsButtonRect = new RectF();
         private RectF saveStateRect = new RectF();
         private RectF loadStateRect = new RectF();
@@ -32,6 +33,7 @@ namespace ScePSX
         public int currentSlot = 0;
         private const int MAX_SLOT = 9;
         public bool IsCheat = false;
+        public bool ShowPad = true;
 
         // 拖动相关
         private bool isDragging = false;
@@ -39,7 +41,7 @@ namespace ScePSX
         private float dragStartX, dragStartY;
         private ButtonConfig? dragButton = null;
         private string dragMode = ""; // "dpad", "action", "single"
-        private long dragStartTime = 0;
+        //private long dragStartTime = 0;
         private const long LONG_PRESS_TIME = 300; // 300ms长按触发拖动
 
         // 区域偏移量
@@ -49,10 +51,10 @@ namespace ScePSX
         private float actionOffsetY = 0;
 
         // 区域基础位置
-        private readonly float dpadBaseX = 0.20f;
-        private readonly float dpadBaseY = 0.50f;
-        private readonly float actionBaseX = 0.80f;
-        private readonly float actionBaseY = 0.55f;
+        //private readonly float dpadBaseX = 0.20f;
+        //private readonly float dpadBaseY = 0.50f;
+        //private readonly float actionBaseX = 0.80f;
+        //private readonly float actionBaseY = 0.55f;
 
         // 原始位置记录
         private Dictionary<string, (float x, float y)> originalPositions = new Dictionary<string, (float x, float y)>();
@@ -61,7 +63,7 @@ namespace ScePSX
         private Dictionary<int, (long time, float x, float y)> pointerDownInfo = new Dictionary<int, (long, float, float)>();
 
         public event Action<string, InputAction, bool> OnButtonStateChanged;
-        public event Action<string> OnTopBarAction; // 顶部栏动作：cheats, save, load, undo, slot_change
+        public event Action<string> OnTopBarAction;
 
         public VirtualGamepadOverlay(Context context) : base(context)
         {
@@ -84,10 +86,10 @@ namespace ScePSX
                 new ButtonConfig("○", InputAction.Circle, 0.80f, 0.40f),
                 new ButtonConfig("×", InputAction.Cross, 0.70f, 0.55f),
 
-                new ButtonConfig("L1", InputAction.L1, 0.10f, 0.35f), // 从0.25f改为0.35f
-                new ButtonConfig("L2", InputAction.L2, 0.10f, 0.20f), // 从0.10f改为0.20f
-                new ButtonConfig("R1", InputAction.R1, 0.90f, 0.35f), // 从0.25f改为0.35f
-                new ButtonConfig("R2", InputAction.R2, 0.90f, 0.20f), // 从0.10f改为0.20f
+                new ButtonConfig("L1", InputAction.L1, 0.10f, 0.35f),
+                new ButtonConfig("L2", InputAction.L2, 0.10f, 0.20f),
+                new ButtonConfig("R1", InputAction.R1, 0.90f, 0.35f),
+                new ButtonConfig("R2", InputAction.R2, 0.90f, 0.20f),
 
                 new ButtonConfig("▲", InputAction.DPadUp, 0.20f, 0.40f),
                 new ButtonConfig("▼", InputAction.DPadDown, 0.20f, 0.60f),
@@ -256,11 +258,14 @@ namespace ScePSX
         {
             if (isTopBarExpanded)
             {
-                // 检查各个按钮
                 if (cheatsButtonRect.Contains(x, y))
                 {
                     IsCheat = !IsCheat;
                     OnTopBarAction?.Invoke("cheats");
+                } else if (showpadButtonRect.Contains(x, y))
+                {
+                    ShowPad = !ShowPad;
+                    OnTopBarAction?.Invoke("ShowPad");
                 } else if (saveStateRect.Contains(x, y))
                 {
                     OnTopBarAction?.Invoke("save");
@@ -280,12 +285,10 @@ namespace ScePSX
                     OnTopBarAction?.Invoke($"slot_change:{currentSlot}");
                 } else if (y < 200)
                 {
-                    // 点击折叠区域
                     isTopBarExpanded = false;
                 }
             } else
             {
-                // 点击折叠的顶部栏展开
                 isTopBarExpanded = true;
             }
         }
@@ -424,46 +427,71 @@ namespace ScePSX
             DrawTopBar(canvas, width);
 
             // 绘制游戏按钮
-            foreach (var btn in buttons)
+            if (ShowPad)
             {
-                float x = btn.PositionX * width;
-                float y = btn.PositionY * height;
+                foreach (var btn in buttons)
+                {
+                    float x = btn.PositionX * width;
+                    float y = btn.PositionY * height;
 
-                float circleRadius = 45;
-                float textSize = 22;
+                    float circleRadius = 45;
+                    float textSize = 22;
 
-                if (btn.Label == "SELECT" || btn.Label == "START")
-                {
-                    circleRadius = 40;
-                    textSize = 18;
-                } else if (IsDpadButton(btn.Label))
-                {
-                    circleRadius = 50;
-                    textSize = 30;
-                } else if (btn.Label == "L1" || btn.Label == "L2" || btn.Label == "R1" || btn.Label == "R2")
-                {
-                    circleRadius = 40;
-                    textSize = 18;
+                    if (btn.Label == "SELECT" || btn.Label == "START")
+                    {
+                        circleRadius = 40;
+                        textSize = 18;
+                    } else if (IsDpadButton(btn.Label))
+                    {
+                        circleRadius = 50;
+                        textSize = 30;
+                    } else if (btn.Label == "L1" || btn.Label == "L2" || btn.Label == "R1" || btn.Label == "R2")
+                    {
+                        circleRadius = 40;
+                        textSize = 18;
+                    }
+
+                    if (btn.isPressed)
+                    {
+                        paint.Color = Color.Argb(220, 255, 100, 100);
+                    } else
+                    {
+                        paint.Color = Color.Argb(140, 100, 100, 100);
+                    }
+
+                    canvas.DrawCircle(x, y, circleRadius, paint);
+
+                    paint.Color = Color.White;
+                    paint.TextSize = textSize;
+
+                    float textX = x;
+                    float textY = y + (textSize / 3);
+
+                    canvas.DrawText(btn.Label, textX, textY, paint);
                 }
-
-                if (btn.isPressed)
-                {
-                    paint.Color = Color.Argb(220, 255, 100, 100);
-                } else
-                {
-                    paint.Color = Color.Argb(140, 100, 100, 100);
-                }
-
-                canvas.DrawCircle(x, y, circleRadius, paint);
-
-                paint.Color = Color.White;
-                paint.TextSize = textSize;
-
-                float textX = x;
-                float textY = y + (textSize / 3);
-
-                canvas.DrawText(btn.Label, textX, textY, paint);
             }
+        }
+
+        private void DrawButton(Canvas canvas, RectF rect, string label, bool press)
+        {
+            if (press)
+                paint.Color = Color.Argb(200, 100, 100, 255); // 蓝色半透明
+            else
+                paint.Color = Color.Argb(140, 100, 100, 100);
+            canvas.DrawRect(rect, paint);
+            textPaint.TextSize = 22;
+            canvas.DrawText(label, rect.CenterX(), rect.CenterY() + 10, textPaint);
+        }
+
+        private void DrawCheckButton(Canvas canvas, RectF rect, string label, bool check)
+        {
+            if (check)
+                paint.Color = Color.Argb(200, 100, 100, 255); // 蓝色半透明
+            else
+                paint.Color = Color.Argb(220, 255, 100, 100);
+            canvas.DrawCircle(rect.CenterX(), rect.CenterY(), 30, paint);
+            textPaint.TextSize = 22;
+            canvas.DrawText(label, rect.CenterX(), rect.CenterY() + 8, textPaint);
         }
 
         private void DrawTopBar(Canvas canvas, int width)
@@ -500,34 +528,29 @@ namespace ScePSX
                 float buttonHeight = 60;
                 float startY = 30;
 
-                // 金手指按钮（绿色圈）
-                cheatsButtonRect.Set(buttonWidth * 0.5f, startY, buttonWidth * 1.5f, startY + buttonHeight);
-                if (IsCheat)
-                    paint.Color = Color.Argb(200, 76, 175, 80); // 绿色
-                else
-                    paint.Color = Color.Argb(220, 255, 100, 100);
-                canvas.DrawCircle(cheatsButtonRect.CenterX(), cheatsButtonRect.CenterY(), 30, paint);
+                float buttonSpacing = 100;
+                float leftOffset = 10f;
 
-                textPaint.TextSize = 22;
-                canvas.DrawText("金手指", cheatsButtonRect.CenterX(), cheatsButtonRect.CenterY() + 8, textPaint);
+                // 金手指
+                cheatsButtonRect.Set(buttonWidth * 0.3f - leftOffset, startY, buttonWidth * 1.3f - leftOffset, startY + buttonHeight);
+                DrawCheckButton(canvas, cheatsButtonRect, "金手指", IsCheat);
+
+                // 虚拟按键 
+                showpadButtonRect.Set(buttonWidth * 0.3f - leftOffset + buttonSpacing, startY,
+                                      buttonWidth * 1.3f - leftOffset + buttonSpacing, startY + buttonHeight);
+                DrawCheckButton(canvas, showpadButtonRect, "虚拟按键", ShowPad);
 
                 // 即时保存
                 saveStateRect.Set(buttonWidth * 2, startY, buttonWidth * 3, startY + buttonHeight);
-                paint.Color = Color.Argb(140, 100, 100, 100);
-                canvas.DrawRect(saveStateRect, paint);
-                canvas.DrawText("即时保存", saveStateRect.CenterX(), saveStateRect.CenterY() + 10, textPaint);
+                DrawButton(canvas, saveStateRect, "即时保存", false);
 
                 // 即时加载
                 loadStateRect.Set(buttonWidth * 3.2f, startY, buttonWidth * 4.2f, startY + buttonHeight);
-                paint.Color = Color.Argb(140, 100, 100, 100);
-                canvas.DrawRect(loadStateRect, paint);
-                canvas.DrawText("即时加载", loadStateRect.CenterX(), loadStateRect.CenterY() + 10, textPaint);
+                DrawButton(canvas, loadStateRect, "即时加载", false);
 
                 // 撤销
                 undoRect.Set(buttonWidth * 4.4f, startY, buttonWidth * 5.4f, startY + buttonHeight);
-                paint.Color = Color.Argb(140, 100, 100, 100);
-                canvas.DrawRect(undoRect, paint);
-                canvas.DrawText("撤销", undoRect.CenterX(), undoRect.CenterY() + 10, textPaint);
+                DrawButton(canvas, undoRect, "撤销", false);
 
                 // 存档位控制
                 float slotStartX = buttonWidth * 5.8f;

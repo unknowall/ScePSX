@@ -15,7 +15,7 @@ namespace ScePSX
     public class PSXHandler : IAudioHandler, IRenderHandler, IRumbleHandler, IDisposable
     {
         public static string RootPath;
-        public static IniFile? ini;
+        public static IniFile ini;
 
         public IntPtr NativeHandle;
         public int NativeWidth, NativeHeight;
@@ -43,8 +43,6 @@ namespace ScePSX
 
         public PSXHandler()
         {
-            ini = new IniFile(RootPath + "/ScePSX.ini");
-
             AudioHanlder = new AndroidAudioHandler();
             Scaler = new PixelsScaler();
             softRender = new SoftRender();
@@ -89,8 +87,10 @@ namespace ScePSX
         {
             if (Core != null)
             {
+                AudioHanlder.Dispose();
                 softRender.Dispose();
                 Core.Dispose();
+                Core = null;
             }
         }
 

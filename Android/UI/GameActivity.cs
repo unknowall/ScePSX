@@ -18,9 +18,10 @@ namespace ScePSX
               ScreenOrientation = ScreenOrientation.SensorLandscape)]
     public class GameActivity : Activity
     {
-        public static Action<IntPtr, int, int>? OnActivityCreated;
-        public static Action<int, int>? OnActivitySizeChanged;
-        public static Action? OnActivityHandleDestroyed;
+        public static Action<IntPtr, int, int>? OnSurfaceCreated;
+        public static Action<int, int>? OnSurfaceSizeChanged;
+        public static Action? OnSurfaceDestroyed;
+        public static Action? OnActivityDestroyed;
         public static IntPtr AnativeWindowPtr;
         private bool _handleDelivered = false;
         public FrameLayout mainLayout;
@@ -70,7 +71,7 @@ namespace ScePSX
             if (_handleDelivered)
             {
                 _handleDelivered = false;
-                OnActivityHandleDestroyed?.Invoke();
+                OnActivityDestroyed?.Invoke();
                 if (AnativeWindowPtr != IntPtr.Zero)
                 {
                     ANativeWindow_release(AnativeWindowPtr);
@@ -103,9 +104,9 @@ namespace ScePSX
                 {
                     AnativeWindowPtr = newWindowPtr;
                     _activity._handleDelivered = true;
-                    OnActivityCreated?.Invoke(AnativeWindowPtr, width, height);
+                    OnSurfaceCreated?.Invoke(AnativeWindowPtr, width, height);
                 } else
-                    OnActivitySizeChanged?.Invoke(width, height);
+                    OnSurfaceSizeChanged?.Invoke(width, height);
             }
 
             public void SurfaceDestroyed(ISurfaceHolder holder)
@@ -113,7 +114,7 @@ namespace ScePSX
                 if (_activity._handleDelivered)
                 {
                     _activity._handleDelivered = false;
-                    OnActivityHandleDestroyed?.Invoke();
+                    OnSurfaceDestroyed?.Invoke();
                     if (AnativeWindowPtr != IntPtr.Zero)
                     {
                         ANativeWindow_release(AnativeWindowPtr);

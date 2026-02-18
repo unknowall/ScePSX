@@ -1,9 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Widget;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using Kotlin.IO;
+using ScePSX.CdRom;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8604
@@ -23,6 +31,7 @@ public static class AHelper
 
     public static string RootPath = Android.App.Application.Context.FilesDir.AbsolutePath;
     public static string DownloadPath;
+    public static string DocumentsPath;
     public static bool HasPermission;
 
     private const int R_OK = 4;
@@ -31,8 +40,11 @@ public static class AHelper
 
     public static void InitAssert()
     {
-        var downloadDir = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads);
-        DownloadPath = downloadDir?.AbsolutePath ?? "/storage/emulated/0/Download";
+        var Dir = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads);
+        DownloadPath = Dir?.AbsolutePath ?? "/storage/emulated/0/Download";
+
+        Dir = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDocuments);
+        DocumentsPath = Dir?.AbsolutePath ?? "/storage/emulated/0/Documents";
 
         foreach (string dir in new[] { "SaveState", "Save", "Icons", "Cheats", "Shaders" })
         {
@@ -42,6 +54,8 @@ public static class AHelper
         string[] files = new[] {
                 "ScePSX.ini",
                 "lang.xml",
+                "icon.png",
+                //"gamedb.yaml",
                 "Shaders/draw.frag.spv",
                 "Shaders/draw.vert.spv",
                 "Shaders/out.frag.spv",
@@ -129,7 +143,146 @@ public static class AHelper
             Toast.MakeText(MainActivity, "请手动开启「存储] 或 [所有文件访问」权限", ToastLength.Long).Show();
         } catch (Exception ex)
         {
-            Console.WriteLine($"NavToPermission Error: {ex.Message}");
+            Console.WriteLine($"ShownDialog Error: {ex.Message}");
+        }
+    }
+
+    public static async Task<string> ShowBiosDialog()
+    {
+        try
+        {
+            var tcs = new TaskCompletionSource<string>();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity);
+            builder.SetTitle("需要BIOS");
+            builder.SetMessage("为了运行游戏，需要PS1 BIOS文件。\n\n点击确定后，请在选择正确的BIOS文件。");
+
+            builder.SetPositiveButton("确定", async (sender, args) =>
+            {
+                try
+                {
+                    string result = await SelectFile("BIOS", "Bios Files", new[] { "*.bin" });
+                    tcs.SetResult(result);
+                } catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            });
+
+            builder.SetNegativeButton("取消", (sender, args) =>
+            {
+                tcs.SetResult("");
+            });
+
+            builder.SetCancelable(false);
+
+            AlertDialog? dialog = builder.Create();
+            dialog?.Show();
+
+            return await tcs.Task;
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"ShownDialog Error: {ex.Message}");
+            return "";
+        }
+    }
+
+    static CancellationTokenSource cts;
+
+    public static async Task SearchBios(string dir, List<string> files)
+    {
+        cts?.Cancel();
+        cts = new CancellationTokenSource();
+        await Task.Run(() => _SearchBios(dir, files, cts.Token), cts.Token);
+    }
+
+    private static void _SearchBios(string dir, List<string> files, CancellationToken cancellationToken)
+    {
+        if (!Directory.Exists(dir))
+            return;
+        try
+        {
+            DirectoryInfo dirinfo = new DirectoryInfo(dir);
+            foreach (var f in dirinfo.GetFiles())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (f.Extension != ".bin" && f.Extension != ".BIN")
+                    continue;
+                if (f.Length > 520 * 1024)
+                    continue;
+
+                files.Add(f.FullName);
+            }
+            var subDirectories = dirinfo.GetDirectories();
+            if (subDirectories.Length > 0)
+            {
+                foreach (var subDir in subDirectories)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    _SearchBios(subDir.FullName, files, cancellationToken);
+                }
+            }
+        } catch (OperationCanceledException)
+        {
+        }
+    }
+
+    public static async Task<string> SelectFile(string title, string filetype, string[] filetypes)
+    {
+        try
+        {
+            var topLevel = TopLevel.GetTopLevel(MainView);
+            if (topLevel == null)
+            {
+                return "";
+            }
+            if (topLevel.StorageProvider == null)
+            {
+                Console.WriteLine("Not StorageProvider");
+                return "";
+            }
+            IStorageFolder? suggestedStartLocation = null;
+            var lastPath = PSXHandler.ini.Read("main", "LastPath");
+            if (!string.IsNullOrEmpty(lastPath) && Directory.Exists(lastPath))
+            {
+                suggestedStartLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(lastPath);
+            }
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType(filetype)
+                    {
+                        Patterns = filetypes,// new[] { "*.bin", "*.iso", "*.cue", "*.img", "*.exe" },
+                    },
+                    new FilePickerFileType("All Files")
+                    {
+                        Patterns = new[] { "*.*" }
+                    }
+                },
+                SuggestedStartLocation = suggestedStartLocation
+            });
+            Console.WriteLine($"StorageProvider {files}");
+            if (files == null || files.Count == 0)
+            {
+                return "";
+            }
+            var file = files[0];
+            var filePath = file.Path.LocalPath.Replace("/document/raw:", "");
+            //Console.WriteLine($"StorageProvider file {file} filepath {filePath} path {Path.GetFullPath(filePath)}");
+            if (!File.Exists(filePath))
+            {
+                return "";
+            }
+            PSXHandler.ini.Write("main", "LastPath", Path.GetFullPath(filePath));
+            return filePath;
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"Select Fail: {ex.Message}");
+            return "";
         }
     }
 }

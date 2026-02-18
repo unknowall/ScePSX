@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.IO;
 using Android.Content;
+using Android.OS;
+using Android.Views;
 using Android.Widget;
+using AndroidX.Annotations;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
-using LightVK;
-using static ScePSX.Controller;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8604
@@ -17,6 +17,7 @@ namespace ScePSX
 {
     public partial class MainView : UserControl
     {
+        GameActivityMange ActivityMange;
         PSXHandler PSX;
 
         public MainView()
@@ -25,152 +26,36 @@ namespace ScePSX
 
             AHelper.InitAssert();
 
-            Translations.LangFile = PSXHandler.RootPath + "/lang.xml";
+            Translations.LangFile = AHelper.RootPath + "/lang.xml";
             Translations.DefaultLanguage = "en";
+            Translations.Init();
 
             PSXHandler.RootPath = AHelper.RootPath;
-            PSX = new PSXHandler();
+            PSXHandler.ini = new IniFile(AHelper.RootPath + "/ScePSX.ini");
+
+            ActivityMange = new GameActivityMange();
+
+            PSX = ActivityMange.PSX;
         }
 
         protected override void OnLoaded(RoutedEventArgs e)
         {
+            RomListView.Init();
+
+            RomListView.FillByini();
+
+            RomListView.DoubleTapped += RomListView_DoubleTapped;
+
+            cbgpu.SelectedIndex = 1;
+            cbgpures.SelectedIndex = 2;
+            cbar.SelectedIndex = 1;
+
             AHelper.CheckPermission();
+
+            //AHelper.MainActivity.SetTheme(Resource.Style.Theme_AppCompat_NoActionBar);
         }
 
-        private async Task CreateGameActivity()
-        {
-            var tcs = new TaskCompletionSource<IntPtr>();
-
-            Action<IntPtr, int, int> actionhandler = null;
-            actionhandler = (handle, width, height) =>
-            {
-                PSX.NativeHandle = handle;
-                PSX.NativeWidth = width;
-                PSX.NativeHeight = height;
-                Console.WriteLine($"Get ANativeWindow 0x{handle:X} {width}x{height}");
-                GameActivity.OnActivityCreated -= actionhandler;
-                tcs.TrySetResult(IntPtr.Zero);
-            };
-            GameActivity.OnActivityCreated += actionhandler;
-            var intent = new Intent(Android.App.Application.Context, typeof(GameActivity));
-            intent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
-            Android.App.Application.Context.StartActivity(intent);
-
-            try
-            {
-                await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
-
-            } catch (TimeoutException)
-            {
-                Console.WriteLine("Get ANativeWindow Timeout");
-            } finally
-            {
-                GameActivity.OnActivityCreated += OnActivityCreated;
-                GameActivity.OnActivitySizeChanged += OnActivitySizeChanged;
-                GameActivity.OnActivityHandleDestroyed += OnActivityHandleDestroyed;
-
-                if (AHelper.GamepadOverlay != null)
-                {
-                    AHelper.GamepadOverlay.OnButtonStateChanged += GamepadOverlay_OnButtonStateChanged;
-                    AHelper.GamepadOverlay.OnTopBarAction += GamepadOverlay_OnTopBarAction;
-                }
-                if (AHelper.androidInput != null)
-                {
-                    AHelper.androidInput.OnButtonChanged += AndroidInput_OnButtonChanged;
-                    AHelper.androidInput.OnAnalogAxisChanged += AndroidInput_OnAnalogAxisChanged;
-                }
-            }
-        }
-
-        private void GamepadOverlay_OnTopBarAction(string action)
-        {
-            switch (action)
-            {
-                case "cheats": // 打开金手指
-                    break;
-                case "save": // 即时保存
-                    break;
-                case "load": // 即时加载
-                    break;
-                case "undo": // 撤销
-                    break;
-                case var s when s.StartsWith("slot_change:"):
-                    int slot = int.Parse(s.Split(':')[1]); // 存档位变化
-                    break;
-            }
-        }
-
-        private void AndroidInput_OnAnalogAxisChanged(float lx, float ly, float rx, float ry)
-        {
-            if (!PSX.isRun())
-                return;
-
-            PSX.AnalogAxis(lx, ly, rx, ry);
-        }
-
-        private void AndroidInput_OnButtonChanged(InputAction Btn, bool pressed)
-        {
-            if (!PSX.isRun())
-                return;
-
-            PSX.KeyPress(Btn, pressed);
-        }
-
-        private void OnActivityCreated(IntPtr handle, int width, int height)
-        {
-            if (PSX.Core != null && PSX.Core.Pauseed)
-            {
-                PSX.NativeHandle = handle;
-                PSX.NativeWidth = width;
-                PSX.NativeHeight = height;
-                PSX.ReCreateBackEnd();
-                PSX.Resume();
-
-                if (AHelper.GamepadOverlay != null)
-                {
-                    AHelper.GamepadOverlay.OnButtonStateChanged += GamepadOverlay_OnButtonStateChanged;
-                    AHelper.GamepadOverlay.OnTopBarAction += GamepadOverlay_OnTopBarAction;
-                }
-                if (AHelper.androidInput != null)
-                {
-                    AHelper.androidInput.OnButtonChanged += AndroidInput_OnButtonChanged;
-                    AHelper.androidInput.OnAnalogAxisChanged += AndroidInput_OnAnalogAxisChanged;
-                }
-            }
-        }
-
-        private void OnActivitySizeChanged(int width, int height)
-        {
-        }
-
-        private void OnActivityHandleDestroyed()
-        {
-            if (PSX.isRun())
-            {
-                PSX.Core.WaitPausedAndSync();
-
-                if (AHelper.GamepadOverlay != null)
-                {
-                    AHelper.GamepadOverlay.OnButtonStateChanged -= GamepadOverlay_OnButtonStateChanged;
-                    AHelper.GamepadOverlay.OnTopBarAction -= GamepadOverlay_OnTopBarAction;
-                }
-                if (AHelper.androidInput != null)
-                {
-                    AHelper.androidInput.OnButtonChanged -= AndroidInput_OnButtonChanged;
-                    AHelper.androidInput.OnAnalogAxisChanged -= AndroidInput_OnAnalogAxisChanged;
-                }
-            }
-        }
-
-        private void GamepadOverlay_OnButtonStateChanged(string label, InputAction button, bool pressed)
-        {
-            if (!PSX.isRun())
-                return;
-
-            PSX.KeyPress(button, pressed);
-        }
-
-        private async void RunTest()
+        private async void RunGame(string file, string id)
         {
             if (!AHelper.HasPermission)
             {
@@ -183,41 +68,157 @@ namespace ScePSX
                 PSX.Stop();
             }
 
-            await CreateGameActivity();
+            var Bios = PSXHandler.ini.Read("main", "bios");
+            if (Bios == "" || !File.Exists(Bios))
+            {
+                Bios = await AHelper.ShowBiosDialog();
+                if (!File.Exists(Bios))
+                    return;
+                PSXHandler.ini.Write("main", "bios", Bios);
+            }
 
-            string Rom = AHelper.DownloadPath + "/test.iso";
-            string Bios = AHelper.DownloadPath + "/SCPH1001.BIN";
+            switch (cbgpu.SelectedIndex)
+            {
+                case 0:
+                    PSX.GpuType = GPUType.Software;
+                    break;
+                case 1:
+                    PSX.GpuType = GPUType.OpenGL;
+                    break;
+                case 2:
+                    PSX.GpuType = GPUType.Vulkan;
+                    break;
+            }
+            switch (cbgpures.SelectedIndex)
+            {
+                case 0:
+                    GPUBackend.IRScale = 1;
+                    break;
+                case 1:
+                    GPUBackend.IRScale = 2;
+                    break;
+                case 2:
+                    GPUBackend.IRScale = 3;
+                    break;
+                case 3:
+                    GPUBackend.IRScale = 5;
+                    break;
+                case 4:
+                    GPUBackend.IRScale = 9;
+                    break;
+            }
+            switch (cbar.SelectedIndex)
+            {
+                case 0:
+                    PSX.KeepAR = false;
+                    break;
+                case 1:
+                    PSX.KeepAR = true;
+                    break;
+            }
 
-            PSX.LoadGame(Rom, Bios, "");
+            await ActivityMange.CreateGameActivity();
+
+            //var Bios = AHelper.DownloadPath + "/SCPH1001.BIN";
+            PSX.LoadGame(file, Bios, id);
         }
 
-        private void BtnScan_Click(object? sender, RoutedEventArgs e)
+        private void RomListView_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
         {
-            PSX.GpuType = GPUType.OpenGL;
-            RunTest();
+            GameInfo item = (GameInfo)RomListView.GameListBox.SelectedItem;
+            if (item != null)
+            {
+                PSX.GameName = item.Name;
+                RunGame(item.fullName, item.ID);
+            }
+        }
+
+        private async void BtnScan_Click(object? sender, RoutedEventArgs e)
+        {
+            await RomListView.SearchDir(AHelper.DownloadPath);
         }
 
         private void BtnSet_Click(object? sender, RoutedEventArgs e)
         {
-            PSX.GpuType = GPUType.Software;
-            RunTest();
         }
 
         private void BtnCheat_Click(object? sender, RoutedEventArgs e)
         {
-            VulkanDevice.OsEnv = VulkanDevice.vkOsEnv.ANDROID;
-            PSX.GpuType = GPUType.Vulkan;
-            RunTest();
+        }
+
+        private void BtnMcr_Click(object? sender, RoutedEventArgs e)
+        {
+        }
+
+        private async void BtnOpen_Click(object? sender, RoutedEventArgs e)
+        {
+            var result = await AHelper.SelectFile("Rom", "Rom Files", new[] { "*.bin", "*.iso", "*.cue", "*.img", "*.exe" });
+            if (File.Exists(result))
+            {
+                PSX.GameName = "";
+                RunGame(result, "");
+            }
+        }
+
+        private async void BtnBios_Click(object? sender, RoutedEventArgs e)
+        {
+            string result = await AHelper.SelectFile("BIOS", "Bios Files", new[] { "*.bin" });
+            if (File.Exists(result))
+            {
+                PSXHandler.ini.Write("main", "bios", result);
+            }
+        }
+
+        private void BtnAbout_Click(object? sender, RoutedEventArgs e)
+        {
+            var view = new AboutFrm();
+            ShowForm(view);
+        }
+
+        private void ShowForm(UserControl userControl)
+        {
+            CommonActivity.userControl = userControl;
+            var intent = new Intent(Android.App.Application.Context, typeof(CommonActivity));
+            intent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
+            Android.App.Application.Context.StartActivity(intent);
         }
     }
 
     public static class OSD
     {
-        static DispatcherTimer? _osdTimer = new DispatcherTimer();
+        private static Handler? _mainHandler;
+        private static Toast? _currentToast;
+
+        static OSD()
+        {
+            _mainHandler = new Handler(Looper.MainLooper);
+        }
 
         public static void Show(string message = "", int durationMs = 3000)
         {
-            Toast.MakeText(AHelper.MainActivity, message, ToastLength.Long).Show();
+            _mainHandler?.Post(() =>
+            {
+                try
+                {
+                    _currentToast?.Cancel();
+
+                    var duration = durationMs <= 2000 ? ToastLength.Short : ToastLength.Long;
+                    _currentToast = Toast.MakeText(AHelper.MainActivity, message, duration);
+                    _currentToast.Show();
+                } catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Toast Error: {ex.Message}");
+                }
+            });
+        }
+
+        public static void Cancel()
+        {
+            _mainHandler?.Post(() =>
+            {
+                _currentToast?.Cancel();
+                _currentToast = null;
+            });
         }
     }
 }

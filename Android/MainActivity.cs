@@ -1,8 +1,12 @@
-﻿using Android.App;
+﻿using System.Threading.Tasks;
+using Android.App;
 using Android.Content.PM;
 using Android.Views;
+using Android.Widget;
 using Avalonia.Android;
 using Avalonia.Controls;
+
+#pragma warning disable CS8602
 
 namespace ScePSX;
 
@@ -17,10 +21,8 @@ public class MainActivity : AvaloniaMainActivity<App>
 {
     protected override void OnCreate(Android.OS.Bundle? savedInstanceState)
     {
-        SetTheme(Resource.Style.Theme_AppCompat_NoActionBar);
-
         base.OnCreate(savedInstanceState);
-
+        SetTheme(Resource.Style.Theme_AppCompat_NoActionBar);
         AHelper.MainActivity = this;
     }
 
