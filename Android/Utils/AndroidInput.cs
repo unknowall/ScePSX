@@ -48,6 +48,7 @@ public class AndroidInputHandler : Java.Lang.Object, View.IOnGenericMotionListen
     public event Action<InputAction, bool> OnButtonChanged;
     public event Action<float, float, float, float> OnAnalogAxisChanged; // lx, ly, rx, ry
     //public event Action<InputAction, bool> OnTriggerChanged; // L2/R2 扳机键
+    public bool HasContorller;
 
     public AndroidInputHandler(Activity activity)
     {
@@ -59,12 +60,78 @@ public class AndroidInputHandler : Java.Lang.Object, View.IOnGenericMotionListen
         rootView.SetOnGenericMotionListener(this);
         rootView.SetOnKeyListener(this);
 
-        IsGamepadConnected();
+        HasContorller = IsGamepadConnected();
+    }
+
+    public void CheckContorller()
+    {
+        HasContorller = IsGamepadConnected();
     }
 
     public void ControllerRumble(byte VibrationRight, byte VibrationLeft)
     {
         try
+        {
+            if (HasContorller)
+            {
+                RumbleGamepad(VibrationRight, VibrationLeft);
+            } else
+            {
+                RumblePhone(VibrationRight, VibrationLeft);
+            }
+        } catch
+        {
+        }
+    }
+
+    private void RumbleGamepad(byte VibrationRight, byte VibrationLeft)
+    {
+        var manager = (InputManager)Android.App.Application.Context.GetSystemService(Android.Content.Context.InputService);
+        int[] deviceIds = manager.GetInputDeviceIds();
+
+        foreach (int deviceId in deviceIds)
+        {
+            var device = manager.GetInputDevice(deviceId);
+            if (device != null &&
+                (device.Sources.HasFlag(InputSourceType.Gamepad) ||
+                 device.Sources.HasFlag(InputSourceType.Joystick)))
+            {
+                try
+                {
+                    if (Build.VERSION.SdkInt >= BuildVersionCodes.S)
+                    {
+                        var vibrator = device.Vibrator;
+                        if (vibrator != null && vibrator.HasVibrator)
+                        {
+                            VibrationEffect effect;
+                            if (VibrationRight > 0 || VibrationLeft > 0)
+                            {
+                                long milliseconds = Math.Max(VibrationRight, VibrationLeft) * 2;
+                                effect = VibrationEffect.CreateOneShot(milliseconds,
+                                    VibrationEffect.DefaultAmplitude);
+                            } else
+                            {
+                                effect = VibrationEffect.CreateOneShot(0, 0);
+                            }
+
+                            vibrator.Vibrate(effect);
+                            break;
+                        }
+                    } else
+                    {
+                        //Console.WriteLine("RumbleGamepad Android 12+");
+                    }
+                } catch//(Exception ex)
+                {
+                    //Console.WriteLine($"RumbleGamepad fail: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    private void RumblePhone(byte VibrationRight, byte VibrationLeft)
+    {
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
         {
             var vibrator = (Vibrator?)Android.App.Application.Context.GetSystemService(Android.Content.Context.VibratorService);
             if (vibrator != null && vibrator.HasVibrator)
@@ -76,9 +143,6 @@ public class AndroidInputHandler : Java.Lang.Object, View.IOnGenericMotionListen
                 long[] pattern = { 0, left, right };
                 vibrator.Vibrate(VibrationEffect.CreateWaveform(pattern, -1));
             }
-        } catch (Exception ex)
-        {
-            Console.WriteLine($"Vibration failed: {ex.Message}");
         }
     }
 

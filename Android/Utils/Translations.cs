@@ -167,7 +167,7 @@ namespace ScePSX
             }
         }
 
-        public static string GetText(string TextId, string LangId = "")
+        public static string GetText(string TextId, string catrogy = "texts", string LangId = "")
         {
             if (Translations.Dictionary == null)
             {
@@ -181,7 +181,7 @@ namespace ScePSX
             string result;
             try
             {
-                Dictionary<string, Dictionary<string, string>> dictionary2 = Translations.Dictionary["texts"];
+                Dictionary<string, Dictionary<string, string>> dictionary2 = Translations.Dictionary[catrogy];
                 dictionary = dictionary2[TextId];
                 result = dictionary[LangId];
             } catch (Exception)
@@ -193,7 +193,7 @@ namespace ScePSX
                     result = dictionary[Translations.DefaultLanguage];
                 } catch
                 {
-                    result = string.Format("texts.{0}", TextId);
+                    result = $"{catrogy}.{TextId}";
                 }
             }
             return result;

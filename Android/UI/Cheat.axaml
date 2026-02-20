@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="480"
+             xmlns:vm="clr-namespace:ScePSX"
+             x:Class="ScePSX.CheatFrm"
+             Background="{DynamicResource ThemeBackgroundBrush}">
+
+    <UserControl.Styles>
+        <!-- 基础字体设置 - Android风格 -->
+        <Style Selector="UserControl">
+            <Setter Property="FontFamily" Value="sans-serif, Microsoft YaHei, Noto Sans, WenQuanYi Micro Hei, sans-serif" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <!-- 卡片样式 - 深色主题适配 -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BoxShadow" Value="0 4 8 0 #80000000"/>
+    </Style>
+
+        <!-- 按钮样式 - Android Material Design 风格 -->
+        <Style Selector="Button">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="#FF373737"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Setter.Value>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.1"/>
+                    </Transitions>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#FF474747"/>
+        </Style>
+
+        <!-- 按钮按下效果 -->
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#FF575757"/>
+        </Style>
+
+        <!-- 主要按钮 - 强调色 -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#FF4CAF50"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#FF388E3C"/>
+        </Style>
+
+        <!-- 文本框样式 - 深色主题 -->
+        <Style Selector="TextBox">
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="SelectionBrush" Value="#FF4CAF50"/>
+            <Setter Property="SelectionForegroundBrush" Value="#FFFFFFFF"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#FF4CAF50"/>
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+        </Style>
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="BorderBrush" Value="#FF4CAF50"/>
+        </Style>
+
+        <!-- 文本块全局样式 -->
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+        </Style>
+
+        <!-- 列表项样式 - 深色主题 -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Transitions">
+                <Setter.Value>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.1"/>
+                    </Transitions>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#FF404040"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#FF2D5E3A"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected:pointerover">
+            <Setter Property="Background" Value="#FF3D7A4A"/>
+        </Style>
+
+        <!-- ListBox 容器样式 -->
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+        <!-- 分隔线 -->
+        <Style Selector="Rectangle.separator">
+            <Setter Property="Fill" Value="#FF404040"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="0,8,0,8"/>
+        </Style>
+
+        <!-- 复选框样式 - 深色主题 -->
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+        </Style>
+
+        <!-- 状态文本样式 -->
+        <Style Selector="TextBlock.status">
+            <Setter Property="Foreground" Value="#FFAAAAAA"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="card" Margin="12">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- ========== 顶部工具栏 ========== -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,0,0,16">
+                <Button Grid.Column="0"
+                        x:Name="btnadd"
+                        Content="➕  增加"
+                        Click="BtnAdd_Click"
+                        Margin="0,0,8,0"/>
+                <Button Grid.Column="1"
+                        x:Name="btndel"
+                        Content="🗑️  删除"
+                        Click="BtnDel_Click"
+                        Margin="0,0,8,0"/>
+                <Button Grid.Column="2"
+                        x:Name="BtnSearchCheat"
+                        Content="🌐  下载金手指"
+                        MinWidth="110"
+                        Click="BtnSearch_Click"
+                        Classes="primary"
+                        Margin="0,0,0,0"/>
+                <TextBlock Grid.Column="4"
+                           x:Name="labStatus"
+                           Classes="status"
+                           VerticalAlignment="Center"/>
+            </Grid>
+
+            <!-- ========== 主内容区：金手指列表 + 代码编辑 ========== -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,8,*" Margin="0,0,0,16">
+                <!-- 左侧：金手指列表 -->
+                <Border Grid.Column="0"
+                        BorderBrush="#FF404040"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Background="#FF1E1E1E">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- 列表标题 -->
+                        <Border Grid.Row="0"
+                                Background="#FF2D2D2D"
+                                CornerRadius="12,12,0,0"
+                                Padding="16,12"
+                                BorderBrush="#FF404040"
+                                BorderThickness="0,0,0,1">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <CheckBox x:Name="chkSelectAll"
+                                          IsChecked="False"
+                                          Margin="0,0,12,0"
+                                          IsVisible="False"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="📋 金手指列表"
+                                           Name="labcodelist"
+                                           Foreground="#FFFFFFFF"
+                                           FontSize="14"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 列表内容 -->
+                        <ListBox x:Name="clb"
+                                 Grid.Row="1"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 SelectionMode="Single"
+                                 SelectionChanged="Clb_SelectionChanged"
+                                 DoubleTapped="Clb_DbCLick"
+                                 Margin="0,4,0,0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="vm:CheatItem">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{Binding IsChecked}"
+                                                  Margin="0,0,12,0"
+                                                  VerticalAlignment="Center"/>
+
+                                        <TextBox Grid.Column="1"
+                                                 x:Name="txtName"
+                                                 Text="{Binding Name, Mode=TwoWay}"
+                                                 VerticalAlignment="Center"
+                                                 Padding="8,4"
+                                                 FontSize="13"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 Foreground="#FFFFFFFF"
+                                                 IsReadOnly="True"
+                                                 LostFocus="EditName_LostFocus"
+                                                 KeyDown="EditName_KeyDown"/>
+
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding CodeCount}"
+                                                   Foreground="#FFAAAAAA"
+                                                   FontSize="11"
+                                                   Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- 分隔装饰 -->
+                <Rectangle Grid.Column="1" Fill="Transparent"/>
+
+                <!-- 右侧：代码编辑区 -->
+                <Border Grid.Column="2"
+                        BorderBrush="#FF404040"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Background="#FF1E1E1E">
+                    <Grid RowDefinitions="Auto,*" Margin="0,0,0,0">
+                        <!-- 编辑区标题 -->
+                        <Border Grid.Row="0"
+                                Background="#FF2D2D2D"
+                                CornerRadius="12,12,0,0"
+                                Padding="16,12"
+                                BorderBrush="#FF404040"
+                                BorderThickness="0,0,0,1">
+                            <TextBlock Text="✏️  代码编辑"
+                                       Name="labcodeedit"
+                                       Foreground="#FFFFFFFF"
+                                       FontSize="14"/>
+                        </Border>
+
+                        <!-- 代码文本框 -->
+                        <TextBox x:Name="ctb"
+                                 Grid.Row="1"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Watermark="XXXXXXXX YYYY&#xA;e.g: 0x80000000 0x10"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="#FFFFFFFF"
+                                 Padding="16"
+                                 FontSize="14"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ========== 底部操作栏 ========== -->
+            <Border Grid.Row="2"
+                    Background="#FF2D2D2D"
+                    CornerRadius="12"
+                    Padding="16,12"
+                    BorderBrush="#FF404040"
+                    BorderThickness="1">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                    <!-- 状态提示 -->
+                    <TextBlock Grid.Column="0"
+                               x:Name="labDiskID"
+                               Text="就绪"
+                               VerticalAlignment="Center"
+                               Foreground="#FFAAAAAA"
+                               FontSize="12"/>
+
+                    <!-- 操作按钮组 -->
+                    <Button Grid.Column="1"
+                            x:Name="btnload"
+                            Content="📂  读取"
+                            Click="BtnLoad_Click"
+                            Margin="0,0,8,0"/>
+                    <Button Grid.Column="2"
+                            x:Name="BtnSave"
+                            Content="💾  保存"
+                            Click="BtnSave_Click"
+                            Margin="0,0,8,0"/>
+                    <Button Grid.Column="3"
+                            x:Name="btnimp"
+                            Content="📎  导入"
+                            Click="BtnImport_Click"
+                            Margin="0,0,8,0"/>
+                    <Button Grid.Column="4"
+                            x:Name="btnapply"
+                            Content="⚡  应用"
+                            Click="BtnApply_Click"
+                            Classes="primary"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

@@ -638,15 +638,15 @@
       <translation lang="ru">Высокоточное рендеринг (рекомендуется, минимальные проблемы совместимости)</translation>
       <translation lang="ja">PGXP 高精度レンダリング（オンにすることを推奨、互換性の問題は極めて少ない）</translation>
     </text>
-    <text id="chkpgxp_ppc">
-      <translation lang="en">PGXP Color Correction (Some games may have color issues)</translation>
-      <translation lang="zh">PGXP 着色矫正 （ 少量游戏可能出现颜色异常 ）</translation>
-      <translation lang="de">PGXP Farbkorrektur (einige Spiele können Farbprobleme haben)</translation>
-      <translation lang="fr">Correction de couleur PGXP (certains jeux peuvent avoir des problèmes de couleur)</translation>
-      <translation lang="it">Correzione colore PGXP (alcuni giochi potrebbero avere problemi di colore)</translation>
-      <translation lang="ru">Цветовая коррекция PGXP (у некоторых игр могут быть цветовые ошибки)</translation>
-      <translation lang="ja">PGXP カラー補正（一部のゲームで色異常が発生する場合があります）</translation>
-    </text>
+<text id="chkpgxp_ppc">
+  <translation lang="en">PGXP Perspective Correction (May cause perspective anomalies in a few games)</translation>
+  <translation lang="zh">PGXP 透视矫正 （ 少量游戏可能出现透视异常 ）</translation>
+  <translation lang="de">PGXP-Perspektivenkorrektur (Bei wenigen Spielen können perspektivische Anomalien auftreten)</translation>
+  <translation lang="fr">Correction de perspective PGXP (Anomalies de perspective possibles dans quelques jeux)</translation>
+  <translation lang="it">Correzione prospettica PGXP (Possibili anomalie prospettiche in alcuni giochi)</translation>
+  <translation lang="ru">Коррекция перспективы PGXP (Возможны ошибки перспективы в отдельных играх)</translation>
+  <translation lang="ja">PGXP パース補正（一部のゲームでパース異常が発生する場合があります）</translation>
+</text>
     <text id="chkpgxp_avs">
       <translation lang="en">PGXP Average Depth (recommended, minimal issues)</translation>
       <translation lang="zh">PGXP 平均深度（ 推荐开启，极少兼容问题 ）</translation>

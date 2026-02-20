@@ -1,10 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Android.Content;
-using Android.OS;
-using Android.Views;
-using Android.Widget;
-using AndroidX.Annotations;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -17,6 +12,9 @@ namespace ScePSX
 {
     public partial class MainView : UserControl
     {
+        public const string Ver = "ScePSX v0.2.0.1";
+        public const string Version = "Version 0.2.0.1";
+
         GameActivityMange ActivityMange;
         PSXHandler PSX;
 
@@ -33,6 +31,22 @@ namespace ScePSX
             PSXHandler.RootPath = AHelper.RootPath;
             PSXHandler.ini = new IniFile(AHelper.RootPath + "/ScePSX.ini");
 
+            labver.Text = Ver;
+
+            lablang.Text = Translations.GetText("MnuLang", "menus");
+            foreach (var lang in Translations.Languages)
+            {
+                ComboBoxItem item = new ComboBoxItem();
+                item.Content = lang.Value;
+                item.Tag = lang.Key;
+                cblang.Items.Add(item);
+                if (lang.Key == Translations.CurrentLangId)
+                {
+                    item.IsSelected = true;
+                    cblang.SelectedItem = item;
+                }
+            }
+
             ActivityMange = new GameActivityMange();
 
             PSX = ActivityMange.PSX;
@@ -42,8 +56,6 @@ namespace ScePSX
         {
             RomListView.Init();
 
-            RomListView.FillByini();
-
             RomListView.DoubleTapped += RomListView_DoubleTapped;
 
             cbgpu.SelectedIndex = 1;
@@ -51,8 +63,6 @@ namespace ScePSX
             cbar.SelectedIndex = 1;
 
             AHelper.CheckPermission();
-
-            //AHelper.MainActivity.SetTheme(Resource.Style.Theme_AppCompat_NoActionBar);
         }
 
         private async void RunGame(string file, string id)
@@ -73,7 +83,16 @@ namespace ScePSX
             {
                 Bios = await AHelper.ShowBiosDialog();
                 if (!File.Exists(Bios))
+                {
+                    OSD.Show(Translations.GetText("invbios"));
                     return;
+                }
+                FileInfo fileInfo = new FileInfo(Bios);
+                if (fileInfo.Length != 524288)
+                {
+                    OSD.Show(Translations.GetText("invbios"));
+                    return;
+                }
                 PSXHandler.ini.Write("main", "bios", Bios);
             }
 
@@ -121,6 +140,8 @@ namespace ScePSX
 
             //var Bios = AHelper.DownloadPath + "/SCPH1001.BIN";
             PSX.LoadGame(file, Bios, id);
+
+            RomListView.FillByini();
         }
 
         private void RomListView_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
@@ -135,26 +156,75 @@ namespace ScePSX
 
         private async void BtnScan_Click(object? sender, RoutedEventArgs e)
         {
+            if (!AHelper.HasPermission)
+            {
+                AHelper.ShowPermissionDialog();
+                return;
+            }
             await RomListView.SearchDir(AHelper.DownloadPath);
+            await RomListView.SearchDir(AHelper.DocumentsPath);
+        }
+
+        private GameInfo? CheckSelect()
+        {
+            GameInfo item = (GameInfo)RomListView.GameListBox.SelectedItem;
+            if (item == null)
+            {
+                OSD.Show(Translations.GetText("notselected"));
+                return null;
+            }
+            return item;
         }
 
         private void BtnSet_Click(object? sender, RoutedEventArgs e)
         {
+            //var item = CheckSelect();
+            //if (item == null)
+            //{
+            var view = new Setting("");
+            Translations.UpdateLang(view);
+            ShowForm(view);
+            //} else
+            //{
+            //    var view = new Setting(item.ID);
+            //    Translations.UpdateLang(view);
+            //    ShowForm(view);
+            //}
         }
 
         private void BtnCheat_Click(object? sender, RoutedEventArgs e)
         {
+            var item = CheckSelect();
+            if (item == null)
+                return;
+
+            var view = new CheatFrm(item.ID, null);
+            Translations.UpdateLang(view);
+            ShowForm(view);
         }
 
         private void BtnMcr_Click(object? sender, RoutedEventArgs e)
         {
+            var item = CheckSelect();
+            if (item == null)
+                return;
+
+            var view = new McrMangeFrm(item.ID);
+            Translations.UpdateLang(view);
+            ShowForm(view);
         }
 
         private async void BtnOpen_Click(object? sender, RoutedEventArgs e)
         {
-            var result = await AHelper.SelectFile("Rom", "Rom Files", new[] { "*.bin", "*.iso", "*.cue", "*.img", "*.exe" });
+            var result = await AHelper.SelectFile("Rom");
             if (File.Exists(result))
             {
+                FileInfo fileInfo = new FileInfo(result);
+                if (fileInfo.Length <= 1024 * 1024 * 50)
+                {
+                    OSD.Show(Translations.GetText("invrom"));
+                    return;
+                }
                 PSX.GameName = "";
                 RunGame(result, "");
             }
@@ -162,11 +232,29 @@ namespace ScePSX
 
         private async void BtnBios_Click(object? sender, RoutedEventArgs e)
         {
-            string result = await AHelper.SelectFile("BIOS", "Bios Files", new[] { "*.bin" });
+            string result = await AHelper.SelectFile("BIOS");
             if (File.Exists(result))
             {
+                FileInfo fileInfo = new FileInfo(result);
+                if (fileInfo.Length != 524288)
+                {
+                    OSD.Show(Translations.GetText("invbios"));
+                    return;
+                }
                 PSXHandler.ini.Write("main", "bios", result);
+            } else
+            {
+                OSD.Show(Translations.GetText("invbios"));
             }
+        }
+
+        private void BtnDel_Click(object? sender, RoutedEventArgs e)
+        {
+            var item = CheckSelect();
+            if (item == null)
+                return;
+            RomListView.GameListBox.Items.Remove(item);
+            PSXHandler.ini.DeleteKey("history", item.ID);
         }
 
         private void BtnAbout_Click(object? sender, RoutedEventArgs e)
@@ -182,43 +270,21 @@ namespace ScePSX
             intent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
             Android.App.Application.Context.StartActivity(intent);
         }
-    }
 
-    public static class OSD
-    {
-        private static Handler? _mainHandler;
-        private static Toast? _currentToast;
-
-        static OSD()
+        private void cblang_selected(object? sender, SelectionChangedEventArgs e)
         {
-            _mainHandler = new Handler(Looper.MainLooper);
-        }
-
-        public static void Show(string message = "", int durationMs = 3000)
-        {
-            _mainHandler?.Post(() =>
+            var item = (ComboBoxItem)cblang.SelectedItem;
+            if (item != null)
             {
-                try
+                if (item.Tag != null)
                 {
-                    _currentToast?.Cancel();
-
-                    var duration = durationMs <= 2000 ? ToastLength.Short : ToastLength.Long;
-                    _currentToast = Toast.MakeText(AHelper.MainActivity, message, duration);
-                    _currentToast.Show();
-                } catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Toast Error: {ex.Message}");
+                    Translations.CurrentLangId = (string)item.Tag;
+                    Translations.UpdateLang(this);
+                    Translations.UpdateLang(RomListView);
+                    lablang.Text = Translations.GetText("MnuLang", "menus");
+                    RomListView.FillByini();
                 }
-            });
-        }
-
-        public static void Cancel()
-        {
-            _mainHandler?.Post(() =>
-            {
-                _currentToast?.Cancel();
-                _currentToast = null;
-            });
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -9,7 +9,7 @@
     <UserControl.Styles>
         <!-- 全局字体 -->
         <Style Selector="UserControl">
-            <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, PingFang SC, WenQuanYi Micro Hei, sans-serif"/>
+            <Setter Property="FontFamily" Value="sans-serif"/>
         </Style>
 
         <!-- 文字标签样式 -->
@@ -26,7 +26,6 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -64,24 +63,45 @@
 
         <Border Grid.Row="0" Background="#1E1E1E" Padding="4,6">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="扫描游戏" Click="BtnScan_Click" Classes="primary" MinWidth="60"/>
-                    <Button Content="打开游戏" Click="BtnOpen_Click" Classes="primary" MinWidth="60"/>
-                    
-                    <!-- 间隔稍微拉大一点，区分功能组 -->
-                    <Button Content="BIOS" Click="BtnBios_Click" Classes="secondary" MinWidth="60"/>
-                    <Button Content="设置" Click="BtnSet_Click" Classes="secondary" MinWidth="60"/>
-                    <Button Content="金手指" Click="BtnCheat_Click" Classes="secondary" MinWidth="70"/>
-                    <Button Content="存档管理" Click="BtnMcr_Click" Classes="secondary" MinWidth="60"/>
-                    <Button Content="关于" Click="BtnAbout_Click" Classes="secondary" MinWidth="60"/>
-                </StackPanel>
+                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,1*">
+                    <Button Grid.Column="0" Name="BtnScan"
+                            Margin="0 0 8 0" Content="扫描游戏" Click="BtnScan_Click" Classes="primary" MinWidth="60"/>
+                    <Button Grid.Column="1" Name="BtnOpen"
+                            Margin="0 0 8 0" Content="打开游戏" Click="BtnOpen_Click" Classes="primary" MinWidth="60"/>
+
+                    <Button Grid.Column="2" Name="BtnRemove"
+                            Margin="0 0 8 0" Content="移除" Click="BtnDel_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Grid.Column="3" Name="BtnBios_"
+                            Margin="0 0 8 0" Content="BIOS" Click="BtnBios_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Grid.Column="4" Name="BtnSet"
+                            Margin="0 0 8 0" Content="设置" Click="BtnSet_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Grid.Column="5" Name="BtnCheat"
+                            Margin="0 0 8 0" Content="作弊" Click="BtnCheat_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Grid.Column="6" Name="BtnMcr"
+                            Margin="0 0 8 0" Content="存档" Click="BtnMcr_Click" Classes="secondary" MinWidth="60"/>
+                    <Button Grid.Column="7" Name="BtnAbout"
+                            Margin="0 0 8 0" Content="关于" Click="BtnAbout_Click" Classes="secondary" MinWidth="60"/>
+
+                    <Grid Grid.Column="8"  ColumnDefinitions="Auto,*" HorizontalAlignment="Right">
+                        <TextBlock Grid.Column="0" FontSize="24" Text="🎮"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"/>
+                        <TextBlock Grid.Column="1" Text="ScePSX v0.2.0.1"
+                                   Classes="ver"
+                                   Name="labver"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"
+                                   FontSize="16"
+                                   FontStyle="Italic"
+                                   Foreground="#555555" />
+                    </Grid>
+                </Grid>
             </ScrollViewer>
         </Border>
 
-
         <Border Grid.Row="1" Background="#181818" Padding="8,4">
             <StackPanel Orientation="Horizontal" Spacing="10">
-                
+
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="GPU" Classes="label"/>
                     <ComboBox x:Name="cbgpu" Width="110">
@@ -92,8 +112,8 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="分辨率增强" Classes="label"/>
-                    <ComboBox x:Name="cbgpures" Width="80">
+                    <TextBlock Text="分辨率增强" Classes="label" Name="labIR"/>
+                    <ComboBox x:Name="cbgpures" Width="70">
                         <ComboBoxItem Content="1x"/>
                         <ComboBoxItem Content="2x"/>
                         <ComboBoxItem Content="3x"/>
@@ -103,13 +123,19 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="屏幕比例" Classes="label"/>
-                    <ComboBox x:Name="cbar" Width="80">
-                        <ComboBoxItem Content="4:3"/>
+                    <TextBlock Text="屏幕比例" Classes="label" Name="labAR"/>
+                    <ComboBox x:Name="cbar" Width="70">
                         <ComboBoxItem Content="16:9"/>
+                        <ComboBoxItem Content="4:3"/>
                     </ComboBox>
                 </StackPanel>
-                
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Name="lablang" Text="语言" Classes="label"/>
+                    <ComboBox x:Name="cblang" Width="150" SelectionChanged="cblang_selected">
+                    </ComboBox>
+                </StackPanel>
+
             </StackPanel>
         </Border>
 

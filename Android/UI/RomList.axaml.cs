@@ -9,7 +9,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Threading;
 using ScePSX.CdRom;
 
 #pragma warning disable CS8600
@@ -179,9 +178,9 @@ namespace ScePSX
         public void FillByini()
         {
             GameListBox.Items.Clear();
+            if (File.Exists(AHelper.RootPath + "/gamedb.yaml"))
+                SimpleYaml.ParseYamlFile(AHelper.RootPath + "/gamedb.yaml");
             string[] ids = PSXHandler.ini.GetSectionKeys("history");
-            if (File.Exists(AHelper.DownloadPath+"/gamedb.yaml"))
-                SimpleYaml.ParseYamlFile(AHelper.DownloadPath + "/gamedb.yaml");
             foreach (string id in ids)
             {
                 if (id != "")
@@ -198,7 +197,7 @@ namespace ScePSX
                     game.FileName = Path.GetFileName(infos[0]);
                     game.Size = new FileInfo(infos[0]).Length;
                     game.LastPlayed = infos[1];
-                    game.HasSaveState = Directory.GetFiles(AHelper.RootPath+"/SaveState/", $"{id}_Save?.dat").Length > 0;
+                    game.HasSaveState = Directory.GetFiles(AHelper.RootPath + "/SaveState/", $"{id}_Save?.dat").Length > 0;
                     game.HasCheats = File.Exists(AHelper.RootPath + $"/Cheats/{id}.txt");
                     game.StateText = Translations.GetText("RomList_statesave");
                     game.CheatText = Translations.GetText("RomList_cheat");
@@ -330,13 +329,10 @@ namespace ScePSX
 
             if (first)
             {
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    addedfiles = new List<string>();
-                    cddata = new CDData();
-                    if (File.Exists(AHelper.DownloadPath + "/gamedb.yaml"))
-                        SimpleYaml.ParseYamlFile(AHelper.DownloadPath + "/gamedb.yaml");
-                });
+                addedfiles = new List<string>();
+                cddata = new CDData();
+                if (File.Exists(AHelper.RootPath + "/gamedb.yaml"))
+                    SimpleYaml.ParseYamlFile(AHelper.RootPath + "/gamedb.yaml");
             }
             OSD.Show($"Searching {dir} ...", 99999);
             try
@@ -353,7 +349,7 @@ namespace ScePSX
                         continue;
                     if (f.Extension != ".bin" && f.Extension != ".iso" && f.Extension != ".img")
                         continue;
-                    if (f.Length < 100 * 1024)
+                    if (f.Length < 1024 * 1024 * 50)
                         continue;
                     if (addedfiles.Contains(f.FullName))
                         continue;
@@ -385,11 +381,7 @@ namespace ScePSX
             {
                 if (first)
                 {
-                    Dispatcher.UIThread.Invoke(() =>
-                    {
-                        SortByLastPlayed();
-                        //SimpleOSD.Show(this, "Search Done!", 2000, Color.DarkBlue);
-                    });
+                    SortByLastPlayed();
                 }
             }
         }

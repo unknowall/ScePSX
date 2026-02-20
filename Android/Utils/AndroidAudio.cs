@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Android.Media;
-using ScePSX;
 
 namespace ScePSX;
 

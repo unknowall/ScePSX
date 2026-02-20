@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
 using static ScePSX.Controller;
+using static ScePSX.VirtualGamepadOverlay;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8604
@@ -61,26 +63,74 @@ public class GameActivityMange
             {
                 AHelper.androidInput.OnButtonChanged += OnButtonChanged;
                 AHelper.androidInput.OnAnalogAxisChanged += OnAnalogAxisChanged;
+                PSX.inputHandler = AHelper.androidInput;
             }
         }
     }
 
-    private void OnTopBarAction(string action)
+    private async void ChangeDisc()
     {
+        if (PSX.isRun())
+        {
+            var iso = await AHelper.SelectFile("ISO", "", true, AHelper.GameActivity);
+            if (File.Exists(iso))
+            {
+                var info = new FileInfo(iso);
+                if (info.Length > 1024 * 1024 * 50)
+                {
+                    Console.WriteLine($"ScePSX ChangeDisc {iso}");
+                    PSX.Core.SwapDisk(iso);
+                    OSD.Show($"{Translations.GetText("FrmMain_SwapDisc")} {PSX.Core.DiskID}");
+                } else
+                    OSD.Show(Translations.GetText("invrom"));
+            } else
+            {
+                OSD.Show(Translations.GetText("invrom"));
+            }
+        }
+    }
+
+    bool Proces = false;
+
+    private void OnTopBarAction(TopBarEvent action, int param)
+    {
+        if (PSX.Core == null)
+            return;
+        if (Proces)
+            return;
+        Proces = true;
         switch (action)
         {
-            case "cheats": // 打开金手指
+            case TopBarEvent.Cheat:
+                if (param == 0)
+                {
+                    PSX.Core.LoadCheats();
+                    OSD.Show(Translations.GetText("cheatapply"));
+                } else
+                {
+                    PSX.Core.CleanCheats();
+                    OSD.Show(Translations.GetText("txtcancel") + " " + Translations.GetText("vcheat"));
+                }
                 break;
-            case "save": // 即时保存
+            case TopBarEvent.StateSave:
+                //PSX.SaveState();
+                OSD.Show(Translations.GetText("FrmMain_SaveState_saved"));
                 break;
-            case "load": // 即时加载
+            case TopBarEvent.StateLoad:
+                //PSX.LoadState();
+                OSD.Show(Translations.GetText("FrmMain_SaveState_load"));
                 break;
-            case "undo": // 撤销
+            case TopBarEvent.SwapDisc:
+                ChangeDisc();
                 break;
-            case var s when s.StartsWith("slot_change:"):
-                int slot = int.Parse(s.Split(':')[1]); // 存档位变化
+            case TopBarEvent.SlotInc:
+                PSX.SaveSlot = param;
+                break;
+            case TopBarEvent.SlotDec:
+                PSX.SaveSlot = param;
                 break;
         }
+        Proces = false;
     }
 
     private void OnAnalogAxisChanged(float lx, float ly, float rx, float ry)
@@ -118,6 +168,7 @@ public class GameActivityMange
             {
                 AHelper.androidInput.OnButtonChanged += OnButtonChanged;
                 AHelper.androidInput.OnAnalogAxisChanged += OnAnalogAxisChanged;
+                PSX.inputHandler = AHelper.androidInput;
             }
         }
     }
@@ -141,6 +192,7 @@ public class GameActivityMange
             {
                 AHelper.androidInput.OnButtonChanged -= OnButtonChanged;
                 AHelper.androidInput.OnAnalogAxisChanged -= OnAnalogAxisChanged;
+                PSX.inputHandler = null;
             }
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using Android.OS;
 using ScePSX.Core.GPU;
 using static ScePSX.Controller;
 
@@ -20,9 +19,8 @@ namespace ScePSX
         public IntPtr NativeHandle;
         public int NativeWidth, NativeHeight;
 
-        private PowerManager.WakeLock? wakeLock;
-
         public AndroidAudioHandler AudioHanlder;
+        public AndroidInputHandler? inputHandler = null;
 
         public PSXCore? Core;
         public PixelsScaler Scaler;
@@ -359,12 +357,7 @@ namespace ScePSX
 
             AudioHanlder.Play();
 
-            var pm = (PowerManager)Android.App.Application.Context.GetSystemService(Android.Content.Context.PowerService);
-            wakeLock = pm.NewWakeLock(WakeLockFlags.Partial, "ScePSX:GameLoop");
-            wakeLock.Acquire();
-
-            Core.Boost = true;
-            Core.PsxBus.cpu.ttydebug = true;
+            //Core.Boost = true;
             Core.Start();
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
@@ -400,7 +393,10 @@ namespace ScePSX
 
         public void ControllerRumble(byte VibrationRight, byte VibrationLeft)
         {
-
+            if (inputHandler != null)
+            {
+                inputHandler.ControllerRumble(VibrationRight, VibrationLeft);
+            }
         }
     }
 

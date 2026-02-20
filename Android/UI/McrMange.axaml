@@ -1,0 +1,353 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:ScePSX"
+             mc:Ignorable="d" d:DesignWidth="820" d:DesignHeight="520"
+             x:Class="ScePSX.McrMangeFrm"
+             Background="{DynamicResource ThemeBackgroundBrush}">
+
+    <UserControl.Styles>
+        <Style Selector="UserControl">
+            <Setter Property="FontFamily" Value="sans-serif" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <!-- 卡片样式 - 深色主题 -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BoxShadow" Value="0 4 12 0 #80000000"/>
+        </Style>
+
+        <!-- 子卡片样式 -->
+        <Style Selector="Border.subcard">
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="12"/>
+        </Style>
+
+        <!-- 按钮样式 -->
+        <Style Selector="Button">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="#FF373737"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#FF474747"/>
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#FF575757"/>
+        </Style>
+
+        <!-- 主要按钮 -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#FF4CAF50"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+
+        <!-- 操作按钮 - 圆形 -->
+        <Style Selector="Button.action">
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Background" Value="#FF404040"/>
+        </Style>
+        <Style Selector="Button.action:pointerover">
+            <Setter Property="Background" Value="#FF4CAF50"/>
+        </Style>
+
+        <!-- 下拉框样式 -->
+        <Style Selector="ComboBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+
+        <!-- 列表项样式 -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#FF2D5E3A"/>
+        </Style>
+
+        <!-- 标题文本 -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <!-- 卡片标题 -->
+        <Style Selector="TextBlock.card-title">
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <!-- 辅助文本 -->
+        <Style Selector="TextBlock.hint">
+            <Setter Property="Foreground" Value="#FFAAAAAA"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+
+        <!-- 状态文本 -->
+        <Style Selector="TextBlock.status">
+            <Setter Property="Foreground" Value="#FF808080"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="card" Margin="16">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- ========== 标题 ========== -->
+            <TextBlock Grid.Row="0"
+                       Text="💾 内存卡管理"
+                       Name="labmcrtitle"
+                       Classes="title"/>
+
+            <!-- ========== 双卡布局 ========== -->
+            <Grid Grid.Row="1" ColumnDefinitions="1*,Auto,1*" Margin="0,0,0,16">
+                <!-- 左侧内存卡 -->
+                <Border Grid.Column="0" Classes="subcard">
+                    <Grid RowDefinitions="40,25,*,40" Margin="0">
+                        <!-- 顶部工具栏 - 第1行，固定高度40 -->
+                        <Grid Grid.Row="0" 
+                              ColumnDefinitions="*,Auto,Auto" 
+                              Margin="0,0,0,4"
+                              VerticalAlignment="Center">
+                            <ComboBox x:Name="cbsave1"
+                                      Grid.Column="0"
+                                      Margin="0,0,8,0"
+                                      PlaceholderText="NullCard"
+                                      MinWidth="100"
+                                      VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    x:Name="btnformat1"
+                                    Content="💽 格式化"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"/>
+                            <Button Grid.Column="2"
+                                    x:Name="btnimport1"
+                                    Content="📂 导入"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- 卡片信息 - 第2行，固定高度25 -->
+                        <Grid Grid.Row="1" 
+                              ColumnDefinitions="*,Auto" 
+                              Margin="0,0,0,4"
+                              VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0"
+                                       Text="Card 1"
+                                       Classes="card-title"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1"
+                                       x:Name="txtSlotCount1"
+                                       Text="0/15"
+                                       Classes="hint"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- 存档列表 - 第3行，占满剩余空间 -->
+                        <ListBox x:Name="lv1"
+                                 Grid.Row="2"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 SelectionMode="Single"
+                                 Margin="0,4,0,4"
+                                 MinHeight="200">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="local:SaveSlotItem">
+                                    <Grid ColumnDefinitions="16,36,*,Auto" Margin="0,2">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding SlotNumber}"
+                                                   Foreground="#FFAAAAAA"
+                                                   VerticalAlignment="Center"/>
+                                        <Image Grid.Column="1"
+                                               Width="32"
+                                               Height="32"
+                                               Source="{Binding Icon}"
+                                               Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Name}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="#FFFFFFFF"
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding Size}"
+                                                   Foreground="#FF808080"
+                                                   FontSize="11"
+                                                   Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- 底部操作按钮 - 第4行，固定高度40 -->
+                        <StackPanel Grid.Row="3"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="0,4,0,0">
+                            <Button x:Name="del1" Content="🗑️ 删除" MinWidth="80" VerticalAlignment="Center"/>
+                            <Button x:Name="out1" Content="📤 导出" MinWidth="80" VerticalAlignment="Center"/>
+                            <Button x:Name="save1" Content="💾 保存" MinWidth="80" Classes="primary" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 中间操作区 -->
+                <StackPanel Grid.Column="1"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Spacing="12"
+                            Margin="16,0">
+                    <Button x:Name="copy1to2" Content="→" Classes="action" ToolTip.Tip="复制到右侧"/>
+                    <Button x:Name="move1to2" Content="⇉" Classes="action" ToolTip.Tip="移动到右侧"/>
+                    <Rectangle Classes="separator-vertical" Height="20" Margin="0,4"/>
+                    <Button x:Name="move2to1" Content="⇇" Classes="action" ToolTip.Tip="移动到左侧"/>
+                    <Button x:Name="copy2to1" Content="←" Classes="action" ToolTip.Tip="复制到左侧"/>
+                </StackPanel>
+
+                <!-- 右侧内存卡 -->
+                <Border Grid.Column="2" Classes="subcard">
+                    <Grid RowDefinitions="40,25,*,40" Margin="0">
+                        <!-- 顶部工具栏 - 第1行，固定高度40 -->
+                        <Grid Grid.Row="0" 
+                              ColumnDefinitions="*,Auto,Auto" 
+                              Margin="0,0,0,4"
+                              VerticalAlignment="Center">
+                            <ComboBox x:Name="cbsave2"
+                                      Grid.Column="0"
+                                      Margin="0,0,8,0"
+                                      PlaceholderText="NullCard"
+                                      MinWidth="100"
+                                      VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    x:Name="btnformat2"
+                                    Content="💽 格式化"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"/>
+                            <Button Grid.Column="2"
+                                    x:Name="btnimport2"
+                                    Content="📂 导入"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- 卡片信息 - 第2行，固定高度25 -->
+                        <Grid Grid.Row="1" 
+                              ColumnDefinitions="*,Auto" 
+                              Margin="0,0,0,4"
+                              VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0"
+                                       Text="Card 2"
+                                       Classes="card-title"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1"
+                                       x:Name="txtSlotCount2"
+                                       Text="0/15"
+                                       Classes="hint"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- 存档列表 - 第3行，占满剩余空间 -->
+                        <ListBox x:Name="lv2"
+                                 Grid.Row="2"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 SelectionMode="Single"
+                                 Margin="0,4,0,4"
+                                 MinHeight="200">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="local:SaveSlotItem">
+                                    <Grid ColumnDefinitions="16,36,*,Auto" Margin="0,2">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding SlotNumber}"
+                                                   Foreground="#FFAAAAAA"
+                                                   VerticalAlignment="Center"/>
+                                        <Image Grid.Column="1"
+                                               Width="32"
+                                               Height="32"
+                                               Source="{Binding Icon}"
+                                               Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Name}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="#FFFFFFFF"
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding Size}"
+                                                   Foreground="#FF808080"
+                                                   FontSize="11"
+                                                   Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- 底部操作按钮 - 第4行，固定高度40 -->
+                        <StackPanel Grid.Row="3"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="0,4,0,0">
+                            <Button x:Name="del2" Content="🗑️ 删除" MinWidth="80" VerticalAlignment="Center"/>
+                            <Button x:Name="out2" Content="📤 导出" MinWidth="80" VerticalAlignment="Center"/>
+                            <Button x:Name="save2" Content="💾 保存" MinWidth="80" Classes="primary" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ========== 底部状态栏 ========== -->
+            <Border Grid.Row="2"
+                    Background="#FF2D2D2D"
+                    CornerRadius="12"
+                    Padding="16,8"
+                    BorderBrush="#FF404040"
+                    BorderThickness="1">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0"
+                               x:Name="labStatus"
+                               Text=""
+                               VerticalAlignment="Center"
+                               Classes="status"/>
+                    <TextBlock Grid.Column="1"
+                               Name="labmcrhint"
+                               Text="所有操作保存后生效，返回即取消操作"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

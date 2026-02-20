@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Android.Content;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -14,6 +12,8 @@ namespace ScePSX
         public AboutFrm()
         {
             InitializeComponent();
+
+            labver.Text = MainView.Version;
 
             labinfo.Text = Translations.GetText("FrmAbout_memo1");
 

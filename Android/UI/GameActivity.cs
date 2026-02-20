@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.App;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8618
@@ -15,8 +17,9 @@ namespace ScePSX
     [Activity(Label = "ScePSX.GameScreenActivity",
               Theme = "@style/Theme.AppCompat.NoActionBar",
               LaunchMode = LaunchMode.SingleTop,
-              ScreenOrientation = ScreenOrientation.SensorLandscape)]
-    public class GameActivity : Activity
+              ScreenOrientation = ScreenOrientation.SensorLandscape,
+              ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.KeyboardHidden)]
+    public class GameActivity : AppCompatActivity
     {
         public static Action<IntPtr, int, int>? OnSurfaceCreated;
         public static Action<int, int>? OnSurfaceSizeChanged;
@@ -25,6 +28,8 @@ namespace ScePSX
         public static IntPtr AnativeWindowPtr;
         private bool _handleDelivered = false;
         public FrameLayout mainLayout;
+        public SurfaceView surfaceView;
+        public VirtualGamepadOverlay overlayView;
 
         [DllImport("android")]
         private static extern IntPtr ANativeWindow_fromSurface(IntPtr env, IntPtr surface);
@@ -38,24 +43,18 @@ namespace ScePSX
 
             base.OnCreate(savedInstanceState);
 
-            Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-
             AHelper.GameActivity = this;
 
-            mainLayout = new FrameLayout(this);
-
-            var surfaceView = new SurfaceView(this);
-
+            surfaceView = new SurfaceView(this);
             surfaceView.Holder.AddCallback(new SurfaceHolderCallback(this));
 
+            mainLayout = new FrameLayout(this);
             mainLayout.AddView(surfaceView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent));
 
-            var overlayView = new VirtualGamepadOverlay(this);
-
+            overlayView = new VirtualGamepadOverlay(this);
             AHelper.GamepadOverlay = overlayView;
-
             mainLayout.AddView(overlayView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent));
@@ -63,6 +62,18 @@ namespace ScePSX
             AHelper.androidInput = new AndroidInputHandler(this);
 
             SetContentView(mainLayout);
+        }
+
+        protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+        {
+            base.OnActivityResult(requestCode, resultCode, data);
+            AHelper.OnActivityResult(requestCode, (int)resultCode, data);
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            SetFullScreen();
         }
 
         protected override void OnDestroy()
@@ -135,12 +146,7 @@ namespace ScePSX
                                     | SystemUiFlags.LayoutFullscreen
                                     | SystemUiFlags.LayoutHideNavigation;
             Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
-        }
-
-        protected override void OnResume()
-        {
-            base.OnResume();
-            SetFullScreen();
+            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
         }
     }
 }

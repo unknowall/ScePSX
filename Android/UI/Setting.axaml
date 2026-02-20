@@ -1,0 +1,340 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="680" d:DesignHeight="640"
+        x:Class="ScePSX.Setting"
+        Background="{DynamicResource ThemeBackgroundBrush}">
+
+    <UserControl.Styles>
+        <!-- 基础字体设置 -->
+        <Style Selector="UserControl">
+            <Setter Property="FontFamily" Value="sans-serif" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <!-- 卡片样式 - 深色主题 -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16,18"/>
+            <Setter Property="BoxShadow" Value="0 2 8 0 #80000000"/>
+        </Style>
+
+        <!-- 按钮样式 - Material Design -->
+        <Style Selector="Button">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#FF373737"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#FF474747"/>
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#FF575757"/>
+        </Style>
+
+        <!-- 主要按钮 -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#FF4CAF50"/>
+        </Style>
+
+        <!-- 分隔线 -->
+        <Style Selector="Separator">
+            <Setter Property="Background" Value="#FF404040"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="0,12,0,12"/>
+        </Style>
+
+        <!-- 标签文本 -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#FFAAAAAA"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <!-- 标题文本 -->
+        <Style Selector="TextBlock.header">
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- ComboBox样式 -->
+        <Style Selector="ComboBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover">
+            <Setter Property="BorderBrush" Value="#FF4CAF50"/>
+        </Style>
+
+        <!-- TextBox样式 -->
+        <Style Selector="TextBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#FF4CAF50"/>
+        </Style>
+
+        <!-- CheckBox样式 -->
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- TabControl样式 -->
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- TabItem样式 -->
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFAAAAAA"/>
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#FF4CAF50"/>
+        </Style>
+        <Style Selector="TabItem:pointerover">
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        </Style>
+
+        <!-- ScrollViewer样式 -->
+        <Style Selector="ScrollViewer">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- WrapPanel内部间距 -->
+        <Style Selector="WrapPanel">
+            <Setter Property="ItemSpacing" Value="16"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*,Auto">
+        <!-- TabControl -->
+        <TabControl x:Name="SetTab"
+                    Grid.Row="0"
+                    Margin="20,20,20,0"
+                    Padding="0">
+
+            <!-- ========== BASE ========== -->
+            <TabItem x:Name="SetPage1" Header="BASE">
+                <ScrollViewer Margin="0,12,0,0">
+                    <StackPanel Spacing="16" Margin="0,0,4,16">
+
+                        <!-- 核心硬件 -->
+                        <Border Classes="card">
+                            <StackPanel Spacing="12">
+                                <TextBlock Name="labcore" Text="核心" Classes="header"/>
+                                <Grid ColumnDefinitions="1*,1*" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,8,8">
+                                        <TextBlock Name="labbios" Text="BIOS" Classes="label"/>
+                                        <TextBox Name="edbios" Watermark="SCPH1001.BIN" Width="200" IsEnabled="False"
+                                                 Foreground="#FFFFFFFF"
+                                                 HorizontalAlignment="Left"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4" Margin="8,0,0,8">
+                                        <TextBlock Name="labcpumode" Text="CPU" Classes="label"/>
+                                        <ComboBox x:Name="cbcpumode" Width="200"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                        <TextBlock Name="labgpumode" Text="GPU" Classes="label"/>
+                                        <ComboBox x:Name="cbgpu" Width="200">
+                                            <ComboBoxItem>自适应</ComboBoxItem>
+                                            <ComboBoxItem>Software</ComboBoxItem>
+                                            <ComboBoxItem>OpenGL</ComboBoxItem>
+                                            <ComboBoxItem>Vulkan</ComboBoxItem>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" Margin="8,0,0,0">
+                                        <TextBlock Name="labIRScale" Text="内部分辨率" Classes="label"/>
+                                        <ComboBox x:Name="cbgpures" Width="200">
+                                            <ComboBoxItem>1x</ComboBoxItem>
+                                            <ComboBoxItem>2x</ComboBoxItem>
+                                            <ComboBoxItem>3x (720P)</ComboBoxItem>
+                                            <ComboBoxItem>5x (1080P)</ComboBoxItem>
+                                            <ComboBoxItem>9x (4K)</ComboBoxItem>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+                                <Separator/>
+                                <Grid ColumnDefinitions="1*,1*">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                        <TextBlock Name="labcdrom" Text="CDROM" Classes="label"/>
+                                        <ComboBox x:Name="cbcdrom" Width="200">
+                                            <ComboBoxItem>自适应</ComboBoxItem>
+                                            <ComboBoxItem>2x</ComboBoxItem>
+                                            <ComboBoxItem>4x</ComboBoxItem>
+                                            <ComboBoxItem>8x</ComboBoxItem>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 画面 & 性能 -->
+                        <Border Classes="card">
+                            <StackPanel Spacing="12">
+                                <TextBlock Name="labgrap" Text="画面" Classes="header"/>
+                                <WrapPanel>
+                                    <CheckBox x:Name="chkrealcolor" Content="真实色彩"/>
+                                    <CheckBox x:Name="chkkeepar" Content="保持比例"/>
+                                    <CheckBox x:Name="chkpgxpt" Content="PGXP纹理"/>
+                                    <CheckBox x:Name="ChkFMV" Content="FMV 优化"/>
+                                </WrapPanel>
+                                <Separator/>
+                                <TextBlock Name="labpref" Text="性能" Classes="header"/>
+                                <Grid ColumnDefinitions="1*,1*" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,8,8">
+                                        <TextBlock Name="labBusTick" Text="总线周期" Classes="label"/>
+                                        <TextBox x:Name="tbbuscycles" Watermark="110"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4" Margin="8,0,0,8">
+                                        <TextBlock Name="labCpuTick" Text="CPU 周期" Classes="label"/>
+                                        <TextBox x:Name="tbcputicks" Watermark="42"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                        <TextBlock Name="labFrameLimit" Text="帧率限制" Classes="label"/>
+                                        <TextBox x:Name="tbframeidle" Watermark="60"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" Margin="8,0,0,0">
+                                        <TextBlock Name="labAudioBuff" Text="音频缓冲(ms)" Classes="label"/>
+                                        <TextBox x:Name="tbaudiobuffer" Watermark="60"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Separator/>
+                                <Grid ColumnDefinitions="1*,1*">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                        <TextBlock Text="MSAA" Classes="label"/>
+                                        <ComboBox x:Name="cbmsaa" MinWidth="200">
+                                            <ComboBoxItem>0x</ComboBoxItem>
+                                            <ComboBoxItem>4x</ComboBoxItem>
+                                            <ComboBoxItem>8x</ComboBoxItem>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="4" Margin="8,0,0,0">
+                                        <TextBlock Name="labSoftScale" Text="软件缩放" Classes="label"/>
+                                        <ComboBox x:Name="cbscalemode" MinWidth="200">
+                                            <ComboBoxItem>Neighbor</ComboBoxItem>
+                                            <ComboBoxItem>JINC</ComboBoxItem>
+                                            <ComboBoxItem>xBR</ComboBoxItem>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnDefinitions="1*,1*">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                        <TextBlock Name="labCycleFix" Text="时序修正" Classes="label"/>
+                                        <TextBox x:Name="tbcylesfix" Watermark="1"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="4" Margin="8,0,0,0">
+                                        <TextBlock Name="labFrameSkip" Text="跳帧" Classes="label"/>
+                                        <TextBox x:Name="tbframeskip" Watermark="0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ========== PGXP ========== -->
+            <TabItem x:Name="SetPage2" Header="PGXP">
+                <ScrollViewer Margin="0,12,0,0">
+                    <StackPanel Spacing="16" Margin="0,0,4,16">
+                        <Border Classes="card">
+                            <StackPanel Spacing="16">
+                                <CheckBox x:Name="chkpgxp"
+                                          Content="启用 PGXP"
+                                          FontSize="14"/>
+                                <TextBlock x:Name="labPGXP" 
+                                           Text="PGXP 3D游戏效果显著, 2D游戏推荐关闭"
+                                           Foreground="#FFAAAAAA"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"/>
+                                <Separator/>
+
+                                <CheckBox x:Name="chkpgxp_highpos" Content="高精度位置" Margin="0,4"/>
+                                <CheckBox x:Name="chkpgxp_avs" Content="AVS修正" Margin="0,4"/>
+                                <CheckBox x:Name="chkpgxp_aff" Content="仿射修正" Margin="0,4"/>
+                                <CheckBox x:Name="chkpgxp_ppc" Content="透视修正" Margin="0,4"/>
+                                <CheckBox x:Name="chkpgxp_nc" Content="近裁剪面" Margin="0,4"/>
+                                <CheckBox x:Name="chkpgxp_clip" Content="裁剪修正" Margin="0,4"/>
+                                <CheckBox x:Name="chkpgxp_memcap" Content="内存坐标捕获"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- 底部操作栏 -->
+        <Border Grid.Row="1"
+                Background="#FF2D2D2D"
+                BorderThickness="0,1,0,0"
+                BorderBrush="#FF404040"
+                Padding="20,12">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Column="0"
+                           x:Name="labSetHint"
+                           Text="仅当前游戏生效"
+                           VerticalAlignment="Center"
+                           Foreground="#FFAAAAAA"
+                           FontSize="12"/>
+                <TextBlock Grid.Column="1" 
+                           Name="labGameID" 
+                           Text="🎮 ScePSX" 
+                           Margin="0,0,12,0"
+                           VerticalAlignment="Center"
+                           Foreground="#FFE0E0E0"
+                           IsVisible="False"/>
+                <Button Grid.Column="2"
+                        x:Name="btndel"
+                        Content="删除"
+                        Width="100"
+                        Margin="0,0,12,0"
+                        IsVisible="False"/>
+                <Button Grid.Column="3"
+                        x:Name="btnbios"
+                        Content="设置BIOS"
+                        Width="100"
+                        Margin="0,0,12,0"/>
+                <Button Grid.Column="4"
+                        x:Name="BtnSave"
+                        Content="保存"
+                        Width="100"
+                        Classes="primary"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

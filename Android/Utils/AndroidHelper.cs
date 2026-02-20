@@ -4,14 +4,13 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.App;
 using Android.Content;
+using Android.OS;
+using Android.Provider;
 using Android.Widget;
+using AndroidX.AppCompat.App;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
-using Kotlin.IO;
-using ScePSX.CdRom;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8604
@@ -21,8 +20,9 @@ namespace ScePSX;
 
 public static class AHelper
 {
-    public static Activity MainActivity;
-    public static Activity GameActivity;
+    public static MainActivity MainActivity;
+    public static GameActivity GameActivity;
+    public static CommonActivity CommonActivity;
 
     public static MainView MainView;
 
@@ -46,7 +46,7 @@ public static class AHelper
         Dir = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDocuments);
         DocumentsPath = Dir?.AbsolutePath ?? "/storage/emulated/0/Documents";
 
-        foreach (string dir in new[] { "SaveState", "Save", "Icons", "Cheats", "Shaders" })
+        foreach (string dir in new[] { "SaveState", "Save", "Icons", "Cheats", "Shaders", "BIOS" })
         {
             Directory.CreateDirectory(Path.Combine(RootPath, dir));
         }
@@ -55,7 +55,7 @@ public static class AHelper
                 "ScePSX.ini",
                 "lang.xml",
                 "icon.png",
-                //"gamedb.yaml",
+                "gamedb.yaml",
                 "Shaders/draw.frag.spv",
                 "Shaders/draw.vert.spv",
                 "Shaders/out.frag.spv",
@@ -99,15 +99,15 @@ public static class AHelper
         try
         {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity);
-            builder.SetTitle("需要存储权限");
-            builder.SetMessage("为了读取游戏ROM文件，需要授予「存储] 或 [所有文件访问」权限。\n\n点击确定后，请在设置页面开启权限。");
+            builder.SetTitle("");
+            builder.SetMessage(Translations.GetText("txtaccess"));
 
-            builder.SetPositiveButton("去设置", (sender, args) =>
+            builder.SetPositiveButton(Translations.GetText("txtok"), (sender, args) =>
             {
                 NavToPermission();
             });
 
-            builder.SetNegativeButton("取消", (sender, args) =>
+            builder.SetNegativeButton(Translations.GetText("txtcancel"), (sender, args) =>
             {
                 HasPermission = false;
             });
@@ -128,7 +128,6 @@ public static class AHelper
         try
         {
             Intent intent;
-
             if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
             {
                 intent = new Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission);
@@ -139,8 +138,7 @@ public static class AHelper
             intent.SetData(Android.Net.Uri.Parse("package:" + MainActivity.PackageName));
             intent.SetFlags(ActivityFlags.NewTask);
             MainActivity.StartActivity(intent);
-
-            Toast.MakeText(MainActivity, "请手动开启「存储] 或 [所有文件访问」权限", ToastLength.Long).Show();
+            //Toast.MakeText(MainActivity, "请手动开启「存储] 或 [所有文件访问」权限", ToastLength.Long).Show();
         } catch (Exception ex)
         {
             Console.WriteLine($"ShownDialog Error: {ex.Message}");
@@ -154,14 +152,14 @@ public static class AHelper
             var tcs = new TaskCompletionSource<string>();
 
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity);
-            builder.SetTitle("需要BIOS");
-            builder.SetMessage("为了运行游戏，需要PS1 BIOS文件。\n\n点击确定后，请在选择正确的BIOS文件。");
+            builder.SetTitle("BIOS");
+            builder.SetMessage(Translations.GetText("txtbios"));
 
-            builder.SetPositiveButton("确定", async (sender, args) =>
+            builder.SetPositiveButton(Translations.GetText("txtok"), async (sender, args) =>
             {
                 try
                 {
-                    string result = await SelectFile("BIOS", "Bios Files", new[] { "*.bin" });
+                    string result = await SelectFile("BIOS");
                     tcs.SetResult(result);
                 } catch (Exception ex)
                 {
@@ -169,7 +167,7 @@ public static class AHelper
                 }
             });
 
-            builder.SetNegativeButton("取消", (sender, args) =>
+            builder.SetNegativeButton(Translations.GetText("txtcancel"), (sender, args) =>
             {
                 tcs.SetResult("");
             });
@@ -187,13 +185,48 @@ public static class AHelper
         }
     }
 
-    static CancellationTokenSource cts;
+    public static async Task<int> ShowDialog(string title, string text, AppCompatActivity? activity = null)
+    {
+        if (activity == null)
+            activity = MainActivity;
+        try
+        {
+            var tcs = new TaskCompletionSource<int>();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.SetTitle(title);
+            builder.SetMessage(text);
+
+            builder.SetPositiveButton(Translations.GetText("txtok"), (sender, args) =>
+            {
+                tcs.SetResult(0);
+            });
+
+            builder.SetNegativeButton(Translations.GetText("txtcancel"), (sender, args) =>
+            {
+                tcs.SetResult(1);
+            });
+
+            builder.SetCancelable(false);
+
+            AlertDialog? dialog = builder.Create();
+            dialog?.Show();
+
+            return await tcs.Task;
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"ShownDialog Error: {ex.Message}");
+            return -1;
+        }
+    }
+
+    static CancellationTokenSource searchcts;
 
     public static async Task SearchBios(string dir, List<string> files)
     {
-        cts?.Cancel();
-        cts = new CancellationTokenSource();
-        await Task.Run(() => _SearchBios(dir, files, cts.Token), cts.Token);
+        searchcts?.Cancel();
+        searchcts = new CancellationTokenSource();
+        await Task.Run(() => _SearchBios(dir, files, searchcts.Token), searchcts.Token);
     }
 
     private static void _SearchBios(string dir, List<string> files, CancellationToken cancellationToken)
@@ -223,16 +256,17 @@ public static class AHelper
                     _SearchBios(subDir.FullName, files, cancellationToken);
                 }
             }
-        } catch (OperationCanceledException)
+        } catch (System.OperationCanceledException)
         {
         }
     }
 
-    public static async Task<string> SelectFile(string title, string filetype, string[] filetypes)
+    public static async Task<string> LoadFile(string title, string filetype, string[] filetypes, TopLevel? topLevel = null)
     {
+        if (topLevel == null)
+            topLevel = TopLevel.GetTopLevel(MainView);
         try
         {
-            var topLevel = TopLevel.GetTopLevel(MainView);
             if (topLevel == null)
             {
                 return "";
@@ -264,15 +298,13 @@ public static class AHelper
                     }
                 },
                 SuggestedStartLocation = suggestedStartLocation
-            });
-            Console.WriteLine($"StorageProvider {files}");
+            }).ConfigureAwait(false);
             if (files == null || files.Count == 0)
             {
                 return "";
             }
             var file = files[0];
-            var filePath = file.Path.LocalPath.Replace("/document/raw:", "");
-            //Console.WriteLine($"StorageProvider file {file} filepath {filePath} path {Path.GetFullPath(filePath)}");
+            var filePath = GetFilePath(file.Path.LocalPath);
             if (!File.Exists(filePath))
             {
                 return "";
@@ -284,5 +316,197 @@ public static class AHelper
             Console.WriteLine($"Select Fail: {ex.Message}");
             return "";
         }
+    }
+
+    public static async Task<string> SaveFile(string title, string SuggestedFileName, string DefaultExtension, string[] filetypes)
+    {
+        try
+        {
+            var topLevel = TopLevel.GetTopLevel(MainView);
+            if (topLevel == null)
+            {
+                return "";
+            }
+            if (topLevel.StorageProvider == null)
+            {
+                Console.WriteLine("Not StorageProvider");
+                return "";
+            }
+            IStorageFolder? suggestedStartLocation = null;
+            var lastPath = PSXHandler.ini.Read("main", "LastPath");
+            if (!string.IsNullOrEmpty(lastPath) && Directory.Exists(lastPath))
+            {
+                suggestedStartLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(lastPath);
+            }
+            var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = title,
+                SuggestedFileName = SuggestedFileName,
+                DefaultExtension = DefaultExtension,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType(title) { Patterns = filetypes }
+                }
+            }).ConfigureAwait(false);
+            var filePath = GetFilePath(file.Path.LocalPath);
+            if (!File.Exists(filePath))
+            {
+                return "";
+            }
+            PSXHandler.ini.Write("main", "LastPath", Path.GetFullPath(filePath));
+            return filePath;
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"SaveFile Fail: {ex.Message}");
+            return "";
+        }
+    }
+
+    public static TaskCompletionSource<string> selecttcs;
+
+    public static Android.Net.Uri? GetLastPathUri()
+    {
+        var lastPath = PSXHandler.ini.Read("main", "LastPath");
+        if (!string.IsNullOrEmpty(lastPath) && File.Exists(lastPath))
+        {
+            var file = new Java.IO.File(lastPath);
+            if (file.Exists())
+            {
+                return Android.Net.Uri.FromFile(file);
+            }
+        }
+        return null;
+    }
+
+    public static string GetFilePath(string filePath)
+    {
+        if (filePath.Contains("primary:"))
+        {
+            var subPath = filePath.Substring(filePath.IndexOf("primary:") + "primary:".Length);
+            filePath = Path.Combine("/storage/emulated/0/", subPath);
+            return filePath;
+        } else if (filePath.Contains(":") && filePath.Contains("/document/"))
+        {
+            var idPart = filePath.Replace("/document/", "");
+            var splitIdx = idPart.IndexOf(':');
+            if (splitIdx > 0)
+            {
+                var volume = idPart.Substring(0, splitIdx);
+                var subPath = idPart.Substring(splitIdx + 1);
+                filePath = Path.Combine("/storage/", volume, subPath);
+                return filePath;
+            }
+        }
+        filePath = filePath.Replace("/document/raw:", "");
+        return filePath;
+    }
+
+    public static async Task<string> SelectFile(string title, string suggestedName = "", bool isOpen = true, AppCompatActivity? activity = null)
+    {
+        selecttcs = new TaskCompletionSource<string>();
+
+        if (activity == null)
+        {
+            activity = AHelper.MainActivity;
+        }
+        try
+        {
+            Intent intent;
+            if (isOpen)
+            {
+                intent = new Intent(Intent.ActionOpenDocument);
+            } else
+            {
+                intent = new Intent(Intent.ActionCreateDocument);
+                if (!string.IsNullOrEmpty(suggestedName))
+                {
+                    intent.PutExtra(Intent.ExtraTitle, suggestedName);
+                }
+            }
+            intent.AddCategory(Intent.CategoryOpenable);
+            intent.SetType("*/*");
+
+            intent.PutExtra(Intent.ExtraAllowMultiple, false);
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                intent.PutExtra(DocumentsContract.ExtraInitialUri, GetLastPathUri());
+            }
+
+            activity.StartActivityForResult(Intent.CreateChooser(intent, title), 10001);
+
+            var result = await selecttcs.Task.WaitAsync(TimeSpan.FromMinutes(2));
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                PSXHandler.ini.Write("main", "LastPath", Path.GetFullPath(result));
+            }
+
+            return result;
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"SelectFile: {ex.Message}");
+            return "";
+        }
+    }
+
+    public static void OnActivityResult(int requestCode, int resultCode, Intent? data)
+    {
+        if (requestCode != 10001 || selecttcs == null)
+            return;
+        try
+        {
+            if (resultCode == -1 && data?.Data != null)
+            {
+                var uri = data.Data;
+                var filePath = GetFilePath(uri.Path);
+                //Console.WriteLine($"filePath: {filePath}");
+                selecttcs.TrySetResult(filePath ?? "");
+            } else
+            {
+                selecttcs.TrySetResult("");
+            }
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"OnActivityResult: {ex.Message}");
+            selecttcs.TrySetResult("");
+        }
+    }
+}
+
+public static class OSD
+{
+    private static Handler? _mainHandler;
+    private static Toast? _currentToast;
+
+    static OSD()
+    {
+        _mainHandler = new Handler(Looper.MainLooper);
+    }
+
+    public static void Show(string message = "", int durationMs = 3000)
+    {
+        _mainHandler?.Post(() =>
+        {
+            try
+            {
+                _currentToast?.Cancel();
+                var duration = durationMs <= 2000 ? ToastLength.Short : ToastLength.Long;
+                _currentToast = Toast.MakeText(Android.App.Application.Context, message, duration);
+                _currentToast.Show();
+            } catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Toast Error: {ex.Message}");
+            }
+        });
+    }
+
+    public static void Cancel()
+    {
+        _mainHandler?.Post(() =>
+        {
+            _currentToast?.Cancel();
+            _currentToast = null;
+        });
     }
 }

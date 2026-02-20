@@ -1,118 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="480"
              x:Class="ScePSX.AboutFrm"
-             Background="#FFF5F5F5">
+             Background="{DynamicResource ThemeBackgroundBrush}">
 
     <UserControl.Styles>
         <Style Selector="UserControl">
-            <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, PingFang SC, WenQuanYi Micro Hei, sans-serif"/>
+            <Setter Property="FontFamily" Value="sans-serif" />
+            <Setter Property="FontSize" Value="14" />
         </Style>
-        <!-- 卡片样式 -->
+
+        <!-- 卡片样式 - 深色主题适配 -->
         <Style Selector="Border.card">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#FFE4E4E4"/>
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="24"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="BoxShadow" Value="0 4 12 0 #80000000"/>
         </Style>
 
         <!-- 标题样式 -->
         <Style Selector="TextBlock.title">
-            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
         </Style>
 
-        <!-- 链接样式 -->
+        <!-- 副标题样式 -->
+        <Style Selector="TextBlock.subtitle">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#FFAAAAAA"/>
+        </Style>
+
+        <!-- 链接样式 - Material Design 风格 -->
         <Style Selector="TextBlock.link">
-            <Setter Property="Foreground" Value="#FF0078D4"/>
+            <Setter Property="Foreground" Value="#FF4CAF50"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
         <Style Selector="TextBlock.link:pointerover">
-            <Setter Property="Foreground" Value="#FF005A9E"/>
+            <Setter Property="Foreground" Value="#FF81C784"/>
+            <Setter Property="Opacity" Value="0.9"/>
         </Style>
 
         <!-- 分隔线 -->
         <Style Selector="Rectangle.separator">
-            <Setter Property="Fill" Value="#FFE8E8E8"/>
+            <Setter Property="Fill" Value="#FF404040"/>
             <Setter Property="Height" Value="1"/>
             <Setter Property="Margin" Value="0,16,0,16"/>
+        </Style>
+
+        <!-- 标签样式 -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <!-- 信息卡片样式 -->
+        <Style Selector="Border.info-card">
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- 强调文本 -->
+        <Style Selector="TextBlock.accent">
+            <Setter Property="Foreground" Value="#FF4CAF50"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
+        <!-- 版权文本 -->
+        <Style Selector="TextBlock.copyright">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#FF808080"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
     </UserControl.Styles>
 
     <Border Classes="card" Margin="16">
-        <StackPanel Spacing="12">
-            <!-- Logo/标题区 -->
-            <StackPanel HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Text="ScePSX" Classes="title" HorizontalAlignment="Center"/>
-                <TextBlock Name="labver"
-                           Text="Version 0.1.9.1"
-                           FontSize="12"
-                           Foreground="#FF666666"
-                           HorizontalAlignment="Center"/>
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+                <!-- Logo/标题区 -->
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <Border Width="64" Height="64"
+                            CornerRadius="32"
+                            Background="#FF4CAF50"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,4">
+                        <TextBlock Text="🎮"
+                                   FontSize="32"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
 
-                <TextBlock Name="labinfo"
-                           Foreground="#FF666666"
-                           Text="PS1 emulator released under the MIT License"
-                           TextWrapping="Wrap"/>
-            </StackPanel>
+                    <TextBlock Text="ScePSX" Classes="title" HorizontalAlignment="Center"/>
+                    <TextBlock Name="labver"
+                               Text="Version 0.2.0.1"
+                               Classes="subtitle"
+                               HorizontalAlignment="Center"/>
 
-            <Rectangle Classes="separator"/>
-
-            <!-- 项目链接 -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="GitHub" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
-                <TextBlock Name="linkLabel1"
-                           Text="https://github.com/unknowall/ScePSX"
-                           Classes="link"
-                           TextWrapping="Wrap"
-                           PointerPressed="Link_LinkClicked"/>
-            </StackPanel>
-
-            <!-- 赞助 -->
-            <StackPanel Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <TextBlock Text="Support via Ko-fi" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
-                </StackPanel>
-                <TextBlock Name="labSupport"
-                           Text="(如果您愿意，可以请我喝一杯咖啡)"
-                           FontSize="11"
-                           Foreground="#FF888888"
-                           TextWrapping="Wrap"/>
-                <TextBlock Name="SupportLink"
-                           Text="https://ko-fi.com/unknowall"
-                           Classes="link"
-                           TextWrapping="Wrap"
-                           PointerPressed="SupportLink_Click"/>
-            </StackPanel>
-
-            <Rectangle Classes="separator"/>
-
-            <!-- 维护者信息 -->
-            <StackPanel Spacing="6">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <TextBlock Text="Maintainer" FontWeight="SemiBold" Foreground="#FF2D2D2D"/>
+                    <TextBlock Name="labinfo"
+                               Classes="subtitle"
+                               Text="PS1 emulator released under the MIT License"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"/>
                 </StackPanel>
 
-                <Border Background="#FFF9F9F9" CornerRadius="6" Padding="12,10">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="unknowall" Foreground="#FF0078D4" FontWeight="Medium"/>
-                        <TextBlock Text="·" Foreground="#FFB0B0B0"/>
-                        <TextBlock Text="sgfree@hotmail.com" Foreground="#FF0078D4"/>
+                <Rectangle Classes="separator"/>
+
+                <!-- 项目链接 -->
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+                        <TextBlock Text="📦" FontSize="16"/>
+                        <TextBlock Text="GitHub" Classes="label"/>
                     </StackPanel>
-                </Border>
-            </StackPanel>
+                    <Border Background="#FF1E1E1E"
+                            CornerRadius="8"
+                            Padding="12,10">
+                        <TextBlock Name="linkLabel1"
+                                   Text="https://github.com/unknowall/ScePSX"
+                                   Classes="link"
+                                   TextWrapping="Wrap"
+                                   PointerPressed="Link_LinkClicked"/>
+                    </Border>
+                </StackPanel>
 
-            <!-- 版权信息 -->
-            <TextBlock Text="©unknowall(sgfree@hotmail.com). All rights reserved."
-                       FontSize="10"
-                       Foreground="#FF999999"
-                       HorizontalAlignment="Center"
-                       Margin="0,8,0,0"/>
-        </StackPanel>
+                <!-- 赞助 -->
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+                        <TextBlock Text="☕" FontSize="16"/>
+                        <TextBlock Text="Support via Ko-fi" Classes="label"/>
+                    </StackPanel>
+
+                    <TextBlock Name="labSupport"
+                               Text="(如果您愿意，可以请我喝一杯咖啡)"
+                               Classes="subtitle"
+                               FontSize="11"
+                               TextWrapping="Wrap"/>
+
+                    <Border Background="#FF1E1E1E"
+                            CornerRadius="8"
+                            Padding="12,10">
+                        <TextBlock Name="SupportLink"
+                                   Text="https://ko-fi.com/unknowall"
+                                   Classes="link"
+                                   TextWrapping="Wrap"
+                                   PointerPressed="SupportLink_Click"/>
+                    </Border>
+                </StackPanel>
+
+                <Rectangle Classes="separator"/>
+
+                <!-- 维护者信息 -->
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="👤" FontSize="14"/>
+                        <TextBlock Text="Maintainer" Classes="label"/>
+                    </StackPanel>
+
+                    <Border Classes="info-card">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="unknowall"
+                                       Classes="accent"
+                                       FontWeight="Medium"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="·"
+                                       Foreground="#FF808080"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2"
+                                       Text="sgfree@hotmail.com"
+                                       Classes="accent"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- 版权信息 -->
+                <TextBlock Text="© unknowall(sgfree@hotmail.com). All rights reserved."
+                           Classes="copyright"
+                           Margin="0,8,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
     </Border>
 </UserControl>

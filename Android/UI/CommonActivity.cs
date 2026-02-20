@@ -1,8 +1,10 @@
 ﻿using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.App;
 using Avalonia.Android;
 using Avalonia.Controls;
 
@@ -16,16 +18,18 @@ namespace ScePSX
               LaunchMode = LaunchMode.SingleTop,
               ScreenOrientation = ScreenOrientation.Unspecified,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
-    public class CommonActivity : Activity
+    public class CommonActivity : AppCompatActivity
     {
         public static UserControl userControl;
 
-        private FrameLayout mainLayout;
-        private AvaloniaView ViewHost;
+        public FrameLayout mainLayout;
+        public AvaloniaView ViewHost;
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            AHelper.CommonActivity = this;
 
             ViewHost = new AvaloniaView(this);
             ViewHost.Content = userControl;
@@ -38,6 +42,12 @@ namespace ScePSX
             SetContentView(mainLayout);
         }
 
+        protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+        {
+            base.OnActivityResult(requestCode, resultCode, data);
+            AHelper.OnActivityResult(requestCode, (int)resultCode, data);
+        }
+
         public void UpdateContent(UserControl newControl)
         {
             userControl = newControl;
@@ -45,6 +55,11 @@ namespace ScePSX
             {
                 ViewHost.Content = userControl;
             }
+        }
+
+        public override void OnBackPressed()
+        {
+            base.OnBackPressed();
         }
 
         protected override void OnDestroy()

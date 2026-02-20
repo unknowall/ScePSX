@@ -1,9 +1,8 @@
-﻿using Android.Content;
+﻿using System;
+using System.Collections.Generic;
+using Android.Content;
 using Android.Graphics;
 using Android.Views;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using static ScePSX.Controller;
 
 #pragma warning disable CS8602
@@ -33,16 +32,18 @@ namespace ScePSX
         public int currentSlot = 0;
         private const int MAX_SLOT = 9;
         public bool IsCheat = false;
-        public bool ShowPad = true;
+        public int PadState = 0;
 
         // 拖动相关
+        public bool CanDrag = true;
         private bool isDragging = false;
         private int dragPointerId = -1;
         private float dragStartX, dragStartY;
         private ButtonConfig? dragButton = null;
         private string dragMode = ""; // "dpad", "action", "single"
         //private long dragStartTime = 0;
-        private const long LONG_PRESS_TIME = 300; // 300ms长按触发拖动
+        private const int LONG_PRESS_TIME = 300; // 300ms长按触发拖动
+        private const int DRAG_MOVE_PIXELS = 20; // 移动超过20像素
 
         // 区域偏移量
         private float dpadOffsetX = 0;
@@ -62,8 +63,19 @@ namespace ScePSX
         // 记录每个指针的按下时间和位置
         private Dictionary<int, (long time, float x, float y)> pointerDownInfo = new Dictionary<int, (long, float, float)>();
 
+        public enum TopBarEvent
+        {
+            Cheat,
+            VPad,
+            StateSave,
+            StateLoad,
+            SwapDisc,
+            SlotInc,
+            SlotDec
+        }
+
         public event Action<string, InputAction, bool> OnButtonStateChanged;
-        public event Action<string> OnTopBarAction;
+        public event Action<TopBarEvent, int> OnTopBarAction;
 
         public VirtualGamepadOverlay(Context context) : base(context)
         {
@@ -139,10 +151,8 @@ namespace ScePSX
                         HandleTopBarTouch(x, y, width, height);
                         break;
                     }
-
                     // 记录按下信息
                     pointerDownInfo[pointerId] = (motionEvent.EventTime, x, y);
-
                     // 立即处理按钮按下
                     CheckAndAssignButton(pointerId, x, y, width, height, true);
                     break;
@@ -152,12 +162,10 @@ namespace ScePSX
                 case MotionEventActions.Cancel:
                     // 清除按下信息
                     pointerDownInfo.Remove(pointerId);
-
                     if (isDragging && pointerId == dragPointerId)
                     {
                         StopDrag();
                     }
-
                     // 处理按钮抬起
                     ReleaseButton(pointerId);
                     break;
@@ -176,7 +184,7 @@ namespace ScePSX
                             continue;
 
                         // 检查是否需要进入拖动模式
-                        if (!isDragging && pointerDownInfo.ContainsKey(id))
+                        if (CanDrag && !isDragging && pointerDownInfo.ContainsKey(id))
                         {
                             var downInfo = pointerDownInfo[id];
                             float moveDelta = (float)Math.Sqrt(
@@ -184,7 +192,7 @@ namespace ScePSX
                                 Math.Pow(touchY - downInfo.y, 2));
 
                             bool isLongPress = (motionEvent.EventTime - downInfo.time) >= LONG_PRESS_TIME;
-                            bool isMoving = moveDelta > 20; // 移动超过20像素
+                            bool isMoving = moveDelta > DRAG_MOVE_PIXELS;
 
                             if (isLongPress || isMoving)
                             {
@@ -217,14 +225,14 @@ namespace ScePSX
                         }
 
                         // 如果不是拖动模式，正常更新按钮状态
-                        if (!isDragging || id != dragPointerId)
+                        if (!CanDrag || !isDragging || id != dragPointerId)
                         {
                             CheckAndUpdateButton(id, touchX, touchY, width, height);
                         }
                     }
 
                     // 处理拖动
-                    if (isDragging && pointerId == dragPointerId)
+                    if (CanDrag && isDragging && pointerId == dragPointerId)
                     {
                         float deltaX = (x - dragStartX) / width;
                         float deltaY = (y - dragStartY) / height;
@@ -261,28 +269,32 @@ namespace ScePSX
                 if (cheatsButtonRect.Contains(x, y))
                 {
                     IsCheat = !IsCheat;
-                    OnTopBarAction?.Invoke("cheats");
+                    OnTopBarAction?.Invoke(TopBarEvent.Cheat, IsCheat ? 0 : 1);
                 } else if (showpadButtonRect.Contains(x, y))
                 {
-                    ShowPad = !ShowPad;
-                    OnTopBarAction?.Invoke("ShowPad");
+                    PadState = PadState < 2 ? PadState + 1 : 0;
+                    if (PadState == 2)
+                        CanDrag = false;
+                    else
+                        CanDrag = true;
+                    OnTopBarAction?.Invoke(TopBarEvent.VPad, 0);
                 } else if (saveStateRect.Contains(x, y))
                 {
-                    OnTopBarAction?.Invoke("save");
+                    OnTopBarAction?.Invoke(TopBarEvent.StateSave, currentSlot);
                 } else if (loadStateRect.Contains(x, y))
                 {
-                    OnTopBarAction?.Invoke("load");
+                    OnTopBarAction?.Invoke(TopBarEvent.StateLoad, currentSlot);
                 } else if (undoRect.Contains(x, y))
                 {
-                    OnTopBarAction?.Invoke("undo");
+                    OnTopBarAction?.Invoke(TopBarEvent.SwapDisc, 0);
                 } else if (slotMinusRect.Contains(x, y))
                 {
                     currentSlot = (currentSlot - 1 + MAX_SLOT + 1) % (MAX_SLOT + 1);
-                    OnTopBarAction?.Invoke($"slot_change:{currentSlot}");
+                    OnTopBarAction?.Invoke(TopBarEvent.SlotDec, currentSlot);
                 } else if (slotPlusRect.Contains(x, y))
                 {
                     currentSlot = (currentSlot + 1) % (MAX_SLOT + 1);
-                    OnTopBarAction?.Invoke($"slot_change:{currentSlot}");
+                    OnTopBarAction?.Invoke(TopBarEvent.SlotInc, currentSlot);
                 } else if (y < 200)
                 {
                     isTopBarExpanded = false;
@@ -427,7 +439,7 @@ namespace ScePSX
             DrawTopBar(canvas, width);
 
             // 绘制游戏按钮
-            if (ShowPad)
+            if (PadState != 1)
             {
                 foreach (var btn in buttons)
                 {
@@ -483,12 +495,14 @@ namespace ScePSX
             canvas.DrawText(label, rect.CenterX(), rect.CenterY() + 10, textPaint);
         }
 
-        private void DrawCheckButton(Canvas canvas, RectF rect, string label, bool check)
+        private void DrawCheckButton(Canvas canvas, RectF rect, string label, int check)
         {
-            if (check)
+            if (check == 0)
                 paint.Color = Color.Argb(200, 100, 100, 255); // 蓝色半透明
-            else
+            else if (check == 1)
                 paint.Color = Color.Argb(220, 255, 100, 100);
+            else if (check == 2)
+                paint.Color = Color.Argb(200, 128, 128, 0);
             canvas.DrawCircle(rect.CenterX(), rect.CenterY(), 30, paint);
             textPaint.TextSize = 22;
             canvas.DrawText(label, rect.CenterX(), rect.CenterY() + 8, textPaint);
@@ -533,24 +547,24 @@ namespace ScePSX
 
                 // 金手指
                 cheatsButtonRect.Set(buttonWidth * 0.3f - leftOffset, startY, buttonWidth * 1.3f - leftOffset, startY + buttonHeight);
-                DrawCheckButton(canvas, cheatsButtonRect, "金手指", IsCheat);
+                DrawCheckButton(canvas, cheatsButtonRect, Translations.GetText("vcheat"), IsCheat ? 0 : 1);
 
                 // 虚拟按键 
                 showpadButtonRect.Set(buttonWidth * 0.3f - leftOffset + buttonSpacing, startY,
                                       buttonWidth * 1.3f - leftOffset + buttonSpacing, startY + buttonHeight);
-                DrawCheckButton(canvas, showpadButtonRect, "虚拟按键", ShowPad);
+                DrawCheckButton(canvas, showpadButtonRect, Translations.GetText("vpad"), PadState);
 
                 // 即时保存
                 saveStateRect.Set(buttonWidth * 2, startY, buttonWidth * 3, startY + buttonHeight);
-                DrawButton(canvas, saveStateRect, "即时保存", false);
+                DrawButton(canvas, saveStateRect, Translations.GetText("vsave"), false);
 
                 // 即时加载
                 loadStateRect.Set(buttonWidth * 3.2f, startY, buttonWidth * 4.2f, startY + buttonHeight);
-                DrawButton(canvas, loadStateRect, "即时加载", false);
+                DrawButton(canvas, loadStateRect, Translations.GetText("vload"), false);
 
-                // 撤销
+                // 更换光盘
                 undoRect.Set(buttonWidth * 4.4f, startY, buttonWidth * 5.4f, startY + buttonHeight);
-                DrawButton(canvas, undoRect, "撤销", false);
+                DrawButton(canvas, undoRect, Translations.GetText("vdisc"), false);
 
                 // 存档位控制
                 float slotStartX = buttonWidth * 5.8f;

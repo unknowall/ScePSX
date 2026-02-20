@@ -27,6 +27,8 @@ namespace ScePSX
         public double SYNC_CYCLES_IDLE = 60.0;
 
         private Task MainTask;
+        //for Android
+        private Thread MainThread;
 
         public BUS PsxBus;
         public IGPU GPU;
@@ -129,6 +131,21 @@ namespace ScePSX
             if (DiskID == "")
                 return;
 
+            if (OperatingSystem.IsAndroid())
+            {
+                if (MainThread != null && Running && PsxBus != null)
+                    return;
+
+                Running = true;
+                Pauseing = false;
+                MainThread = new Thread(PSX_EXECUTE);
+                MainThread.Priority = ThreadPriority.Highest;
+                MainThread.Name = "ScePSX PSXEmulator MainThread";
+                MainThread.Start();
+                Console.WriteLine("ScePSX Android MainThread Started...");
+                return;
+            }
+
             if (MainTask == null && !Running && PsxBus != null)
             {
                 Running = true;
@@ -176,7 +193,11 @@ namespace ScePSX
             {
                 Running = false;
                 Pauseing = false;
-                MainTask.Wait();
+                if (OperatingSystem.IsAndroid())
+                {
+                    MainThread.Join(1000);
+                } else
+                    MainTask.Wait();
             }
         }
 
@@ -204,6 +225,11 @@ namespace ScePSX
                 else
                     Console.WriteLine($"    {code.Name} [Non Active]");
             }
+        }
+
+        public void CleanCheats()
+        {
+            cheatCodes.Clear();
         }
 
         public static List<CheatCode> ParseTextToCheatCodeList(string fn, bool isfile = true)
@@ -378,6 +404,12 @@ namespace ScePSX
                 foreach (var item in code.Item)
                 {
                     uint addr = PsxBus.GetMask(item.Address);
+
+                    byte OpCode = (byte)((addr & 0xF0000000) >> 28);
+                    byte OpParam = (byte)((addr & 0x0F000000) >> 24);
+                    //todo CWCCheat Parse
+                    if (OpCode == 0x0D)
+                        continue;
                     switch (item.Width)
                     {
                         case 1:
@@ -423,10 +455,10 @@ namespace ScePSX
             if (OperatingSystem.IsAndroid())
             {
                 int pid = getpid();
-                setpriority(PRIO_PROCESS, pid, -19);
+                setpriority(PRIO_PROCESS, pid, -10);
                 //ulong mask = 0x0F; //（0x0F=4核，0xFF=8核）
                 //sched_setaffinity(pid, sizeof(ulong), ref mask);
-                Console.WriteLine($"ScePSX Priority set to -19 for PID {pid}");
+                Console.WriteLine($"ScePSX Priority set to -10 for PID {pid}");
             }
 
             while (Running)
