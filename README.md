@@ -104,7 +104,7 @@ A: Because it requires extra memory to store:
 
 ### Q: Is cross-platform support available?
 A: Yes, the following platforms are supported:
-- **Android**: x64 / arm64-v8a<br>
+- **Android**: x64 / arm64-v8a / armeabi-v7a<br>
   📌 Supports Android 5.0+, recommended Android 9.0+<br>
 - **Windows**: x86 / x64 / arm  
   ⚠️ Note: The Avalonia UI version only supports the x64 architecture.  
@@ -254,7 +254,7 @@ A: 因为它需要额外内存来存储：
 
 ### Q: 是否支持跨平台？
 A: 是的，支持以下各种平台
-- **Android**：x64 / arm64-v8a<br>
+- **Android**：x64 / arm64-v8a / armeabi-v7a<br>
   📌支持 Android 5.0+ , 建议 Android 9.0+<br>
 - **Windows**：x86 / x64 / arm<br>
   ⚠️ 注：Avalonia 界面版本仅支持 x64 架构<br>
