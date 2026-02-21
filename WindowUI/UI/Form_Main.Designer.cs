@@ -60,6 +60,7 @@
             toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             NetPlayMnu = new System.Windows.Forms.ToolStripMenuItem();
             NetPlaySetMnu = new System.Windows.Forms.ToolStripMenuItem();
+            MnuLang = new System.Windows.Forms.ToolStripMenuItem();
             HelpMnu = new System.Windows.Forms.ToolStripMenuItem();
             gitHubMnu = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
@@ -77,7 +78,6 @@
             toolStripStatusLabel7 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel8 = new System.Windows.Forms.ToolStripStatusLabel();
             panel = new System.Windows.Forms.Panel();
-            MnuLang = new System.Windows.Forms.ToolStripMenuItem();
             MainMenu.SuspendLayout();
             StatusBar.SuspendLayout();
             SuspendLayout();
@@ -319,6 +319,12 @@
             NetPlaySetMnu.Text = "设置";
             NetPlaySetMnu.Click += NetPlaySetMnu_Click;
             // 
+            // MnuLang
+            // 
+            MnuLang.Name = "MnuLang";
+            MnuLang.Size = new System.Drawing.Size(58, 21);
+            MnuLang.Text = "语言(&L)";
+            // 
             // HelpMnu
             // 
             HelpMnu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { gitHubMnu, toolStripMenuItem8, supportKoficomMnu, supportWeChatMnu, toolStripMenuItem9, AboutMnu });
@@ -350,6 +356,7 @@
             supportWeChatMnu.Name = "supportWeChatMnu";
             supportWeChatMnu.Size = new System.Drawing.Size(190, 22);
             supportWeChatMnu.Text = "通过微信支持本项目";
+            supportWeChatMnu.Visible = false;
             supportWeChatMnu.Click += supportWeChatMnu_Click;
             // 
             // toolStripMenuItem9
@@ -428,12 +435,6 @@
             panel.Name = "panel";
             panel.Size = new System.Drawing.Size(684, 451);
             panel.TabIndex = 2;
-            // 
-            // MnuLang
-            // 
-            MnuLang.Name = "MnuLang";
-            MnuLang.Size = new System.Drawing.Size(58, 21);
-            MnuLang.Text = "语言(&L)";
             // 
             // FrmMain
             // 

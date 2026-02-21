@@ -30,10 +30,9 @@ namespace ScePSX
         //}
     }
 
-    [Serializable]
     public class GTE
-    { //PSX MIPS Coprocessor 02 - Geometry Transformation Engine
-
+    {
+        //PSX MIPS Coprocessor 02 - Geometry Transformation Engine
         private static ReadOnlySpan<byte> unrTable => new byte[] {
             0xFF, 0xFD, 0xFB, 0xF9, 0xF7, 0xF5, 0xF3, 0xF1, 0xEF, 0xEE, 0xEC, 0xEA, 0xE8, 0xE6, 0xE4, 0xE3,
             0xE1, 0xDF, 0xDD, 0xDC, 0xDA, 0xD8, 0xD6, 0xD5, 0xD3, 0xD1, 0xD0, 0xCE, 0xCD, 0xCB, 0xC9, 0xC8,
@@ -54,7 +53,6 @@ namespace ScePSX
             0x00
         };
 
-        [Serializable]
         private struct Matrix
         {
             public Vector3 v1;
@@ -62,7 +60,6 @@ namespace ScePSX
             public Vector3 v3;
         }
 
-        [Serializable]
         [StructLayout(LayoutKind.Explicit, Size = 16)]
         private struct Vector3
         {
@@ -72,7 +69,6 @@ namespace ScePSX
             [FieldOffset(4)] public short z;
         }
 
-        [Serializable]
         [StructLayout(LayoutKind.Explicit, Size = 16)]
         private struct Vector2
         {
@@ -81,7 +77,6 @@ namespace ScePSX
             [FieldOffset(2)] public short y;
         }
 
-        [Serializable]
         [StructLayout(LayoutKind.Explicit, Size = 16)]
         private struct Color
         {

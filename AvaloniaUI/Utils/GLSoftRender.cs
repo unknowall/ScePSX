@@ -51,7 +51,7 @@ public class SoftRender : IDisposable
         ShaderInfo.position.SetData<float>(VertexBuffer, 2);
         ShaderInfo.texCoords.SetData<float>(TexCoordsBuffer, 2);
         ShaderInfo.texture.Set(0);
-        Shader.Use();
+        Shader.Use(true);
 
         TexCoordsBuffer.SetData(TextureRect.VFlip().GetFloat2TriangleStripCoords());
 

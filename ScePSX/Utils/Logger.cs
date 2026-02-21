@@ -20,7 +20,10 @@ namespace ScePSX
             Fatal,
         }
 
-        public string Name { get; private set; }
+        public string Name
+        {
+            get; private set;
+        }
 
         private bool Enabled = false;
 
@@ -122,8 +125,7 @@ namespace ScePSX
                 try
                 {
                     return now - LastDateTime;
-                }
-                finally
+                } finally
                 {
                     LastDateTime = now;
                 }
@@ -132,7 +134,8 @@ namespace ScePSX
             public override string ToString()
             {
                 var timeSpans = new List<TimeSpan>();
-                for (var n = 1; n < DateTimeList.Count; n++) timeSpans.Add(DateTimeList[n] - DateTimeList[n - 1]);
+                for (var n = 1; n < DateTimeList.Count; n++)
+                    timeSpans.Add(DateTimeList[n] - DateTimeList[n - 1]);
                 return $"Logger.Stopwatch({Join(",", timeSpans.Select(item => $"{(int)item.TotalMilliseconds} ms"))})";
             }
         }
@@ -142,14 +145,12 @@ namespace ScePSX
             if (Debugger.IsAttached)
             {
                 action();
-            }
-            else
+            } else
             {
                 try
                 {
                     action();
-                }
-                catch (Exception e)
+                } catch (Exception e)
                 {
                     Error(e);
                 }
@@ -167,7 +168,10 @@ namespace ScePSX
                 this.level = level;
             }
 
-            public override Encoding Encoding { get; }
+            public override Encoding Encoding
+            {
+                get;
+            }
 
             StringBuilder sb = new StringBuilder();
 
@@ -176,8 +180,7 @@ namespace ScePSX
                 if (value == '\n')
                 {
                     sb.Append(value);
-                }
-                else
+                } else
                 {
                     Logger.Log(level, "{0}", sb.ToString());
                     sb.Clear();

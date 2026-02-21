@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using MessagePack;
 using ScePSX.Disassembler;
 
 namespace ScePSX
 {
-    [Serializable]
     public unsafe class CPU
     {
         // 静态 Action，用于存储绑定的逻辑
@@ -25,7 +25,7 @@ namespace ScePSX
         private uint PC;
         private uint PC_Predictor;
 
-        private uint[] GPR;
+        private uint[] GPR = new uint[32];
         private uint HI;
         private uint LO;
 
@@ -35,10 +35,10 @@ namespace ScePSX
         private bool opcodeTookBranch;
         private bool opcodeInDelaySlotTookBranch;
 
-        private static uint[] ExceptionAdress;
+        private static uint[] ExceptionAdress = new uint[] { 0x8000_0080, 0xBFC0_0180 };
 
         //CoPro Regs
-        private uint[] COP0_GPR;
+        private uint[] COP0_GPR = new uint[16];
         private const int SR = 12;
         private const int CAUSE = 13;
         private const int EPC = 14;
@@ -47,7 +47,6 @@ namespace ScePSX
 
         private bool dontIsolateCache;
 
-        [Serializable]
         private struct MEM
         {
             public uint register;
@@ -57,7 +56,6 @@ namespace ScePSX
         private MEM memoryread;
         private MEM delayedMemoryread;
 
-        [Serializable]
         public struct Instr
         {
             public uint value;                     //raw
@@ -96,15 +94,23 @@ namespace ScePSX
         }
 
         public GTE gte;
-        private BUS bus;
+        [IgnoreMember]
+        public BUS bus;
 
+        [IgnoreMember]
         private BIOS_Disassembler bios;
+        [IgnoreMember]
         private MIPS_Disassembler mips;
 
         public bool debug = false;
         public bool biosdebug = false;
         public bool ttydebug = false;
         public int cylesfix = 2;
+
+        public CPU()
+        {
+            Reset();
+        }
 
         public CPU(BUS bus, bool isExecept)
         {
@@ -118,29 +124,19 @@ namespace ScePSX
 
         public void Reset()
         {
+            bios = new BIOS_Disassembler(bus);
+            mips = new MIPS_Disassembler(ref HI, ref LO, GPR, COP0_GPR);
+
             PC = 0xbfc0_0000; // Bios Entry Point
             PC_Predictor = 0xbfc0_0004;
 
-            GPR = new uint[32];
             opcodeIsBranch = false;
             opcodeIsDelaySlot = false;
 
             opcodeTookBranch = false;
             opcodeInDelaySlotTookBranch = false;
 
-            ExceptionAdress = new uint[] { 0x8000_0080, 0xBFC0_0180 };
-
-            COP0_GPR = new uint[16];
             COP0_GPR[15] = 0x2; //PRID Processor ID
-
-            bios = new BIOS_Disassembler(bus);
-            mips = new MIPS_Disassembler(ref HI, ref LO, GPR, COP0_GPR);
-        }
-
-        public void disassemblePC()
-        {
-            mips.PrintRegs();
-            mips.disassemble(instr, PC_Now, PC_Predictor);
         }
 
         private void TTY()
@@ -313,7 +309,8 @@ namespace ScePSX
 
             if (debug)
             {
-                disassemblePC();
+                mips.PrintRegs();
+                mips.disassemble(instr, PC_Now, PC_Predictor);
             }
             if (biosdebug)
             {

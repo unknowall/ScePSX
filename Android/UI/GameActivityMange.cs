@@ -113,11 +113,11 @@ public class GameActivityMange
                 }
                 break;
             case TopBarEvent.StateSave:
-                //PSX.SaveState();
+                PSX.SaveState();
                 OSD.Show(Translations.GetText("FrmMain_SaveState_saved"));
                 break;
             case TopBarEvent.StateLoad:
-                //PSX.LoadState();
+                PSX.LoadState();
                 OSD.Show(Translations.GetText("FrmMain_SaveState_load"));
                 break;
             case TopBarEvent.SwapDisc:

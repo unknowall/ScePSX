@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using MessagePack;
 
 namespace ScePSX
 {
-    [Serializable]
     public class GPU
     {
         private enum GPMode
@@ -13,7 +13,6 @@ namespace ScePSX
             VRAM
         }
 
-        [Serializable]
         public struct TDisplayMode
         {
             public byte HorizontalResolution1;
@@ -23,6 +22,10 @@ namespace ScePSX
             public bool IsVerticalInterlace;
             public byte HorizontalResolution2;
             public bool IsReverseFlag;
+
+            public TDisplayMode()
+            {
+            }
 
             public TDisplayMode(uint value)
             {
@@ -105,10 +108,10 @@ namespace ScePSX
         private byte[] Ram;
         private byte[] FrameBuffer;
 
-        [NonSerialized]
+        [IgnoreMember]
         public ICoreHandler host;
 
-        [NonSerialized]
+        [IgnoreMember]
         public GPUBackend Backend = new GPUBackend();
 
         private static IReadOnlyList<byte> CommandSizeTable = new byte[]
@@ -132,6 +135,10 @@ namespace ScePSX
         0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01  // F
         /*0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F */
         };
+
+        public GPU()
+        {
+        }
 
         public GPU(ICoreHandler Host, GPUType type = GPUType.Software)
         {

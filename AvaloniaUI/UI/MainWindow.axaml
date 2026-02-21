@@ -131,7 +131,7 @@
                     <MenuItem Header="GitHub(_G)" Name="gitHubMnu" Click="gitHubMnu_Click" Classes="SubMenuItem"/>
                     <Separator/>
                     <MenuItem Header="通过Ko-Fi支持本项目" Name="supportKoficomMnu" Click="supportKoficomMnu_Click" Classes="SubMenuItem"/>
-                    <MenuItem Header="通过微信支持本项目" Name="supportWeChatMnu" Click="supportWeChatMnu_Click" Classes="SubMenuItem"/>
+                    <MenuItem Header="通过微信支持本项目" IsVisible="False" Name="supportWeChatMnu" Click="supportWeChatMnu_Click" Classes="SubMenuItem"/>
                     <Separator/>
                     <MenuItem Header="关于(_A)" Name="AboutMnu" Click="AboutMnu_Click" Classes="SubMenuItem"/>
                 </MenuItem>

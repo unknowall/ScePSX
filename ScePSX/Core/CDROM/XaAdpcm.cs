@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace ScePSX.CdRom
 {
-    [Serializable]
     public struct XaVolume
     {
         public byte LtoL;
@@ -12,7 +11,6 @@ namespace ScePSX.CdRom
         public byte RtoR;
     }
 
-    [Serializable]
     public class XaAdpcm
     {
         short[] left_Buffer = new short[2016];
@@ -23,10 +21,12 @@ namespace ScePSX.CdRom
         short old_right;
         short older_left;
         short older_right;
-        short[][] ringbuf = {
+        short[][] ringbuf =
+        {
             new short[32],  //L (or Mono, for some reason) 
             new short[32]   //R
         };
+
         private int[] pos_xa_adpcm_table = { 0, +60, +115, +98, +122 };
         private int[] neg_xa_adpcm_table = { 0, 0, -52, -55, -60 };
 

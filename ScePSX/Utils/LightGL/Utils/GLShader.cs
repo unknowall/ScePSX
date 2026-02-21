@@ -76,8 +76,7 @@ namespace LightGL
             if (ShaderCompileStatus == 0)
             {
                 Console.WriteLine("Shader ERROR: {0}", ShaderInfo);
-            }
-            else
+            } else
             {
                 Console.WriteLine("OpenGL Shader Compiled.");
             }
@@ -184,7 +183,8 @@ namespace LightGL
                 GL.GetActiveUniform(Program, n, NameMaxSize - 1, &name_len, &num, &type, NameTemp);
                 NameTemp[name_len] = 0;
                 var Name = Marshal.PtrToStringAnsi(new IntPtr(NameTemp));
-                if (Name == null) continue;
+                if (Name == null)
+                    continue;
                 int location = GL.GetUniformLocation(Program, Name);
                 _Uniforms[Name] = new GlUniform(this, Name, location, num, (GLValueType)type);
                 //Console.WriteLine(Uniforms[Name]);
@@ -204,7 +204,8 @@ namespace LightGL
                 GL.GetActiveAttrib(Program, n, NameMaxSize - 1, &name_len, &num, &type, NameTemp);
                 NameTemp[name_len] = 0;
                 var Name = Marshal.PtrToStringAnsi(new IntPtr(NameTemp));
-                if (Name == null) continue;
+                if (Name == null)
+                    continue;
                 int location = GL.GetAttribLocation(Program, Name);
                 _Attributes[Name] = new GlAttribute(this, Name, location, num, (GLValueType)type);
                 //Console.WriteLine(Attributes[Name]);
@@ -310,8 +311,7 @@ namespace LightGL
                 if (Field.FieldType == typeof(GlAttribute))
                 {
                     Field.SetValue(Object, GetAttribute(Field.Name));
-                }
-                else if (Field.FieldType == typeof(GlUniform))
+                } else if (Field.FieldType == typeof(GlUniform))
                 {
                     Field.SetValue(Object, GetUniform(Field.Name));
                 }

@@ -33,7 +33,7 @@ namespace ScePSX
         public int CoreWidth, CoreHeight, Msaa;
 
         public bool PGXP, PGXPT, Realcolor, KeepAR;
-        public int IRScale = 2, SaveSlot;
+        public int IRScale = 2, SaveSlot = 0;
 
         private int _frameCount = 0;
         private Stopwatch _fpsStopwatch = Stopwatch.StartNew();

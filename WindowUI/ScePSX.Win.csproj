@@ -8,6 +8,7 @@
 	<Platforms>AnyCPU</Platforms>
 	<BaseIntermediateOutputPath></BaseIntermediateOutputPath>
 	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+  <PublishSingleFile>true</PublishSingleFile>
 </PropertyGroup>
 
 <PropertyGroup>
@@ -42,14 +43,8 @@
 <ItemGroup>
   <None Remove=".editorconfig" />
   <None Remove="001.ico" />
-  <None Remove="ResXManager.config.xml" />
   <None Remove="ScePSX.ini" />
-  <None Remove="SDL2.dll" />
 </ItemGroup>
-
-  <ItemGroup>
-    <EditorConfigFiles Remove=".editorconfig" />
-  </ItemGroup>
 
   <ItemGroup>
     <EditorConfigFiles Remove=".editorconfig" />

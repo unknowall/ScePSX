@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using MessagePack;
 
 namespace ScePSX.CdRom
 {
-    [Serializable]
     public class CdTrack
     {
         public int TrackNumber;
@@ -27,8 +27,12 @@ namespace ScePSX.CdRom
         private const int BYTES_PER_SECTOR_RAW = 2352;
         public byte[] SectorBuffer = new byte[BYTES_PER_SECTOR_RAW];
 
-        [NonSerialized]
+        [IgnoreMember]
         private FileStream fs;
+
+        public CdTrack()
+        {
+        }
 
         public CdTrack(string path, bool isAudio, int trackNumber, string index1)
         {
@@ -58,18 +62,17 @@ namespace ScePSX.CdRom
 
     }
 
-    [Serializable]
     public class CDData
     {
         public CdDisk Disk;
-        private Sector LastReadSector;
+        public Sector LastReadSector;
         public Queue<byte> DataFifo = new Queue<byte>();
         public uint BytesToSkip = 12;
         public uint SizeOfDataSegment = 0x800;
         public bool XA_ADPCM_En = false;
         public XAFilter Filter;
         public XaVolume CurrentVolume;
-        XaAdpcm ADPCMDecoder = new XaAdpcm();
+        public XaAdpcm ADPCMDecoder = new XaAdpcm();
         public Queue<short> CDAudioSamples = new Queue<short>();
 
         public CdTrack SelectedTrack;
@@ -84,7 +87,6 @@ namespace ScePSX.CdRom
         public int EndOfTrack => Disk.Tracks[SelectedTrackNumber - 1].RoundedStart + Disk.Tracks[SelectedTrackNumber - 1].Length;
         public int EndOfDisk;
 
-        [Serializable]
         public struct Sector
         {
             public int TrackNumber;
@@ -92,7 +94,6 @@ namespace ScePSX.CdRom
             public int Length;
         }
 
-        [Serializable]
         public struct XAFilter
         {
             public bool IsEnabled;
@@ -103,6 +104,10 @@ namespace ScePSX.CdRom
         enum SectorType
         {
             Video = 1, Audio = 2, Data = 4
+        }
+
+        public CDData()
+        {
         }
 
         public CDData(string diskPath = "", string diskid = "")
@@ -158,6 +163,8 @@ namespace ScePSX.CdRom
             {
                 track.LoadFs();
             }
+
+            SelectedTrack.LoadFs();
         }
 
         public uint ReadWord()

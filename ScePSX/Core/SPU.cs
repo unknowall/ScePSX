@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-
+using MessagePack;
 using ScePSX.CdRom;
 
 namespace ScePSX
 {
-    [Serializable]
     public class SPU
     {
-        //[NonSerialized]
+        //[IgnoreMember]
         //public unsafe byte* RAM = (byte*)Marshal.AllocHGlobal(512 * 1024);
         byte[] RAM = new byte[512 * 1024];
 
@@ -49,7 +48,7 @@ namespace ScePSX
         uint transfer_address;
         uint currentAddress;
         uint reverbCurrentAddress;
-        SPUVoice[] voices;
+        SPUVoice[] voices = new SPUVoice[24];
         uint SPU_IRQ_Address;
 
         private int clk_counter = 0;
@@ -96,11 +95,17 @@ namespace ScePSX
         short vLIN;     //Type: volume
         short vRIN;     //Type: volume
 
-        [NonSerialized]
+        [IgnoreMember]
         public ICoreHandler host;
 
+        [IgnoreMember]
         public CDData CDDataControl;
+        [IgnoreMember]
         public IRQController IrqController;
+
+        public SPU()
+        {
+        }
 
         public SPU(ICoreHandler host, CDData CDControl, IRQController IrqController)
         {
@@ -108,10 +113,9 @@ namespace ScePSX
             this.IrqController = IrqController;
             this.CDDataControl = CDControl;
 
-            voices = new SPUVoice[24];
             for (int i = 0; i < voices.Length; i++)
             {
-                voices[i] = new SPUVoice();
+                voices[i] = new SPUVoice(1);
             }
         }
 
@@ -947,7 +951,6 @@ namespace ScePSX
         }
     }
 
-    [Serializable]
     public class SPUVoice
     {
         public short volumeLeft;
@@ -1042,6 +1045,10 @@ namespace ScePSX
         };
 
         public SPUVoice()
+        {
+        }
+
+        public SPUVoice(int dummy)
         {
             adsr.adsrLOW = 0;
             adsr.adsrHI = 0;
@@ -1248,7 +1255,6 @@ namespace ScePSX
         }
     }
 
-    [Serializable]
     public class SPUADSR
     {
         public enum Phase

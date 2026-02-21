@@ -1212,17 +1212,22 @@
       <translation lang="ja">ポーズ中</translation>
     </text>
     <text id="FrmMain_SaveState_saved">
-      <translation lang="en">State Saved</translation>
-      <translation lang="zh">保存即时存档</translation>
-      <translation lang="de">Zustand gespeichert</translation>
-      <translation lang="fr">État enregistré</translation>
-      <translation lang="it">Stato salvato</translation>
-      <translation lang="ru">Состояние сохранено</translation>
-      <translation lang="ja">インスタントセーブに保存しました</translation>
+      <translation lang="en">💾 State Saved</translation>
+      <translation lang="zh">💾 保存即时存档</translation>
+      <translation lang="de">💾 Zustand gespeichert</translation>
+      <translation lang="fr">💾 État enregistré</translation>
+      <translation lang="it">💾 Stato salvato</translation>
+      <translation lang="ru">💾 Состояние сохранено</translation>
+      <translation lang="ja">💾 インスタントセーブに保存しました</translation>
     </text>
     <text id="FrmMain_SaveState_load">
-      <translation lang="en">State Loaded</translation>
-      <translation lang="zh">加载即时存档</translation>
+      <translation lang="en">📂 Load State</translation>
+      <translation lang="zh">📂 加载即时存档</translation>
+      <translation lang="de">📂 Spielstand laden</translation>
+      <translation lang="fr">📂 Charger la sauvegarde</translation>
+      <translation lang="it">📂 Carica stato</translation>
+      <translation lang="ru">📂 Загрузить состояние</translation>
+      <translation lang="ja">📂 ステートを読み込む</translation>
     </text>
     <text id="FrmMain_SaveState_unload">
       <translation lang="en">Cancel Load</translation>

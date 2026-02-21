@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MessagePack;
 
 namespace ScePSX.CdRom
 {
-    [Serializable]
     public class Response
     {
         public byte[] values;
@@ -12,6 +12,10 @@ namespace ScePSX.CdRom
         public long delay;
         public CDROM.CDROMState NextState;
         public bool FinishedProcessing;
+
+        public Response()
+        {
+        }
 
         public Response(byte[] values, CDROM.Delays delay, CDROM.Flags INT, CDROM.CDROMState nextState)
         {
@@ -30,7 +34,6 @@ namespace ScePSX.CdRom
         }
     }
 
-    [Serializable]
     public class ResponseBuffer
     {
         private byte[] Buffer;
@@ -38,6 +41,10 @@ namespace ScePSX.CdRom
         private int Pointer;
         private int ActualLength;
         public bool HasUnreadData = false;
+
+        public ResponseBuffer()
+        {
+        }
 
         public ResponseBuffer(int size)
         {
@@ -80,7 +87,6 @@ namespace ScePSX.CdRom
         }
     }
 
-    [Serializable]
     public unsafe class CDROM
     {
         const int PSX_MHZ = 33868800;
@@ -146,9 +152,9 @@ namespace ScePSX.CdRom
         int DRQSTS = 0;            //6
         int BUSYSTS = 0;           //7
 
-        ResponseBuffer ResponseBuffer = new ResponseBuffer(16);
-        Queue<Byte> ParameterBuffer = new Queue<Byte>();
-        Queue<Response> Responses = new Queue<Response>();
+        public ResponseBuffer ResponseBuffer = new ResponseBuffer(16);
+        public Queue<Byte> ParameterBuffer = new Queue<Byte>();
+        public Queue<Response> Responses = new Queue<Response>();
 
         byte[] SeekParameters = new byte[3];
 
@@ -184,7 +190,9 @@ namespace ScePSX.CdRom
 
         public bool LidOpen = false;
 
+        [IgnoreMember]
         public CDData DATA;
+        [IgnoreMember]
         public IRQController IRQCTL;
 
         long ReadRate = 0;
@@ -197,6 +205,10 @@ namespace ScePSX.CdRom
         int SpeedAdjust;
 
         public int CombineDelaySet = (int)(PSX_MHZ * 0.002);
+
+        public CDROM()
+        {
+        }
 
         public CDROM(IRQController irq, string path, string diskid = null)
         {

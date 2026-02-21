@@ -2,7 +2,6 @@
 
 namespace ScePSX.Disassembler
 {
-    [Serializable]
     internal class BIOS_Disassembler
     {
 
@@ -86,7 +85,7 @@ namespace ScePSX.Disassembler
                             msg += $"atob(src,num_dst)";
                             break;
                         case 0x13:
-                            msg += $"SaveState(buf)";
+                            msg += $"Save(buf)";
                             break;
                         case 0x14:
                             msg += $"RestoreState(buf,param)";

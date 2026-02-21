@@ -137,8 +137,7 @@ namespace LightGL
             try
             {
                 Action();
-            }
-            finally
+            } finally
             {
                 GL.BindFramebuffer(GL.GL_FRAMEBUFFER, (uint)OldFrameBuffer);
             }

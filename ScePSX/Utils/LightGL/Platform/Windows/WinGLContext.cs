@@ -1,9 +1,9 @@
-﻿using LightGL.DynamicLibrary;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
+using LightGL.DynamicLibrary;
 using static LightGL.GlContextFactory;
 
 namespace LightGL.Windows

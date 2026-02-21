@@ -3,8 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace ScePSX
 {
-
-    [Serializable]
     [StructLayout(LayoutKind.Explicit)]
     public struct Point2D
     {
@@ -15,7 +13,6 @@ namespace ScePSX
         public short Y;
     }
 
-    [Serializable]
     public struct Primitive
     {
         public bool IsShaded;
@@ -36,7 +33,6 @@ namespace ScePSX
         public TDrawMode drawMode;
     }
 
-    [Serializable]
     [StructLayout(LayoutKind.Explicit)]
     public struct TextureData
     {
@@ -50,13 +46,16 @@ namespace ScePSX
         public byte Y;
     }
 
-    [Serializable]
     public struct TextureWindow
     {
         public byte MaskX;
         public byte MaskY;
         public byte OffsetX;
         public byte OffsetY;
+
+        public TextureWindow()
+        {
+        }
 
         public TextureWindow(uint value)
         {
@@ -67,7 +66,6 @@ namespace ScePSX
         }
     }
 
-    [Serializable]
     public struct TDrawMode
     {
         public byte TexturePageXBase;
@@ -81,11 +79,14 @@ namespace ScePSX
         public bool TexturedRectangleYFlip;
     }
 
-    [Serializable]
     public struct TDrawingOffset
     {
         public short X;
         public short Y;
+
+        public TDrawingOffset()
+        {
+        }
 
         public TDrawingOffset(uint value)
         {
@@ -94,11 +95,14 @@ namespace ScePSX
         }
     }
 
-    [Serializable]
     public struct TDrawingArea : IEquatable<TDrawingArea>
     {
         public ushort X;
         public ushort Y;
+
+        public TDrawingArea()
+        {
+        }
 
         public TDrawingArea(uint value)
         {
@@ -137,7 +141,6 @@ namespace ScePSX
         }
     }
 
-    [Serializable]
     public struct VRAMTransfer
     {
         public int X;
@@ -151,7 +154,6 @@ namespace ScePSX
         public bool isRead;
     }
 
-    [Serializable]
     [StructLayout(LayoutKind.Explicit)]
     public struct GPUColor
     {

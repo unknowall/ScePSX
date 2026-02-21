@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace ScePSX.CdRom
 {
-    [Serializable]
     public class CdDisk
     {
         public List<CdTrack> Tracks;
@@ -16,6 +15,10 @@ namespace ScePSX.CdRom
         public bool IsAudioDisk => HasAudioTracks && !HasDataTracks;
         public bool IsValid => Tracks != null;
         public string DiskID;
+
+        public CdDisk()
+        {
+        }
 
         public CdDisk(string filepath, string diskid)
         {

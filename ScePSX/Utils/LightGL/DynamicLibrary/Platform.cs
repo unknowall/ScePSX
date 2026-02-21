@@ -70,21 +70,17 @@ namespace LightGL.DynamicLibrary
                 {
                     var arch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
                     return arch ?? "unknown";
-                }
-                else if (IsAndroid)
+                } else if (IsAndroid)
                 {
                     return ReadAndroidProperty("ro.arch") ?? ReadAndroidProperty("ro.product.cpu.abi") ?? "unknown";
-                }
-                else if (IsIOS)
+                } else if (IsIOS)
+                {
+                    return ExecuteUnixCommand("uname", "-m") ?? "unknown";
+                } else
                 {
                     return ExecuteUnixCommand("uname", "-m") ?? "unknown";
                 }
-                else
-                {
-                    return ExecuteUnixCommand("uname", "-m") ?? "unknown";
-                }
-            }
-            catch
+            } catch
             {
                 return "unknown";
             }
@@ -109,8 +105,7 @@ namespace LightGL.DynamicLibrary
                 string output = process.StandardOutput.ReadToEnd().Trim();
                 process.WaitForExit();
                 return output;
-            }
-            catch
+            } catch
             {
                 return null;
             }
@@ -126,8 +121,7 @@ namespace LightGL.DynamicLibrary
                     return Marshal.PtrToStringAnsi(buf)?.Trim();
                 }
                 return null;
-            }
-            catch
+            } catch
             {
                 return null;
             }
@@ -136,7 +130,10 @@ namespace LightGL.DynamicLibrary
         [DllImport("libc", EntryPoint = "__system_property_get")]
         private static extern int __system_property_get(string name, IntPtr value);
 
-        public static bool IsMono { get; private set; }
+        public static bool IsMono
+        {
+            get; private set;
+        }
 
         public static DateTime UnixStart;
 
@@ -175,16 +172,13 @@ namespace LightGL.DynamicLibrary
                     if (IsRunningOnMac())
                     {
                         OS = OS.Mac;
-                    }
-                    else if (IsRunningOnAndroid())
+                    } else if (IsRunningOnAndroid())
                     {
                         OS = OS.Android;
-                    }
-                    else if (IsRunningOnIOS())
+                    } else if (IsRunningOnIOS())
                     {
                         OS = OS.IOS;
-                    }
-                    else
+                    } else
                     {
                         OS = OS.Linux;
                     }
@@ -207,8 +201,7 @@ namespace LightGL.DynamicLibrary
 #pragma warning restore CS8600
                     return osName == "Darwin" && !IsRunningOnIOS(); // Darwin 但不是 iOS = Mac
                 }
-            }
-            catch { }
+            } catch { }
             return false;
         }
 
@@ -222,8 +215,7 @@ namespace LightGL.DynamicLibrary
                 IntPtr buf = Marshal.AllocHGlobal(1024);
                 if (__system_property_get("ro.build.version.release", buf) > 0)
                     return true;
-            }
-            catch { }
+            } catch { }
             return false;
         }
 
@@ -243,8 +235,7 @@ namespace LightGL.DynamicLibrary
                 //    string machine = ExecuteUnixCommand("uname", "-m");
                 //    return machine == "arm64" || machine == "armv7" || machine == "i386" || machine == "x86_64"; // 模拟器
                 //}
-            }
-            catch { }
+            } catch { }
             return false;
         }
 
@@ -353,8 +344,7 @@ namespace LightGL.DynamicLibrary
                     ErrorString = error.Trim(),
                     ExitCode = process.ExitCode
                 };
-            }
-            catch (Exception ex)
+            } catch (Exception ex)
             {
                 return new ProcessResult
                 {

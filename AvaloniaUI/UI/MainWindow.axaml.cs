@@ -18,7 +18,7 @@ namespace ScePSX.UI;
 
 public partial class MainWindow : Window
 {
-    public static string version = "ScePSX v0.1.9.0";
+    public static string version = "ScePSX v0.2.0.1";
     private static string RootPath = AppContext.BaseDirectory;
 
     public PSXHandler PSX;
@@ -446,6 +446,7 @@ public partial class MainWindow : Window
         RomListView.IsVisible = false;
         SetViewVisible();
         await Task.Delay(16);
+        PSX.SoftDrawView = SoftDrawView;
         PSX.GameName = info.Name;
         PSX.LoadGame(info.fullName, info.ID);
 
@@ -537,6 +538,8 @@ public partial class MainWindow : Window
         }
 
         CleanCheckSet(MnuRender, 0);
+
+        PSXHandler.ini.WriteInt("Main", "Render", 1);
     }
 
     private async void OpenGLMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -553,6 +556,8 @@ public partial class MainWindow : Window
         }
 
         CleanCheckSet(MnuRender, 1);
+
+        PSXHandler.ini.WriteInt("Main", "Render", 2);
     }
 
     private async void VulkanMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -567,6 +572,8 @@ public partial class MainWindow : Window
         }
 
         CleanCheckSet(MnuRender, 2);
+
+        PSXHandler.ini.WriteInt("Main", "Render", 3);
     }
 
     private void UpScale_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

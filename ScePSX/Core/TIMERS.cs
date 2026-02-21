@@ -2,10 +2,9 @@
 
 namespace ScePSX
 {
-    [Serializable]
     public class TIMERS
     {
-        private TIMER[] timer = new TIMER[3];
+        public TIMER[] timer = new TIMER[3];
 
         public TIMERS()
         {
@@ -49,7 +48,6 @@ namespace ScePSX
             timer[1].syncGPU(sync);
         }
 
-        [Serializable]
         public class TIMER
         {
             private int timerNumber;
@@ -78,6 +76,10 @@ namespace ScePSX
 
             private bool irq;
             private bool alreadFiredIrq;
+
+            public TIMER()
+            {
+            }
 
             public TIMER(int timerNumber)
             {

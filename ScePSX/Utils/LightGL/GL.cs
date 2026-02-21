@@ -15,13 +15,13 @@
  * 
  */
 
-using LightGL.DynamicLibrary;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
+using LightGL.DynamicLibrary;
 
 namespace LightGL
 {
@@ -307,7 +307,7 @@ namespace LightGL
 
     public enum ShadingModel : uint
     {
-        flat =  0x1D00,
+        flat = 0x1D00,
         smooth = 0x1D01
     }
 
@@ -775,7 +775,8 @@ namespace LightGL
         public static string GetStringStr(int Name)
         {
             var str = Marshal.PtrToStringAnsi(GetString(Name));
-            if (str == null) return "";
+            if (str == null)
+                return "";
             return str;
         }
 
@@ -911,8 +912,7 @@ namespace LightGL
                 var Error = GetError();
                 if (Error != GL_NO_ERROR)
                     throw new Exception($"{prefix} glError: 0x{Error:X4}");
-            }
-            finally
+            } finally
             {
                 ClearError();
             }
@@ -923,8 +923,7 @@ namespace LightGL
             if (EnableDisable)
             {
                 Enable(EnableCap);
-            }
-            else
+            } else
             {
                 Disable(EnableCap);
             }

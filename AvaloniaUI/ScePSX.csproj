@@ -11,7 +11,6 @@
     <TrimMode>full</TrimMode>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationIcon>001.ico</ApplicationIcon>
-    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
   
@@ -31,8 +30,8 @@
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
   </ItemGroup>
 
-  <ItemGroup Condition="'$(PublishTrimmed)' == 'true'">
-    <TrimmerRootAssembly Include="mscorlib" />
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Core" />
   </ItemGroup>
 
   <ItemGroup>

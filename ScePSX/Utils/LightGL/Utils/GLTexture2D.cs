@@ -80,8 +80,7 @@ namespace LightGL
             {
                 Bind();
                 Action();
-            }
-            finally
+            } finally
             {
                 GL.BindTexture(GL.GL_TEXTURE_2D, OldTexture);
             }
@@ -178,8 +177,7 @@ namespace LightGL
                 int Size = SetData.Length * Marshal.SizeOf(typeof(T));
                 Data = new byte[Size];
                 Marshal.Copy(SetDataHandle.AddrOfPinnedObject(), Data, 0, Size);
-            }
-            finally
+            } finally
             {
                 SetDataHandle.Free();
             }
@@ -234,8 +232,7 @@ namespace LightGL
             if (isPtr && Ptr != null)
             {
                 GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GLTextureFormat, Width, Height, 0, (int)pixelFormat, (int)this.pixelType, Ptr);
-            }
-            else
+            } else
             {
                 fixed (byte* DataPtr = Data)
                 {

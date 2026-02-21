@@ -1,9 +1,9 @@
-﻿using LightGL.Android;
+﻿using System;
+using LightGL.Android;
 using LightGL.DynamicLibrary;
 using LightGL.Linux;
 using LightGL.Mac;
 using LightGL.Windows;
-using System;
 
 namespace LightGL
 {

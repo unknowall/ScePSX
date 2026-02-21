@@ -18,7 +18,6 @@ namespace ScePSX
         private Paint textPaint = new Paint();
         private Dictionary<int, ButtonConfig> pointerToButton = new Dictionary<int, ButtonConfig>();
 
-        // 顶部控制栏相关
         private bool isTopBarExpanded = false;
         private RectF topBarRect = new RectF();
         private RectF showpadButtonRect = new RectF();
@@ -29,38 +28,35 @@ namespace ScePSX
         private RectF slotMinusRect = new RectF();
         private RectF slotPlusRect = new RectF();
         private RectF slotNumberRect = new RectF();
+
+        private bool showpadPressed = false;
+        private bool cheatsPressed = false;
+        private bool savePressed = false;
+        private bool loadPressed = false;
+        private bool undoPressed = false;
+        private bool minusPressed = false;
+        private bool plusPressed = false;
+
         public int currentSlot = 0;
         private const int MAX_SLOT = 9;
         public bool IsCheat = false;
         public int PadState = 0;
 
-        // 拖动相关
         public bool CanDrag = true;
         private bool isDragging = false;
         private int dragPointerId = -1;
         private float dragStartX, dragStartY;
         private ButtonConfig? dragButton = null;
-        private string dragMode = ""; // "dpad", "action", "single"
-        //private long dragStartTime = 0;
-        private const int LONG_PRESS_TIME = 300; // 300ms长按触发拖动
-        private const int DRAG_MOVE_PIXELS = 20; // 移动超过20像素
+        private string dragMode = "";
+        private const int LONG_PRESS_TIME = 300;
+        private const int DRAG_MOVE_PIXELS = 20;
 
-        // 区域偏移量
         private float dpadOffsetX = 0;
         private float dpadOffsetY = 0;
         private float actionOffsetX = 0;
         private float actionOffsetY = 0;
 
-        // 区域基础位置
-        //private readonly float dpadBaseX = 0.20f;
-        //private readonly float dpadBaseY = 0.50f;
-        //private readonly float actionBaseX = 0.80f;
-        //private readonly float actionBaseY = 0.55f;
-
-        // 原始位置记录
         private Dictionary<string, (float x, float y)> originalPositions = new Dictionary<string, (float x, float y)>();
-
-        // 记录每个指针的按下时间和位置
         private Dictionary<int, (long time, float x, float y)> pointerDownInfo = new Dictionary<int, (long, float, float)>();
 
         public enum TopBarEvent
@@ -92,17 +88,14 @@ namespace ScePSX
             var initialButtons = new[] {
                 new ButtonConfig("SELECT", InputAction.Select, 0.40f, 0.85f),
                 new ButtonConfig("START", InputAction.Start, 0.60f, 0.85f),
-
                 new ButtonConfig("□", InputAction.Square, 0.80f, 0.70f),
                 new ButtonConfig("△", InputAction.Triangle, 0.90f, 0.55f),
                 new ButtonConfig("○", InputAction.Circle, 0.80f, 0.40f),
                 new ButtonConfig("×", InputAction.Cross, 0.70f, 0.55f),
-
                 new ButtonConfig("L1", InputAction.L1, 0.10f, 0.35f),
                 new ButtonConfig("L2", InputAction.L2, 0.10f, 0.20f),
                 new ButtonConfig("R1", InputAction.R1, 0.90f, 0.35f),
                 new ButtonConfig("R2", InputAction.R2, 0.90f, 0.20f),
-
                 new ButtonConfig("▲", InputAction.DPadUp, 0.20f, 0.40f),
                 new ButtonConfig("▼", InputAction.DPadDown, 0.20f, 0.60f),
                 new ButtonConfig("◀", InputAction.DPadLeft, 0.10f, 0.50f),
@@ -144,46 +137,44 @@ namespace ScePSX
             {
                 case MotionEventActions.Down:
                 case MotionEventActions.PointerDown:
-                    // 先检查是否点击了顶部栏区域
                     float topBarTouchHeight = isTopBarExpanded ? 200 : 50;
                     if (y < topBarTouchHeight && x > 0 && x < width)
                     {
-                        HandleTopBarTouch(x, y, width, height);
+                        HandleTopBarTouch(x, y, width, height, true);
                         break;
                     }
-                    // 记录按下信息
                     pointerDownInfo[pointerId] = (motionEvent.EventTime, x, y);
-                    // 立即处理按钮按下
                     CheckAndAssignButton(pointerId, x, y, width, height, true);
                     break;
 
                 case MotionEventActions.Up:
                 case MotionEventActions.PointerUp:
                 case MotionEventActions.Cancel:
-                    // 清除按下信息
                     pointerDownInfo.Remove(pointerId);
                     if (isDragging && pointerId == dragPointerId)
                     {
                         StopDrag();
                     }
-                    // 处理按钮抬起
                     ReleaseButton(pointerId);
+                    HandleTopBarTouch(x, y, width, height, false);
                     break;
 
                 case MotionEventActions.Move:
-                    // 先处理正常的按钮状态更新
+                    bool hasTopBarTouch = false;
                     for (int i = 0; i < motionEvent.PointerCount; i++)
                     {
                         int id = motionEvent.GetPointerId(i);
                         float touchX = motionEvent.GetX(i);
                         float touchY = motionEvent.GetY(i);
 
-                        // 如果触摸在顶部栏区域，跳过按钮处理
                         float topBarMoveHeight = isTopBarExpanded ? 200 : 50;
                         if (touchY < topBarMoveHeight)
+                        {
+                            hasTopBarTouch = true;
+                            UpdateTopBarPressed(touchX, touchY);
                             continue;
+                        }
 
-                        // 检查是否需要进入拖动模式
                         if (CanDrag && !isDragging && pointerDownInfo.ContainsKey(id))
                         {
                             var downInfo = pointerDownInfo[id];
@@ -196,12 +187,10 @@ namespace ScePSX
 
                             if (isLongPress || isMoving)
                             {
-                                // 找到这个指针按下的按钮
                                 ButtonConfig? pressedButton = FindHitButton(downInfo.x, downInfo.y, width, height);
 
                                 if (pressedButton != null)
                                 {
-                                    // 进入拖动模式
                                     if (IsDpadButton(pressedButton.Label))
                                     {
                                         StartDrag(id, touchX, touchY, "dpad", pressedButton);
@@ -213,7 +202,6 @@ namespace ScePSX
                                         StartDrag(id, touchX, touchY, "single", pressedButton);
                                     }
 
-                                    // 释放按钮按下状态
                                     if (pointerToButton.ContainsKey(id))
                                     {
                                         pointerToButton.Remove(id);
@@ -224,14 +212,23 @@ namespace ScePSX
                             }
                         }
 
-                        // 如果不是拖动模式，正常更新按钮状态
                         if (!CanDrag || !isDragging || id != dragPointerId)
                         {
                             CheckAndUpdateButton(id, touchX, touchY, width, height);
                         }
                     }
 
-                    // 处理拖动
+                    if (!hasTopBarTouch)
+                    {
+                        showpadPressed = false;
+                        cheatsPressed = false;
+                        savePressed = false;
+                        loadPressed = false;
+                        undoPressed = false;
+                        minusPressed = false;
+                        plusPressed = false;
+                    }
+
                     if (CanDrag && isDragging && pointerId == dragPointerId)
                     {
                         float deltaX = (x - dragStartX) / width;
@@ -262,47 +259,75 @@ namespace ScePSX
             Invalidate();
         }
 
-        private void HandleTopBarTouch(float x, float y, int width, int height)
+        private void UpdateTopBarPressed(float x, float y)
         {
-            if (isTopBarExpanded)
+            if (!isTopBarExpanded)
+                return;
+
+            cheatsPressed = cheatsButtonRect.Contains(x, y);
+            showpadPressed = showpadButtonRect.Contains(x, y);
+            savePressed = saveStateRect.Contains(x, y);
+            loadPressed = loadStateRect.Contains(x, y);
+            undoPressed = undoRect.Contains(x, y);
+            minusPressed = slotMinusRect.Contains(x, y);
+            plusPressed = slotPlusRect.Contains(x, y);
+        }
+
+        private void HandleTopBarTouch(float x, float y, int width, int height, bool isPressed)
+        {
+            if (!isPressed)
             {
-                if (cheatsButtonRect.Contains(x, y))
+                if (isTopBarExpanded)
                 {
-                    IsCheat = !IsCheat;
-                    OnTopBarAction?.Invoke(TopBarEvent.Cheat, IsCheat ? 0 : 1);
-                } else if (showpadButtonRect.Contains(x, y))
+                    if (cheatsButtonRect.Contains(x, y))
+                    {
+                        IsCheat = !IsCheat;
+                        OnTopBarAction?.Invoke(TopBarEvent.Cheat, IsCheat ? 0 : 1);
+                    } else if (showpadButtonRect.Contains(x, y))
+                    {
+                        PadState = PadState < 2 ? PadState + 1 : 0;
+                        if (PadState == 2)
+                            CanDrag = false;
+                        else
+                            CanDrag = true;
+                        OnTopBarAction?.Invoke(TopBarEvent.VPad, 0);
+                    } else if (saveStateRect.Contains(x, y))
+                    {
+                        OnTopBarAction?.Invoke(TopBarEvent.StateSave, currentSlot);
+                    } else if (loadStateRect.Contains(x, y))
+                    {
+                        OnTopBarAction?.Invoke(TopBarEvent.StateLoad, currentSlot);
+                    } else if (undoRect.Contains(x, y))
+                    {
+                        OnTopBarAction?.Invoke(TopBarEvent.SwapDisc, 0);
+                    } else if (slotMinusRect.Contains(x, y))
+                    {
+                        currentSlot = (currentSlot - 1 + MAX_SLOT + 1) % (MAX_SLOT + 1);
+                        OnTopBarAction?.Invoke(TopBarEvent.SlotDec, currentSlot);
+                    } else if (slotPlusRect.Contains(x, y))
+                    {
+                        currentSlot = (currentSlot + 1) % (MAX_SLOT + 1);
+                        OnTopBarAction?.Invoke(TopBarEvent.SlotInc, currentSlot);
+                    } else if (y < 200)
+                    {
+                        isTopBarExpanded = false;
+                    }
+                } else if (y < 50)
                 {
-                    PadState = PadState < 2 ? PadState + 1 : 0;
-                    if (PadState == 2)
-                        CanDrag = false;
-                    else
-                        CanDrag = true;
-                    OnTopBarAction?.Invoke(TopBarEvent.VPad, 0);
-                } else if (saveStateRect.Contains(x, y))
-                {
-                    OnTopBarAction?.Invoke(TopBarEvent.StateSave, currentSlot);
-                } else if (loadStateRect.Contains(x, y))
-                {
-                    OnTopBarAction?.Invoke(TopBarEvent.StateLoad, currentSlot);
-                } else if (undoRect.Contains(x, y))
-                {
-                    OnTopBarAction?.Invoke(TopBarEvent.SwapDisc, 0);
-                } else if (slotMinusRect.Contains(x, y))
-                {
-                    currentSlot = (currentSlot - 1 + MAX_SLOT + 1) % (MAX_SLOT + 1);
-                    OnTopBarAction?.Invoke(TopBarEvent.SlotDec, currentSlot);
-                } else if (slotPlusRect.Contains(x, y))
-                {
-                    currentSlot = (currentSlot + 1) % (MAX_SLOT + 1);
-                    OnTopBarAction?.Invoke(TopBarEvent.SlotInc, currentSlot);
-                } else if (y < 200)
-                {
-                    isTopBarExpanded = false;
+                    isTopBarExpanded = true;
                 }
-            } else
-            {
-                isTopBarExpanded = true;
             }
+        }
+
+        private void HandleTopBarTouchRelease()
+        {
+            showpadPressed = false;
+            cheatsPressed = false;
+            savePressed = false;
+            loadPressed = false;
+            undoPressed = false;
+            minusPressed = false;
+            plusPressed = false;
         }
 
         private bool IsDpadButton(string label)
@@ -435,10 +460,8 @@ namespace ScePSX
             int width = Width;
             int height = Height;
 
-            // 绘制顶部栏
             DrawTopBar(canvas, width);
 
-            // 绘制游戏按钮
             if (PadState != 1)
             {
                 foreach (var btn in buttons)
@@ -487,7 +510,7 @@ namespace ScePSX
         private void DrawButton(Canvas canvas, RectF rect, string label, bool press)
         {
             if (press)
-                paint.Color = Color.Argb(200, 100, 100, 255); // 蓝色半透明
+                paint.Color = Color.Argb(200, 100, 100, 255);
             else
                 paint.Color = Color.Argb(140, 100, 100, 100);
             canvas.DrawRect(rect, paint);
@@ -495,10 +518,12 @@ namespace ScePSX
             canvas.DrawText(label, rect.CenterX(), rect.CenterY() + 10, textPaint);
         }
 
-        private void DrawCheckButton(Canvas canvas, RectF rect, string label, int check)
+        private void DrawCheckButton(Canvas canvas, RectF rect, string label, int check, bool press)
         {
-            if (check == 0)
-                paint.Color = Color.Argb(200, 100, 100, 255); // 蓝色半透明
+            if (press)
+                paint.Color = Color.Argb(255, 150, 150, 255);
+            else if (check == 0)
+                paint.Color = Color.Argb(200, 100, 100, 255);
             else if (check == 1)
                 paint.Color = Color.Argb(220, 255, 100, 100);
             else if (check == 2)
@@ -521,7 +546,6 @@ namespace ScePSX
                 recv.Set(10, 15, 30, 40);
                 canvas.DrawRect(recv, paint);
 
-                // 未展开时，只显示 >>> 在左边
                 textPaint.TextSize = 30;
                 textPaint.Color = Color.White;
                 canvas.DrawText("➡️", 30, 35, textPaint);
@@ -533,7 +557,6 @@ namespace ScePSX
                 paint.SetStyle(Paint.Style.Fill);
                 canvas.DrawRect(topBarRect, paint);
 
-                // 展开时显示 <<< 在左边
                 textPaint.TextSize = 30;
                 textPaint.Color = Color.White;
                 canvas.DrawText("⬅️", 30, 35, textPaint);
@@ -541,50 +564,40 @@ namespace ScePSX
                 float buttonWidth = width / 8f;
                 float buttonHeight = 60;
                 float startY = 30;
-
                 float buttonSpacing = 100;
                 float leftOffset = 10f;
 
-                // 金手指
                 cheatsButtonRect.Set(buttonWidth * 0.3f - leftOffset, startY, buttonWidth * 1.3f - leftOffset, startY + buttonHeight);
-                DrawCheckButton(canvas, cheatsButtonRect, Translations.GetText("vcheat"), IsCheat ? 0 : 1);
+                DrawCheckButton(canvas, cheatsButtonRect, Translations.GetText("vcheat"), IsCheat ? 0 : 1, cheatsPressed);
 
-                // 虚拟按键 
                 showpadButtonRect.Set(buttonWidth * 0.3f - leftOffset + buttonSpacing, startY,
                                       buttonWidth * 1.3f - leftOffset + buttonSpacing, startY + buttonHeight);
-                DrawCheckButton(canvas, showpadButtonRect, Translations.GetText("vpad"), PadState);
+                DrawCheckButton(canvas, showpadButtonRect, Translations.GetText("vpad"), PadState, showpadPressed);
 
-                // 即时保存
                 saveStateRect.Set(buttonWidth * 2, startY, buttonWidth * 3, startY + buttonHeight);
-                DrawButton(canvas, saveStateRect, Translations.GetText("vsave"), false);
+                DrawButton(canvas, saveStateRect, Translations.GetText("vsave"), savePressed);
 
-                // 即时加载
                 loadStateRect.Set(buttonWidth * 3.2f, startY, buttonWidth * 4.2f, startY + buttonHeight);
-                DrawButton(canvas, loadStateRect, Translations.GetText("vload"), false);
+                DrawButton(canvas, loadStateRect, Translations.GetText("vload"), loadPressed);
 
-                // 更换光盘
                 undoRect.Set(buttonWidth * 4.4f, startY, buttonWidth * 5.4f, startY + buttonHeight);
-                DrawButton(canvas, undoRect, Translations.GetText("vdisc"), false);
+                DrawButton(canvas, undoRect, Translations.GetText("vdisc"), undoPressed);
 
-                // 存档位控制
                 float slotStartX = buttonWidth * 5.8f;
 
-                // 减号按钮
                 slotMinusRect.Set(slotStartX, startY, slotStartX + buttonHeight, startY + buttonHeight);
-                paint.Color = Color.Argb(200, 100, 100, 100);
+                paint.Color = minusPressed ? Color.Argb(200, 150, 150, 255) : Color.Argb(200, 100, 100, 100);
                 canvas.DrawRect(slotMinusRect, paint);
                 textPaint.TextSize = 40;
                 canvas.DrawText("-", slotMinusRect.CenterX(), slotMinusRect.CenterY() + 15, textPaint);
 
-                // 存档位数字
                 slotNumberRect.Set(slotStartX + buttonHeight + 10, startY, slotStartX + buttonHeight * 2 + 10, startY + buttonHeight);
                 paint.Color = Color.Argb(200, 80, 80, 80);
                 canvas.DrawRect(slotNumberRect, paint);
                 canvas.DrawText(currentSlot.ToString(), slotNumberRect.CenterX(), slotNumberRect.CenterY() + 10, textPaint);
 
-                // 加号按钮
                 slotPlusRect.Set(slotStartX + buttonHeight * 2 + 20, startY, slotStartX + buttonHeight * 3 + 20, startY + buttonHeight);
-                paint.Color = Color.Argb(200, 100, 100, 100);
+                paint.Color = plusPressed ? Color.Argb(200, 150, 150, 255) : Color.Argb(200, 100, 100, 100);
                 canvas.DrawRect(slotPlusRect, paint);
                 canvas.DrawText("+", slotPlusRect.CenterX(), slotPlusRect.CenterY() + 15, textPaint);
             }

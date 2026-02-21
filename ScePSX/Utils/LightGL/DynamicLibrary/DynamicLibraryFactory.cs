@@ -63,8 +63,7 @@ namespace LightGL.DynamicLibrary
                 if (method != nint.Zero)
                 {
                     field.SetValue(null, Marshal.GetDelegateForFunctionPointer(method, field.FieldType));
-                }
-                else
+                } else
                 {
                     Console.WriteLine($"GetProcAddress {name} Not Found {field.Name} : {method}");
                 }

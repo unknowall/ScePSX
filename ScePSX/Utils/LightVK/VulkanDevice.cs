@@ -14,7 +14,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -294,7 +293,7 @@ namespace LightVK
             {
                 Extensions.Add(vkStrings.VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
             }
-            if (OperatingSystem.IsLinux() || OsEnv== vkOsEnv.LINUX_XLIB)
+            if (OperatingSystem.IsLinux() || OsEnv == vkOsEnv.LINUX_XLIB)
             {
                 Extensions.Add(vkStrings.VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
             }

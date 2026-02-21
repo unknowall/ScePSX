@@ -64,8 +64,7 @@ namespace LightGL.Android
                 {
                     sharePtr = IntPtr.Zero;
                     becomeSharedRoot = true;
-                }
-                else
+                } else
                 {
                     sharePtr = _sharedContext;
                     _sharedRefCount++;
@@ -89,13 +88,11 @@ namespace LightGL.Android
                     {
                         _sharedContext = Context;
                         _sharedRefCount = 1;
-                    }
-                    else if (_sharedContext != IntPtr.Zero)
+                    } else if (_sharedContext != IntPtr.Zero)
                     {
                         _sharedRefCount++;
                     }
-                }
-                else
+                } else
                 {
                     if (Context == EGL.EGL_NO_CONTEXT)
                     {
@@ -118,7 +115,8 @@ namespace LightGL.Android
         {
             get
             {
-                if (!_createdSurface) return new GlContextSize { Width = 0, Height = 0 };
+                if (!_createdSurface)
+                    return new GlContextSize { Width = 0, Height = 0 };
                 int w = 0, h = 0;
                 EGL.eglQuerySurface(Display, Surface, EGL.EGL_WIDTH, &w);
                 EGL.eglQuerySurface(Display, Surface, EGL.EGL_HEIGHT, &h);
@@ -170,8 +168,7 @@ namespace LightGL.Android
                             EGL.eglDestroyContext(Display, Context);
                             _sharedContext = IntPtr.Zero;
                         }
-                    }
-                    else
+                    } else
                     {
                         EGL.eglDestroyContext(Display, Context);
                         if (_sharedContext != IntPtr.Zero && _sharedRefCount > 0)

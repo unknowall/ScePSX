@@ -69,7 +69,8 @@ namespace LightGL
         {
             Bind();
             GL.Clear((int)ClearBufferMask.ColorBufferBit | (int)ClearBufferMask.DepthBufferBit);
-            if (!isBind) Unbind();
+            if (!isBind)
+                Unbind();
             return this;
         }
 

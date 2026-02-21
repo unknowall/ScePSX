@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ScePSX.Core;
-
-#pragma warning disable SYSLIB0011
+using MessagePack;
+using MessagePack.Resolvers;
+using ScePSX.Core.GPU;
 
 namespace ScePSX
 {
@@ -313,11 +310,13 @@ namespace ScePSX
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
-            PsxBus = StateFromFile<BUS>(fn);
+            PsxBus = State.Load(fn);
             PsxBus.DeSerializable(this, GpuBackend);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
+
+            PGXPVector.Clear();
 
             GPU = PsxBus.gpu.Backend.GPU;
 
@@ -353,7 +352,7 @@ namespace ScePSX
             string fn = AppPath + "/SaveState/" + DiskID + "_Save" + Fix + ".dat";
 
             PsxBus.ReadySerializable();
-            StateToFile(PsxBus, fn);
+            State.Save(PsxBus, fn);
 
             //if (GpuBackend == GPUType.OpenGL)
             //{
@@ -363,35 +362,6 @@ namespace ScePSX
             Console.WriteLine("State SAVEED.");
 
             Pauseing = false;
-        }
-
-        private BUS StateFromFile<BUS>(string filePath)
-        {
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
-            using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                gzipStream.CopyTo(memoryStream);
-                memoryStream.Position = 0;
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Binder = new FastBinder();
-                return (BUS)formatter.Deserialize(memoryStream);
-            }
-        }
-
-        private void StateToFile<BUS>(BUS obj, string filePath)
-        {
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(memoryStream, obj);
-                using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
-                using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Compress))
-                {
-                    memoryStream.Position = 0;
-                    memoryStream.CopyTo(gzipStream);
-                }
-            }
         }
 
         private unsafe void ApplyCheats()
@@ -548,47 +518,41 @@ namespace ScePSX
         }
     }
 
-    //public static class SaveManager
-    //{
-    //    public static unsafe byte[] Compress(byte[] data)
-    //    {
-    //        var compressed = new byte[LZ4Codec.MaximumOutputSize(data.Length)];
-    //        int compressedLength = LZ4Codec.Encode(
-    //            new ReadOnlySpan<byte>(data),
-    //            compressed,
-    //            LZ4Level.L12_MAX);
-    //        Array.Resize(ref compressed, compressedLength);
-    //        return compressed;
-    //    }
+    public static class State
+    {
+        static State()
+        {
+            MessagePackSerializer.DefaultOptions = MessagePackSerializerOptions.Standard
+                .WithResolver(ContractlessStandardResolverAllowPrivate.Instance);
+        }
 
-    //    public static unsafe byte[] Decompress(byte[] compressedData)
-    //    {
-    //        int originalLength = BitConverter.ToInt32(compressedData, 0);
-    //        var decompressed = new byte[originalLength];
-    //        LZ4Codec.Decode(
-    //            new ReadOnlySpan<byte>(compressedData, 4, compressedData.Length - 4),
-    //            decompressed);
+        public static BUS Load(string filePath)
+        {
+            using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            using (var brotliStream = new BrotliStream(fileStream, CompressionMode.Decompress))
+            using (var memoryStream = new MemoryStream())
+            {
+                brotliStream.CopyTo(memoryStream);
 
-    //        return decompressed;
-    //    }
+                return MessagePackSerializer.Deserialize<BUS>(memoryStream.ToArray());
+            }
+        }
 
-    //    public static void SaveState(BUS bus, string path)
-    //    {
-    //        bus.ReadySerializable();
+        public static void Save(BUS obj, string filePath)
+        {
+            try
+            {
+                var bytes = MessagePackSerializer.Serialize(obj);
 
-    //        var bytes = MemoryPackSerializer.Serialize(bus);
-    //        File.WriteAllBytes(path, Compress(bytes));
-    //    }
-
-    //    public static BUS LoadState(string path, ICoreHandler host)
-    //    {
-    //        var compressed = File.ReadAllBytes(path);
-    //        var bytes = Decompress(compressed);
-    //        var bus = MemoryPackSerializer.Deserialize<BUS>(bytes);
-
-    //        bus.DeSerializable(host);
-    //        return bus;
-    //    }
-    //}
-
+                using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                using (var brotliStream = new BrotliStream(fileStream, CompressionMode.Compress))
+                {
+                    brotliStream.Write(bytes, 0, bytes.Length);
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+    }
 }

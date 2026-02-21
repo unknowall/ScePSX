@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+using MessagePack;
 using ScePSX.CdRom;
 
 namespace ScePSX
 {
-    [Serializable]
     public class BUS : IDisposable
     {
         //to Serializable
@@ -30,14 +29,14 @@ namespace ScePSX
         public CDROM cdrom;
         public TIMERS timers;
         public JoyBus joybus;
-        [NonSerialized]
+        [IgnoreMember]
         public MDEC mdec;
         public SPU spu;
         public Expansion exp2;
-        [NonSerialized]
+        [IgnoreMember]
         public Controller controller1, controller2;
-        public MemCard memoryCard, memoryCard2;
-        [NonSerialized]
+        public MemCard memoryCard1, memoryCard2;
+        [IgnoreMember]
         public SerialIO SIO;
 
         public string DiskID = "";
@@ -47,7 +46,7 @@ namespace ScePSX
         private delegate void Write16Handler(uint address, ushort value);
         private delegate void Write8Handler(uint address, byte value);
 
-        private class AddressRange
+        private struct AddressRange
         {
             public uint Start;
             public uint End;
@@ -57,25 +56,29 @@ namespace ScePSX
             public Write8Handler Write8;
         }
 
-        [NonSerialized]
+        [IgnoreMember]
         private List<AddressRange> _read32JumpTable;
-        [NonSerialized]
+        [IgnoreMember]
         private List<AddressRange> _write32JumpTable;
-        [NonSerialized]
+        [IgnoreMember]
         private List<AddressRange> _write16JumpTable;
-        [NonSerialized]
+        [IgnoreMember]
         private List<AddressRange> _write8JumpTable;
 
-        [NonSerialized]
+        [IgnoreMember]
         public unsafe byte* ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
-        [NonSerialized]
+        [IgnoreMember]
         private unsafe byte* scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
-        [NonSerialized]
+        [IgnoreMember]
         private unsafe byte* biosPtr = (byte*)Marshal.AllocHGlobal(512 * 1024);
-        [NonSerialized]
+        [IgnoreMember]
         private unsafe byte* memoryControl1 = (byte*)Marshal.AllocHGlobal(0x40);
-        [NonSerialized]
+        [IgnoreMember]
         private unsafe byte* memoryControl2 = (byte*)Marshal.AllocHGlobal(0x10);
+
+        public BUS()
+        {
+        }
 
         public BUS(ICoreHandler Host, string BiosFile, string RomFile, GPUType gputype, string diskid = "", string apppath = ".")
         {
@@ -110,9 +113,9 @@ namespace ScePSX
 
             controller1 = new Controller();
             controller2 = new Controller();
-            memoryCard = new MemCard(apppath + "/Save/" + DiskID + ".dat");
+            memoryCard1 = new MemCard(apppath + "/Save/" + DiskID + ".dat");
             memoryCard2 = new MemCard(apppath + "/Save/MemCard2.dat");
-            joybus = new JoyBus(controller1, controller2, memoryCard, memoryCard2);
+            joybus = new JoyBus(controller1, controller2, memoryCard1, memoryCard2);
 
             gpu = new GPU(Host, gputype);
 
@@ -170,11 +173,18 @@ namespace ScePSX
 
             InitializeJumpTables();
 
+            cddata.ReLoadFS();
+
+            cpu.bus = this;
+            dma.ReSet(this);
+
             controller1 = new Controller();
             controller2 = new Controller();
 
             joybus.controller1 = controller1;
             joybus.controller2 = controller2;
+            joybus.memoryCard1 = memoryCard1;
+            joybus.memoryCard2 = memoryCard2;
 
             mdec = new MDEC();
 
@@ -183,11 +193,15 @@ namespace ScePSX
             spu.host = Host;
             gpu.host = Host;
 
+            spu.CDDataControl = cddata;
+            spu.IrqController = IRQCTL;
+
+            cdrom.DATA = cddata;
+            cdrom.IRQCTL = IRQCTL;
+
             gpu.Backend = new GPUBackend();
             gpu.SelectGPU(gputype);
             gpu.DeSerialized();
-
-            cddata.ReLoadFS();
         }
 
         public unsafe void Dispose()
@@ -920,10 +934,8 @@ namespace ScePSX
 
     }
 
-    [Serializable]
     public class Expansion
     {
-
         public uint read(uint addr)
         {
             Console.WriteLine($"[BUS] Read Unsupported to EXP2 address: {addr:x8}");
@@ -967,7 +979,6 @@ namespace ScePSX
         PIO = 0x400
     }
 
-    [Serializable]
     public class IRQController
     {
         private uint ISTAT; //IF Trigger that needs to be ack

@@ -97,8 +97,7 @@ namespace LightGL.Mac
             {
                 windowHandle = CreateHiddenNSWindow(512, 512);
                 return new MacGLContext(windowHandle, true);
-            }
-            else
+            } else
             {
                 return new MacGLContext(windowHandle, false);
             }
@@ -128,8 +127,7 @@ namespace LightGL.Mac
 
                 IntPtr pixelFormat = objc_msgSend(clsPixelFormat, allocSel);
                 return objc_msgSend(pixelFormat, selInit, attrPtr);
-            }
-            finally
+            } finally
             {
                 handle.Free();
             }
@@ -166,8 +164,7 @@ namespace LightGL.Mac
                 objc_msgSend_void(window, selSetHidesOnDeactivate, (IntPtr)1);
 
                 return window;
-            }
-            finally
+            } finally
             {
                 Marshal.FreeHGlobal(rectPtr);
             }
@@ -217,8 +214,7 @@ namespace LightGL.Mac
                             _sharedContext = IntPtr.Zero;
                         }
                         releasedThisContext = true;
-                    }
-                    else
+                    } else
                     {
                         if (_sharedContext != IntPtr.Zero && _sharedRefCount > 0)
                         {
@@ -304,8 +300,7 @@ namespace LightGL.Mac
             try
             {
                 objc_msgSend(_glContext, selSetValues, valuesPtr, new IntPtr(param));
-            }
-            finally
+            } finally
             {
                 handle.Free();
             }

@@ -1,8 +1,8 @@
 ﻿using System;
+using MessagePack;
 
 namespace ScePSX
 {
-    [Serializable]
     public class JoyBus
     {
         private byte TX_DATA; //1F801040h JOY_TX_DATA(W)
@@ -40,7 +40,6 @@ namespace ScePSX
 
         private ushort BUS_BAUD;    //1F80104Eh JOY_BAUD(R/W) (usually 0088h, ie.circa 250kHz, when Factor = MUL1)
 
-        [Serializable]
         private enum ControllerDevice
         {
             None,
@@ -49,11 +48,16 @@ namespace ScePSX
         }
         ControllerDevice Device = ControllerDevice.None;
 
-        [NonSerialized]
+        [IgnoreMember]
         public Controller controller1, controller2;
-        MemCard memoryCard1, memoryCard2;
+        [IgnoreMember]
+        public MemCard memoryCard1, memoryCard2;
 
         int counter;
+
+        public JoyBus()
+        {
+        }
 
         public JoyBus(Controller controller1, Controller controller2, MemCard memoryCard1, MemCard memoryCard2)
         {

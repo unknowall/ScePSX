@@ -193,7 +193,7 @@ namespace ScePSX.UI
             if (Core == null || !Core.Running || Core.GPU.type == mode)
                 return;
 
-            ini.WriteInt("Main", "Render", (int)mode);
+            //ini.WriteInt("Main", "Render", (int)mode);
             //GPUType gpumode = (GPUType)ini.ReadInt("main", "GpuMode");
 
             GPUBackend.HWND = Render.NativeHandle;
@@ -303,7 +303,7 @@ namespace ScePSX.UI
 
             ini.Write("history", Core.DiskID, $"{RomFile}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 
-            ini.WriteInt("Main", "Render", (int)GpuType);
+            //ini.WriteInt("Main", "Render", (int)GpuType);
 
             SDLHanlder.SetAudioBuffer();
 

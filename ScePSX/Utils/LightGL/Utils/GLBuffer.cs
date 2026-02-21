@@ -46,8 +46,7 @@ namespace LightGL
                 {
                     GL.BufferData((int)target, (uint)(size * sizeof(T)), ptr, (int)usage);
                 }
-            }
-            else
+            } else
             {
                 GL.BufferData((int)target, (uint)(size * sizeof(T)), null, (int)usage);
             }
@@ -64,8 +63,7 @@ namespace LightGL
                     Length * Marshal.SizeOf(typeof(T)),
                     (byte*)Handle.AddrOfPinnedObject().ToPointer() + Offset * Marshal.SizeOf(typeof(T))
                 );
-            }
-            finally
+            } finally
             {
                 Handle.Free();
             }
@@ -79,8 +77,7 @@ namespace LightGL
             {
                 Marshal.StructureToPtr(Data, Ptr, false);
                 return SetData(size, Ptr.ToPointer());
-            }
-            finally
+            } finally
             {
                 Marshal.FreeHGlobal(Ptr);
             }

@@ -3,7 +3,6 @@ using System.IO;
 
 namespace ScePSX
 {
-    [Serializable]
     public class MemCard
     {
         //emulating a 3rd party one as it seems easier to and 0x3FF bad address than to handle the
@@ -32,7 +31,6 @@ namespace ScePSX
 
         private string memCardFilePath;
 
-        [Serializable]
         private enum Mode
         {
             Idle,
@@ -40,7 +38,6 @@ namespace ScePSX
         }
         Mode mode = Mode.Idle;
 
-        [Serializable]
         private enum TransferMode
         {
             Read,
@@ -49,6 +46,10 @@ namespace ScePSX
             Undefined
         }
         TransferMode transferMode = TransferMode.Undefined;
+
+        public MemCard()
+        {
+        }
 
         public MemCard(string memCardFile)
         {

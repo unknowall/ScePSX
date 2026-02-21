@@ -15,8 +15,7 @@
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Optimize>True</Optimize>
-	<DebugType>full</DebugType>
-	<NoWarn>1701;1702</NoWarn>
+	<NoWarn>1701;1702;8632;</NoWarn>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,7 +23,7 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Optimize>False</Optimize>
 	<DebugType>full</DebugType>
-	<NoWarn>1701;1702</NoWarn>
+	<NoWarn>1701;1702;8632;</NoWarn>
 </PropertyGroup>
 
 <ItemGroup>

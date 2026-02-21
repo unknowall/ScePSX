@@ -4,7 +4,6 @@ using System.Text;
 
 namespace ScePSX.Disassembler
 {
-    [Serializable]
     internal class MIPS_Disassembler
     {
         public MIPS_Disassembler(ref uint HI, ref uint LO, uint[] GPR, uint[] COP0_GPR)

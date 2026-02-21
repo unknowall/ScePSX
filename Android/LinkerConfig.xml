@@ -1,0 +1,18 @@
+<!-- LinkerConfig.xml -->
+<linker>
+  <assembly fullname="Core">
+    <namespace fullname="ScePSX" preserve="all" />
+    <type fullname="ScePSX.GPU" preserve="all" />
+    <type fullname="ScePSX.*" preserve="fields" />
+
+    <type fullname="ScePSX.CdRom.CdDisk" preserve="all" />
+    <type fullname="ScePSX.CdRom.CdDisk" preserve="fields" />
+    <type fullname="ScePSX.CdRom.CdDisk" preserve="methods" />
+    
+    <namespace fullname="ScePSX.CdRom" preserve="all" />
+    <type fullname="ScePSX.CdRom.CdDisk/*" preserve="all" />
+
+    <type fullname="MessagePack.Formatters.GenericEnumFormatter`1" preserve="all" />
+    <type fullname="MessagePack.Formatters.QueueFormatter`1" preserve="all" />
+  </assembly>
+</linker>

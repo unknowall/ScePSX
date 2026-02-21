@@ -1,23 +1,19 @@
 ﻿using System;
+using MessagePack;
 
 namespace ScePSX
 {
-    [Serializable]
-    public abstract class DMAChannel
-    {
-        public abstract void write(uint register, uint value);
-        public abstract uint read(uint register);
-    }
-
-    [Serializable]
     public class DMA
     {
+        public DmaChannels[] channels = new DmaChannels[7];
+        public InterruptChannel interrupt = new InterruptChannel();
 
-        DMAChannel[] channels = new DMAChannel[8];
+        public DMA()
+        {
+        }
 
         public DMA(BUS bus)
         {
-            var interrupt = new InterruptChannel();
             channels[0] = new DmaChannels(0, interrupt, bus);
             channels[1] = new DmaChannels(1, interrupt, bus);
             channels[2] = new DmaChannels(2, interrupt, bus);
@@ -25,7 +21,15 @@ namespace ScePSX
             channels[4] = new DmaChannels(4, interrupt, bus);
             channels[5] = new DmaChannels(5, interrupt, bus);
             channels[6] = new DmaChannels(6, interrupt, bus);
-            channels[7] = interrupt;
+        }
+
+        public void ReSet(BUS bus)
+        {
+            for (var i = 0; i < 7; i++)
+            {
+                channels[i].bus = bus;
+                channels[i].interrupt = interrupt;
+            }
         }
 
         public uint read(uint addr)
@@ -33,7 +37,10 @@ namespace ScePSX
             var channel = (addr & 0x70) >> 4;
             var register = addr & 0xF;
             //Console.WriteLine("DMA load " + channel + " " + register  + ":" + channels[channel].load(register).ToString("x8"));
-            return channels[channel].read(register);
+            if (channel == 7)
+                return interrupt.read(register);
+            else
+                return channels[channel].read(register);
         }
 
         public void write(uint addr, uint value)
@@ -41,24 +48,24 @@ namespace ScePSX
             var channel = (addr & 0x70) >> 4;
             var register = addr & 0xF;
             //Console.WriteLine("DMA write " + channel + " " + register + ":" + value.ToString("x8"));
-
-            channels[channel].write(register, value);
+            if (channel == 7)
+                interrupt.write(register, value);
+            else
+                channels[channel].write(register, value);
         }
 
         public bool tick()
         {
             for (var i = 0; i < 7; i++)
             {
-                ((DmaChannels)channels[i]).transferBlockIfPending();
+                channels[i].transferBlockIfPending();
             }
-            return ((InterruptChannel)channels[7]).tick();
+            return interrupt.tick();
         }
     }
 
-    [Serializable]
-    public sealed class DmaChannels : DMAChannel
+    public sealed class DmaChannels
     {
-
         private uint baseAddress;
         private uint blockSize;
         private uint blockCount;
@@ -75,11 +82,17 @@ namespace ScePSX
         private uint unknownBit29;
         private uint unknownBit30;
 
-        private BUS bus;
-        private InterruptChannel interrupt;
+        [IgnoreMember]
+        public BUS bus;
+        [IgnoreMember]
+        public InterruptChannel interrupt;
         private int channelNumber;
 
         private uint pendingBlocks;
+
+        public DmaChannels()
+        {
+        }
 
         public DmaChannels(int channelNumber, InterruptChannel interrupt, BUS bus)
         {
@@ -88,7 +101,7 @@ namespace ScePSX
             this.bus = bus;
         }
 
-        public override uint read(uint register)
+        public uint read(uint register)
         {
             switch (register)
             {
@@ -126,7 +139,7 @@ namespace ScePSX
             return channelControl;
         }
 
-        public override void write(uint register, uint value)
+        public void write(uint register, uint value)
         {
             switch (register)
             {
@@ -372,8 +385,7 @@ namespace ScePSX
 
     }
 
-    [Serializable]
-    public sealed class InterruptChannel : DMAChannel
+    public sealed class InterruptChannel
     {
         // 1F8010F0h DPCR - DMA Control register
         private uint control;
@@ -391,7 +403,7 @@ namespace ScePSX
             control = 0x07654321;
         }
 
-        public override uint read(uint register)
+        public uint read(uint register)
         {
             switch (register)
             {
@@ -420,7 +432,7 @@ namespace ScePSX
             return interruptRegister;
         }
 
-        public override void write(uint register, uint value)
+        public void write(uint register, uint value)
         {
             //Console.WriteLine("irqflag pre: " + irqFlag.ToString("x8"));
             switch (register)

@@ -27,7 +27,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX v0.1.9.1";
+        public static string version = "ScePSX v0.2.0.1";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -138,7 +138,6 @@ namespace ScePSX.UI
             KeyFirst = ini.ReadInt("main", "keyfirst") == 1;
             isAnalog = ini.ReadInt("main", "isAnalog") == 1;
 
-            //Translations.CurrentLangId = "de";
             Translations.DefaultLanguage = "en";
             Translations.Init();
             Translations.UpdateLang(this);
@@ -465,7 +464,7 @@ namespace ScePSX.UI
             {
                 StateSlot = (int)mnu.Tag - 40;
                 LoadState(StateSlot);
-
+                SetGpuParam();
                 return;
             }
         }
@@ -540,6 +539,33 @@ namespace ScePSX.UI
             romList.BringToFront();
 
             UpdateStatus(0, "", true);
+        }
+
+        private void SetGpuParam()
+        {
+            GPUBackend.HWND = NullRenderer.hwnd;
+            GPUBackend.HINST = NullRenderer.hinstance;
+            GPUBackend.ClientHeight = NullRenderer.ClientHeight;
+            GPUBackend.ClientWidth = NullRenderer.ClientWidth;
+
+            if (Rendermode == RenderMode.OpenGL && (Core.GPU.type == GPUType.OpenGL || Core.GPU.type == GPUType.Advite))
+            {
+                IRscale = IRscale < 1 ? 1 : IRscale;
+                (Core.GPU as OpenglGPU).IRScale = IRscale;
+                (Core.GPU as OpenglGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
+                (Core.GPU as OpenglGPU).PGXPT = PGXPT;
+                (Core.GPU as OpenglGPU).KEEPAR = KeepAR;
+                (Core.GPU as OpenglGPU).RealColor = Realcolor;
+            }
+            if (Rendermode == RenderMode.Vulkan && (Core.GPU.type == GPUType.Vulkan || Core.GPU.type == GPUType.Advite))
+            {
+                IRscale = IRscale < 1 ? 1 : IRscale;
+                (Core.GPU as VulkanGPU).IRScale = IRscale;
+                (Core.GPU as VulkanGPU).PGXP = PGXPVector.use_pgxp_highpos && PGXPVector.use_pgxp;
+                (Core.GPU as VulkanGPU).PGXPT = PGXPT;
+                (Core.GPU as VulkanGPU).KEEPAR = KeepAR;
+                (Core.GPU as VulkanGPU).RealColor = Realcolor;
+            }
         }
 
         private void SeleRender(RenderMode mode)
@@ -910,7 +936,7 @@ namespace ScePSX.UI
             {
                 Core.SaveState("~");
                 Core.LoadState(Slot.ToString());
-                SimpleOSD.Show(Render._currentRenderer as UserControl, $"LoadState [{Slot}]");
+                SimpleOSD.Show(Render._currentRenderer as UserControl, $"Load [{Slot}]");
             }
         }
 
@@ -972,6 +998,7 @@ namespace ScePSX.UI
             if (e.KeyCode == Keys.F6)
             {
                 LoadState(StateSlot);
+                SetGpuParam();
                 return;
             }
             if (e.KeyCode == Keys.F7)
