@@ -5,6 +5,7 @@
 <summary><h3> 🌐 English Version</h3></summary>
 
 ## Key Features 🎮
+- **Cross-platform**: Supports Windows, Linux, macOS and Android
 - **Save States**: Save and load game progress at any time.
 - **PGXP**: Supported by both software and hardware backends, with all adjustments taking effect instantly without requiring a restart.
 - **Multi-Renderer Support**: Dynamically switch between D2D, D3D, OpenGL, and Vulkan renderers to adapt to different hardware configurations.
@@ -14,7 +15,6 @@
 - **Cheat Support**: Enable cheat codes to unlock hidden content or adjust game difficulty.
 - **Online Multiplayer**: Supports networked gameplay to relive classic gaming experiences.
 - **Save Management**: Easily manage multiple save files.
-- **Cross-platform**: Supports Windows, Linux, macOS
 
 **Short demo video: [Bilibili](https://www.bilibili.com/video/BV1sUKCzcEWg)**
 
@@ -104,10 +104,12 @@ A: Because it requires extra memory to store:
 
 ### Q: Is cross-platform support available?
 A: Yes, the following platforms are supported:
+- **Android**: x64 / arm64-v8a<br>
+  📌 Supports Android 5.0+, recommended Android 9.0+<br>
 - **Windows**: x86 / x64 / arm  
   ⚠️ Note: The Avalonia UI version only supports the x64 architecture.  
   📌 The Avalonia UI version does not require the .NET runtime to be installed.
-- **Linux**: x64 / arm / arm64 / loongarch64  
+- **Linux**: x64 / arm / arm64 / riscv64 / loongarch64  
   📌 For Raspberry Pi Zero / Zero W (BCM2835), please choose the arm version.
 - **macOS**: x64 / arm64  
   ⚠️ Note: To enable the Vulkan rendering backend, MoltenVK must be installed in advance (using the Vulkan backend on macOS is not recommended).  
@@ -116,10 +118,13 @@ A: Yes, the following platforms are supported:
 - **📢 Additional note**: For broader platform support, compiling from source is recommended (refer to the various .bat files in the source code's AvaloniaUI directory).
 
 ## How to Build
-1. The project is built on the .NET 8.0 framework with no third-party dependencies.
-2. SDL declarations are included in the code. Place the SDL2 DLL in the build directory.
-3. If using a framework below .NET 8.0, modify the project file manually.
-4. Some core code is based on https://github.com/BluestormDNA/ProjectPSX.
+- The project is built on .NET 8.0 framework.
+- The core uses a modified version of MessagePack (ScePSX/Utils/MessagePack); do not install the NuGet package to compile Core.
+- AvaloniaUI and Android use the Avalonia UI framework, version 11.3.11.
+- Android requires a standard .NET MAUI development environment with Android SDK 33.
+- The SDL library is pre-compiled and located in SDLLib; the Android version does not use the SDL library.
+- If using a framework earlier than .NET 8.0, you can manually modify the project files.
+- Some code in Core is refactored based on https://github.com/BluestormDNA/ProjectPSX .
 
 ## How to Contribute 🤝
 We welcome contributions to ScePSX, including code submissions, issue reporting, or documentation improvements. Here’s how you can participate:
@@ -131,6 +136,7 @@ We welcome contributions to ScePSX, including code submissions, issue reporting,
 - **WinUI Lightweight Version (1.05 MB)**: Core features only, ideal for quick testing.
 - **WinUI Full Version (5.63 MB)**: Includes all features (e.g., ReShade integration).
 - **AvaloniaUI version (12–30 MB, depending on platform)**
+- **Android Version (21 MB)**: Includes arm64-v8a and x86_64 ABIs.
 - **GameDB Database**: Optional download for automatic game configuration recognition.
 - **ControllerDB Database**: Optional download for extended controller support.
 
@@ -141,6 +147,7 @@ ScePSX is an open-source project intended solely for learning and research purpo
 </details>
 
 ## 主要功能 🎮
+- **跨平台**: 支持 Windows, Linux, macOS, Android
 - **即时存档/读档**: 随时保存和加载游戏进度。
 - **PGXP**: 软件及硬件后端同样支持，各项调整即时生效，无需重启。
 - **多渲染器支持**: 动态切换 D2D、D3D、OpenGL、Vulkan 渲染器，适配不同硬件配置。
@@ -150,7 +157,6 @@ ScePSX is an open-source project intended solely for learning and research purpo
 - **金手指支持**: 开启作弊功能，解锁隐藏内容或调整游戏难度。
 - **网络对战**: 支持联机对战，重温经典游戏乐趣。
 - **存档管理**: 方便管理多个游戏存档。
-- **跨平台**: 支持 Windows, Linux, macOS
 
 **简短演示视频：[BiliBili链接](https://www.bilibili.com/video/BV1sUKCzcEWg )**
 
@@ -248,10 +254,12 @@ A: 因为它需要额外内存来存储：
 
 ### Q: 是否支持跨平台？
 A: 是的，支持以下各种平台
+- **Android**：x64 / arm64-v8a<br>
+  📌支持 Android 5.0+ , 建议 Android 9.0+<br>
 - **Windows**：x86 / x64 / arm<br>
   ⚠️ 注：Avalonia 界面版本仅支持 x64 架构<br>
   📌Avalonia 界面版本无需安装.NET 运行时<br>
-- **Linux**：x64 / arm / arm64 / loongarch64（龙芯）<br>
+- **Linux**：x64 / arm / arm64 / riscv64 / loongarch64（龙芯）<br>
   📌 树莓派 Zero / Zero W（BCM2835 芯片）请选择 arm 版本<br>
 - **macOS**：x64 / arm64<br>
   ⚠️ 注：若需启用 Vulkan 渲染后端，需提前安装 MoltenVK（不推荐在 macOS 环境下使用 Vulkan 后端）<br>
@@ -260,10 +268,13 @@ A: 是的，支持以下各种平台
 - **📢 补充说明：如需更多的平台支持，推荐从源码编译（参考源码 AvaloniaUI 目录下各个 .bat 文件）** <br>
 
 ## 如何编译
-1. 项目是.net 8.0 框架，无第三方依赖
-2. SDL 声明文件已经在代码中包含，把SDL2的DLL放到生成目录中即可
-3. 如果使用低于 .net 8.0 框架，可手动修改项目文件
-4. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX
+1. 项目是.net 8.0 框架
+2. 核心使用了修改后的 MessagePack (ScePSX/Utils/MessagePack), 不要安装nuget包来编译Core
+3. AvaloniaUi及Android使用 Avalonia UI框架, 版本 11.3.11
+4. Android 需标准 .NET MAUI 开发环境, Android SDK 33
+5. SDL库预编译位于 SDLLib， Android 版本不使用SDL库
+6. 如果使用低于 .net 8.0 框架，可手动修改项目文件
+7. Core的部分代码基于 https://github.com/BluestormDNA/ProjectPSX 重构
 
 ## 如何贡献 🤝
 欢迎为 ScePSX 提交代码、报告问题或改进文档！以下是参与方式：
@@ -280,6 +291,7 @@ A: 是的，支持以下各种平台
 - **WinUI轻量版 (1.05 MB)**: 仅包含核心功能，适合快速体验。
 - **WinUI完整版 (5.63 MB)**: 包含所有功能（如 ReShade 集成）。
 - **AvaloniaUI版 (视平台不同 12~30 MB)**
+- **Android版 (21 MB)**: 包含arm64-v8a以及x86_64 ABIs。
 - **GameDB 数据库**: 可选下载，自动识别和加载游戏配置。
 - **ControllerDB 数据库**: 可选下载，自动识别更多手柄外设。
 
