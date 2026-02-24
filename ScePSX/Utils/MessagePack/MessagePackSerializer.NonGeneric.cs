@@ -340,7 +340,7 @@ namespace MessagePack
             private static void ThrowRefStructNotSupported()
             {
                 // C# 8.0 is not supported call `ref struct` via reflection. (It is milestoned at .NET 6)
-                throw new NotSupportedException("MessagePackWriter/Reader overload is not supported in MessagePackSerializer.NonGenerics.");
+                throw new NotSupportedException("MessagePackWriter/ChdReader overload is not supported in MessagePackSerializer.NonGenerics.");
             }
 
             // null is generic type marker.

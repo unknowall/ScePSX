@@ -36,7 +36,7 @@ public class RenderHost : NativeControlHost
             GetDisplayFromCurrentWindow(this);
         } else
         {
-            VulkanDevice.OsEnv = VulkanDevice.vkOsEnv.WIN;
+            //VulkanDevice.OsEnv = VulkanDevice.vkOsEnv.WIN;
 
             hInstance = Marshal.GetHINSTANCE(Assembly.GetEntryAssembly().GetModules()[0]);
         }

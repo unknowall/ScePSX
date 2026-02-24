@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<translations>
+	<category id="menus">
+		<text id="MnuFile">
+			<translation lang="pt">Arquivo</translation>
+		</text>
+		<text id="LoadDIsk">
+			<translation lang="pt">Carregar Jogo</translation>
+		</text>
+		<text id="SwapDisk">
+			<translation lang="pt">Trocar Disco</translation>
+		</text>
+		<text id="CloseRomMnu">
+			<translation lang="pt">Fechar Jogo</translation>
+		</text>
+		<text id="SearchMnu">
+			<translation lang="pt">Procurar Jogos</translation>
+		</text>
+		<text id="SysSetMnu">
+			<translation lang="pt">Opções</translation>
+		</text>
+		<text id="KeyTool">
+			<translation lang="pt">Configurar Teclas</translation>
+		</text>
+		<text id="MnuSaveState">
+			<translation lang="pt">Salvar Estado (F5)</translation>
+		</text>
+		<text id="MnuLoadState">
+			<translation lang="pt">Carregar Estado (F6)</translation>
+		</text>
+		<text id="MnuUnloadState">
+			<translation lang="pt">Desfazer Carga de Estado</translation>
+		</text>
+		<text id="CheatCode">
+			<translation lang="pt">Trapaças</translation>
+		</text>
+		<text id="MemEditMnu">
+			<translation lang="pt">Editar Memória</translation>
+		</text>
+		<text id="FreeSpeed">
+			<translation lang="pt">Velocidade Máxima (TAB)</translation>
+		</text>
+		<text id="MnuPause">
+			<translation lang="pt">Pausar (Espaço)</translation>
+		</text>
+		<text id="MnuRender">
+			<translation lang="pt">Renderizador(&amp;R)</translation>
+		</text>
+		<text id="CutBlackLineMnu">
+			<translation lang="pt">Remover Bordas Letterbox (Pode afetar proporção)</translation>
+		</text>
+		<text id="frameskipmnu">
+			<translation lang="pt">Pular Quadros (Apenas D2D/D3D)</translation>
+		</text>
+		<text id="NetPlayMnu">
+			<translation lang="pt">Jogo em Rede(&amp;N)</translation>
+		</text>
+		<text id="NetPlaySetMnu">
+			<translation lang="pt">Configuração</translation>
+		</text>
+		<text id="AboutMnu">
+			<translation lang="pt">Sobre(&amp;A)</translation>
+		</text>
+		<text id="HelpMnu">
+			<translation lang="pt">Ajuda(&amp;H)</translation>
+		</text>
+		<text id="fullScreenF2">
+			<translation lang="pt">Tela Cheia (F2)</translation>
+		</text>
+		<text id="supportKoficomMnu">
+			<translation lang="pt">Apoie via Ko-Fi</translation>
+		</text>
+		<text id="supportWeChatMnu">
+			<translation lang="pt">Apoie via WeChat</translation>
+		</text>
+		<text id="MnuLang">
+			<translation lang="pt">Idioma(&amp;L)</translation>
+		</text>
+	</category>
+	<category id="radios">
+		<text id="rbfloat">
+			<translation lang="pt">Float</translation>
+		</text>
+		<text id="rbDword">
+			<translation lang="pt">DWORD</translation>
+		</text>
+		<text id="rbWord">
+			<translation lang="pt">WORD</translation>
+		</text>
+		<text id="rbbyte">
+			<translation lang="pt">Byte</translation>
+		</text>
+	</category>
+	<category id="labels">
+		<text id="labPGXP">
+			<translation lang="pt">As configurações se aplicam instantaneamente. Evitar para jogos 2D</translation>
+		</text>
+		<text id="labnethint">
+			<translation lang="pt">jogo em rede fechado</translation>
+		</text>
+		<text id="labClientIP">
+			<translation lang="pt">Como IP do Servidor</translation>
+		</text>
+		<text id="labHostIP">
+			<translation lang="pt">IP de Conexão</translation>
+		</text>
+		<text id="labFirst500">
+			<translation lang="pt">0 Resultados (apenas os primeiros 500 são exibidos)</translation>
+		</text>
+		<text id="labSearch">
+			<translation lang="pt">Pesquisar Valor</translation>
+		</text>
+		<text id="labPressKey">
+			<translation lang="pt">Pressione qualquer tecla | ESC para cancelar</translation>
+		</text>
+		<text id="labSoftScale">
+			<translation lang="pt">Escala SoftGPU</translation>
+		</text>
+		<text id="labCycleFix">
+			<translation lang="pt">Correção de Ciclo</translation>
+		</text>
+		<text id="labFrameLimit">
+			<translation lang="pt">Limite de Quadros</translation>
+		</text>
+		<text id="labFrameSkip">
+			<translation lang="pt">Pulo de Quadros D2D</translation>
+		</text>
+		<text id="labAudioBuff">
+			<translation lang="pt">Buffer de Áudio(ms)</translation>
+		</text>
+		<text id="labCpuTick">
+			<translation lang="pt">Tick CPU</translation>
+		</text>
+		<text id="labBusTick">
+			<translation lang="pt">Tick BUS</translation>
+		</text>
+		<text id="labSetHint">
+			<translation lang="pt">Ajuste apenas se experiente</translation>
+		</text>
+		<text id="labIRScale">
+			<translation lang="pt">Escala IR</translation>
+		</text>
+	</category>
+	<category id="groups">
+		<text id="gbst">
+			<translation lang="pt">Tipo de Valor</translation>
+		</text>
+	</category>
+	<category id="checks">
+		<text id="chkpgxp">
+			<translation lang="pt">Recursos PGXP (Recomendado para 3D)</translation>
+		</text>
+		<text id="chkpgxp_aff">
+			<translation lang="pt">Correção Afinada PGXP (Sem problemas na maioria dos casos)</translation>
+		</text>
+		<text id="chkpgxp_nc">
+			<translation lang="pt">Correção de Cor PGXP (Alguns jogos podem ter problemas de cor)</translation>
+		</text>
+		<text id="chkpgxp_memcap">
+			<translation lang="pt">Captura de Coordenadas PGXP (pode causar erros de textura)</translation>
+		</text>
+		<text id="chkpgxp_clip">
+			<translation lang="pt">Correção de Recorte PGXP (pode causar texturas faltando)</translation>
+		</text>
+		<text id="chkpgxp_highpos">
+			<translation lang="pt">Renderização de Alta Precisão PGXP (recomendado, baixo risco)</translation>
+		</text>
+		<text id="chkpgxp_ppc">
+			<translation lang="pt">Correção de Perspectiva PGXP (Pode causar anomalias de perspectiva em alguns jogos)</translation>
+		</text>
+		<text id="chkpgxp_avs">
+			<translation lang="pt">Profundidade Média PGXP (recomendado, problemas mínimos)</translation>
+		</text>
+		<text id="chkconsole">
+			<translation lang="pt">Console de Depuração</translation>
+		</text>
+		<text id="chkupd">
+			<translation lang="pt">Atualização Automática</translation>
+		</text>
+		<text id="chkkeepar">
+			<translation lang="pt">Manter 4:3</translation>
+		</text>
+		<text id="ChkFMV">
+			<translation lang="pt">FMV 24 Bits</translation>
+		</text>
+		<text id="chkpgxpt">
+			<translation lang="pt">Corrigir Triângulos</translation>
+		</text>
+		<text id="chkrealcolor">
+			<translation lang="pt">Cor Real</translation>
+		</text>
+	</category>
+	<category id="buttons">
+		<text id="btncli">
+			<translation lang="pt">Como Cliente</translation>
+		</text>
+		<text id="btnsrv">
+			<translation lang="pt">Como Servidor</translation>
+		</text>
+		<text id="BtnSave">
+			<translation lang="pt">Aplicar</translation>
+		</text>
+		<text id="btndel">
+			<translation lang="pt">Usar Configurações Globais</translation>
+		</text>
+		<text id="btnupd">
+			<translation lang="pt">Atualizar</translation>
+		</text>
+		<text id="btngo">
+			<translation lang="pt">Ir para Endereço</translation>
+		</text>
+		<text id="btns">
+			<translation lang="pt">Pesquisar</translation>
+		</text>
+		<text id="btnr">
+			<translation lang="pt">Redefinir</translation>
+		</text>
+		<text id="del1">
+			<translation lang="pt">Excluir Selecionado</translation>
+		</text>
+		<text id="del2">
+			<translation lang="pt">Excluir Selecionado</translation>
+		</text>
+		<text id="out1">
+			<translation lang="pt">Exportar</translation>
+		</text>
+		<text id="out2">
+			<translation lang="pt">Exportar</translation>
+		</text>
+		<text id="save1">
+			<translation lang="pt">Salvar Alterações</translation>
+		</text>
+		<text id="save2">
+			<translation lang="pt">Salvar Alterações</translation>
+		</text>
+		<text id="btnimport1">
+			<translation lang="pt">Importar</translation>
+		</text>
+		<text id="btnimport2">
+			<translation lang="pt">Importar</translation>
+		</text>
+		<text id="btnadd">
+			<translation lang="pt">Adicionar</translation>
+		</text>
+		<text id="btndel">
+			<translation lang="pt">Excluir</translation>
+		</text>
+		<text id="btnload">
+			<translation lang="pt">Carregar</translation>
+		</text>
+		<text id="btnimp">
+			<translation lang="pt">Importar</translation>
+		</text>
+		<text id="btnapply">
+			<translation lang="pt">Aplicar Trapaças</translation>
+		</text>
+		<text id="BtnSearchCheat">
+			<translation lang="pt">Baixar Trapaças Online</translation>
+		</text>
+	</category>
+	<category id="forms">
+		<text id="Form_Cheat">
+			<translation lang="pt">Códigos de Trapaça</translation>
+		</text>
+		<text id="Form_McrMange">
+			<translation lang="pt">Gerenciar Memory Card</translation>
+		</text>
+		<text id="FrmInput">
+			<translation lang="pt">Configurar Teclado</translation>
+		</text>
+		<text id="FrmAbout">
+			<translation lang="pt">Sobre...</translation>
+		</text>
+		<text id="Form_Mem">
+			<translation lang="pt">Editor de Memória</translation>
+		</text>
+		<text id="FrmNetPlay">
+			<translation lang="pt">Jogo em Rede</translation>
+		</text>
+		<text id="Form_Set">
+			<translation lang="pt">Configurações</translation>
+		</text>
+	</category>
+	<category id="texts">
+		<text id="cpuPerf">
+			<translation lang="pt">Modo de Desempenho</translation>
+		</text>
+		<text id="cpuNormal">
+			<translation lang="pt">Modo de Instrução Completa</translation>
+		</text>
+		<text id="Adaptive">
+			<translation lang="pt">Adaptativo</translation>
+		</text>
+		<text id="Form_Cheat_newitem">
+			<translation lang="pt">Novo Item, por favor altere o nome</translation>
+		</text>
+		<text id="ColAddress">
+			<translation lang="pt">Endereço</translation>
+		</text>
+		<text id="ColValue">
+			<translation lang="pt">Valor</translation>
+		</text>
+		<text id="recommend">
+			<translation lang="pt">(recomendado)</translation>
+		</text>
+		<text id="SaveSlot">
+			<translation lang="pt">Slot de Estado</translation>
+		</text>
+		<text id="KeyFirst">
+			<translation lang="pt">Teclado Primeiro</translation>
+		</text>
+		<text id="JoyFirst">
+			<translation lang="pt">Joystick Primeiro</translation>
+		</text>
+		<text id="Analog">
+			<translation lang="pt">Analógico</translation>
+		</text>
+		<text id="Digital">
+			<translation lang="pt">Digital</translation>
+		</text>
+		<text id="Pause">
+			<translation lang="pt">PAUSADO</translation>
+		</text>
+		<text id="FrmMain_SaveState_saved">
+			<translation lang="pt">Estado Salvo</translation>
+		</text>
+		<text id="FrmMain_LoadRom_nobios">
+			<translation lang="pt">Nenhum arquivo BIOS encontrado, não é possível executar</translation>
+		</text>
+		<text id="FrmMain_SwapDisc">
+			<translation lang="pt">Trocar Disco...</translation>
+		</text>
+		<text id="RomList_DrawInfoBoxes_last">
+			<translation lang="pt">Última Jogada</translation>
+		</text>
+		<text id="RomList_DrawInfoBoxes_statesave">
+			<translation lang="pt">Salvar Estado</translation>
+		</text>
+		<text id="RomList_DrawInfoBoxes_cheat">
+			<translation lang="pt">Trapaças</translation>
+		</text>
+		<text id="RomList_SearchDir_SubDir">
+			<translation lang="pt">Pesquisar nos subdiretórios?</translation>
+		</text>
+		<text id="RomList_RomList_mcr">
+			<translation lang="pt">Gerenciar Save</translation>
+		</text>
+		<text id="RomList_RomList_set">
+			<translation lang="pt">Alterar Configuração</translation>
+		</text>
+		<text id="RomList_RomList_edit">
+			<translation lang="pt">Editar Trapaças</translation>
+		</text>
+		<text id="RomList_RomList_geticon">
+			<translation lang="pt">Ícone dos dados salvos</translation>
+		</text>
+		<text id="RomList_RomList_seticon">
+			<translation lang="pt">Definir ícone</translation>
+		</text>
+		<text id="RomList_RomList_del">
+			<translation lang="pt">Excluir</translation>
+		</text>
+		<text id="FrmNetPlay_client">
+			<translation lang="pt">Modo Cliente Ativado</translation>
+		</text>
+		<text id="FrmNetPlay_host">
+			<translation lang="pt">Modo Servidor Ativado</translation>
+		</text>
+		<text id="Form_Mem_updateml_find">
+			<translation lang="pt">Encontrado</translation>
+		</text>
+		<text id="Form_Mem_updateml_result">
+			<translation lang="pt">endereços (apenas os primeiros 500 são exibidos)</translation>
+		</text>
+		<text id="SameName">
+			<translation lang="pt">Não é possível selecionar o mesmo arquivo. Por favor, escolha um arquivo diferente.</translation>
+		</text>
+		<text id="enoughSlot">
+			<translation lang="pt">Não é possível mover o save. Por favor, verifique se há espaço suficiente no cartão de memória de destino.</translation>
+		</text>
+		<text id="FrmAbout_memo1">
+			<translation lang="pt">Este é um emulador PS1 de código aberto licenciado sob a Licença MIT</translation>
+		</text>
+		<text id="FrmAbout_memo2">
+			<translation lang="pt">Código fonte disponível no GitHub:</translation>
+		</text>
+		<text id="gitHublink">
+			<translation lang="pt">https://github.com/unknowall/ScePSX</translation>
+		</text>
+		<text id="support_message">
+			<translation lang="pt">Se você quiser, pode me comprar um café!</translation>
+		</text>
+	</category>
+</translations>

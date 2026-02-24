@@ -211,10 +211,9 @@ namespace ScePSX
             Marshal.FreeHGlobal((nint)biosPtr);
             Marshal.FreeHGlobal((nint)memoryControl1);
             Marshal.FreeHGlobal((nint)memoryControl2);
-
             //Marshal.FreeHGlobal((nint)spu.ram);
-
             gpu.Backend.Dispose();
+            cddata.chdReader?.Dispose();
         }
 
         public unsafe bool LoadBios(string biosfile)

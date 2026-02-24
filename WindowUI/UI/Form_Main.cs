@@ -27,7 +27,7 @@ namespace ScePSX.UI
         [DllImport("kernel32.dll")]
         public static extern Boolean FreeConsole();
 
-        public static string version = "ScePSX v0.2.0.1";
+        public static string version = "ScePSX v0.2.1.1";
 
         private static string mypath = Application.StartupPath;
         public static IniFile ini = new IniFile(mypath + "ScePSX.ini");
@@ -140,7 +140,7 @@ namespace ScePSX.UI
 
             Translations.DefaultLanguage = "en";
             Translations.Init();
-            Translations.UpdateLang(this);
+            //Translations.UpdateLang(this);
 
             FrmInput.InitKeyMap();
             FrmInput.InitControllerMap();
@@ -167,7 +167,7 @@ namespace ScePSX.UI
             gpumnu = AddMenu("gpumode", $"GPU: {gputype.ToString()}", 88, MnuRender);
             gpumnu.Enabled = false;
 
-            openGLRender.Text = openGLRender.Text + Translations.GetText("recommend");
+            openGLRender.Text = "OpenGL" + Translations.GetText("recommend");
         }
 
         private void InitLangMenu()
@@ -194,7 +194,7 @@ namespace ScePSX.UI
                     Translations.UpdateLang(this);
                     Translations.UpdateLang(romList);
                     romList.FillByini();
-                    openGLRender.Text = openGLRender.Text + Translations.GetText("recommend");
+                    openGLRender.Text = "OpenGL" + Translations.GetText("recommend");
                 }
             }
         }
@@ -1098,7 +1098,7 @@ namespace ScePSX.UI
             {
                 OpenFileDialog FD = new OpenFileDialog();
                 FD.InitialDirectory = ini.Read("main", "LastPath");
-                FD.Filter = "Games|*.bin;*.iso;*.cue;*.img;*.exe";
+                FD.Filter = "Games|*.bin;*.iso;*.cue;*.img;*.chd;*.exe";
                 if (FD.ShowDialog() == DialogResult.Cancel)
                 {
                     return;
@@ -1268,7 +1268,7 @@ namespace ScePSX.UI
 
             OpenFileDialog FD = new OpenFileDialog();
             FD.InitialDirectory = ini.Read("main", "LastPath");
-            FD.Filter = "ISO|*.bin;*.iso;*.cue;*.img";
+            FD.Filter = "ISO|*.bin;*.iso;*.cue;*.img;*.chd";
             FD.ShowDialog();
             if (!File.Exists(FD.FileName))
                 return;

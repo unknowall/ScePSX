@@ -18,7 +18,7 @@ namespace ScePSX.UI;
 
 public partial class MainWindow : Window
 {
-    public static string version = "ScePSX v0.2.0.1";
+    public static string version = "ScePSX v0.2.1.1";
     private static string RootPath = AppContext.BaseDirectory;
 
     public PSXHandler PSX;

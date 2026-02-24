@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
@@ -13,7 +14,7 @@ namespace ScePSX.UI
 {
     public class Translations
     {
-        public static string LangFile = "./lang.xml";
+        public static string LangFile = "./lang/lang.xml";
 
         private static Dictionary<string, Dictionary<string, Dictionary<string, string>>> Dictionary;
 
@@ -45,40 +46,60 @@ namespace ScePSX.UI
             {
                 XmlDocument xmlDocument = new XmlDocument();
                 xmlDocument.Load(LangFile);
-                foreach (XmlNode xmlNode in xmlDocument.SelectNodes("/translations/category").Cast<XmlNode>())
-                {
-                    string value = xmlNode.Attributes["id"].Value;
-                    if (!Translations.Dictionary.ContainsKey(value))
-                    {
-                        Translations.Dictionary[value] = new Dictionary<string, Dictionary<string, string>>();
-                    }
-                    foreach (XmlNode xmlNode2 in xmlNode.SelectNodes("text").Cast<XmlNode>())
-                    {
-                        string value2 = xmlNode2.Attributes["id"].Value;
-                        if (!Translations.Dictionary[value].ContainsKey(value2))
-                        {
-                            Translations.Dictionary[value][value2] = new Dictionary<string, string>();
-                        }
-                        foreach (XmlNode xmlNode3 in xmlNode2.SelectNodes("translation").Cast<XmlNode>())
-                        {
-                            string value3 = xmlNode3.Attributes["lang"].Value;
-                            string innerText = xmlNode3.InnerText;
-                            if (Translations.DefaultLanguage == null)
-                            {
-                                Translations.DefaultLanguage = value3;
-                            }
-                            if (value3 != "xx")
-                            {
-                                Translations.AvailableLanguages.Add(value3);
-                            }
-                            Translations.Dictionary[value][value2][value3] = innerText;
-                        }
-                    }
-                }
+                LoadXml(xmlDocument);
                 LoadLang(xmlDocument);
+                SideLoad();
             } catch (Exception value4)
             {
                 Console.Error.WriteLine(value4);
+            }
+        }
+
+        private static void LoadXml(XmlDocument xmlDocument)
+        {
+            foreach (XmlNode xmlNode in xmlDocument.SelectNodes("/translations/category").Cast<XmlNode>())
+            {
+                string value = xmlNode.Attributes["id"].Value;
+                if (!Translations.Dictionary.ContainsKey(value))
+                {
+                    Translations.Dictionary[value] = new Dictionary<string, Dictionary<string, string>>();
+                }
+                foreach (XmlNode xmlNode2 in xmlNode.SelectNodes("text").Cast<XmlNode>())
+                {
+                    string value2 = xmlNode2.Attributes["id"].Value;
+                    if (!Translations.Dictionary[value].ContainsKey(value2))
+                    {
+                        Translations.Dictionary[value][value2] = new Dictionary<string, string>();
+                    }
+                    foreach (XmlNode xmlNode3 in xmlNode2.SelectNodes("translation").Cast<XmlNode>())
+                    {
+                        string value3 = xmlNode3.Attributes["lang"].Value;
+                        string innerText = xmlNode3.InnerText;
+                        if (Translations.DefaultLanguage == null)
+                        {
+                            Translations.DefaultLanguage = value3;
+                        }
+                        if (value3 != "xx")
+                        {
+                            Translations.AvailableLanguages.Add(value3);
+                        }
+                        Translations.Dictionary[value][value2][value3] = innerText;
+                    }
+                }
+            }
+        }
+
+        private static void SideLoad()
+        {
+            foreach (var langkey in Languages.Keys)
+            {
+                var langpath = Path.GetDirectoryName(LangFile) + $"/lang-{langkey}.xml";
+                if (!File.Exists(langpath))
+                    continue;
+
+                XmlDocument xmlDocument = new XmlDocument();
+                xmlDocument.Load(langpath);
+                LoadXml(xmlDocument);
             }
         }
 
