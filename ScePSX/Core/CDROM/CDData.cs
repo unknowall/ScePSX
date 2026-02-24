@@ -173,16 +173,18 @@ namespace ScePSX.CdRom
             }
         }
 
-        public void ReLoadFS()
+        public void ReLoadFS(string Rom)
         {
             if (Disk.Tracks == null)
                 return;
+            DiskPath = Rom;
             if (Disk.HasCHD)
             {
                 chdReader = new ChdReader();
                 chdReader.Open(DiskPath);
                 foreach (var track in Disk.Tracks)
                 {
+                    track.FilePath = DiskPath;
                     track.chdReader = chdReader;
                 }
                 SelectedTrack.chdReader = chdReader;
@@ -190,8 +192,10 @@ namespace ScePSX.CdRom
             {
                 foreach (CdTrack track in Disk.Tracks)
                 {
+                    track.FilePath = DiskPath;
                     track.LoadFs();
                 }
+                SelectedTrack.FilePath = DiskPath;
                 SelectedTrack.LoadFs();
             }
         }

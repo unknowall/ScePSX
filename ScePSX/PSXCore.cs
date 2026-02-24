@@ -33,6 +33,7 @@ namespace ScePSX
 
         public string AppPath = ".";
         public string DiskID = "";
+        public string RomFile;
         public bool Pauseing, Pauseed, Running, Boost;
         public bool GTE_PGXP = false;
 
@@ -69,6 +70,7 @@ namespace ScePSX
             _Audio = audio;
             _IRender = render;
             _IRumble = rumble;
+            this.RomFile = RomFile;
 
             GpuBackend = gputype;
 
@@ -311,7 +313,7 @@ namespace ScePSX
             GC.WaitForPendingFinalizers();
 
             PsxBus = State.Load(fn);
-            PsxBus.DeSerializable(this, GpuBackend);
+            PsxBus.DeSerializable(this, GpuBackend, RomFile);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();

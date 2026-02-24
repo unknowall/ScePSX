@@ -153,7 +153,7 @@ namespace ScePSX
             gpu.ReadySerialized();
         }
 
-        public unsafe void DeSerializable(ICoreHandler Host, GPUType gputype)
+        public unsafe void DeSerializable(ICoreHandler Host, GPUType gputype, string Rom)
         {
             ramPtr = (byte*)Marshal.AllocHGlobal(2048 * 1024);
             scrathpadPtr = (byte*)Marshal.AllocHGlobal(1024);
@@ -173,7 +173,7 @@ namespace ScePSX
 
             InitializeJumpTables();
 
-            cddata.ReLoadFS();
+            cddata.ReLoadFS(Rom);
 
             cpu.bus = this;
             dma.ReSet(this);
