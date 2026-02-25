@@ -140,7 +140,7 @@ namespace ScePSX.UI
 
             Translations.DefaultLanguage = "en";
             Translations.Init();
-            //Translations.UpdateLang(this);
+            Translations.UpdateLang(this);
 
             FrmInput.InitKeyMap();
             FrmInput.InitControllerMap();

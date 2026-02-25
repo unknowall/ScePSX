@@ -54,6 +54,7 @@ public static class AHelper
         string[] files = new[] {
                 "ScePSX.ini",
                 "lang.xml",
+                "lang-pt.xml",
                 "icon.png",
                 "gamedb.yaml",
                 "Shaders/draw.frag.spv",

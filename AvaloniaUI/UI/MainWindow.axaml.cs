@@ -374,7 +374,7 @@ public partial class MainWindow : Window
             {
             new FilePickerFileType("Games")
             {
-                Patterns = new[] { "*.bin", "*.iso", "*.cue", "*.img", "*.exe" }
+                Patterns = new[] { "*.bin", "*.iso", "*.chd", "*.cue", "*.img", "*.exe" }
             }
         },
             SuggestedStartLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(PSXHandler.ini.Read("main", "LastPath"))

@@ -12,8 +12,8 @@ namespace ScePSX
 {
     public partial class MainView : UserControl
     {
-        public const string Ver = "ScePSX v0.2.0.1";
-        public const string Version = "Version 0.2.0.1";
+        public const string Ver = "ScePSX v0.2.1.1";
+        public const string Version = "Version 0.2.1.1";
 
         GameActivityMange ActivityMange;
         PSXHandler PSX;

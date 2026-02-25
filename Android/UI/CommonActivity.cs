@@ -56,20 +56,5 @@ namespace ScePSX
                 ViewHost.Content = userControl;
             }
         }
-
-        public override void OnBackPressed()
-        {
-            base.OnBackPressed();
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-        }
-
-        protected override void OnResume()
-        {
-            base.OnResume();
-        }
     }
 }

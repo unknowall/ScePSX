@@ -1,0 +1,35 @@
+name: Build Core Project
+
+on:
+  push:
+    paths:
+      - 'ScePSX/**'
+  pull_request:
+    paths:
+      - 'ScePSX/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Build Core.csproj
+      run: dotnet build ScePSX/Core.csproj --configuration Release
+    
+    - name: Verify build output
+      run: |
+        if [ -d "ScePSX/bin" ]; then
+          echo "Build output directory exists"
+          ls -la ScePSX/bin/
+        else
+          echo "No build output directory found"
+          exit 1
+        fi

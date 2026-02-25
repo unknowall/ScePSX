@@ -30,11 +30,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         AHelper.OnActivityResult(requestCode, (int)resultCode, data);
     }
 
-    public override void OnBackPressed()
-    {
-        base.OnBackPressed();
-    }
-
     public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Android.Content.PM.Permission[] grantResults)
     {
         base.OnRequestPermissionsResult(requestCode, permissions, grantResults);

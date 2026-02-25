@@ -347,7 +347,7 @@ namespace ScePSX
 
                     if (f.Extension == ".cue")
                         continue;
-                    if (f.Extension != ".bin" && f.Extension != ".iso" && f.Extension != ".img")
+                    if (f.Extension != ".bin" && f.Extension != ".iso" && f.Extension != ".img" && f.Extension != ".chd")
                         continue;
                     if (f.Length < 1024 * 1024 * 50)
                         continue;
