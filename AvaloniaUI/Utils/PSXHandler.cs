@@ -296,10 +296,10 @@ namespace ScePSX.UI
             GPUBackend.ClientWidth = (int)Render.Bounds.Width;
             GPUBackend.IRScale = 3;
 
-            if (GameName == "")
-                GameName = Path.GetFileNameWithoutExtension(RomFile);
-
             Core = new PSXCore(this, this, this, RomFile, RootPath + "BIOS/" + ini.Read("main", "bios"), GpuType, ID);
+
+            //if (GameName == "")
+            //    GameName = Path.GetFileNameWithoutExtension(RomFile);
 
             ini.Write("history", Core.DiskID, $"{RomFile}|{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
 

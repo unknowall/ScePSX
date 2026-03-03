@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -463,6 +462,7 @@ public partial class MainWindow : Window
         SetViewVisible();
         await Task.Delay(16);
         PSX.SoftDrawView = SoftDrawView;
+        PSX.GameName = Path.GetFileNameWithoutExtension(File);
         PSX.LoadGame(File);
 
         InitStateMenu();

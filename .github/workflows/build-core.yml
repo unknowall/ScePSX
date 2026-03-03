@@ -26,9 +26,9 @@ jobs:
     
     - name: Verify build output
       run: |
-        if [ -d "ScePSX/bin" ]; then
+        if [ -d "ScePSX/bin/Release" ]; then
           echo "Build output directory exists"
-          ls -la ScePSX/bin/
+          ls -la ScePSX/bin/Release
         else
           echo "No build output directory found"
           exit 1
