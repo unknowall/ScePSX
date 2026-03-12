@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
-using System.Net.Sockets;
-using System.Net.Http;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using ScePSX;
 
 namespace Kaillera
 {
     // Protocol:
     // https://kaillerareborn.github.io/resources/kailleraprotocol.txt
-    public class Client : IDisposable
+    public class KailleraClient : IDisposable
     {
         public struct ServerInfo
         {
@@ -43,16 +44,15 @@ namespace Kaillera
             public byte Status; // 0=Waiting, 1=Playing, 2=Netsync
         }
 
-        //Server List
-        //http://www.kaillera.com/raw_server_list.php
-        //http://www.kaillera.com/raw_server_list2.php
-        private List<ServerInfo> Servers = new List<ServerInfo>();
+        // Server List
+        // http://www.kaillera.com/raw_server_list.php
+        // http://www.kaillera.com/raw_server_list2.php
+        public List<ServerInfo> Servers = new List<ServerInfo>();
 
-        private TcpClient Tcp;
-        private NetworkStream Stream;
-        private AsyncCallback DataReceivedHandler;
+        private UdpClient Udp;
+        private IPEndPoint remoteEndPoint;
 
-        private const string Version = "0.90";
+        private const string Version = "0.83";
         private string emulatorName = "ScePSX";
 
         public bool connected = false;
@@ -62,15 +62,15 @@ namespace Kaillera
         private ushort messageNumber = 0;
 
         private byte[] receiveBuffer = new byte[4096];
-        private MemoryStream receiveStream = new MemoryStream();
 
-        private List<UserInfo> serverUsers = new List<UserInfo>();
-        private List<GameInfo> serverGames = new List<GameInfo>();
+        public List<UserInfo> serverUsers = new List<UserInfo>();
+        public List<GameInfo> serverGames = new List<GameInfo>();
 
         private int currentGameId = -1;
         private int playerNumber = -1;
         private int totalPlayers = 0;
         private int frameDelay = 0;
+        private int CurSeqNum = 0;
 
         // (0x13 Game Cache)
         private byte[][] gameCache = new byte[256][];
@@ -91,30 +91,45 @@ namespace Kaillera
         public event Action<string> OnConnectionFailed;
         public event Action OnDisconnected;
 
-        public Client()
+        public KailleraClient()
         {
-            DataReceivedHandler = new AsyncCallback(OnDataReceived);
+
         }
 
         public void Dispose()
         {
             Disconnect();
-            Tcp?.Dispose();
-            Stream?.Dispose();
-            receiveStream?.Dispose();
         }
 
         #region ServerList
 
-        public async Task<bool> FetchServerList()
+        public async Task<int> PingAsync(string Address)
         {
             try
             {
-                Servers.Clear();
+                using (var ping = new System.Net.NetworkInformation.Ping())
+                {
+                    var reply = await ping.SendPingAsync(Address, 1000);
+                    return reply.Status == System.Net.NetworkInformation.IPStatus.Success
+                        ? (int)reply.RoundtripTime
+                        : -1;
+                }
+            } catch
+            {
+                return -1;
+            }
+        }
+
+        public async Task<bool> FetchServerList(string Url = "http://www.kaillera.com/raw_server_list.php", bool Clear = true)
+        {
+            try
+            {
+                if (Clear)
+                    Servers.Clear();
 
                 using (HttpClient client = new HttpClient())
                 {
-                    string listData = await client.GetStringAsync("http://www.kaillera.com/raw_server_list2.php");
+                    string listData = await client.GetStringAsync(Url);
 
                     string[] lines = listData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -127,8 +142,9 @@ namespace Kaillera
                         string dataLine = lines[i + 1].Trim();
 
                         //ipAddress:port;users/maxusers;gameCount;version;location
+                        //ipAddress:port;users/maxusers;gameCount;location
                         string[] parts = dataLine.Split(';');
-                        if (parts.Length >= 5)
+                        if (parts.Length >= 4)
                         {
                             ServerInfo info = new ServerInfo();
                             info.Name = name;
@@ -142,9 +158,16 @@ namespace Kaillera
                             info.MaxUsers = int.Parse(users[1]);
 
                             info.GameCount = int.Parse(parts[2]);
-                            info.Version = int.Parse(parts[3]);
-                            info.Location = parts[4];
 
+                            if (parts.Length >= 5)
+                            {
+                                info.Version = int.Parse(parts[3]);
+                                info.Location = parts[4];
+                            } else
+                            {
+                                info.Version = 0;
+                                info.Location = parts[3];
+                            }
                             Servers.Add(info);
                         }
                     }
@@ -168,21 +191,48 @@ namespace Kaillera
 
         public async Task<bool> Connect(string host, int port, string username, int connType = 3)
         {
+            if (connected)
+                Disconnect();
+
             try
             {
                 this.username = username;
                 this.connectionType = connType;
+                connected = false;
+                CurSeqNum = -1;
 
-                Tcp = new TcpClient();
-                await Tcp.ConnectAsync(host, port);
+                Udp = new UdpClient();
+                remoteEndPoint = new IPEndPoint(IPAddress.Parse(host), port);
+                Udp.Connect(remoteEndPoint);
 
-                Stream = Tcp.GetStream();
+                string hello = "HELLO" + Version + "\0";
+                byte[] helloData = Encoding.ASCII.GetBytes(hello);
+                await Udp.SendAsync(helloData, helloData.Length);
+
+                var ret = await Udp.ReceiveAsync();
+                string response = Encoding.ASCII.GetString(ret.Buffer).TrimEnd('\0');
+                if (!response.StartsWith("HELLOD00D"))
+                {
+                    OnConnectionFailed?.Invoke("Not Support Server");
+                    Disconnect();
+                    return false;
+                }
+                if (response.Length > 9)
+                {
+                    string portStr = response.Substring(9);
+                    if (int.TryParse(portStr, out int newPort))
+                    {
+                        var remoteAddr = remoteEndPoint.Address;
+                        Udp.Close();
+                        Udp = new UdpClient();
+                        remoteEndPoint = new IPEndPoint(IPAddress.Parse(host), newPort);
+                        Udp.Connect(remoteEndPoint);
+                    }
+                }
 
                 BeginReceive();
 
-                string hello = "HELLO"+Version;
-                byte[] helloData = Encoding.ASCII.GetBytes(hello);
-                await Stream.WriteAsync(helloData, 0, helloData.Length);
+                SendLogin(username);
 
                 return true;
             } catch (Exception ex)
@@ -200,14 +250,14 @@ namespace Kaillera
                 connected = false;
             }
 
-            Tcp?.Close();
+            Udp?.Dispose();
         }
 
         private void BeginReceive()
         {
             try
             {
-                Stream.BeginRead(receiveBuffer, 0, receiveBuffer.Length, DataReceivedHandler, null);
+                Udp.BeginReceive(OnDataReceived, null);
             } catch
             {
                 OnDisconnected?.Invoke();
@@ -218,329 +268,332 @@ namespace Kaillera
         {
             try
             {
-                int bytesRead = Stream.EndRead(ar);
-                if (bytesRead > 0)
+                IPEndPoint remoteEP = null;
+                byte[] data = Udp.EndReceive(ar, ref remoteEP);
+
+                if (data != null && data.Length > 0)
                 {
-                    receiveStream.Write(receiveBuffer, 0, bytesRead);
-                    ProcessIncomingData();
+                    ProcessIncomingData(data);
                 }
 
-                BeginReceive();
-            } catch
+                Udp.BeginReceive(OnDataReceived, null);
+            } catch(Exception ex)
             {
+                OnServerMessage?.Invoke(ex.Message);
                 OnDisconnected?.Invoke();
             }
         }
 
-        private void ProcessIncomingData()
+        private void ProcessIncomingData(byte[] data)
         {
-            receiveStream.Position = 0;
-            BinaryReader reader = new BinaryReader(receiveStream);
-
-            while (receiveStream.Length - receiveStream.Position >= 1)
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
             {
-                long startPos = receiveStream.Position;
-
-                byte messageCount = reader.ReadByte();
-
-                bool complete = true;
-
-                for (int i = 0; i < messageCount; i++)
+                while (ms.Position < ms.Length)
                 {
-                    // Check Head (2+2+1=5)
-                    if (receiveStream.Length - receiveStream.Position < 5)
-                    {
-                        complete = false;
+                    if (ms.Position + 1 > ms.Length)
                         break;
-                    }
+                    byte messageCount = reader.ReadByte();
 
-                    ushort msgNumber = reader.ReadUInt16(); // little endian
-                    ushort msgLength = reader.ReadUInt16(); // little endian
-                    byte msgType = reader.ReadByte();
-
-                    if (receiveStream.Length - receiveStream.Position < msgLength - 1) // -1 type
+                    for (int i = 0; i < messageCount; i++)
                     {
-                        complete = false;
-                        break;
+                        // Check Head (2+2+1=5)
+                        if (ms.Position + 5 > ms.Length)
+                            break;
+
+                        ushort msgNumber = reader.ReadUInt16(); // little endian
+                        ushort msgLength = reader.ReadUInt16(); // little endian
+                        if (msgNumber <= CurSeqNum)
+                        {
+                            ms.Position += msgLength;
+                            continue;
+                        }
+                        CurSeqNum = msgNumber;
+
+                        byte msgType = reader.ReadByte();
+
+                        if (ms.Position + (msgLength - 1) > ms.Length)
+                            break;
+
+                        byte[] msgData = reader.ReadBytes(msgLength - 1);
+
+                        ProcessMessage(msgType, msgData);
                     }
-
-                    byte[] msgData = reader.ReadBytes(msgLength - 1);
-
-                    ProcessMessage(msgType, msgData);
-                }
-
-                if (complete)
-                {
-                    byte[] remaining = reader.ReadBytes((int)(receiveStream.Length - receiveStream.Position));
-                    receiveStream.Dispose();
-                    receiveStream = new MemoryStream();
-                    receiveStream.Write(remaining, 0, remaining.Length);
-                } else
-                {
-                    receiveStream.Position = startPos;
-                    break;
                 }
             }
         }
 
         private void ProcessMessage(byte type, byte[] data)
         {
-            BinaryReader reader = new BinaryReader(new MemoryStream(data));
-
-            switch (type)
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
             {
-                case 0x01: // User Quit
-                    {
-                        string username = ReadString(reader);
-                        int userId = reader.ReadUInt16();
-                        string message = ReadString(reader);
-                        OnUserQuit?.Invoke(userId, username);
-                    }
-                    break;
+                switch (type)
+                {
+                    case 0x01: // User Quit
+                        {
+                            string username = ReadString(reader);
+                            int userId = reader.ReadUInt16();
+                            string message = ReadString(reader);
+                            OnUserQuit?.Invoke(userId, username);
+                        }
+                        break;
 
-                case 0x02: // User Joined
-                    {
-                        UserInfo user = new UserInfo();
-                        user.Username = ReadString(reader);
-                        user.UserId = reader.ReadUInt16();
-                        user.Ping = reader.ReadInt32();
-                        user.ConnectionType = reader.ReadByte();
-                        serverUsers.Add(user);
-                        OnUserJoined?.Invoke(user);
-                    }
-                    break;
-
-                case 0x04: // Server Status
-                    {
-                        ReadString(reader); // Empty string
-                        int userCount = reader.ReadInt32();
-                        int gameCount = reader.ReadInt32();
-
-                        serverUsers.Clear();
-                        for (int i = 0; i < userCount; i++)
+                    case 0x02: // User Joined
                         {
                             UserInfo user = new UserInfo();
                             user.Username = ReadString(reader);
+                            user.UserId = reader.ReadUInt16();
                             user.Ping = reader.ReadInt32();
                             user.ConnectionType = reader.ReadByte();
-                            user.UserId = reader.ReadUInt16();
-                            user.Status = reader.ReadByte();
                             serverUsers.Add(user);
+                            OnUserJoined?.Invoke(user);
                         }
+                        break;
 
-                        serverGames.Clear();
-                        for (int i = 0; i < gameCount; i++)
+                    case 0x04: // Server Status
                         {
-                            GameInfo game = new GameInfo();
-                            game.GameName = ReadString(reader);
-                            game.GameId = reader.ReadInt32();
-                            game.EmulatorName = ReadString(reader);
-                            game.Owner = ReadString(reader);
+                            ReadString(reader); // Empty string
+                            int userCount = reader.ReadInt32();
+                            int gameCount = reader.ReadInt32();
 
-                            string players = ReadString(reader);
-                            string[] playerParts = players.Split('/');
-                            game.PlayerCount = int.Parse(playerParts[0]);
-                            game.MaxPlayers = int.Parse(playerParts[1]);
+                            serverUsers.Clear();
+                            for (int i = 0; i < userCount; i++)
+                            {
+                                UserInfo user = new UserInfo();
+                                user.Username = ReadString(reader);
+                                user.Ping = reader.ReadInt32();
+                                user.ConnectionType = reader.ReadByte();
+                                user.UserId = reader.ReadUInt16();
+                                user.Status = reader.ReadByte();
+                                serverUsers.Add(user);
+                            }
 
-                            game.Status = reader.ReadByte();
+                            serverGames.Clear();
+                            for (int i = 0; i < gameCount; i++)
+                            {
+                                GameInfo game = new GameInfo();
+                                game.GameName = ReadString(reader);
+                                game.GameId = reader.ReadInt32();
+                                game.EmulatorName = ReadString(reader);
+                                game.Owner = ReadString(reader);
+
+                                string players = ReadString(reader);
+                                string[] playerParts = players.Split('/');
+                                game.PlayerCount = int.Parse(playerParts[0]);
+                                game.MaxPlayers = int.Parse(playerParts[1]);
+
+                                game.Status = reader.ReadByte();
+                                serverGames.Add(game);
+                            }
+
+                            connected = true;
+                            OnConnected?.Invoke();
+                        }
+                        break;
+
+                    case 0x05: // Server to KailleraClient ACK
+                        {
+                            ReadString(reader); // Empty
+                            reader.ReadInt32(); // 00
+                            reader.ReadInt32(); // 01
+                            reader.ReadInt32(); // 02
+                            reader.ReadInt32(); // 03
+
+                            // KailleraClient ACK
+                            SendClientAck();
+                        }
+                        break;
+
+                    case 0x07: // Global Chat
+                        {
+                            string username = ReadString(reader);
+                            string message = ReadString(reader);
+                            OnChatMessage?.Invoke(username, message);
+                        }
+                        break;
+
+                    case 0x08: // Game Chat
+                        {
+                            string username = ReadString(reader);
+                            string message = ReadString(reader);
+                            OnChatMessage?.Invoke(username, message);
+                        }
+                        break;
+
+                    case 0x0A: // Create Game Notification
+                        {
+                            string username = ReadString(reader);
+                            string gameName = ReadString(reader);
+                            string emuName = ReadString(reader);
+                            int gameId = reader.ReadInt32();
+
+                            GameInfo game = new GameInfo
+                            {
+                                GameName = gameName,
+                                GameId = gameId,
+                                EmulatorName = emuName,
+                                Owner = username,
+                                PlayerCount = 1,
+                                MaxPlayers = 2,
+                                Status = 0
+                            };
                             serverGames.Add(game);
+                            OnGameCreated?.Invoke(game);
                         }
-                    }
-                    break;
+                        break;
 
-                case 0x05: // Server to Client ACK
-                    {
-                        ReadString(reader); // Empty
-                        reader.ReadInt32(); // 00
-                        reader.ReadInt32(); // 01
-                        reader.ReadInt32(); // 02
-                        reader.ReadInt32(); // 03
-
-                        // Client ACK
-                        SendClientAck();
-                    }
-                    break;
-
-                case 0x07: // Global Chat
-                    {
-                        string username = ReadString(reader);
-                        string message = ReadString(reader);
-                        OnChatMessage?.Invoke(username, message);
-                    }
-                    break;
-
-                case 0x08: // Game Chat
-                    {
-                        string username = ReadString(reader);
-                        string message = ReadString(reader);
-                        OnChatMessage?.Invoke(username, message);
-                    }
-                    break;
-
-                case 0x0A: // Create Game Notification
-                    {
-                        string username = ReadString(reader);
-                        string gameName = ReadString(reader);
-                        string emuName = ReadString(reader);
-                        int gameId = reader.ReadInt32();
-
-                        GameInfo game = new GameInfo
+                    case 0x0B: // Quit Game Notification
                         {
-                            GameName = gameName,
-                            GameId = gameId,
-                            EmulatorName = emuName,
-                            Owner = username,
-                            PlayerCount = 1,
-                            MaxPlayers = 2,
-                            Status = 0
-                        };
-                        serverGames.Add(game);
-                        OnGameCreated?.Invoke(game);
-                    }
-                    break;
+                            string username = ReadString(reader);
+                            int userId = reader.ReadUInt16();
 
-                case 0x0B: // Quit Game Notification
-                    {
-                        string username = ReadString(reader);
-                        int userId = reader.ReadUInt16();
+                            serverUsers.RemoveAll(u => u.UserId == userId);
 
-                        serverUsers.RemoveAll(u => u.UserId == userId);
-
-                        if (userId == GetMyUserId())
-                        {
-                            currentGameId = -1;
+                            if (userId == GetMyUserId())
+                            {
+                                currentGameId = -1;
+                            }
                         }
-                    }
-                    break;
+                        break;
 
-                case 0x0C: // Join Game Notification
-                    {
-                        ReadString(reader); // Empty
-                        int gamePtr = reader.ReadInt32();
-                        string username = ReadString(reader);
-                        int ping = reader.ReadInt32();
-                        int userId = reader.ReadUInt16();
-                        int connType = reader.ReadByte();
-
-                        UserInfo user = new UserInfo
+                    case 0x0C: // Join Game Notification
                         {
-                            Username = username,
-                            UserId = userId,
-                            Ping = ping,
-                            ConnectionType = connType
-                        };
-                        serverUsers.Add(user);
+                            ReadString(reader); // Empty
+                            int gamePtr = reader.ReadInt32();
+                            string username = ReadString(reader);
+                            int ping = reader.ReadInt32();
+                            int userId = reader.ReadUInt16();
+                            int connType = reader.ReadByte();
 
-                        if (username == this.username)
-                        {
-                            currentGameId = gamePtr; // eg: SLUS-01234
-                        }
-                    }
-                    break;
-
-                case 0x0D: // Player Information
-                    {
-                        ReadString(reader); // Empty
-                        int count = reader.ReadInt32();
-
-                        serverUsers.Clear();
-                        for (int i = 0; i < count; i++)
-                        {
-                            UserInfo user = new UserInfo();
-                            user.Username = ReadString(reader);
-                            user.Ping = reader.ReadInt32();
-                            user.UserId = reader.ReadUInt16();
-                            user.ConnectionType = reader.ReadByte();
+                            UserInfo user = new UserInfo
+                            {
+                                Username = username,
+                                UserId = userId,
+                                Ping = ping,
+                                ConnectionType = connType
+                            };
                             serverUsers.Add(user);
+
+                            if (username == this.username)
+                            {
+                                currentGameId = gamePtr; // eg: SLUS-01234
+                            }
                         }
-                    }
-                    break;
+                        break;
 
-                case 0x0E: // Update Game Status
-                    {
-                        ReadString(reader); // Empty
-                        int gameId = reader.ReadInt32();
-                        byte status = reader.ReadByte();
-                        byte playerCount = reader.ReadByte();
-                        byte maxPlayers = reader.ReadByte();
-
-                        var game = serverGames.FirstOrDefault(g => g.GameId == gameId);
-                        if (game.GameId != 0)
+                    case 0x0D: // Player Information
                         {
-                            game.Status = status;
-                            game.PlayerCount = playerCount;
-                            game.MaxPlayers = maxPlayers;
-                            OnGameUpdated?.Invoke(game);
+                            ReadString(reader); // Empty
+                            int count = reader.ReadInt32();
+
+                            serverUsers.Clear();
+                            for (int i = 0; i < count; i++)
+                            {
+                                UserInfo user = new UserInfo();
+                                user.Username = ReadString(reader);
+                                user.Ping = reader.ReadInt32();
+                                user.UserId = reader.ReadUInt16();
+                                user.ConnectionType = reader.ReadByte();
+                                serverUsers.Add(user);
+                            }
                         }
-                    }
-                    break;
+                        break;
 
-                case 0x10: // Close Game
-                    {
-                        ReadString(reader); // Empty
-                        int gameId = reader.ReadInt32();
-                        serverGames.RemoveAll(g => g.GameId == gameId);
-                        OnGameClosed?.Invoke(gameId);
-                    }
-                    break;
+                    case 0x0E: // Update Game Status
+                        {
+                            ReadString(reader); // Empty
+                            int gameId = reader.ReadInt32();
+                            byte status = reader.ReadByte();
+                            byte playerCount = reader.ReadByte();
+                            byte maxPlayers = reader.ReadByte();
 
-                case 0x11: // Start Game Notification
-                    {
-                        ReadString(reader); // Empty
-                        frameDelay = reader.ReadUInt16();
-                        playerNumber = reader.ReadByte();
-                        totalPlayers = reader.ReadByte();
+                            var game = serverGames.FirstOrDefault(g => g.GameId == gameId);
+                            if (game.GameId != 0)
+                            {
+                                game.Status = status;
+                                game.PlayerCount = playerCount;
+                                game.MaxPlayers = maxPlayers;
+                                OnGameUpdated?.Invoke(game);
+                            }
+                        }
+                        break;
 
-                        OnGameStarted?.Invoke(currentGameId);
+                    case 0x10: // Close Game
+                        {
+                            ReadString(reader); // Empty
+                            int gameId = reader.ReadInt32();
+                            serverGames.RemoveAll(g => g.GameId == gameId);
+                            OnGameClosed?.Invoke(gameId);
+                        }
+                        break;
 
-                        // Ready to Play Signal
-                        SendReadyToPlay();
-                    }
-                    break;
+                    case 0x11: // Start Game Notification
+                        {
+                            ReadString(reader); // Empty
+                            frameDelay = reader.ReadUInt16();
+                            playerNumber = reader.ReadByte();
+                            totalPlayers = reader.ReadByte();
 
-                case 0x12: // Game Data Notify
-                    {
-                        ReadString(reader); // Empty
-                        ushort length = reader.ReadUInt16();
-                        byte[] gameData = reader.ReadBytes(length);
+                            OnGameStarted?.Invoke(currentGameId);
 
-                        TryCacheGameData(gameData);
+                            // Ready to Play Signal
+                            SendReadyToPlay();
+                        }
+                        break;
 
-                        OnGameData?.Invoke(gameData);
-                    }
-                    break;
+                    case 0x12: // Game Data Notify
+                        {
+                            ReadString(reader); // Empty
+                            ushort length = reader.ReadUInt16();
+                            byte[] gameData = reader.ReadBytes(length);
 
-                case 0x13: // Game Cache Notify
-                    {
-                        ReadString(reader); // Empty
-                        byte cachePos = reader.ReadByte();
+                            TryCacheGameData(gameData);
 
-                        OnGameCache?.Invoke(cachePos);
-                    }
-                    break;
+                            OnGameData?.Invoke(gameData);
+                        }
+                        break;
 
-                case 0x14: // Drop Game Notification
-                    {
-                        string username = ReadString(reader);
-                        byte playerNum = reader.ReadByte();
+                    case 0x13: // Game Cache Notify
+                        {
+                            ReadString(reader); // Empty
+                            byte cachePos = reader.ReadByte();
 
-                        OnUserDropped?.Invoke(playerNum, username);
-                    }
-                    break;
+                            OnGameCache?.Invoke(cachePos);
+                        }
+                        break;
 
-                case 0x15: // Ready to Play Signal Notification
-                    {
-                        ReadString(reader); // Empty
-                    }
-                    break;
+                    case 0x14: // Drop Game Notification
+                        {
+                            string username = ReadString(reader);
+                            byte playerNum = reader.ReadByte();
 
-                case 0x17: // Server Information Message
-                    {
-                        string server = ReadString(reader);
-                        string message = ReadString(reader);
-                        OnServerMessage?.Invoke(message);
-                    }
-                    break;
+                            OnUserDropped?.Invoke(playerNum, username);
+                        }
+                        break;
+
+                    case 0x15: // Ready to Play Signal Notification
+                        {
+                            ReadString(reader); // Empty
+                        }
+                        break;
+
+                    case 0x16: // Ping too High Message
+                        {
+                            string server = ReadString(reader);
+                            string message = ReadString(reader);
+                            OnServerMessage?.Invoke(message);
+                            Disconnect();
+                        }
+                        break;
+                    case 0x17: // Server Information Message
+                        {
+                            string server = ReadString(reader);
+                            string message = ReadString(reader);
+                            OnServerMessage?.Invoke(message);
+                        }
+                        break;
+                }
             }
         }
 
@@ -550,7 +603,7 @@ namespace Kaillera
 
         private void SendPacket(byte[][] messages)
         {
-            if (Stream == null || !Stream.CanWrite)
+            if (Udp == null)
                 return;
 
             using (MemoryStream ms = new MemoryStream())
@@ -564,7 +617,7 @@ namespace Kaillera
                 }
 
                 byte[] packet = ms.ToArray();
-                Stream.Write(packet, 0, packet.Length);
+                Udp.Send(packet, packet.Length);
             }
         }
 
@@ -901,6 +954,8 @@ namespace Kaillera
             {
                 bytes.Add(b);
             }
+            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //Encoding gbk = Encoding.GetEncoding("GBK");
             return Encoding.UTF8.GetString(bytes.ToArray());
         }
 

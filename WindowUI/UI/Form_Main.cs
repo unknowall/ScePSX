@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using ScePSX.Core.GPU;
 using ScePSX.Render;
+using ScePSX.Win.UI;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -13,12 +14,10 @@ using static ScePSX.Controller;
 
 namespace ScePSX.UI
 {
-    //如果您想深入了解本项目的代码实现，建议使用AI辅助阅读，例如GitHub Copilot、ChatGPT、doubao、DeepSeek、等
-    //推荐 https://deepwiki.com/unknowall/ScePSP
+    //这是项目早期对核心做快速验证的UI，写的相当混乱，建议从 AvaloniaUI 开始访问代码
 
-    // If you want to gain an in-depth understanding of the code implementation of this project,
-    // it is recommended to use AI-assisted reading tools such as GitHub Copilot, ChatGPT, Doubao, DeepSeek, etc.
-    // recommended: https://deepwiki.com/unknowall/ScePSP
+    // This is the UI used for rapid validation of the core functionality in the early stages of the project.
+    // The code is quite disorganized, so it is recommended to start accessing the codebase from AvaloniaUI.
 
     public partial class FrmMain : Form, IAudioHandler, IRenderHandler, IRumbleHandler
     {
@@ -910,7 +909,8 @@ namespace ScePSX.UI
 
         private void NetPlaySetMnu_Click(object sender, EventArgs e)
         {
-            ShowFrom(new FrmNetPlay());
+            //ShowFrom(new FrmNetPlay());
+            ShowFrom(new Form_Kaillera());
         }
 
         private void SysSetMnu_Click(object sender, EventArgs e)

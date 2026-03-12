@@ -89,7 +89,7 @@ namespace ScePSX
                 client = listener.EndAcceptTcpClient(result);
                 Stream = client.GetStream();
                 IPEndPoint remoteIpEndPoint = client.Client.RemoteEndPoint as IPEndPoint;
-                Console.WriteLine("[SIO1] Client Connected: " + remoteIpEndPoint?.Address + ":" + remoteIpEndPoint?.Port);
+                Console.WriteLine("[SIO1] KailleraClient Connected: " + remoteIpEndPoint?.Address + ":" + remoteIpEndPoint?.Port);
                 BeginReceiving();
             } catch (Exception e)
             {
