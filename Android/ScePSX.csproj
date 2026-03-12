@@ -6,7 +6,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationTitle>ScePSX</ApplicationTitle>
     <ApplicationId>com.unknowall.ScePSX</ApplicationId>
-    <ApplicationDisplayVersion>0.2.0.1</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>0.2.1.1</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -51,6 +51,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+     <!--android-x64;android-arm64;android-arm-->
     <RuntimeIdentifiers>android-x64;android-arm64;android-arm</RuntimeIdentifiers>
   </PropertyGroup>
 

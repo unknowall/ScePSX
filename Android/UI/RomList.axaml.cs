@@ -345,9 +345,11 @@ namespace ScePSX
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (f.Extension == ".cue")
+                    var ext = f.Extension.ToLower();
+
+                    if (ext == ".cue")
                         continue;
-                    if (f.Extension != ".bin" && f.Extension != ".iso" && f.Extension != ".img" && f.Extension != ".chd")
+                    if (ext != ".bin" && ext != ".iso" && ext != ".img" && ext != ".chd")
                         continue;
                     if (f.Length < 1024 * 1024 * 50)
                         continue;
