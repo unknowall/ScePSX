@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,6 +11,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using ScePSX.Core.DiscordRPC;
 using ScePSX.Core.GPU;
 
 namespace ScePSX.UI;
@@ -30,49 +31,51 @@ public partial class MainWindow : Window
     [DllImport("kernel32.dll")]
     public static extern Boolean AllocConsole();
 
-    public MainWindow()
-    {
-        InitializeComponent();
-
-        if (OperatingSystem.IsWindows())
+        public MainWindow()
         {
-            if (File.Exists("./opengl32.dll") && !File.Exists("./ReShader.dll"))
+            InitializeComponent();
+
+            if (OperatingSystem.IsWindows())
             {
-                File.Copy("./opengl32.dll", "./ReShader.dll");
+                if (File.Exists("./opengl32.dll") && !File.Exists("./ReShader.dll"))
+                {
+                    File.Copy("./opengl32.dll", "./ReShader.dll");
+                }
             }
+
+            RomList.OnDbClick += RomListSeelected;
+
+            PSX = new PSXHandler();
+
+            this.AddHandler(KeyDownEvent, MainWindow_KeyDown, RoutingStrategies.Tunnel);
+            this.AddHandler(KeyUpEvent, MainWindow_KeyUp, RoutingStrategies.Tunnel);
+
+            this.Closing += MainWindow_Closing;
+
+            CleanCheckSet(MnuRender, (int)PSX.GpuType - 1);
+
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += Timer_Elapsed;
+            timer.Start();
+
+            SetIcon.EnsureDesktopFile();
+
+            //Translations.CurrentLangId = "en";
+            Translations.DefaultLanguage = "en";
+            Translations.Init();
+            Translations.UpdateLang(this);
+
+            InitLangMenu();
+
+            if (!CheckMac())
+                VulkanMnu.IsVisible = false;
+
+            if (OperatingSystem.IsWindows())
+                ConsoleMnu.IsVisible = true;
+
+            RPCManager.Instance.Initialize();
         }
-
-        RomList.OnDbClick += RomListSeelected;
-
-        PSX = new PSXHandler();
-
-        this.AddHandler(KeyDownEvent, MainWindow_KeyDown, RoutingStrategies.Tunnel);
-        this.AddHandler(KeyUpEvent, MainWindow_KeyUp, RoutingStrategies.Tunnel);
-
-        this.Closing += MainWindow_Closing;
-
-        CleanCheckSet(MnuRender, (int)PSX.GpuType - 1);
-
-        timer = new DispatcherTimer();
-        timer.Interval = TimeSpan.FromSeconds(1);
-        timer.Tick += Timer_Elapsed;
-        timer.Start();
-
-        SetIcon.EnsureDesktopFile();
-
-        //Translations.CurrentLangId = "en";
-        Translations.DefaultLanguage = "en";
-        Translations.Init();
-        Translations.UpdateLang(this);
-
-        InitLangMenu();
-
-        if (!CheckMac())
-            VulkanMnu.IsVisible = false;
-
-        if (OperatingSystem.IsWindows())
-            ConsoleMnu.IsVisible = true;
-    }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
@@ -110,6 +113,9 @@ public partial class MainWindow : Window
     {
         string PosStr = $"{this.Position.X}|{this.Position.Y}|{(int)this.Width}|{(int)this.Height}";
         PSXHandler.ini.Write("Main", "FromPos", PosStr);
+
+        RPCManager.Instance.StopGame();
+        RPCManager.Instance.Dispose();
     }
 
     private void InitLangMenu()
@@ -449,6 +455,8 @@ public partial class MainWindow : Window
         PSX.GameName = info.Name;
         PSX.LoadGame(info.fullName, info.ID);
 
+        RPCManager.Instance.StartGame(info.Name, PSX.Core?.DiskID ?? "");
+
         InitStateMenu();
     }
 
@@ -464,6 +472,8 @@ public partial class MainWindow : Window
         PSX.SoftDrawView = SoftDrawView;
         PSX.GameName = Path.GetFileNameWithoutExtension(File);
         PSX.LoadGame(File);
+
+        RPCManager.Instance.StartGame(PSX.GameName, PSX.Core?.DiskID ?? "");
 
         InitStateMenu();
     }
@@ -482,6 +492,8 @@ public partial class MainWindow : Window
         PSX.Core.SwapDisk(File);
         PSX.Core.Pauseing = false;
 
+        RPCManager.Instance.StartGame(Path.GetFileNameWithoutExtension(File), PSX.Core.DiskID);
+
         CleanStatus();
         StatusLabel1.Text = $"{Translations.GetText("FrmMain_SwapDisc")} {PSX.Core.DiskID}";
         OSD.Show(StatusLabel1.Text);
@@ -491,6 +503,8 @@ public partial class MainWindow : Window
     private void CloseRomMnu_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         PSX.Stop();
+
+        RPCManager.Instance.StopGame();
 
         RomListView.FillByini();
 
@@ -520,9 +534,15 @@ public partial class MainWindow : Window
         if (PSX.isRun())
         {
             if (PSX.Core.Pauseed)
+            {
                 PSX.Resume();
+                RPCManager.Instance.SetPaused(false);
+            }
             else
+            {
                 PSX.Pause();
+                RPCManager.Instance.SetPaused(true);
+            }
         }
     }
 
