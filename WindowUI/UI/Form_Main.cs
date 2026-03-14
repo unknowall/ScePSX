@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
+using ScePSX.Core.DiscordRPC;
 using ScePSX.Core.GPU;
 using ScePSX.Render;
 using ScePSX.Win.UI;
@@ -167,6 +168,8 @@ namespace ScePSX.UI
             gpumnu.Enabled = false;
 
             openGLRender.Text = "OpenGL" + Translations.GetText("recommend");
+
+            RPCManager.Instance.Initialize();
         }
 
         private void InitLangMenu()
@@ -217,6 +220,9 @@ namespace ScePSX.UI
         {
             string PosStr = $"{this.Location.X}|{this.Location.Y}|{this.Size.Width}|{this.Size.Height}";
             ini.Write("Main", "FromPos", PosStr);
+
+            RPCManager.Instance.StopGame();
+            RPCManager.Instance.Dispose();
         }
 
         private void UpdateStatus(int index, string text, bool clean = false)
@@ -526,6 +532,8 @@ namespace ScePSX.UI
                 Core = null;
             }
 
+            RPCManager.Instance.StopGame();
+
             romList = new RomList();
             romList.Parent = this;
             romList.Dock = DockStyle.Fill;
@@ -800,7 +808,13 @@ namespace ScePSX.UI
         private void MnuPause_Click(object sender, EventArgs e)
         {
             if (Core != null && Core.Running)
+            {
                 Core.Pause();
+                if (Core.Pauseed)
+                    RPCManager.Instance.SetPaused(true);
+                else
+                    RPCManager.Instance.SetPaused(false);
+            }
         }
 
         private void UnLoadStripMenuItem_Click(object sender, EventArgs e)
@@ -1249,6 +1263,8 @@ namespace ScePSX.UI
 
             Core.PsxBus.controller1.IsAnalog = isAnalog;
 
+            RPCManager.Instance.StartGame(gamename, Core.DiskID);
+
             CheatCode.Enabled = true;
 
             if (sysini != null)
@@ -1287,6 +1303,8 @@ namespace ScePSX.UI
             Core.SwapDisk(FD.FileName);
 
             Core.Pauseing = false;
+
+            RPCManager.Instance.StartGame(Path.GetFileNameWithoutExtension(FD.FileName), Core.DiskID);
 
             UpdateStatus(1, $"{Translations.GetText("FrmMain_SwapDisc")} {Core.DiskID}", true);
             StatusDelay = 3;
