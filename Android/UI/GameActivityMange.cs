@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
+using ScePSX.Core.DiscordRPC;
 using static ScePSX.Controller;
 using static ScePSX.VirtualGamepadOverlay;
 
@@ -202,6 +203,7 @@ public class GameActivityMange
         if (PSX.isRun())
         {
             PSX.Stop();
+            RPCManager.Instance.StopGame();
         }
     }
 
