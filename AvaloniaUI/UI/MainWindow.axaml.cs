@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,7 +11,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using ScePSX.Core.DiscordRPC;
+using ScePSX.ThirdParty.DiscordRPC;
 using ScePSX.Core.GPU;
 
 namespace ScePSX.UI;
@@ -294,7 +294,8 @@ public partial class MainWindow : Window
         foreach (MenuItem child in Menu.Items.OfType<MenuItem>())
             child.IsChecked = false;
 
-        (Menu.Items[CheckIdx] as MenuItem).IsChecked = true;
+        if (CheckIdx >= 0 && CheckIdx < Menu.Items.Count)
+            (Menu.Items[CheckIdx] as MenuItem).IsChecked = true;
     }
 
     private void MainWindow_KeyUp(object? sender, KeyEventArgs e)

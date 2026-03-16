@@ -35,7 +35,21 @@
 </ItemGroup>
 
 <ItemGroup>
-  <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+  <None Include="..\LIBS\SDL2\win64\SDL2.dll" Link="SDL2.dll" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == ''">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Include="..\LIBS\SDL2\win64\SDL2.dll" Link="SDL2.dll" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Include="..\LIBS\SDL2\armhf\libSDL2.so" Link="libSDL2.so" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Include="..\LIBS\SDL2\amd64\libSDL2.so" Link="libSDL2.so" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == ''">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  <None Include="..\LIBS\SDL2\osx\libSDL2.dylib" Link="libSDL2.dylib" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'osx'">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
 </ItemGroup>
 
 </Project>

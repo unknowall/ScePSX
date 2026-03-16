@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using DiscordRPC;
 using DiscordRPC.Logging;
 
-namespace ScePSX.Core.DiscordRPC
+namespace ScePSX.ThirdParty.DiscordRPC
 {
     public class RPCManager : IDisposable
     {
@@ -21,7 +21,7 @@ namespace ScePSX.Core.DiscordRPC
         private Stopwatch _playTimeStopwatch;
         private string _platformName = "";
 
-        private const string APP_ID = "1342671514892259388";
+        private const string APP_ID = "1482446005763834111"; //test id, change in prod
 
         public void Initialize()
         {
@@ -54,6 +54,7 @@ namespace ScePSX.Core.DiscordRPC
                 _client.Initialize();
                 _playTimeStopwatch = new Stopwatch();
                 _initialized = true;
+                UpdatePresence();
                 Console.WriteLine("[DiscordRPC] Initialized successfully on {0}", _platformName);
             }
             catch (Exception ex)
@@ -73,7 +74,7 @@ namespace ScePSX.Core.DiscordRPC
             if (OperatingSystem.IsAndroid())
                 return "Android";
             if (OperatingSystem.IsIOS())
-                return "iOS";
+                return "iOS"; //i dont think this will be ever the case but just in case
 
             return RuntimeInformation.OSDescription;
         }
@@ -92,6 +93,7 @@ namespace ScePSX.Core.DiscordRPC
 
         public void SetPaused(bool paused)
         {
+            Console.WriteLine($"[DiscordRPC] SetPaused called: {paused}, initialized: {_initialized}, client: {_client != null}, diskId: '{_diskId}'");
             if (!_initialized || _client == null || string.IsNullOrEmpty(_diskId)) return;
 
             _isPaused = paused;
@@ -124,19 +126,26 @@ namespace ScePSX.Core.DiscordRPC
         {
             if (_client == null) return;
 
+            bool isIdle = string.IsNullOrEmpty(_gameName);
+            bool isInGame = !isIdle && !_isPaused;
+
             var presence = new RichPresence()
             {
-                Details = string.IsNullOrEmpty(_gameName) ? "ScePSX" : _gameName,
-                State = _isPaused ? $"Paused | {_platformName}" : $"{FormatPlayTime(_playTimeStopwatch.Elapsed)} | {_platformName}",
-                Timestamps = _isPaused ? new Timestamps() : new Timestamps(DateTime.UtcNow),
-                Assets = new Assets()
+                Details = isIdle ? "Menu" : _gameName,
+                State = _isPaused ? $"Paused | {_platformName}" : (isIdle ? $"Idle | {_platformName}" : $"{FormatPlayTime(_playTimeStopwatch.Elapsed)} | {_platformName}"),
+                Timestamps = isInGame ? new Timestamps(DateTime.UtcNow) : new Timestamps()
+            };
+
+            if (!isIdle)
+            {
+                presence.Assets = new Assets()
                 {
                     LargeImageKey = "logo",
                     LargeImageText = "PlayStation 1 Emulator",
                     SmallImageKey = _isPaused ? "paused" : "playing",
                     SmallImageText = _isPaused ? "Paused" : "In Game"
-                }
-            };
+                };
+            }
 
             if (!string.IsNullOrEmpty(_diskId))
             {

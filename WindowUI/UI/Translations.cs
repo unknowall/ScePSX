@@ -18,7 +18,7 @@ namespace ScePSX.UI
 
         private static SortedSet<string> _AvailableLanguages;
 
-        public static string DefaultLanguage = null;
+        public static string DefaultLanguage = "en";
 
         public static Dictionary<string, string> Languages = new Dictionary<string, string>();
 
@@ -246,15 +246,20 @@ namespace ScePSX.UI
             }
             catch (Exception)
             {
-                //Console.Error.WriteLine("Can't find key '{0}.{1}.{2}'", CategoryId, TextId, LangId);
-                //Console.Error.WriteLine(value);
                 try
                 {
-                    result = dictionary[Translations.DefaultLanguage];
+                    if (dictionary != null)
+                    {
+                        result = dictionary[Translations.DefaultLanguage];
+                    }
+                    else
+                    {
+                        result = null;
+                    }
                 }
                 catch
                 {
-                    result = null;//string.Format("{0}.{1}", CategoryId, TextId);
+                    result = null;
                 }
             }
             return result;

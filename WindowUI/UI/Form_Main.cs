@@ -1,5 +1,5 @@
 using Microsoft.Win32;
-using ScePSX.Core.DiscordRPC;
+using ScePSX.ThirdParty.DiscordRPC;
 using ScePSX.Core.GPU;
 using ScePSX.Render;
 using ScePSX.Win.UI;
@@ -809,11 +809,10 @@ namespace ScePSX.UI
         {
             if (Core != null && Core.Running)
             {
+                bool wasPaused = Core.Pauseed;
                 Core.Pause();
-                if (Core.Pauseed)
-                    RPCManager.Instance.SetPaused(true);
-                else
-                    RPCManager.Instance.SetPaused(false);
+                while (Core.Pauseed == wasPaused) { }
+                RPCManager.Instance.SetPaused(Core.Pauseed);
             }
         }
 
@@ -970,7 +969,10 @@ namespace ScePSX.UI
                 {
                     if (Core.Pauseed)
                         SimpleOSD.Close();
+                    bool wasPaused = Core.Pauseed;
                     Core.Pause();
+                    while (Core.Pauseed == wasPaused) { }
+                    RPCManager.Instance.SetPaused(Core.Pauseed);
                 }
                 return;
             }
