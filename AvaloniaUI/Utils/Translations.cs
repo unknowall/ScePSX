@@ -20,7 +20,7 @@ namespace ScePSX.UI
 
         private static SortedSet<string> _AvailableLanguages;
 
-        public static string DefaultLanguage = "";
+        public static string DefaultLanguage = "en";
 
         public static Dictionary<string, string> Languages = new Dictionary<string, string>();
 
