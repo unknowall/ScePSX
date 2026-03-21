@@ -1087,7 +1087,7 @@ namespace ScePSX.UI
                 Core.Button(button1, false, 1);
         }
 
-        private void applypgxp()
+        public void applypgxp()
         {
             PGXPVector.use_pgxp = ini.ReadInt("PGXP", "base") == 1;
             PGXPVector.use_pgxp_aff = ini.ReadInt("PGXP", "aff") == 1;
