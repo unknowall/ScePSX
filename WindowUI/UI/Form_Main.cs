@@ -169,7 +169,7 @@ namespace ScePSX.UI
 
             openGLRender.Text = "OpenGL" + Translations.GetText("recommend");
 
-            RPCManager.Instance.Initialize();
+            //RPCManager.Instance.Initialize();
         }
 
         private void InitLangMenu()
