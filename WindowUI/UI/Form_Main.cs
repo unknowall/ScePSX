@@ -139,7 +139,7 @@ namespace ScePSX.UI
 
             Translations.DefaultLanguage = "en";
             Translations.Init();
-            Translations.UpdateLang(this);
+            //Translations.UpdateLang(this);
 
             FrmInput.InitKeyMap();
             FrmInput.InitControllerMap();
@@ -909,8 +909,8 @@ namespace ScePSX.UI
 
         private void NetPlaySetMnu_Click(object sender, EventArgs e)
         {
-            //ShowFrom(new FrmNetPlay());
-            ShowFrom(new Form_Kaillera());
+            ShowFrom(new FrmNetPlay());
+            //ShowFrom(new Form_Kaillera());
         }
 
         private void SysSetMnu_Click(object sender, EventArgs e)
