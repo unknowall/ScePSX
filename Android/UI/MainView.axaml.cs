@@ -1,7 +1,8 @@
-﻿using System.IO;
+using System.IO;
 using Android.Content;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using ScePSX.Core.DiscordRPC;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8604
@@ -16,7 +17,7 @@ namespace ScePSX
         public const string Version = "Version 0.2.1.1";
 
         GameActivityMange ActivityMange;
-        PSXHandler PSX;
+        public PSXHandler PSX;
 
         public MainView()
         {
@@ -50,6 +51,8 @@ namespace ScePSX
             ActivityMange = new GameActivityMange();
 
             PSX = ActivityMange.PSX;
+
+            RPCManager.Instance.Initialize();
         }
 
         protected override void OnLoaded(RoutedEventArgs e)
@@ -140,6 +143,14 @@ namespace ScePSX
 
             //var Bios = AHelper.DownloadPath + "/SCPH1001.BIN";
             PSX.LoadGame(file, Bios, id);
+
+            var gameName = PSX.GameName;
+            if (string.IsNullOrEmpty(gameName))
+            {
+                var fileInfo = new FileInfo(file);
+                gameName = Path.GetFileNameWithoutExtension(fileInfo.Name);
+            }
+            RPCManager.Instance.StartGame(gameName, PSX.Core?.DiskID ?? "");
 
             RomListView.FillByini();
         }

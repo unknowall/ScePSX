@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "ScePSX\Core.csproj"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScePSX", "AvaloniaUI\ScePSX.csproj", "{A284CBA8-2FF5-4A73-9374-84F0F836E811}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3rdParty", "3rdParty\3rdParty.csproj", "{50665EE0-4C90-6705-A0AA-47709E31B14E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A284CBA8-2FF5-4A73-9374-84F0F836E811}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50665EE0-4C90-6705-A0AA-47709E31B14E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50665EE0-4C90-6705-A0AA-47709E31B14E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50665EE0-4C90-6705-A0AA-47709E31B14E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50665EE0-4C90-6705-A0AA-47709E31B14E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

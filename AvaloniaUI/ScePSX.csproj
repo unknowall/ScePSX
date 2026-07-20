@@ -39,6 +39,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\3rdParty\3rdParty.csproj" />
     <ProjectReference Include="..\ScePSX\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="lang\lang-pt.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="lang\lang.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

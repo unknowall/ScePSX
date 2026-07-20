@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using Android.App;
 using Android.Content;
@@ -8,6 +8,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using ScePSX.Core.DiscordRPC;
 
 #pragma warning disable CS8602
 #pragma warning disable CS8618
@@ -74,6 +75,16 @@ namespace ScePSX
         {
             base.OnResume();
             SetFullScreen();
+        }
+
+        protected override void OnPause()
+        {
+            base.OnPause();
+            if (AHelper.MainView != null && AHelper.MainView.PSX != null && AHelper.MainView.PSX.isRun())
+            {
+                AHelper.MainView.PSX.Pause();
+                RPCManager.Instance.SetPaused(true);
+            }
         }
 
         protected override void OnDestroy()
