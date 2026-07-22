@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows.Forms;
 
@@ -90,6 +90,8 @@ namespace ScePSX.UI
             }
 
             applypgxp();
+            FrmMain.applypgxp();
+            this.Close();
         }
 
         private void btndel_Click(object sender, EventArgs e)
